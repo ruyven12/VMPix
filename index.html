@@ -105,6 +105,7 @@
 
     /* ===== Pip-Boy style (Fallout terminal vibe) ===== */
     .body1.pipboy {
+      display: inline-block;
       --pip-fg: rgba(145, 255, 145, 0.95);
       --pip-glow: rgba(80, 255, 120, 0.65);
       --pip-bg: rgba(0, 0, 0, 0.55);
@@ -330,12 +331,13 @@
 
       <section class="body1 pipboy" aria-live="polite">
         <pre class="pipboyScreen" aria-label="Terminal output">
+<span class="pipboyLine" data-line="> Waking up the machine - need caffeine..."></span>
+<span class="pipboyLine" data-line="> ..."></span>
+<span class="pipboyLine" data-line="> ..."></span>
 <span class="pipboyLine" data-line="> STATUS: Online"></span>
 <span class="pipboyLine" data-line=""></span>
 <span class="pipboyLine" data-line="Welcome to the landing page for Voodoo Media! This site is home to the photographical journey that I have had in my lifetime, ranging from all types of photos taken."></span>
-<span class="pipboyLine" data-line="This site also works in conjunction with my Smugmug official site. If you wish to go to that version/UI, click the button below."></span>
-<span class="pipboyLine" data-line="There will be more added as time goes on - bear with me as I code all of this in."></span>
-<span class="pipboyLine" data-line="-VM 12/30/25"></span>
+<span class="pipboyLine" data-line="This site also works in conjunction with my Smugmug official site. If you wish to go to that version/UI, click the button below:"></span>
         </pre>
         <span class="pipboyCaret" aria-hidden="true">▮</span>
       </section>
@@ -538,9 +540,9 @@
 
       // medium-fast (stable)
       var startDelayMs = 250;
-      var baseCharDelayMs = 12;
-      var jitterMs = 8;
-      var lineDelayMs = 90;
+      var baseCharDelayMs = 22;
+      var jitterMs = 14;
+      var lineDelayMs = 140;
       var glitchChance = 0.035;
       var glitchHoldMs = 42;
 
