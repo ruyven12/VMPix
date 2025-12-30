@@ -49,28 +49,19 @@
       padding: 14px 18px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 12px;
       z-index: 5;
     }
 
-    .brandLink {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      cursor: pointer;
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-
-    .brandImg {
-      height: 75px;
-      width: auto;
-      display: block;
-    }
-
-    /* (Nav removed for now) */
 
     .navlink {
+
       text-decoration: none;
       color: var(--fg);
       border: 1px solid var(--border);
@@ -165,13 +156,18 @@
 
     <section id="view-home" class="view">
       <header>
-        <a class="brandLink" href="https://vmpix.onrender.com/#/home" aria-label="Go to Voodoo Media Home">
+        <div class="brand">
           <img
-            class="brandImg"
             src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
             alt="Voodoo Media Hub"
+            style="height:75px; width:auto; display:block;"
           />
-        </a>
+        </div>
+        <nav>
+          <a class="navlink" href="#/home" data-route="#/home">Home</a>
+          <a class="navlink" href="#/music" data-route="#/music">Music</a>
+          <a class="navlink" href="#/wrestling" data-route="#/wrestling">Wrestling</a>
+        </nav>
       </header>
 
       <main>
