@@ -357,12 +357,18 @@
 
   <script>
     // ===== Matrix intro =====
-    function startMatrixIntro({ durationMs = 1000, fadeMs = 900, rainFadeInMs = 350, onDone } = {}) {
-      const mask = document.getElementById("matrixMask");
-      const rain = document.getElementById("matrixRain");
+    function startMatrixIntro(opts) {
+      opts = opts || {};
+      var durationMs = opts.durationMs ?? 1000;
+      var fadeMs = opts.fadeMs ?? 900;
+      var rainFadeInMs = opts.rainFadeInMs ?? 350;
+      var onDone = opts.onDone;
+
+      var mask = document.getElementById("matrixMask");
+      var rain = document.getElementById("matrixRain");
       if (!mask || !rain) return;
 
-      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduceMotion) {
         mask.classList.add("off");
         rain.classList.add("off");
@@ -375,21 +381,21 @@
       rain.classList.remove("off", "hide");
 
       mask.style.transitionDuration = "0ms";
-      rain.style.transitionDuration = rainFadeInMs + "ms";
+      rain.style.transitionDuration = String(rainFadeInMs) + "ms";
 
       mask.classList.add("on");
-      requestAnimationFrame(() => rain.classList.add("on"));
+      requestAnimationFrame(function () { rain.classList.add("on"); });
 
-      const mctx = mask.getContext("2d");
-      const rctx = rain.getContext("2d");
+      var mctx = mask.getContext("2d");
+      var rctx = rain.getContext("2d");
 
-      let w = 0, h = 0;
-      const fontSize = 11; // smaller font = more columns
-      let columns = 0;
-      let drops = [];
-      let rafId = 0;
+      var w = 0, h = 0;
+      var fontSize = 11; // smaller font = more columns
+      var columns = 0;
+      var drops = [];
+      var rafId = 0;
 
-      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      var chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
       function setupCanvas(c, dpr) {
         c.width = Math.floor(w * dpr);
@@ -399,7 +405,7 @@
       }
 
       function resize() {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        var dpr = Math.max(1, window.devicePixelRatio || 1);
         w = Math.floor(window.innerWidth);
         h = Math.floor(window.innerHeight);
 
@@ -410,7 +416,9 @@
         rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         columns = Math.ceil(w / fontSize);
-        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
+        drops = Array.from({ length: columns }, function () {
+          return Math.floor(Math.random() * (h / fontSize));
+        });
 
         // Start fully black (covers the site). We'll punch holes as code falls.
         mctx.globalCompositeOperation = "source-over";
@@ -428,7 +436,7 @@
         rctx.fillRect(0, 0, w, h);
 
         rctx.globalCompositeOperation = "source-over";
-        rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+        rctx.font = String(fontSize) + "px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
         // Brighter red + a little glow
         rctx.shadowColor = "rgba(255, 0, 0, 0.85)";
         rctx.shadowBlur = 14;
@@ -437,27 +445,23 @@
         // Mask layer: erase thin reveal where streams pass
         mctx.globalCompositeOperation = "destination-out";
 
-        for (let i = 0; i < drops.length; i++) {
-          const x = i * fontSize;
-          const y = drops[i] * fontSize;
-          const text = chars.charAt((Math.random() * chars.length) | 0);
+        for (var i = 0; i < drops.length; i++) {
+          var x = i * fontSize;
+          var y = drops[i] * fontSize;
+          var text = chars.charAt((Math.random() * chars.length) | 0);
 
           // draw glyphs (dense)
-          const jitter = (Math.random() * 2 - 1) * 1.2;
-          const xj = x + jitter;
+          var jitter = (Math.random() * 2 - 1) * 1.2;
+          var xj = x + jitter;
           rctx.fillText(text, xj, y);
-          const t2 = chars.charAt((Math.random() * chars.length) | 0);
-          const t3 = chars.charAt((Math.random() * chars.length) | 0);
-          const t4 = chars.charAt((Math.random() * chars.length) | 0);
-          const t5 = chars.charAt((Math.random() * chars.length) | 0);
-          rctx.fillText(t2, xj, y - fontSize);
-          rctx.fillText(t3, xj, y - fontSize * 2);
-          rctx.fillText(t4, xj, y - fontSize * 3);
-          rctx.fillText(t5, xj, y - fontSize * 4);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 2);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 3);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 4);
 
           // thin reveal window
-          const revealH = Math.floor(fontSize * 1.6);
-          const revealY = Math.max(0, y - revealH / 2);
+          var revealH = Math.floor(fontSize * 1.6);
+          var revealY = Math.max(0, y - revealH / 2);
           mctx.fillRect(x - 3, revealY, fontSize + 6, revealH);
 
           if (y > h && Math.random() > 0.85) drops[i] = 0;
@@ -473,36 +477,36 @@
       frame();
 
       // Fade out + teardown
-      window.setTimeout(() => {
-        [mask, rain].forEach(c => {
-          c.style.transitionDuration = fadeMs + "ms";
+      window.setTimeout(function () {
+        [mask, rain].forEach(function (c) {
+          c.style.transitionDuration = String(fadeMs) + "ms";
           c.classList.add("hide");
           c.classList.remove("on");
         });
 
-        window.setTimeout(() => {
+        window.setTimeout(function () {
           cancelAnimationFrame(rafId);
           window.removeEventListener("resize", resize);
-          [mask, rain].forEach(c => c.classList.add("off"));
+          [mask, rain].forEach(function (c) { c.classList.add("off"); });
           if (typeof onDone === "function") onDone();
         }, fadeMs + 50);
       }, durationMs);
     }
 
-    const views = {
+    var views = {
       "#/start": document.getElementById("view-start"),
       "#/home": document.getElementById("view-home"),
       "#/music": document.getElementById("view-home"),
-      "#/wrestling": document.getElementById("view-home"),
+      "#/wrestling": document.getElementById("view-home")
     };
 
-    const homeContent = document.getElementById("homeContent");
-    const musicContent = document.getElementById("musicContent");
-    const wrestlingContent = document.getElementById("wrestlingContent");
+    var homeContent = document.getElementById("homeContent");
+    var musicContent = document.getElementById("musicContent");
+    var wrestlingContent = document.getElementById("wrestlingContent");
 
     function setActiveView(route) {
       if (!route || !views[route]) route = "#/home";
-      Object.values(views).forEach(v => v.classList.remove("active"));
+      Object.values(views).forEach(function (v) { v.classList.remove("active"); });
       views[route].classList.add("active");
 
       homeContent.style.display = route === "#/home" ? "grid" : "none";
@@ -510,22 +514,22 @@
       wrestlingContent.style.display = route === "#/wrestling" ? "block" : "none";
     }
 
-    window.addEventListener("hashchange", () => setActiveView(location.hash));
+    window.addEventListener("hashchange", function () { setActiveView(location.hash); });
 
-    document.addEventListener("click", e => {
-      const card = e.target.closest("[data-go]");
+    document.addEventListener("click", function (e) {
+      var card = e.target.closest("[data-go]");
       if (card) location.hash = card.dataset.go;
     });
 
     // Terminal typing
     function showBody1() {
-      const el = document.querySelector(".body1.pipboy");
+      var el = document.querySelector(".body1.pipboy");
       if (!el) return;
 
-      const lines = [...el.querySelectorAll(".pipboyLine")];
+      var lines = Array.prototype.slice.call(el.querySelectorAll(".pipboyLine"));
 
-      lines.forEach(line => {
-        const full = line.getAttribute("data-line") ?? "";
+      lines.forEach(function (line) {
+        var full = line.getAttribute("data-line") || "";
         line.innerHTML = "<span></span>";
         line.dataset.full = full;
         line.dataset.i = "0";
@@ -533,48 +537,48 @@
 
       el.classList.add("show");
 
-      // medium-fast (known stable)
-      const startDelayMs = 250;
-      const baseCharDelayMs = 22;
-      const jitterMs = 14;
-      const lineDelayMs = 140;
-      const glitchChance = 0.035;
-      const glitchHoldMs = 42;
+      // medium-fast (stable)
+      var startDelayMs = 250;
+      var baseCharDelayMs = 22;
+      var jitterMs = 14;
+      var lineDelayMs = 140;
+      var glitchChance = 0.035;
+      var glitchHoldMs = 42;
 
-      // Avoid backslash here to prevent accidental escaping issues.
-      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/[]{}()<>";
-      const randInt = n => (Math.random() * n) | 0;
+      var glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/[]{}()<>";
+      var randInt = function (n) { return (Math.random() * n) | 0; };
 
       function typeLine(idx) {
         if (idx >= lines.length) return;
 
-        const line = lines[idx];
-        const span = line.querySelector("span") || (() => {
+        var line = lines[idx];
+        var span = line.querySelector("span");
+        if (!span) {
           line.innerHTML = "<span></span>";
-          return line.querySelector("span");
-        })();
+          span = line.querySelector("span");
+        }
 
-        const full = line.dataset.full ?? "";
-        let i = parseInt(line.dataset.i || "0", 10);
+        var full = line.dataset.full || "";
+        var i = parseInt(line.dataset.i || "0", 10);
 
         if (i >= full.length) {
-          window.setTimeout(() => typeLine(idx + 1), lineDelayMs);
+          window.setTimeout(function () { typeLine(idx + 1); }, lineDelayMs);
           return;
         }
 
-        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "
+        var doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "
 ";
 
         if (doGlitch) {
-          const gl = glyphs.charAt(randInt(glyphs.length));
+          var gl = glyphs.charAt(randInt(glyphs.length));
           span.textContent = full.slice(0, i) + gl;
-          window.setTimeout(() => {
+          window.setTimeout(function () {
             i += 1;
             line.dataset.i = String(i);
             span.textContent = full.slice(0, i);
 
-            const delay = baseCharDelayMs + randInt(jitterMs);
-            window.setTimeout(() => typeLine(idx), delay);
+            var delay = baseCharDelayMs + randInt(jitterMs);
+            window.setTimeout(function () { typeLine(idx); }, delay);
           }, glitchHoldMs);
           return;
         }
@@ -583,12 +587,12 @@
         line.dataset.i = String(i);
         span.textContent = full.slice(0, i);
 
-        const punct = /[\.\!\?\:;,]/.test(full[i - 1]);
-        const delay = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
-        window.setTimeout(() => typeLine(idx), delay);
+        var punct = /[\.\!\?\:;,]/.test(full[i - 1]);
+        var delay2 = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
+        window.setTimeout(function () { typeLine(idx); }, delay2);
       }
 
-      window.setTimeout(() => typeLine(0), startDelayMs);
+      window.setTimeout(function () { typeLine(0); }, startDelayMs);
     }
 
     startMatrixIntro({ onDone: showBody1 });
