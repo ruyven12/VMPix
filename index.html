@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voodoo Media Hub</title>
+
+  <style>
+    :root {
+      --bg: #050608;
+      --fg: rgba(226,232,240,0.92);
+      --muted: rgba(226,232,240,0.7);
+      --border: rgba(255,255,255,0.14);
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.10);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.08), transparent 60%),
+                  radial-gradient(900px 500px at 30% 80%, rgba(0,170,255,0.08), transparent 55%),
+                  var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* App frame */
+    #app { min-height: 100%; display: grid; }
+
+    /* Views */
+    .view { display: none; min-height: 100vh; }
+    .view.active { display: grid; }
+
+    /* ===== Start (splash) view ===== */
+    #view-start {
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .splash {
+      width: min(980px, 92vw);
+      background: transparent;
+      border-radius: var(--radius);
+      position: relative;
+      user-select: none;
+    }
+
+    .hero-link {
+      display: block;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .hero-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .splash-overlay {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--card2), var(--card));
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 120ms ease, background 120ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .hint { color: var(--muted); font-size: 13px; }
+
+    /* ===== Home view ===== */
+    #view-home {
+      grid-template-rows: auto 1fr;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,0.35);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 5;
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .navlink {
+      text-decoration: none;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .navlink.active {
+      background: rgba(255,255,255,0.12);
+    }
+
+    main {
+      padding: 22px 18px 44px;
+      display: grid;
+      place-items: center;
+    }
+
+    .home {
+      width: min(980px, 92vw);
+      display: grid;
+      gap: 16px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h2 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+
+    /* Simple placeholders for future sections */
+    .placeholder {
+      width: min(980px, 92vw);
+      border: 1px dashed rgba(255,255,255,0.22);
+      border-radius: var(--radius);
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- START / SPLASH -->
+    <section id="view-start" class="view">
+      <div class="splash">
+        <!-- Clicking the image goes to Home -->
+        <a class="hero-link" href="#/home" aria-label="Enter Voodoo Media Hub">
+          <img
+            class="hero-img"
+            src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
+            alt="Voodoo Media"
+            loading="eager"
+          />
+        </a>
+
+        <div class="splash-overlay">
+          <button class="btn" id="enterBtn" type="button">Enter Hub</button>
+          <div class="hint">Tip: your browser Back button will return here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOME -->
+    <section id="view-home" class="view">
+      <header>
+        <div class="brand">Voodoo Media Hub</div>
+        <nav>
+          <a class="navlink" href="#/home" data-route="#/home">Home</a>
+          <a class="navlink" href="#/music" data-route="#/music">Music</a>
+          <a class="navlink" href="#/wrestling" data-route="#/wrestling">Wrestling</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="home" id="homeContent">
+          <div class="cards">
+            <div class="card" data-go="#/music">
+              <h2>Music</h2>
+              <p>Enter the Music Archives section (placeholder for now).</p>
+            </div>
+            <div class="card" data-go="#/wrestling">
+              <h2>Wrestling</h2>
+              <p>Enter the Wrestling section (placeholder for now).</p>
+            </div>
+          </div>
+
+          <div class="placeholder">
+            This is your tester hub. Next we’ll drop in Music/Wrestling as links, iframes, or native modules.
+          </div>
+        </div>
+
+        <div class="placeholder" id="musicContent" style="display:none;">
+          MUSIC placeholder (next step: iframe or native module).
+        </div>
+
+        <div class="placeholder" id="wrestlingContent" style="display:none;">
+          WRESTLING placeholder (next step: iframe or native module).
+        </div>
+      </main>
+    </section>
+
+  </div>
+
+  <script>
+    // Tiny hash-router so Back/Forward works inside the hub.
+    const views = {
+      "#/start": document.getElementById("view-start"),
+      "#/home": document.getElementById("view-home"),
+      "#/music": document.getElementById("view-home"),
+      "#/wrestling": document.getElementById("view-home"),
+    };
+
+    const navLinks = [...document.querySelectorAll(".navlink")];
+    const homeContent = document.getElementById("homeContent");
+    const musicContent = document.getElementById("musicContent");
+    const wrestlingContent = document.getElementById("wrestlingContent");
+
+    function setActiveView(route) {
+      // default route
+      if (!route || !views[route]) route = "#/start";
+
+      // toggle view visibility
+      Object.values(views).forEach(v => v.classList.remove("active"));
+      views[route].classList.add("active");
+
+      // If we're on the "home shell", show the correct inner section
+      if (route === "#/home") {
+        homeContent.style.display = "grid";
+        musicContent.style.display = "none";
+        wrestlingContent.style.display = "none";
+      } else if (route === "#/music") {
+        homeContent.style.display = "none";
+        musicContent.style.display = "block";
+        wrestlingContent.style.display = "none";
+      } else if (route === "#/wrestling") {
+        homeContent.style.display = "none";
+        musicContent.style.display = "none";
+        wrestlingContent.style.display = "block";
+      }
+
+      // nav active styling
+      navLinks.forEach(a => {
+        a.classList.toggle("active", a.getAttribute("data-route") === route);
+      });
+    }
+
+    // Back/Forward support
+    window.addEventListener("hashchange", () => setActiveView(location.hash));
+
+    // Enter button (uses hash navigation so Back returns to splash)
+    document.getElementById("enterBtn").addEventListener("click", () => {
+      location.hash = "#/home";
+    });
+
+    // Card navigation
+    document.addEventListener("click", (e) => {
+      const card = e.target.closest("[data-go]");
+      if (!card) return;
+      location.hash = card.getAttribute("data-go");
+    });
+
+    // Initial load
+    setActiveView(location.hash);
+  </script>
+</body>
+</html>
