@@ -133,7 +133,9 @@
       text-shadow:
         0 0 12px var(--pip-glow),
         0 0 2px rgba(255,255,255,0.08);
-      animation: pipFlicker 3.8s ease-in-out infinite;
+      animation:
+        pipWarmup 420ms ease-out 0ms 1,
+        pipFlicker 3.8s ease-in-out 420ms infinite;
     }
 
     /* Scanlines + subtle vignette */
@@ -199,8 +201,34 @@
       50%, 100% { opacity: 0; }
     }
 
+    @keyframes pipWarmup {
+      0% {
+        filter: brightness(0.4) contrast(0.9) saturate(0.6);
+        box-shadow: none;
+        opacity: 0.2;
+      }
+      35% {
+        filter: brightness(1.6) contrast(1.2) saturate(1.4);
+        box-shadow: 0 0 28px rgba(120,255,160,0.55);
+        opacity: 1;
+      }
+      70% {
+        filter: brightness(0.95) contrast(1.05) saturate(1.1);
+      }
+      100% {
+        filter: brightness(1) contrast(1) saturate(1);
+      }
+    }
+
     @keyframes pipFlicker {
       0%, 100% { filter: none; }
+      8% { filter: brightness(1.04) contrast(1.03); }
+      9% { filter: brightness(0.95) contrast(1.06); }
+      10% { filter: brightness(1.03) contrast(1.04); }
+      52% { filter: brightness(1.02) contrast(1.02); }
+      53% { filter: brightness(0.97) contrast(1.05); }
+      54% { filter: brightness(1.02) contrast(1.02); }
+    }
       8% { filter: brightness(1.04) contrast(1.03); }
       9% { filter: brightness(0.95) contrast(1.06); }
       10% { filter: brightness(1.03) contrast(1.04); }
@@ -297,22 +325,136 @@
   </div>
 
   <script>
-    function startMatrixIntro({ durationMs = 1500, fadeMs = 900, onDone } = {}) {
+    // ===== Matrix intro =====
+    function startMatrixIntro({ durationMs = 2600, fadeMs = 900, rainFadeInMs = 350, onDone } = {}) {
       const mask = document.getElementById("matrixMask");
       const rain = document.getElementById("matrixRain");
       if (!mask || !rain) return;
 
-      mask.classList.add("on");
-      rain.classList.add("on");
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        mask.classList.add("off");
+        rain.classList.add("off");
+        if (typeof onDone === "function") onDone();
+        return;
+      }
 
-      setTimeout(() => {
-        mask.classList.add("hide");
-        rain.classList.add("hide");
-        setTimeout(() => {
-          mask.classList.add("off");
-          rain.classList.add("off");
-          if (onDone) onDone();
-        }, fadeMs);
+      // Black screen immediately, then rain fades in
+      mask.classList.remove("off", "hide");
+      rain.classList.remove("off", "hide");
+
+      mask.style.transitionDuration = "0ms";
+      rain.style.transitionDuration = rainFadeInMs + "ms";
+
+      mask.classList.add("on");
+      requestAnimationFrame(() => rain.classList.add("on"));
+
+      const mctx = mask.getContext("2d");
+      const rctx = rain.getContext("2d");
+
+      let w = 0, h = 0;
+      const fontSize = 11; // smaller font = more columns
+      let columns = 0;
+      let drops = [];
+      let rafId = 0;
+
+      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+      function setupCanvas(c, dpr) {
+        c.width = Math.floor(w * dpr);
+        c.height = Math.floor(h * dpr);
+        c.style.width = w + "px";
+        c.style.height = h + "px";
+      }
+
+      function resize() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        w = Math.floor(window.innerWidth);
+        h = Math.floor(window.innerHeight);
+
+        setupCanvas(mask, dpr);
+        setupCanvas(rain, dpr);
+
+        mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        columns = Math.ceil(w / fontSize);
+        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
+
+        // Start fully black (covers the site). We'll punch holes as code falls.
+        mctx.globalCompositeOperation = "source-over";
+        mctx.fillStyle = "#000";
+        mctx.fillRect(0, 0, w, h);
+
+        // Rain canvas stays transparent so the revealed site shows through.
+        rctx.clearRect(0, 0, w, h);
+      }
+
+      function frame() {
+        // Rain layer: trailing effect WITHOUT painting black.
+        rctx.globalCompositeOperation = "destination-out";
+        rctx.fillStyle = "rgba(0, 0, 0, 0.028)";
+        rctx.fillRect(0, 0, w, h);
+
+        rctx.globalCompositeOperation = "source-over";
+        rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+        // Brighter red + a little glow
+        rctx.shadowColor = "rgba(255, 0, 0, 0.85)";
+        rctx.shadowBlur = 14;
+        rctx.fillStyle = "rgba(255, 0, 0, 1)";
+
+        // Mask layer: erase thin reveal where streams pass
+        mctx.globalCompositeOperation = "destination-out";
+
+        for (let i = 0; i < drops.length; i++) {
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+          const text = chars.charAt((Math.random() * chars.length) | 0);
+
+          // draw glyphs (dense)
+          const jitter = (Math.random() * 2 - 1) * 1.2;
+          const xj = x + jitter;
+          rctx.fillText(text, xj, y);
+          const t2 = chars.charAt((Math.random() * chars.length) | 0);
+          const t3 = chars.charAt((Math.random() * chars.length) | 0);
+          const t4 = chars.charAt((Math.random() * chars.length) | 0);
+          const t5 = chars.charAt((Math.random() * chars.length) | 0);
+          rctx.fillText(t2, xj, y - fontSize);
+          rctx.fillText(t3, xj, y - fontSize * 2);
+          rctx.fillText(t4, xj, y - fontSize * 3);
+          rctx.fillText(t5, xj, y - fontSize * 4);
+
+          // thin reveal window
+          const revealH = Math.floor(fontSize * 1.6);
+          const revealY = Math.max(0, y - revealH / 2);
+          mctx.fillRect(x - 3, revealY, fontSize + 6, revealH);
+
+          if (y > h && Math.random() > 0.85) drops[i] = 0;
+          drops[i] += 1.6;
+        }
+
+        mctx.globalCompositeOperation = "source-over";
+        rafId = requestAnimationFrame(frame);
+      }
+
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      frame();
+
+      // Fade out + teardown
+      window.setTimeout(() => {
+        [mask, rain].forEach(c => {
+          c.style.transitionDuration = fadeMs + "ms";
+          c.classList.add("hide");
+          c.classList.remove("on");
+        });
+
+        window.setTimeout(() => {
+          cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", resize);
+          [mask, rain].forEach(c => c.classList.add("off"));
+          if (typeof onDone === "function") onDone();
+        }, fadeMs + 50);
       }, durationMs);
     }
 
