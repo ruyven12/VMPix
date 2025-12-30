@@ -231,12 +231,11 @@
 
   <script>
     // ===== Matrix intro =====
-    function startMatrixIntro({ durationMs = 2400, fadeMs = 900, fadeInMs = 450 } = {}) {
+    function startMatrixIntro({ durationMs = 2600, fadeMs = 900, rainFadeInMs = 350 } = {}) {
       const mask = document.getElementById("matrixMask");
       const rain = document.getElementById("matrixRain");
       if (!mask || !rain) return;
 
-      // Respect reduced motion
       const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduceMotion) {
         mask.classList.add("off");
@@ -244,14 +243,15 @@
         return;
       }
 
-      // Ensure visible + fade in
-      [mask, rain].forEach(c => {
-        c.classList.remove("off", "hide", "on");
-        c.style.transitionDuration = fadeInMs + "ms";
-      });
-      requestAnimationFrame(() => {
-        [mask, rain].forEach(c => c.classList.add("on"));
-      });
+      // Black screen immediately, then rain fades in
+      mask.classList.remove("off", "hide");
+      rain.classList.remove("off", "hide");
+
+      mask.style.transitionDuration = "0ms";
+      rain.style.transitionDuration = rainFadeInMs + "ms";
+
+      mask.classList.add("on");
+      requestAnimationFrame(() => rain.classList.add("on"));
 
       const mctx = mask.getContext("2d");
       const rctx = rain.getContext("2d");
@@ -285,46 +285,43 @@
         columns = Math.ceil(w / fontSize);
         drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
 
-        // Mask starts fully black, then we erase where the code falls.
+        // Start fully black (covers the site). We'll punch holes as code falls.
         mctx.globalCompositeOperation = "source-over";
         mctx.fillStyle = "#000";
         mctx.fillRect(0, 0, w, h);
 
-        // Rain starts clean.
-        rctx.clearRect(0, 0, w, h);
+        // Rain starts black each frame (so trails look right)
+        rctx.fillStyle = "#000";
+        rctx.fillRect(0, 0, w, h);
       }
 
       function frame() {
-        // Rain layer: classic trailing effect
-        rctx.fillStyle = "rgba(0, 0, 0, 0.10)";
+        // Rain layer: trailing fade over black
+        rctx.fillStyle = "rgba(0, 0, 0, 0.12)";
         rctx.fillRect(0, 0, w, h);
         rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
-        rctx.fillStyle = "rgba(0, 255, 70, 0.85)";
+        rctx.fillStyle = "rgba(0, 255, 70, 0.9)";
 
-        // Mask layer: progressively reveals the site where the drops travel
-        // We erase small rectangles in the mask (destination-out) along each falling glyph.
+        // Mask layer: erase where the streams travel (reveals the real page underneath)
         mctx.globalCompositeOperation = "destination-out";
 
         for (let i = 0; i < drops.length; i++) {
-          const text = chars.charAt((Math.random() * chars.length) | 0);
           const x = i * fontSize;
           const y = drops[i] * fontSize;
+          const text = chars.charAt((Math.random() * chars.length) | 0);
 
-          // Reveal strip where the glyph passes
-          // (slightly wider than a character for a clean "wipe")
-          mctx.fillRect(x - 2, y - fontSize, fontSize + 4, fontSize + 6);
-
-          // Draw glyph on rain layer
+          // Draw glyph
           rctx.fillText(text, x, y);
 
-          // reset drop randomly after it passes bottom
+          // Reveal a vertical strip from the top down to this glyph.
+          // This makes the site appear "behind" the falling line.
+          mctx.fillRect(x - 2, 0, fontSize + 4, y + 8);
+
           if (y > h && Math.random() > 0.975) drops[i] = 0;
           drops[i]++;
         }
 
-        // Put mask back to normal mode for next frame's operations
         mctx.globalCompositeOperation = "source-over";
-
         rafId = requestAnimationFrame(frame);
       }
 
@@ -347,70 +344,6 @@
         }, fadeMs + 50);
       }, durationMs);
     }
-
-      const ctx = canvas.getContext("2d");
-      let w = 0, h = 0;
-      const fontSize = 16;
-      let columns = 0;
-      let drops = [];
-      let rafId = 0;
-
-      function resize() {
-        // Use devicePixelRatio for crispness
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        w = Math.floor(window.innerWidth);
-        h = Math.floor(window.innerHeight);
-        canvas.width = Math.floor(w * dpr);
-        canvas.height = Math.floor(h * dpr);
-        canvas.style.width = w + "px";
-        canvas.style.height = h + "px";
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        columns = Math.ceil(w / fontSize);
-        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
-      }
-
-      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-      function frame() {
-        // trailing fade
-        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
-        ctx.fillStyle = "rgba(0, 255, 70, 0.85)";
-
-        for (let i = 0; i < drops.length; i++) {
-          const text = chars.charAt((Math.random() * chars.length) | 0);
-          const x = i * fontSize;
-          const y = drops[i] * fontSize;
-          ctx.fillText(text, x, y);
-
-          // reset drop randomly after it passes bottom
-          if (y > h && Math.random() > 0.975) drops[i] = 0;
-          drops[i]++;
-        }
-
-        rafId = requestAnimationFrame(frame);
-      }
-
-      resize();
-      window.addEventListener("resize", resize, { passive: true });
-      frame();
-
-      // Fade out and stop animation
-      window.setTimeout(() => {
-        canvas.style.transitionDuration = fadeMs + "ms";
-        canvas.classList.add("hide");
-
-        window.setTimeout(() => {
-          cancelAnimationFrame(rafId);
-          window.removeEventListener("resize", resize);
-          canvas.classList.add("off");
-        }, fadeMs + 50);
-      }, durationMs);
-    }
-
 
     const views = {
       "#/start": document.getElementById("view-start"),
@@ -444,7 +377,7 @@
     });
 
     // Kick the Matrix intro on first load
-    startMatrixIntro({ durationMs: 1700, fadeMs: 700 });
+    startMatrixIntro({ durationMs: 2600, fadeMs: 900, rainFadeInMs: 350 });
 
     setActiveView(location.hash);
   </script>
