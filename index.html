@@ -17,14 +17,58 @@
       --radius: 18px;
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
+    html, body {
       margin: 0;
-      background: radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.08), transparent 60%),
-                  radial-gradient(900px 500px at 30% 80%, rgba(0,170,255,0.08), transparent 55%),
-                  var(--bg);
+      /* Hub background image (SmugMug) + readability overlays */
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.10), transparent 60%),
+        radial-gradient(900px 500px at 30% 80%, rgba(0,170,255,0.10), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.72)),
+        url("https://photos.smugmug.com/photos/i-S6VqGNm/0/M45NqwbQtnVS2NJd9435Lw5xwsQsCXbqmGF8RBTH7/X2/i-S6VqGNm-X2.jpg");
+      background-size: auto, auto, auto, cover;
+      background-position: center, center, center, center;
+      background-repeat: no-repeat;
+      background-attachment: scroll, scroll, scroll, fixed;
+
       color: var(--fg);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Mobile: avoid janky fixed backgrounds + tune spacing */
+    @media (max-width: 800px) {
+      body {
+        background-attachment: scroll, scroll, scroll, scroll;
+        background-position: center, center, center, 50% 20%;
+      }
+
+      header {
+        padding: 12px 14px;
+      }
+
+      nav {
+        gap: 8px;
+      }
+
+      .navlink {
+        padding: 8px 10px;
+      }
+
+      main {
+        padding: 18px 14px 36px;
+      }
+    }
+
+    /* Accessibility: reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      .btn,
+      .card {
+        transition: none;
+      }
+      .btn:hover,
+      .card:hover {
+        transform: none;
+      }
     }
 
     /* App frame */
