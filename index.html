@@ -313,9 +313,11 @@
           // Draw glyph
           rctx.fillText(text, x, y);
 
-          // Reveal a vertical strip from the top down to this glyph.
-          // This makes the site appear "behind" the falling line.
-          mctx.fillRect(x - 2, 0, fontSize + 4, y + 8);
+          // Reveal only a thin "window" around the falling glyph (not the whole column).
+          // This makes the site appear along the line as it falls.
+          const revealH = Math.floor(fontSize * 1.6);
+          const revealY = Math.max(0, y - Math.floor(revealH / 2));
+          mctx.fillRect(x - 2, revealY, fontSize + 4, revealH);
 
           if (y > h && Math.random() > 0.975) drops[i] = 0;
           drops[i]++;
