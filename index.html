@@ -296,10 +296,16 @@
       }
 
       function frame() {
-        // Rain layer: draw characters with NO black fill
-        rctx.clearRect(0, 0, w, h);
+        // Rain layer: trailing effect WITHOUT painting black.
+        // Fade existing glyphs by reducing alpha (keeps canvas transparent).
+        rctx.globalCompositeOperation = "destination-out";
+        rctx.fillStyle = "rgba(0, 0, 0, 0.14)";
+        rctx.fillRect(0, 0, w, h);
+
+        // Draw new glyphs on top.
+        rctx.globalCompositeOperation = "source-over";
         rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
-        rctx.fillStyle = "rgba(0, 255, 70, 0.9)";
+        rctx.fillStyle = "rgba(255, 0, 0, 0.9)";
 
         // Mask layer: erase thin reveal where streams pass
         mctx.globalCompositeOperation = "destination-out";
@@ -377,7 +383,7 @@
     });
 
     // Kick the Matrix intro on first load
-    startMatrixIntro({ durationMs: 2600, fadeMs: 900, rainFadeInMs: 350 });
+    startMatrixIntro({ durationMs: 1500, fadeMs: 900, rainFadeInMs: 350 });
 
     setActiveView(location.hash);
   </script>
