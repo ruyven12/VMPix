@@ -36,19 +36,11 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* App frame */
     #app { min-height: 100%; display: grid; }
-
-    /* Views */
     .view { display: none; min-height: 100vh; }
     .view.active { display: grid; }
 
-    /* ===== Start (splash) view ===== */
-    #view-start {
-      place-items: center;
-      padding: 28px;
-      text-align: center;
-    }
+    #view-start { place-items: center; padding: 28px; text-align: center; }
 
     .splash {
       width: min(980px, 92vw);
@@ -69,7 +61,6 @@
 
     .hero-img { display: block; width: 100%; height: auto; }
 
-    /* ===== Home view ===== */
     #view-home { grid-template-rows: auto 1fr; }
 
     header {
@@ -80,27 +71,14 @@
       border-bottom: 1px solid rgba(255,255,255,0.08);
       padding: 10px 18px 12px;
       z-index: 5;
-
-      /* Two-row header: logo centered on top row, nav below */
       display: grid;
       grid-template-rows: auto auto;
       justify-items: center;
       gap: 8px;
     }
 
-    .brandLink {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .brandImg {
-      height: 100px;
-      width: auto;
-      display: block;
-    }
+    .brandLink { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
+    .brandImg { height: 100px; width: auto; display: block; }
 
     /* Body text section */
     .body1 {
@@ -125,47 +103,119 @@
       filter: blur(0);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .body1 { transition: none; opacity: 1; transform: none; filter: none; }
-    }
+    /* ===== Pip-Boy style (Fallout terminal vibe) ===== */
+    .body1.pipboy {
+      --pip-fg: rgba(145, 255, 145, 0.95);
+      --pip-glow: rgba(80, 255, 120, 0.65);
+      --pip-bg: rgba(0, 0, 0, 0.55);
+      --pip-border: rgba(110, 255, 150, 0.28);
+      --chars: 140; /* JS will overwrite based on text length */
 
-    nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .navlink {
-      text-decoration: none;
-      color: var(--fg);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .navlink.active { background: rgba(255,255,255,0.12); }
-
-    main {
-      padding: 22px 18px 44px;
-      display: grid;
-      place-items: center;
-    }
-
-    .home {
       width: min(980px, 92vw);
-      display: grid;
-      gap: 16px;
+      margin: 10px auto 0;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: 0.08em;
+      line-height: 1.35;
+      color: var(--pip-fg);
+      background: var(--pip-bg);
+      border: 1px solid var(--pip-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.35) inset,
+        0 18px 40px rgba(0,0,0,0.35);
+      position: relative;
+      overflow: hidden;
     }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
+    .body1.pipboy.show {
+      text-shadow:
+        0 0 12px var(--pip-glow),
+        0 0 2px rgba(255,255,255,0.08);
+      animation: pipFlicker 3.8s ease-in-out infinite;
     }
+
+    /* Scanlines + subtle vignette */
+    .body1.pipboy::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom,
+          rgba(0,0,0,0.35),
+          rgba(0,0,0,0.05) 18%,
+          rgba(0,0,0,0.14) 50%,
+          rgba(0,0,0,0.06) 82%,
+          rgba(0,0,0,0.35)
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.00) 0px,
+          rgba(0,0,0,0.00) 2px,
+          rgba(0,0,0,0.18) 3px
+        );
+      mix-blend-mode: multiply;
+      opacity: 0.95;
+    }
+
+    /* Typing effect */
+    .pipboyText {
+      display: inline-block;
+      white-space: normal;
+      overflow: hidden;
+      max-width: 0;
+      vertical-align: top;
+    }
+
+    .body1.pipboy.show .pipboyText {
+      max-width: calc(var(--chars) * 1ch);
+      animation: pipType 2.6s steps(var(--chars)) forwards;
+    }
+
+    /* Blinking caret */
+    .pipboyCaret {
+      display: inline-block;
+      margin-left: 0.35ch;
+      color: var(--pip-fg);
+      text-shadow: 0 0 10px var(--pip-glow);
+      opacity: 0;
+      transform: translateY(-0.05em);
+    }
+
+    .body1.pipboy.show .pipboyCaret {
+      opacity: 1;
+      animation: caretBlink 0.8s steps(1, end) infinite;
+    }
+
+    @keyframes pipType {
+      from { max-width: 0; }
+      to { max-width: calc(var(--chars) * 1ch); }
+    }
+
+    @keyframes caretBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    @keyframes pipFlicker {
+      0%, 100% { filter: none; }
+      8% { filter: brightness(1.04) contrast(1.03); }
+      9% { filter: brightness(0.95) contrast(1.06); }
+      10% { filter: brightness(1.03) contrast(1.04); }
+      52% { filter: brightness(1.02) contrast(1.02); }
+      53% { filter: brightness(0.97) contrast(1.05); }
+      54% { filter: brightness(1.02) contrast(1.02); }
+    }
+
+    nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    main { padding: 22px 18px 44px; display: grid; place-items: center; }
+
+    .home { width: min(980px, 92vw); display: grid; gap: 16px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 
     .card {
       border: 1px solid var(--border);
@@ -188,37 +238,15 @@
       text-align: center;
     }
 
-    /* Mobile tuning */
-    @media (max-width: 800px) {
-      body {
-        background-attachment: scroll, scroll, scroll, scroll;
-        background-position: center, center, center, 50% 20%;
-      }
-
-      header { padding: 10px 14px 12px; }
-      nav { gap: 8px; }
-      .navlink { padding: 8px 10px; }
-      main { padding: 18px 14px 36px; }
-    }
-
-    /* Accessibility: reduce motion */
-    @media (prefers-reduced-motion: reduce) {
-      .card { transition: none; }
-      .card:hover { transform: none; }
-    }
-
-    /* ===== Matrix intro overlay (mask + rain) ===== */
     .matrixLayer {
       position: fixed;
       inset: 0;
-      display: block;
       width: 100vw;
       height: 100vh;
       z-index: 9999;
       pointer-events: none;
       opacity: 0;
       transition: opacity 700ms ease;
-      background: transparent;
     }
 
     #matrixMask { z-index: 9998; background: #000; }
@@ -227,19 +255,13 @@
     .matrixLayer.on { opacity: 1; }
     .matrixLayer.hide { opacity: 0; }
     .matrixLayer.off { display: none; }
-
-    @media (prefers-reduced-motion: reduce) {
-      .matrixLayer { display: none; }
-    }
   </style>
 </head>
 <body>
-  <!-- Matrix-style intro overlay (mask reveals the site along the falling lines) -->
-  <canvas id="matrixMask" class="matrixLayer" aria-hidden="true"></canvas>
-  <canvas id="matrixRain" class="matrixLayer" aria-hidden="true"></canvas>
+  <canvas id="matrixMask" class="matrixLayer"></canvas>
+  <canvas id="matrixRain" class="matrixLayer"></canvas>
 
   <div id="app">
-
     <section id="view-start" class="view">
       <div class="splash">
         <a class="hero-link" href="#/home">
@@ -250,20 +272,14 @@
 
     <section id="view-home" class="view">
       <header>
-        <a class="brandLink" href="https://vmpix.onrender.com/#/home" aria-label="Go to Voodoo Media Home">
-          <img
-            class="brandImg"
-            src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
-            alt="Voodoo Media Hub"
-          />
+        <a class="brandLink" href="#/home">
+          <img class="brandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
         </a>
-
-        
       </header>
 
-      <!-- Body text section below logo bar -->
-      <section class="body1">
-        Welcome to the landing page for Voodoo Media! This site is currently a work in progress and bits of data will come in time to this page. 
+      <section class="body1 pipboy" aria-live="polite">
+        <span class="pipboyText">Welcome to the landing page for Voodoo Media! This site is currently a work in progress and bits of data will come in time to this page.</span>
+        <span class="pipboyCaret" aria-hidden="true">▮</span>
       </section>
 
       <main>
@@ -281,139 +297,22 @@
   </div>
 
   <script>
-    // ===== Matrix intro =====
-    function startMatrixIntro({ durationMs = 2600, fadeMs = 900, rainFadeInMs = 350, onDone } = {}) {
+    function startMatrixIntro({ durationMs = 1500, fadeMs = 900, onDone } = {}) {
       const mask = document.getElementById("matrixMask");
       const rain = document.getElementById("matrixRain");
       if (!mask || !rain) return;
 
-      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduceMotion) {
-        mask.classList.add("off");
-        rain.classList.add("off");
-        if (typeof onDone === "function") onDone();
-        return;
-      }
-
-      // Black screen immediately, then rain fades in
-      mask.classList.remove("off", "hide");
-      rain.classList.remove("off", "hide");
-
-      mask.style.transitionDuration = "0ms";
-      rain.style.transitionDuration = rainFadeInMs + "ms";
-
       mask.classList.add("on");
-      requestAnimationFrame(() => rain.classList.add("on"));
+      rain.classList.add("on");
 
-      const mctx = mask.getContext("2d");
-      const rctx = rain.getContext("2d");
-
-      let w = 0, h = 0;
-      const fontSize = 11; // MAX density: smaller font = many more columns
-      let columns = 0;
-      let drops = [];
-      let rafId = 0;
-
-      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-      function setupCanvas(c, dpr) {
-        c.width = Math.floor(w * dpr);
-        c.height = Math.floor(h * dpr);
-        c.style.width = w + "px";
-        c.style.height = h + "px";
-      }
-
-      function resize() {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        w = Math.floor(window.innerWidth);
-        h = Math.floor(window.innerHeight);
-
-        setupCanvas(mask, dpr);
-        setupCanvas(rain, dpr);
-
-        mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        columns = Math.ceil(w / fontSize);
-        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
-
-        // Start fully black (covers the site). We'll punch holes as code falls.
-        mctx.globalCompositeOperation = "source-over";
-        mctx.fillStyle = "#000";
-        mctx.fillRect(0, 0, w, h);
-
-        // Rain canvas stays transparent so the revealed site shows through.
-        rctx.clearRect(0, 0, w, h);
-      }
-
-      function frame() {
-        // Rain layer: trailing effect WITHOUT painting black.
-        // Fade existing glyphs by reducing alpha (keeps canvas transparent).
-        rctx.globalCompositeOperation = "destination-out";
-        rctx.fillStyle = "rgba(0, 0, 0, 0.028)"; // MAX trails: slower fade
-        rctx.fillRect(0, 0, w, h);
-
-        // Draw new glyphs on top.
-        rctx.globalCompositeOperation = "source-over";
-        rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
-        // Brighter red + a little glow
-        rctx.shadowColor = "rgba(255, 0, 0, 0.85)";
-        rctx.shadowBlur = 14;
-        rctx.fillStyle = "rgba(255, 0, 0, 1)";
-
-        // Mask layer: erase thin reveal where streams pass
-        mctx.globalCompositeOperation = "destination-out";
-
-        for (let i = 0; i < drops.length; i++) {
-          const x = i * fontSize;
-          const y = drops[i] * fontSize;
-          const text = chars.charAt((Math.random() * chars.length) | 0);
-
-          // draw glyph
-          // draw multiple glyphs per column for MAX density
-          const jitter = (Math.random() * 2 - 1) * 1.2; // slight horizontal jitter
-          const xj = x + jitter;
-          rctx.fillText(text, xj, y);
-          const t2 = chars.charAt((Math.random() * chars.length) | 0);
-          const t3 = chars.charAt((Math.random() * chars.length) | 0);
-          const t4 = chars.charAt((Math.random() * chars.length) | 0);
-          const t5 = chars.charAt((Math.random() * chars.length) | 0);
-          rctx.fillText(t2, xj, y - fontSize);
-          rctx.fillText(t3, xj, y - fontSize * 2);
-          rctx.fillText(t4, xj, y - fontSize * 3);
-          rctx.fillText(t5, xj, y - fontSize * 4);
-
-          // thin reveal window
-          const revealH = Math.floor(fontSize * 1.6);
-          const revealY = Math.max(0, y - revealH / 2);
-          mctx.fillRect(x - 3, revealY, fontSize + 6, revealH);
-
-          if (y > h && Math.random() > 0.85) drops[i] = 0; // even more active streams // restart sooner = more active lines
-          drops[i] += 1.6; // faster fall = more visual activity
-        }
-
-        mctx.globalCompositeOperation = "source-over";
-        rafId = requestAnimationFrame(frame);
-      }
-
-      resize();
-      window.addEventListener("resize", resize, { passive: true });
-      frame();
-
-      // Fade out + teardown
-      window.setTimeout(() => {
-        [mask, rain].forEach(c => {
-          c.style.transitionDuration = fadeMs + "ms";
-          c.classList.add("hide");
-          c.classList.remove("on");
-        });
-
-        window.setTimeout(() => {
-          cancelAnimationFrame(rafId);
-          window.removeEventListener("resize", resize);
-          [mask, rain].forEach(c => c.classList.add("off"));
-          if (typeof onDone === "function") onDone();
-        }, fadeMs + 50);
+      setTimeout(() => {
+        mask.classList.add("hide");
+        rain.classList.add("hide");
+        setTimeout(() => {
+          mask.classList.add("off");
+          rain.classList.add("off");
+          if (onDone) onDone();
+        }, fadeMs);
       }, durationMs);
     }
 
@@ -424,7 +323,6 @@
       "#/wrestling": document.getElementById("view-home"),
     };
 
-    const navLinks = [...document.querySelectorAll(".navlink")];
     const homeContent = document.getElementById("homeContent");
     const musicContent = document.getElementById("musicContent");
     const wrestlingContent = document.getElementById("wrestlingContent");
@@ -437,8 +335,6 @@
       homeContent.style.display = route === "#/home" ? "grid" : "none";
       musicContent.style.display = route === "#/music" ? "block" : "none";
       wrestlingContent.style.display = route === "#/wrestling" ? "block" : "none";
-
-      navLinks.forEach(a => a.classList.toggle("active", a.dataset.route === route));
     }
 
     window.addEventListener("hashchange", () => setActiveView(location.hash));
@@ -448,16 +344,17 @@
       if (card) location.hash = card.dataset.go;
     });
 
-    // Animate body text after Matrix completes
     function showBody1() {
       const el = document.querySelector(".body1");
-      if (el) el.classList.add("show");
+      if (!el) return;
+      const text = (el.querySelector(".pipboyText")?.textContent || el.textContent || "").trim();
+      // Clamp so steps() doesn't get ridiculous on long copy.
+      el.style.setProperty("--chars", String(Math.min(220, Math.max(30, text.length))));
+      el.classList.add("show");
     }
 
-    // Kick the Matrix intro on first load
-    startMatrixIntro({ durationMs: 1500, fadeMs: 900, rainFadeInMs: 350, onDone: showBody1 });
-
-    setActiveView(location.hash);
+    startMatrixIntro({ onDone: showBody1 });
+    setActiveView(location.hash || "#/start");
   </script>
 </body>
 </html>
