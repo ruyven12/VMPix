@@ -258,7 +258,7 @@
       const rctx = rain.getContext("2d");
 
       let w = 0, h = 0;
-      const fontSize = 14; // smaller = more columns / more screen coverage
+      const fontSize = 12; // smaller font = many more columns (denser rain) // smaller = more columns / more screen coverage
       let columns = 0;
       let drops = [];
       let rafId = 0;
@@ -299,7 +299,7 @@
         // Rain layer: trailing effect WITHOUT painting black.
         // Fade existing glyphs by reducing alpha (keeps canvas transparent).
         rctx.globalCompositeOperation = "destination-out";
-        rctx.fillStyle = "rgba(0, 0, 0, 0.06)"; // smaller = longer trails
+        rctx.fillStyle = "rgba(0, 0, 0, 0.035)"; // much slower fade = longer trails // smaller = longer trails
         rctx.fillRect(0, 0, w, h);
 
         // Draw new glyphs on top.
@@ -319,18 +319,20 @@
           const text = chars.charAt((Math.random() * chars.length) | 0);
 
           // draw glyph
-          // draw glyph (and an extra one above it for denser rain)
+          // draw multiple glyphs per column for heavy density
           rctx.fillText(text, x, y);
-          const text2 = chars.charAt((Math.random() * chars.length) | 0);
-          rctx.fillText(text2, x, y - fontSize);
+          const t2 = chars.charAt((Math.random() * chars.length) | 0);
+          const t3 = chars.charAt((Math.random() * chars.length) | 0);
+          rctx.fillText(t2, x, y - fontSize);
+          rctx.fillText(t3, x, y - fontSize * 2);
 
           // thin reveal window
           const revealH = Math.floor(fontSize * 1.6);
           const revealY = Math.max(0, y - revealH / 2);
           mctx.fillRect(x - 2, revealY, fontSize + 4, revealH);
 
-          if (y > h && Math.random() > 0.93) drops[i] = 0; // restart sooner = more active lines
-          drops[i]++;
+          if (y > h && Math.random() > 0.88) drops[i] = 0; // even more active streams // restart sooner = more active lines
+          drops[i] += 1.35; // faster fall = more visual activity
         }
 
         mctx.globalCompositeOperation = "source-over";
