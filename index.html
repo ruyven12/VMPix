@@ -357,7 +357,7 @@
 
   <script>
     // ===== Matrix intro =====
-    function startMatrixIntro({ durationMs = 500, fadeMs = 900, rainFadeInMs = 350, onDone } = {}) {
+    function startMatrixIntro({ durationMs = 1000, fadeMs = 900, rainFadeInMs = 350, onDone } = {}) {
       const mask = document.getElementById("matrixMask");
       const rain = document.getElementById("matrixRain");
       if (!mask || !rain) return;
@@ -535,13 +535,13 @@
 
       // Typing settings: slower + 250ms delay
       const startDelayMs = 250;
-      const baseCharDelayMs = 34; // overall pace
-      const jitterMs = 26;        // small randomness
-      const lineDelayMs = 210;    // pause between lines
+      const baseCharDelayMs = 22; // overall pace
+      const jitterMs = 14;        // small randomness
+      const lineDelayMs = 140;    // pause between lines
       const glitchChance = 0.035; // occasional glitch
       const glitchHoldMs = 42;
 
-      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\\[]{}()<>";
+      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\[]{}()<>";
       const randInt = n => (Math.random() * n) | 0;
 
       function typeLine(idx) {
@@ -558,7 +558,8 @@
           return;
         }
 
-        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "\n";
+        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "
+";
 
         if (doGlitch) {
           const gl = glyphs.charAt(randInt(glyphs.length));
@@ -580,7 +581,7 @@
         span.textContent = full.slice(0, i);
 
         // Slightly slower after punctuation
-        const punct = /[\.!\?\:;,]/.test(full[i - 1]);
+        const punct = /[\.\!\?\:;,]/.test(full[i - 1]);
         const delay = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
         window.setTimeout(() => typeLine(idx), delay);
       }
