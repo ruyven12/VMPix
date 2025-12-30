@@ -174,9 +174,9 @@
   <div id="app">
 
     <!-- START / SPLASH -->
+        <!-- START / SPLASH (optional / disabled) -->
     <section id="view-start" class="view">
       <div class="splash">
-        <!-- Clicking the image goes to Home -->
         <a class="hero-link" href="#/home" aria-label="Enter Voodoo Media Hub">
           <img
             class="hero-img"
@@ -185,11 +185,6 @@
             loading="eager"
           />
         </a>
-
-        <div class="splash-overlay">
-          <button class="btn" id="enterBtn" type="button">Enter Hub</button>
-          <div class="hint">Tip: your browser Back button will return here.</div>
-        </div>
       </div>
     </section>
 
@@ -248,9 +243,9 @@
     const musicContent = document.getElementById("musicContent");
     const wrestlingContent = document.getElementById("wrestlingContent");
 
-    function setActiveView(route) {
-      // default route
-      if (!route || !views[route]) route = "#/start";
+        function setActiveView(route) {
+      // default route now goes straight to HOME
+      if (!route || !views[route]) route = "#/home";
 
       // toggle view visibility
       Object.values(views).forEach(v => v.classList.remove("active"));
@@ -280,10 +275,11 @@
     // Back/Forward support
     window.addEventListener("hashchange", () => setActiveView(location.hash));
 
-    // Enter button (uses hash navigation so Back returns to splash)
-    document.getElementById("enterBtn").addEventListener("click", () => {
-      location.hash = "#/home";
-    });
+        // Enter button no longer needed when Home is the landing page
+    // (kept commented for possible future splash re-enable)
+    // document.getElementById("enterBtn").addEventListener("click", () => {
+    //   location.hash = "#/home";
+    // });
 
     // Card navigation
     document.addEventListener("click", (e) => {
