@@ -106,6 +106,7 @@
 
     /* ===== Pip-Boy style (Fallout terminal vibe) ===== */
     .body1.pipboy {
+      margin-top: 4px;
       height: 400px;
       max-height: 400px;
       --pip-fg: rgba(145, 255, 145, 0.95);
@@ -322,11 +323,11 @@
       justify-content: center;
 
       /* spacing */
-      margin: 10px auto 8px;
+      margin: 6px auto 0; /* remove bottom gap */
       padding: 10px;
 
       /* fixed visual height */
-      height: 56px; /* roughly matches red line reference */
+      height: 56px;
       box-sizing: border-box;
 
       line-height: 1;
