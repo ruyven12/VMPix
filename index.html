@@ -518,7 +518,6 @@
     });
 
     function showBody1() {
-      try {
       const el = document.querySelector(".body1.pipboy");
       if (!el) return;
 
@@ -534,28 +533,27 @@
 
       el.classList.add("show");
 
-      // Typing settings: slower + 250ms delay
+      // Typing settings: medium-fast + 250ms delay
       const startDelayMs = 250;
-      const baseCharDelayMs = 22; // overall pace (medium-fast)
+      const baseCharDelayMs = 22; // overall pace
       const jitterMs = 14;        // small randomness
       const lineDelayMs = 140;    // pause between lines
       const glitchChance = 0.035; // occasional glitch
       const glitchHoldMs = 42;
 
-      console.log("Terminal typing:", { startDelayMs, baseCharDelayMs, jitterMs, lineDelayMs, glitchChance, glitchHoldMs });
-
-      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\[]{}()<>";
+      // NOTE: double backslash here ensures a literal backslash character in the string.
+      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\\\\[]{}()<>";
       const randInt = n => (Math.random() * n) | 0;
 
       function typeLine(idx) {
         if (idx >= lines.length) return;
 
         const line = lines[idx];
-        let span = line.querySelector("span");
-        if (!span) {
+        const span = line.querySelector("span") || (() => {
           line.innerHTML = "<span></span>";
-          span = line.querySelector("span");
-        }
+          return line.querySelector("span");
+        })();
+
         const full = line.dataset.full ?? "";
         let i = parseInt(line.dataset.i || "0", 10);
 
@@ -565,8 +563,7 @@
           return;
         }
 
-        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "
-";
+        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "\n";
 
         if (doGlitch) {
           const gl = glyphs.charAt(randInt(glyphs.length));
@@ -593,10 +590,7 @@
         window.setTimeout(() => typeLine(idx), delay);
       }
 
-            window.setTimeout(() => typeLine(0), startDelayMs);
-      } catch (err) {
-        console.error("showBody1 failed:", err);
-      }
+      window.setTimeout(() => typeLine(0), startDelayMs);
     }
 
     startMatrixIntro({ onDone: showBody1 });
