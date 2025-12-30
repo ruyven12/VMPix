@@ -166,29 +166,34 @@
     }
   
 
-    /* ===== Matrix intro overlay ===== */
-    #matrix {
+    /* ===== Matrix intro overlay (mask + rain) ===== */
+    .matrixLayer {
       position: fixed;
       inset: 0;
       width: 100vw;
       height: 100vh;
       z-index: 9999;
       pointer-events: none;
-      opacity: 1;
+      opacity: 0;
       transition: opacity 700ms ease;
-      background: #000;
+      background: transparent;
     }
-    #matrix.hide { opacity: 0; }
-    #matrix.off { display: none; }
+    #matrixMask { z-index: 9998; background: #000; }
+    #matrixRain { z-index: 9999; }
+
+    .matrixLayer.on { opacity: 1; }
+    .matrixLayer.hide { opacity: 0; }
+    .matrixLayer.off { display: none; }
 
     @media (prefers-reduced-motion: reduce) {
-      #matrix { display: none; }
+      .matrixLayer { display: none; }
     }
   </style>
 </head>
 <body>
-  <!-- Matrix-style intro overlay (auto fades out) -->
-  <canvas id="matrix" aria-hidden="true"></canvas>
+  <!-- Matrix-style intro overlay (mask reveals the site along the falling lines) -->
+  <canvas id="matrixMask" class="matrixLayer" aria-hidden="true"></canvas>
+  <canvas id="matrixRain" class="matrixLayer" aria-hidden="true"></canvas>
 
   <div id="app">
 
@@ -226,16 +231,122 @@
 
   <script>
     // ===== Matrix intro =====
-    function startMatrixIntro({ durationMs = 1700, fadeMs = 700 } = {}) {
-      const canvas = document.getElementById("matrix");
-      if (!canvas) return;
+    function startMatrixIntro({ durationMs = 2400, fadeMs = 900, fadeInMs = 450 } = {}) {
+      const mask = document.getElementById("matrixMask");
+      const rain = document.getElementById("matrixRain");
+      if (!mask || !rain) return;
 
-      // Respect reduced motion (CSS also hides it, but keep JS safe)
+      // Respect reduced motion
       const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduceMotion) {
-        canvas.classList.add("off");
+        mask.classList.add("off");
+        rain.classList.add("off");
         return;
       }
+
+      // Ensure visible + fade in
+      [mask, rain].forEach(c => {
+        c.classList.remove("off", "hide", "on");
+        c.style.transitionDuration = fadeInMs + "ms";
+      });
+      requestAnimationFrame(() => {
+        [mask, rain].forEach(c => c.classList.add("on"));
+      });
+
+      const mctx = mask.getContext("2d");
+      const rctx = rain.getContext("2d");
+
+      let w = 0, h = 0;
+      const fontSize = 16;
+      let columns = 0;
+      let drops = [];
+      let rafId = 0;
+
+      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+      function setupCanvas(c, dpr) {
+        c.width = Math.floor(w * dpr);
+        c.height = Math.floor(h * dpr);
+        c.style.width = w + "px";
+        c.style.height = h + "px";
+      }
+
+      function resize() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        w = Math.floor(window.innerWidth);
+        h = Math.floor(window.innerHeight);
+
+        setupCanvas(mask, dpr);
+        setupCanvas(rain, dpr);
+
+        mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        columns = Math.ceil(w / fontSize);
+        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
+
+        // Mask starts fully black, then we erase where the code falls.
+        mctx.globalCompositeOperation = "source-over";
+        mctx.fillStyle = "#000";
+        mctx.fillRect(0, 0, w, h);
+
+        // Rain starts clean.
+        rctx.clearRect(0, 0, w, h);
+      }
+
+      function frame() {
+        // Rain layer: classic trailing effect
+        rctx.fillStyle = "rgba(0, 0, 0, 0.10)";
+        rctx.fillRect(0, 0, w, h);
+        rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+        rctx.fillStyle = "rgba(0, 255, 70, 0.85)";
+
+        // Mask layer: progressively reveals the site where the drops travel
+        // We erase small rectangles in the mask (destination-out) along each falling glyph.
+        mctx.globalCompositeOperation = "destination-out";
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars.charAt((Math.random() * chars.length) | 0);
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          // Reveal strip where the glyph passes
+          // (slightly wider than a character for a clean "wipe")
+          mctx.fillRect(x - 2, y - fontSize, fontSize + 4, fontSize + 6);
+
+          // Draw glyph on rain layer
+          rctx.fillText(text, x, y);
+
+          // reset drop randomly after it passes bottom
+          if (y > h && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+
+        // Put mask back to normal mode for next frame's operations
+        mctx.globalCompositeOperation = "source-over";
+
+        rafId = requestAnimationFrame(frame);
+      }
+
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      frame();
+
+      // Fade out + teardown
+      window.setTimeout(() => {
+        [mask, rain].forEach(c => {
+          c.style.transitionDuration = fadeMs + "ms";
+          c.classList.add("hide");
+          c.classList.remove("on");
+        });
+
+        window.setTimeout(() => {
+          cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", resize);
+          [mask, rain].forEach(c => c.classList.add("off"));
+        }, fadeMs + 50);
+      }, durationMs);
+    }
 
       const ctx = canvas.getContext("2d");
       let w = 0, h = 0;
