@@ -16,7 +16,9 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.35);
       --radius: 18px;
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       background-color: var(--bg);
@@ -34,34 +36,80 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
-    @media (max-width: 800px) {
-      body {
-        background-attachment: scroll, scroll, scroll, scroll;
-        background-position: center, center, center, 50% 20%;
-      }
+    /* App frame */
+    #app { min-height: 100%; display: grid; }
 
-      header {
+    /* Views */
+    .view { display: none; min-height: 100vh; }
+    .view.active { display: grid; }
+
+    /* ===== Start (splash) view ===== */
+    #view-start {
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .splash {
+      width: min(980px, 92vw);
+      background: transparent;
+      border-radius: var(--radius);
+      position: relative;
+      user-select: none;
+    }
+
+    .hero-link {
+      display: block;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .hero-img { display: block; width: 100%; height: auto; }
+
+    /* ===== Home view ===== */
+    #view-home { grid-template-rows: auto 1fr; }
+
+    header {
       position: sticky;
       top: 0;
       backdrop-filter: blur(10px);
       background: rgba(0,0,0,0.35);
       border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      padding: 10px 18px 12px;
       z-index: 5;
+
+      /* Two-row header: logo centered on top row, nav below */
+      display: grid;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .brandLink {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .brandImg {
+      height: 75px;
+      width: auto;
+      display: block;
     }
 
     nav {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .navlink {
-
       text-decoration: none;
       color: var(--fg);
       border: 1px solid var(--border);
@@ -104,7 +152,32 @@
 
     .card:hover { transform: translateY(-2px); }
 
-    $1
+    .placeholder {
+      width: min(980px, 92vw);
+      border: 1px dashed rgba(255,255,255,0.22);
+      border-radius: var(--radius);
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Mobile tuning */
+    @media (max-width: 800px) {
+      body {
+        background-attachment: scroll, scroll, scroll, scroll;
+        background-position: center, center, center, 50% 20%;
+      }
+
+      header { padding: 10px 14px 12px; }
+      nav { gap: 8px; }
+      .navlink { padding: 8px 10px; }
+      main { padding: 18px 14px 36px; }
+    }
+
+    /* Accessibility: reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+      .card:hover { transform: none; }
     }
 
     /* ===== Matrix intro overlay (mask + rain) ===== */
@@ -120,6 +193,7 @@
       transition: opacity 700ms ease;
       background: transparent;
     }
+
     #matrixMask { z-index: 9998; background: #000; }
     #matrixRain { z-index: 9999; }
 
@@ -149,7 +223,14 @@
 
     <section id="view-home" class="view">
       <header>
-        
+        <a class="brandLink" href="https://vmpix.onrender.com/#/home" aria-label="Go to Voodoo Media Home">
+          <img
+            class="brandImg"
+            src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
+            alt="Voodoo Media Hub"
+          />
+        </a>
+
         <nav>
           <a class="navlink" href="#/home" data-route="#/home">Home</a>
           <a class="navlink" href="#/music" data-route="#/music">Music</a>
