@@ -566,8 +566,7 @@
           return;
         }
 
-        var doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "
-";
+        var doGlitch = Math.random() < glitchChance && full[i] !== " " && full.charCodeAt(i) !== 10 && full.charCodeAt(i) !== 13;
 
         if (doGlitch) {
           var gl = glyphs.charAt(randInt(glyphs.length));
