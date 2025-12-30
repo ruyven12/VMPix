@@ -170,6 +170,7 @@
     .matrixLayer {
       position: fixed;
       inset: 0;
+      display: block;
       width: 100vw;
       height: 100vh;
       z-index: 9999;
@@ -290,15 +291,19 @@
         mctx.fillStyle = "#000";
         mctx.fillRect(0, 0, w, h);
 
-        // Rain starts black each frame (so trails look right)
-        rctx.fillStyle = "#000";
-        rctx.fillRect(0, 0, w, h);
+        // Rain canvas stays transparent so the revealed site shows through.
+        rctx.clearRect(0, 0, w, h);
       }
 
       function frame() {
-        // Rain layer: trailing fade over black
-        rctx.fillStyle = "rgba(0, 0, 0, 0.12)";
+        // Rain layer: fade previous glyphs WITHOUT painting black (keeps transparency).
+        // We do this by reducing existing alpha via destination-out.
+        rctx.globalCompositeOperation = "destination-out";
+        rctx.fillStyle = "rgba(0, 0, 0, 0.10)";
         rctx.fillRect(0, 0, w, h);
+
+        // Then draw new glyphs normally.
+        rctx.globalCompositeOperation = "source-over";
         rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
         rctx.fillStyle = "rgba(0, 255, 70, 0.9)";
 
