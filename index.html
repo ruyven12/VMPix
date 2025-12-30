@@ -173,7 +173,8 @@
 
     .body1.pipboy.show .pipboyText {
       max-width: calc(var(--chars) * 1ch);
-      animation: pipType 2.6s steps(var(--chars)) forwards;
+      animation: pipType 4.2s steps(var(--chars)) forwards;
+      animation-delay: 250ms;
     }
 
     /* Blinking caret */
@@ -189,6 +190,7 @@
     .body1.pipboy.show .pipboyCaret {
       opacity: 1;
       animation: caretBlink 0.8s steps(1, end) infinite;
+      animation-delay: 250ms;
     }
 
     @keyframes pipType {
