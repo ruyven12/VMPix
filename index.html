@@ -296,18 +296,12 @@
       }
 
       function frame() {
-        // Rain layer: fade previous glyphs WITHOUT painting black (keeps transparency).
-        // We do this by reducing existing alpha via destination-out.
-        rctx.globalCompositeOperation = "destination-out";
-        rctx.fillStyle = "rgba(0, 0, 0, 0.10)";
-        rctx.fillRect(0, 0, w, h);
-
-        // Then draw new glyphs normally.
-        rctx.globalCompositeOperation = "source-over";
+        // Rain layer: draw characters with NO black fill
+        rctx.clearRect(0, 0, w, h);
         rctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
         rctx.fillStyle = "rgba(0, 255, 70, 0.9)";
 
-        // Mask layer: erase where the streams travel (reveals the real page underneath)
+        // Mask layer: erase thin reveal where streams pass
         mctx.globalCompositeOperation = "destination-out";
 
         for (let i = 0; i < drops.length; i++) {
@@ -315,13 +309,12 @@
           const y = drops[i] * fontSize;
           const text = chars.charAt((Math.random() * chars.length) | 0);
 
-          // Draw glyph
+          // draw glyph
           rctx.fillText(text, x, y);
 
-          // Reveal only a thin "window" around the falling glyph (not the whole column).
-          // This makes the site appear along the line as it falls.
+          // thin reveal window
           const revealH = Math.floor(fontSize * 1.6);
-          const revealY = Math.max(0, y - Math.floor(revealH / 2));
+          const revealY = Math.max(0, y - revealH / 2);
           mctx.fillRect(x - 2, revealY, fontSize + 4, revealH);
 
           if (y > h && Math.random() > 0.975) drops[i] = 0;
@@ -330,6 +323,7 @@
 
         mctx.globalCompositeOperation = "source-over";
         rafId = requestAnimationFrame(frame);
+      }
       }
 
       resize();
