@@ -162,20 +162,25 @@
       opacity: 0.95;
     }
 
-    /* Typing effect */
-    .pipboyText {
-      display: inline-block;
-      white-space: normal;
-      overflow: hidden;
-      max-width: 0;
-      vertical-align: top;
+    /* Terminal text block */
+    .pipboyScreen {
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    .body1.pipboy.show .pipboyText {
-      max-width: calc(var(--chars) * 1ch);
-      animation: pipType 4.2s steps(var(--chars)) forwards;
-      animation-delay: 250ms;
+    .pipboyLine {
+      display: block;
+      min-height: 1.35em;
     }
+
+    /* Prevent any flash of fully-rendered lines before JS types */
+    .pipboyLine { visibility: hidden; }
+    .body1.pipboy.show .pipboyLine { visibility: visible; }
+
+    .pipboyLine > span { display: inline; }
 
     /* Blinking caret */
     .pipboyCaret {
@@ -195,6 +200,22 @@
 
     @keyframes pipType {
       from { max-width: 0; }
+      to { max-width: calc(var(--chars) * 1ch); }
+    }
+
+    /* Prompt styling */
+    .pipboyPrompt {
+      margin-bottom: 6px;
+      color: var(--pip-fg);
+      opacity: 0.85;
+      text-shadow: 0 0 8px var(--pip-glow);
+    }
+
+    .pipboyStatus {
+      color: rgba(180,255,180,0.95);
+    }
+
+    .pipboyLine { position: relative; }
       to { max-width: calc(var(--chars) * 1ch); }
     }
 
@@ -308,7 +329,13 @@
       </header>
 
       <section class="body1 pipboy" aria-live="polite">
-        <span class="pipboyText">Welcome to the landing page for Voodoo Media! This site is currently a work in progress and bits of data will come in time to this page.</span>
+        <pre class="pipboyScreen" aria-label="Terminal output">
+<span class="pipboyLine" data-line="> INIT VOODOO_MEDIA.EXE"></span>
+<span class="pipboyLine" data-line="> LOADING MODULES..."></span>
+<span class="pipboyLine" data-line="> STATUS: ONLINE"></span>
+<span class="pipboyLine" data-line=""></span>
+<span class="pipboyLine" data-line="Welcome to the landing page for Voodoo Media! This site is currently a work in progress and bits of data will come in time to this page."></span>
+        </pre>
         <span class="pipboyCaret" aria-hidden="true">▮</span>
       </section>
 
@@ -489,12 +516,74 @@
     });
 
     function showBody1() {
-      const el = document.querySelector(".body1");
+      const el = document.querySelector(".body1.pipboy");
       if (!el) return;
-      const text = (el.querySelector(".pipboyText")?.textContent || el.textContent || "").trim();
-      // Clamp so steps() doesn't get ridiculous on long copy.
-      el.style.setProperty("--chars", String(Math.min(220, Math.max(30, text.length))));
+
+      const lines = [...el.querySelectorAll(".pipboyLine")];
+
+      // Prepare: create inner spans for typed text and clear them so nothing is shown.
+      lines.forEach(line => {
+        const full = line.getAttribute("data-line") ?? "";
+        line.innerHTML = "<span></span>";
+        line.dataset.full = full;
+        line.dataset.i = "0";
+      });
+
       el.classList.add("show");
+
+      // Typing settings: slower + 250ms delay
+      const startDelayMs = 250;
+      const baseCharDelayMs = 34; // overall pace
+      const jitterMs = 26;        // small randomness
+      const lineDelayMs = 210;    // pause between lines
+      const glitchChance = 0.035; // occasional glitch
+      const glitchHoldMs = 42;
+
+      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\\[]{}()<>";
+      const randInt = n => (Math.random() * n) | 0;
+
+      function typeLine(idx) {
+        if (idx >= lines.length) return;
+
+        const line = lines[idx];
+        const span = line.querySelector("span");
+        const full = line.dataset.full ?? "";
+        let i = parseInt(line.dataset.i || "0", 10);
+
+        // Done with this line -> next line
+        if (i >= full.length) {
+          window.setTimeout(() => typeLine(idx + 1), lineDelayMs);
+          return;
+        }
+
+        const doGlitch = Math.random() < glitchChance && full[i] !== " " && full[i] !== "\n";
+
+        if (doGlitch) {
+          const gl = glyphs.charAt(randInt(glyphs.length));
+          span.textContent = full.slice(0, i) + gl;
+          window.setTimeout(() => {
+            i += 1;
+            line.dataset.i = String(i);
+            span.textContent = full.slice(0, i);
+
+            const delay = baseCharDelayMs + randInt(jitterMs);
+            window.setTimeout(() => typeLine(idx), delay);
+          }, glitchHoldMs);
+          return;
+        }
+
+        // Normal commit
+        i += 1;
+        line.dataset.i = String(i);
+        span.textContent = full.slice(0, i);
+
+        // Slightly slower after punctuation
+        const punct = /[\.!\?\:;,]/.test(full[i - 1]);
+        const delay = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
+        window.setTimeout(() => typeLine(idx), delay);
+      }
+
+      window.setTimeout(() => typeLine(0), startDelayMs);
     }
 
     startMatrixIntro({ onDone: showBody1 });
