@@ -19,7 +19,6 @@
     * { box-sizing: border-box; }
     html, body {
       margin: 0;
-      /* Hub background image (SmugMug) + readability overlays */
       background-color: var(--bg);
       background-image:
         radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.10), transparent 60%),
@@ -35,50 +34,28 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Mobile: avoid janky fixed backgrounds + tune spacing */
     @media (max-width: 800px) {
       body {
         background-attachment: scroll, scroll, scroll, scroll;
         background-position: center, center, center, 50% 20%;
       }
 
-      header {
-        padding: 12px 14px;
-      }
-
-      nav {
-        gap: 8px;
-      }
-
-      .navlink {
-        padding: 8px 10px;
-      }
-
-      main {
-        padding: 18px 14px 36px;
-      }
+      header { padding: 12px 14px; }
+      nav { gap: 8px; }
+      .navlink { padding: 8px 10px; }
+      main { padding: 18px 14px 36px; }
     }
 
-    /* Accessibility: reduce motion */
     @media (prefers-reduced-motion: reduce) {
-      .btn,
-      .card {
-        transition: none;
-      }
-      .btn:hover,
-      .card:hover {
-        transform: none;
-      }
+      .btn, .card { transition: none; }
+      .btn:hover, .card:hover { transform: none; }
     }
 
-    /* App frame */
     #app { min-height: 100%; display: grid; }
 
-    /* Views */
     .view { display: none; min-height: 100vh; }
     .view.active { display: grid; }
 
-    /* ===== Start (splash) view ===== */
     #view-start {
       place-items: center;
       padding: 28px;
@@ -102,18 +79,7 @@
       background: rgba(255,255,255,0.02);
     }
 
-    .hero-img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .splash-overlay {
-      margin-top: 18px;
-      display: grid;
-      gap: 10px;
-      justify-items: center;
-    }
+    .hero-img { display: block; width: 100%; height: auto; }
 
     .btn {
       appearance: none;
@@ -128,12 +94,9 @@
       transition: transform 120ms ease, background 120ms ease;
     }
     .btn:hover { transform: translateY(-1px); }
-    .hint { color: var(--muted); font-size: 13px; }
 
-    /* ===== Home view ===== */
-    #view-home {
-      grid-template-rows: auto 1fr;
-    }
+    #view-home { grid-template-rows: auto 1fr; }
+
     header {
       position: sticky;
       top: 0;
@@ -147,16 +110,9 @@
       gap: 12px;
       z-index: 5;
     }
-    .brand {
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-    nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+
+    nav { display: flex; gap: 10px; flex-wrap: wrap; }
+
     .navlink {
       text-decoration: none;
       color: var(--fg);
@@ -167,9 +123,8 @@
       font-weight: 700;
       font-size: 13px;
     }
-    .navlink.active {
-      background: rgba(255,255,255,0.12);
-    }
+
+    .navlink.active { background: rgba(255,255,255,0.12); }
 
     main {
       padding: 22px 18px 44px;
@@ -198,11 +153,9 @@
       cursor: pointer;
       transition: transform 120ms ease, background 120ms ease;
     }
-    .card:hover { transform: translateY(-2px); }
-    .card h2 { margin: 0 0 6px; font-size: 18px; }
-    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
 
-    /* Simple placeholders for future sections */
+    .card:hover { transform: translateY(-2px); }
+
     .placeholder {
       width: min(980px, 92vw);
       border: 1px dashed rgba(255,255,255,0.22);
@@ -211,37 +164,45 @@
       color: var(--muted);
       text-align: center;
     }
+  
+
+    /* ===== Matrix intro overlay ===== */
+    #matrix {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 700ms ease;
+      background: #000;
+    }
+    #matrix.hide { opacity: 0; }
+    #matrix.off { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      #matrix { display: none; }
+    }
   </style>
 </head>
-
 <body>
+  <!-- Matrix-style intro overlay (auto fades out) -->
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
   <div id="app">
 
-    <!-- START / SPLASH -->
-        <!-- START / SPLASH (optional / disabled) -->
     <section id="view-start" class="view">
       <div class="splash">
-        <a class="hero-link" href="#/home" aria-label="Enter Voodoo Media Hub">
-          <img
-            class="hero-img"
-            src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
-            alt="Voodoo Media"
-            loading="eager"
-          />
+        <a class="hero-link" href="#/home">
+          <img class="hero-img" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
         </a>
       </div>
     </section>
 
-    <!-- HOME -->
     <section id="view-home" class="view">
       <header>
-        <div class="brand">
-          <img
-            src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png"
-            alt="Voodoo Media Hub"
-            style="height:75px; width:auto; display:block;"
-          />
-        </div>
+        <img src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" style="height:75px" />
         <nav>
           <a class="navlink" href="#/home" data-route="#/home">Home</a>
           <a class="navlink" href="#/music" data-route="#/music">Music</a>
@@ -252,35 +213,94 @@
       <main>
         <div class="home" id="homeContent">
           <div class="cards">
-            <div class="card" data-go="#/music">
-              <h2>Music</h2>
-              <p>Enter the Music Archives section (placeholder for now).</p>
-            </div>
-            <div class="card" data-go="#/wrestling">
-              <h2>Wrestling</h2>
-              <p>Enter the Wrestling section (placeholder for now).</p>
-            </div>
+            <div class="card" data-go="#/music"><h2>Music</h2></div>
+            <div class="card" data-go="#/wrestling"><h2>Wrestling</h2></div>
           </div>
-
-          <div class="placeholder">
-            This is your tester hub. Next we’ll drop in Music/Wrestling as links, iframes, or native modules.
-          </div>
+          <div class="placeholder">Hub placeholder</div>
         </div>
-
-        <div class="placeholder" id="musicContent" style="display:none;">
-          MUSIC placeholder (next step: iframe or native module).
-        </div>
-
-        <div class="placeholder" id="wrestlingContent" style="display:none;">
-          WRESTLING placeholder (next step: iframe or native module).
-        </div>
+        <div class="placeholder" id="musicContent" style="display:none;">Music placeholder</div>
+        <div class="placeholder" id="wrestlingContent" style="display:none;">Wrestling placeholder</div>
       </main>
     </section>
-
   </div>
 
   <script>
-    // Tiny hash-router so Back/Forward works inside the hub.
+    // ===== Matrix intro =====
+    function startMatrixIntro({ durationMs = 1700, fadeMs = 700 } = {}) {
+      const canvas = document.getElementById("matrix");
+      if (!canvas) return;
+
+      // Respect reduced motion (CSS also hides it, but keep JS safe)
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        canvas.classList.add("off");
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      let w = 0, h = 0;
+      const fontSize = 16;
+      let columns = 0;
+      let drops = [];
+      let rafId = 0;
+
+      function resize() {
+        // Use devicePixelRatio for crispness
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        w = Math.floor(window.innerWidth);
+        h = Math.floor(window.innerHeight);
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        columns = Math.ceil(w / fontSize);
+        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * (h / fontSize)));
+      }
+
+      const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+      function frame() {
+        // trailing fade
+        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+        ctx.fillStyle = "rgba(0, 255, 70, 0.85)";
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars.charAt((Math.random() * chars.length) | 0);
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+          ctx.fillText(text, x, y);
+
+          // reset drop randomly after it passes bottom
+          if (y > h && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+
+        rafId = requestAnimationFrame(frame);
+      }
+
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      frame();
+
+      // Fade out and stop animation
+      window.setTimeout(() => {
+        canvas.style.transitionDuration = fadeMs + "ms";
+        canvas.classList.add("hide");
+
+        window.setTimeout(() => {
+          cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", resize);
+          canvas.classList.add("off");
+        }, fadeMs + 50);
+      }, durationMs);
+    }
+
+
     const views = {
       "#/start": document.getElementById("view-start"),
       "#/home": document.getElementById("view-home"),
@@ -293,52 +313,28 @@
     const musicContent = document.getElementById("musicContent");
     const wrestlingContent = document.getElementById("wrestlingContent");
 
-        function setActiveView(route) {
-      // default route now goes straight to HOME
+    function setActiveView(route) {
       if (!route || !views[route]) route = "#/home";
-
-      // toggle view visibility
       Object.values(views).forEach(v => v.classList.remove("active"));
       views[route].classList.add("active");
 
-      // If we're on the "home shell", show the correct inner section
-      if (route === "#/home") {
-        homeContent.style.display = "grid";
-        musicContent.style.display = "none";
-        wrestlingContent.style.display = "none";
-      } else if (route === "#/music") {
-        homeContent.style.display = "none";
-        musicContent.style.display = "block";
-        wrestlingContent.style.display = "none";
-      } else if (route === "#/wrestling") {
-        homeContent.style.display = "none";
-        musicContent.style.display = "none";
-        wrestlingContent.style.display = "block";
-      }
+      homeContent.style.display = route === "#/home" ? "grid" : "none";
+      musicContent.style.display = route === "#/music" ? "block" : "none";
+      wrestlingContent.style.display = route === "#/wrestling" ? "block" : "none";
 
-      // nav active styling
-      navLinks.forEach(a => {
-        a.classList.toggle("active", a.getAttribute("data-route") === route);
-      });
+      navLinks.forEach(a => a.classList.toggle("active", a.dataset.route === route));
     }
 
-    // Back/Forward support
     window.addEventListener("hashchange", () => setActiveView(location.hash));
 
-        // Enter button no longer needed when Home is the landing page
-    // (kept commented for possible future splash re-enable)
-    // document.getElementById("enterBtn").addEventListener("click", () => {
-    //   location.hash = "#/home";
-    // });
-
-    // Card navigation
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", e => {
       const card = e.target.closest("[data-go]");
-      if (!card) return;
-      location.hash = card.getAttribute("data-go");
+      if (card) location.hash = card.dataset.go;
     });
 
-    // Initial load
+    // Kick the Matrix intro on first load
+    startMatrixIntro({ durationMs: 1700, fadeMs: 700 });
+
     setActiveView(location.hash);
   </script>
 </body>
