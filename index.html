@@ -518,6 +518,7 @@
     });
 
     function showBody1() {
+      try {
       const el = document.querySelector(".body1.pipboy");
       if (!el) return;
 
@@ -535,11 +536,13 @@
 
       // Typing settings: slower + 250ms delay
       const startDelayMs = 250;
-      const baseCharDelayMs = 22; // overall pace
+      const baseCharDelayMs = 22; // overall pace (medium-fast)
       const jitterMs = 14;        // small randomness
       const lineDelayMs = 140;    // pause between lines
       const glitchChance = 0.035; // occasional glitch
       const glitchHoldMs = 42;
+
+      console.log("Terminal typing:", { startDelayMs, baseCharDelayMs, jitterMs, lineDelayMs, glitchChance, glitchHoldMs });
 
       const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\[]{}()<>";
       const randInt = n => (Math.random() * n) | 0;
@@ -548,7 +551,11 @@
         if (idx >= lines.length) return;
 
         const line = lines[idx];
-        const span = line.querySelector("span");
+        let span = line.querySelector("span");
+        if (!span) {
+          line.innerHTML = "<span></span>";
+          span = line.querySelector("span");
+        }
         const full = line.dataset.full ?? "";
         let i = parseInt(line.dataset.i || "0", 10);
 
@@ -586,7 +593,10 @@
         window.setTimeout(() => typeLine(idx), delay);
       }
 
-      window.setTimeout(() => typeLine(0), startDelayMs);
+            window.setTimeout(() => typeLine(0), startDelayMs);
+      } catch (err) {
+        console.error("showBody1 failed:", err);
+      }
     }
 
     startMatrixIntro({ onDone: showBody1 });
