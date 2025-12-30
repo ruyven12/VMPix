@@ -517,13 +517,13 @@
       if (card) location.hash = card.dataset.go;
     });
 
+    // Terminal typing
     function showBody1() {
       const el = document.querySelector(".body1.pipboy");
       if (!el) return;
 
       const lines = [...el.querySelectorAll(".pipboyLine")];
 
-      // Prepare: create inner spans for typed text and clear them so nothing is shown.
       lines.forEach(line => {
         const full = line.getAttribute("data-line") ?? "";
         line.innerHTML = "<span></span>";
@@ -533,16 +533,16 @@
 
       el.classList.add("show");
 
-      // Typing settings: medium-fast + 250ms delay
+      // medium-fast (known stable)
       const startDelayMs = 250;
-      const baseCharDelayMs = 22; // overall pace
-      const jitterMs = 14;        // small randomness
-      const lineDelayMs = 140;    // pause between lines
-      const glitchChance = 0.035; // occasional glitch
+      const baseCharDelayMs = 22;
+      const jitterMs = 14;
+      const lineDelayMs = 140;
+      const glitchChance = 0.035;
       const glitchHoldMs = 42;
 
-      // NOTE: double backslash here ensures a literal backslash character in the string.
-      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/\\[]{}()<>";
+      // Avoid backslash here to prevent accidental escaping issues.
+      const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/[]{}()<>";
       const randInt = n => (Math.random() * n) | 0;
 
       function typeLine(idx) {
@@ -557,7 +557,6 @@
         const full = line.dataset.full ?? "";
         let i = parseInt(line.dataset.i || "0", 10);
 
-        // Done with this line -> next line
         if (i >= full.length) {
           window.setTimeout(() => typeLine(idx + 1), lineDelayMs);
           return;
@@ -580,12 +579,10 @@
           return;
         }
 
-        // Normal commit
         i += 1;
         line.dataset.i = String(i);
         span.textContent = full.slice(0, i);
 
-        // Slightly slower after punctuation
         const punct = /[\.\!\?\:;,]/.test(full[i - 1]);
         const delay = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
         window.setTimeout(() => typeLine(idx), delay);
