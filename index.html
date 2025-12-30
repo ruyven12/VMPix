@@ -315,10 +315,14 @@
 
     /* ===== Fallout 3-style title ===== */
     .falloutTitle {
-      position: absolute;
-      left: 50%;
-      top: -22px;
-      transform: translateX(-50%);
+      /* sits between header and terminal (not inside terminal) */
+      position: relative;
+      margin: 10px auto 8px;
+      text-align: center;
+      pointer-events: none;
+      position: relative;
+      margin: 8px auto 6px;
+      text-align: center;
       pointer-events: none;
       /* position INTRO snug between header and terminal */
       margin: 6px auto 4px;
@@ -388,10 +392,10 @@
         </a>
       </header>
 
-      
+      <!-- Fallout title between header and terminal -->
+      <div class="falloutTitle" aria-hidden="true">INTRO</div>
 
       <section class="body1 pipboy" aria-live="polite">
-        <div class="falloutTitle falloutTitle--anchored" aria-hidden="true">INTRO</div>
         <pre class="pipboyScreen" aria-label="Terminal output">
 <span class="pipboyLine" data-line="> STATUS: Online"></span>
 <span class="pipboyLine" data-line=""></span>
