@@ -315,16 +315,21 @@
 
     /* ===== Fallout 3-style title ===== */
     .falloutTitle {
-      /* terminal-style bordered bubble (tight height) */
+      /* terminal-style bordered bubble with fixed vertical size */
       position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+
+      /* spacing */
       margin: 10px auto 8px;
-      padding: 4px 16px;
+      padding: 10px;
+
+      /* fixed visual height */
+      height: 56px; /* roughly matches red line reference */
+      box-sizing: border-box;
+
       line-height: 1;
-      min-height: unset;
-      height: auto;
       text-align: center;
       pointer-events: none;
 
