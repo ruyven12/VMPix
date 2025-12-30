@@ -90,6 +90,7 @@
       letter-spacing: 0.04em;
       color: var(--fg);
 
+      /* animate in after Matrix intro */
       opacity: 0;
       transform: translateY(-6px);
       filter: blur(2px);
@@ -102,13 +103,13 @@
       filter: blur(0);
     }
 
-    /* ===== Pip-Boy style ===== */
+    /* ===== Pip-Boy style (Fallout terminal vibe) ===== */
     .body1.pipboy {
-      padding-bottom: 26px;
       --pip-fg: rgba(145, 255, 145, 0.95);
       --pip-glow: rgba(80, 255, 120, 0.65);
       --pip-bg: rgba(0, 0, 0, 0.55);
       --pip-border: rgba(110, 255, 150, 0.28);
+      --chars: 140; /* JS will overwrite based on text length */
 
       width: min(980px, 92vw);
       margin: 10px auto 0;
@@ -121,26 +122,191 @@
       border: 1px solid var(--pip-border);
       border-radius: 14px;
       padding: 14px 16px;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.35) inset, 0 18px 40px rgba(0,0,0,0.35);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.35) inset,
+        0 18px 40px rgba(0,0,0,0.35);
       position: relative;
       overflow: hidden;
-      display: inline-block;
+	  display: inline-block;
     }
 
+    .body1.pipboy.show {
+      text-shadow:
+        0 0 12px var(--pip-glow),
+        0 0 2px rgba(255,255,255,0.08);
+      animation:
+        pipWarmup 420ms ease-out 0ms 1,
+        pipFlicker 3.8s ease-in-out 420ms infinite;
+    }
+
+    /* Scanlines + subtle vignette */
+    .body1.pipboy::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom,
+          rgba(0,0,0,0.35),
+          rgba(0,0,0,0.05) 18%,
+          rgba(0,0,0,0.14) 50%,
+          rgba(0,0,0,0.06) 82%,
+          rgba(0,0,0,0.35)
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.00) 0px,
+          rgba(0,0,0,0.00) 2px,
+          rgba(0,0,0,0.18) 3px
+        );
+      mix-blend-mode: multiply;
+      opacity: 0.95;
+    }
+
+    /* Terminal text block */
     .pipboyScreen {
       margin: 0;
+      position: relative;
+      z-index: 1;
       white-space: pre-wrap;
-      max-height: calc(1.35em * 8); /* 8 lines */
-      overflow-y: auto;
-      padding-right: 10px;
+      word-break: break-word;
     }
-    .pipboyLine { display: block; min-height: 1.35em; visibility: hidden; }
-    .body1.show .pipboyLine { visibility: visible; }
 
-    .pipboyCaret { opacity: 0; }
-    .body1.show .pipboyCaret { opacity: 1; animation: caretBlink 0.8s steps(1,end) infinite; }
+    .pipboyLine {
+      display: block;
+      min-height: 1.35em;
+    }
 
-    @keyframes caretBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    /* Prevent any flash of fully-rendered lines before JS types */
+    .pipboyLine { visibility: hidden; }
+    .body1.pipboy.show .pipboyLine { visibility: visible; }
+
+    .pipboyLine > span { display: inline; }
+
+    /* Blinking caret */
+    .pipboyCaret {
+      display: inline-block;
+      margin-left: 0.35ch;
+      color: var(--pip-fg);
+      text-shadow: 0 0 10px var(--pip-glow);
+      opacity: 0;
+      transform: translateY(-0.05em);
+    }
+
+    .body1.pipboy.show .pipboyCaret {
+      opacity: 1;
+      animation: caretBlink 0.8s steps(1, end) infinite;
+      animation-delay: 250ms;
+    }
+
+    @keyframes pipType {
+      from { max-width: 0; }
+      to { max-width: calc(var(--chars) * 1ch); }
+    }
+
+    /* Prompt styling */
+    .pipboyPrompt {
+      margin-bottom: 6px;
+      color: var(--pip-fg);
+      opacity: 0.85;
+      text-shadow: 0 0 8px var(--pip-glow);
+    }
+
+    .pipboyStatus {
+      color: rgba(180,255,180,0.95);
+    }
+
+    .pipboyLine { position: relative; }
+      to { max-width: calc(var(--chars) * 1ch); }
+    }
+
+    @keyframes caretBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    @keyframes pipWarmup {
+      0% {
+        filter: brightness(0.4) contrast(0.9) saturate(0.6);
+        box-shadow: none;
+        opacity: 0.2;
+      }
+      35% {
+        filter: brightness(1.6) contrast(1.2) saturate(1.4);
+        box-shadow: 0 0 28px rgba(120,255,160,0.55);
+        opacity: 1;
+      }
+      70% {
+        filter: brightness(0.95) contrast(1.05) saturate(1.1);
+      }
+      100% {
+        filter: brightness(1) contrast(1) saturate(1);
+      }
+    }
+
+    @keyframes pipFlicker {
+      0%, 100% { filter: none; }
+      8% { filter: brightness(1.04) contrast(1.03); }
+      9% { filter: brightness(0.95) contrast(1.06); }
+      10% { filter: brightness(1.03) contrast(1.04); }
+      52% { filter: brightness(1.02) contrast(1.02); }
+      53% { filter: brightness(0.97) contrast(1.05); }
+      54% { filter: brightness(1.02) contrast(1.02); }
+    }
+      8% { filter: brightness(1.04) contrast(1.03); }
+      9% { filter: brightness(0.95) contrast(1.06); }
+      10% { filter: brightness(1.03) contrast(1.04); }
+      52% { filter: brightness(1.02) contrast(1.02); }
+      53% { filter: brightness(0.97) contrast(1.05); }
+      54% { filter: brightness(1.02) contrast(1.02); }
+    }
+
+    nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    main { padding: 22px 18px 44px; display: grid; place-items: center; }
+
+    .home { width: min(980px, 92vw); display: grid; gap: 16px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+
+    .card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .card:hover { transform: translateY(-2px); }
+
+    .placeholder {
+      width: min(980px, 92vw);
+      border: 1px dashed rgba(255,255,255,0.22);
+      border-radius: var(--radius);
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .matrixLayer {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 700ms ease;
+    }
+
+    #matrixMask { z-index: 9998; background: #000; }
+    #matrixRain { z-index: 9999; }
+
+    .matrixLayer.on { opacity: 1; }
+    .matrixLayer.hide { opacity: 0; }
+    .matrixLayer.off { display: none; }
   </style>
 </head>
 <body>
@@ -148,22 +314,288 @@
   <canvas id="matrixRain" class="matrixLayer"></canvas>
 
   <div id="app">
-    <section id="view-home" class="view active">
+    <section id="view-start" class="view">
+      <div class="splash">
+        <a class="hero-link" href="#/home">
+          <img class="hero-img" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
+        </a>
+      </div>
+    </section>
+
+    <section id="view-home" class="view">
       <header>
         <a class="brandLink" href="#/home">
           <img class="brandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
         </a>
       </header>
 
-      <section class="body1 pipboy show">
-        <pre class="pipboyScreen">
-<span class="pipboyLine">> STATUS: Online</span>
-<span class="pipboyLine"></span>
-<span class="pipboyLine">Welcome to Voodoo Media.</span>
+      <section class="body1 pipboy" aria-live="polite">
+        <pre class="pipboyScreen" aria-label="Terminal output">
+<span class="pipboyLine" data-line="> STATUS: Online"></span>
+<span class="pipboyLine" data-line=""></span>
+<span class="pipboyLine" data-line="Welcome to the landing page for Voodoo Media! This site is home to the photographical journey that I have had in my lifetime, ranging from all types of photos taken."></span>
+<span class="pipboyLine" data-line="This site also works in conjunction with my Smugmug official site. If you wish to go to that version/UI, click the button below."></span>
+<span class="pipboyLine" data-line="There will be more added as time goes on - bear with me as I code all of this in."></span>
+<span class="pipboyLine" data-line="-VM 12/30/25"></span>
         </pre>
-        <span class="pipboyCaret">▮</span>
+        <span class="pipboyCaret" aria-hidden="true">▮</span>
       </section>
+
+      <main>
+        <div class="home" id="homeContent">
+          <div class="cards">
+            <div class="card" data-go="#/music"><h2>Music</h2></div>
+            <div class="card" data-go="#/wrestling"><h2>Wrestling</h2></div>
+          </div>
+          <div class="placeholder">Hub placeholder</div>
+        </div>
+        <div class="placeholder" id="musicContent" style="display:none;">Music placeholder</div>
+        <div class="placeholder" id="wrestlingContent" style="display:none;">Wrestling placeholder</div>
+      </main>
     </section>
   </div>
+
+  <script>
+    // ===== Matrix intro =====
+    function startMatrixIntro(opts) {
+      opts = opts || {};
+      var durationMs = opts.durationMs ?? 300;
+      var fadeMs = opts.fadeMs ?? 900;
+      var rainFadeInMs = opts.rainFadeInMs ?? 350;
+      var onDone = opts.onDone;
+
+      var mask = document.getElementById("matrixMask");
+      var rain = document.getElementById("matrixRain");
+      if (!mask || !rain) return;
+
+      var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        mask.classList.add("off");
+        rain.classList.add("off");
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+
+      // Black screen immediately, then rain fades in
+      mask.classList.remove("off", "hide");
+      rain.classList.remove("off", "hide");
+
+      mask.style.transitionDuration = "0ms";
+      rain.style.transitionDuration = String(rainFadeInMs) + "ms";
+
+      mask.classList.add("on");
+      requestAnimationFrame(function () { rain.classList.add("on"); });
+
+      var mctx = mask.getContext("2d");
+      var rctx = rain.getContext("2d");
+
+      var w = 0, h = 0;
+      var fontSize = 11; // smaller font = more columns
+      var columns = 0;
+      var drops = [];
+      var rafId = 0;
+
+      var chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+      function setupCanvas(c, dpr) {
+        c.width = Math.floor(w * dpr);
+        c.height = Math.floor(h * dpr);
+        c.style.width = w + "px";
+        c.style.height = h + "px";
+      }
+
+      function resize() {
+        var dpr = Math.max(1, window.devicePixelRatio || 1);
+        w = Math.floor(window.innerWidth);
+        h = Math.floor(window.innerHeight);
+
+        setupCanvas(mask, dpr);
+        setupCanvas(rain, dpr);
+
+        mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        columns = Math.ceil(w / fontSize);
+        drops = Array.from({ length: columns }, function () {
+          return Math.floor(Math.random() * (h / fontSize));
+        });
+
+        // Start fully black (covers the site). We'll punch holes as code falls.
+        mctx.globalCompositeOperation = "source-over";
+        mctx.fillStyle = "#000";
+        mctx.fillRect(0, 0, w, h);
+
+        // Rain canvas stays transparent so the revealed site shows through.
+        rctx.clearRect(0, 0, w, h);
+      }
+
+      function frame() {
+        // Rain layer: trailing effect WITHOUT painting black.
+        rctx.globalCompositeOperation = "destination-out";
+        rctx.fillStyle = "rgba(0, 0, 0, 0.028)";
+        rctx.fillRect(0, 0, w, h);
+
+        rctx.globalCompositeOperation = "source-over";
+        rctx.font = String(fontSize) + "px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+        // Brighter red + a little glow
+        rctx.shadowColor = "rgba(255, 0, 0, 0.85)";
+        rctx.shadowBlur = 14;
+        rctx.fillStyle = "rgba(255, 0, 0, 1)";
+
+        // Mask layer: erase thin reveal where streams pass
+        mctx.globalCompositeOperation = "destination-out";
+
+        for (var i = 0; i < drops.length; i++) {
+          var x = i * fontSize;
+          var y = drops[i] * fontSize;
+          var text = chars.charAt((Math.random() * chars.length) | 0);
+
+          // draw glyphs (dense)
+          var jitter = (Math.random() * 2 - 1) * 1.2;
+          var xj = x + jitter;
+          rctx.fillText(text, xj, y);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 2);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 3);
+          rctx.fillText(chars.charAt((Math.random() * chars.length) | 0), xj, y - fontSize * 4);
+
+          // thin reveal window
+          var revealH = Math.floor(fontSize * 1.6);
+          var revealY = Math.max(0, y - revealH / 2);
+          mctx.fillRect(x - 3, revealY, fontSize + 6, revealH);
+
+          if (y > h && Math.random() > 0.85) drops[i] = 0;
+          drops[i] += 1.6;
+        }
+
+        mctx.globalCompositeOperation = "source-over";
+        rafId = requestAnimationFrame(frame);
+      }
+
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      frame();
+
+      // Fade out + teardown
+      window.setTimeout(function () {
+        [mask, rain].forEach(function (c) {
+          c.style.transitionDuration = String(fadeMs) + "ms";
+          c.classList.add("hide");
+          c.classList.remove("on");
+        });
+
+        window.setTimeout(function () {
+          cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", resize);
+          [mask, rain].forEach(function (c) { c.classList.add("off"); });
+          if (typeof onDone === "function") onDone();
+        }, fadeMs + 50);
+      }, durationMs);
+    }
+
+    var views = {
+      "#/start": document.getElementById("view-start"),
+      "#/home": document.getElementById("view-home"),
+      "#/music": document.getElementById("view-home"),
+      "#/wrestling": document.getElementById("view-home")
+    };
+
+    var homeContent = document.getElementById("homeContent");
+    var musicContent = document.getElementById("musicContent");
+    var wrestlingContent = document.getElementById("wrestlingContent");
+
+    function setActiveView(route) {
+      if (!route || !views[route]) route = "#/home";
+      Object.values(views).forEach(function (v) { v.classList.remove("active"); });
+      views[route].classList.add("active");
+
+      homeContent.style.display = route === "#/home" ? "grid" : "none";
+      musicContent.style.display = route === "#/music" ? "block" : "none";
+      wrestlingContent.style.display = route === "#/wrestling" ? "block" : "none";
+    }
+
+    window.addEventListener("hashchange", function () { setActiveView(location.hash); });
+
+    document.addEventListener("click", function (e) {
+      var card = e.target.closest("[data-go]");
+      if (card) location.hash = card.dataset.go;
+    });
+
+    // Terminal typing
+    function showBody1() {
+      var el = document.querySelector(".body1.pipboy");
+      if (!el) return;
+
+      var lines = Array.prototype.slice.call(el.querySelectorAll(".pipboyLine"));
+
+      lines.forEach(function (line) {
+        var full = line.getAttribute("data-line") || "";
+        line.innerHTML = "<span></span>";
+        line.dataset.full = full;
+        line.dataset.i = "0";
+      });
+
+      el.classList.add("show");
+
+      // medium-fast (stable)
+      var startDelayMs = 250;
+      var baseCharDelayMs = 9;
+      var jitterMs = 6;
+      var lineDelayMs = 75;
+      var glitchChance = 0.035;
+      var glitchHoldMs = 42;
+
+      var glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*@/[]{}()<>";
+      var randInt = function (n) { return (Math.random() * n) | 0; };
+
+      function typeLine(idx) {
+        if (idx >= lines.length) return;
+
+        var line = lines[idx];
+        var span = line.querySelector("span");
+        if (!span) {
+          line.innerHTML = "<span></span>";
+          span = line.querySelector("span");
+        }
+
+        var full = line.dataset.full || "";
+        var i = parseInt(line.dataset.i || "0", 10);
+
+        if (i >= full.length) {
+          window.setTimeout(function () { typeLine(idx + 1); }, lineDelayMs);
+          return;
+        }
+
+        var doGlitch = Math.random() < glitchChance && full[i] !== " " && full.charCodeAt(i) !== 10 && full.charCodeAt(i) !== 13;
+
+        if (doGlitch) {
+          var gl = glyphs.charAt(randInt(glyphs.length));
+          span.textContent = full.slice(0, i) + gl;
+          window.setTimeout(function () {
+            i += 1;
+            line.dataset.i = String(i);
+            span.textContent = full.slice(0, i);
+
+            var delay = baseCharDelayMs + randInt(jitterMs);
+            window.setTimeout(function () { typeLine(idx); }, delay);
+          }, glitchHoldMs);
+          return;
+        }
+
+        i += 1;
+        line.dataset.i = String(i);
+        span.textContent = full.slice(0, i);
+
+        var punct = /[\.\!\?\:;,]/.test(full[i - 1]);
+        var delay2 = baseCharDelayMs + randInt(jitterMs) + (punct ? 110 : 0);
+        window.setTimeout(function () { typeLine(idx); }, delay2);
+      }
+
+      window.setTimeout(function () { typeLine(0); }, startDelayMs);
+    }
+
+    startMatrixIntro({ onDone: showBody1 });
+    setActiveView(location.hash || "#/home");
+  </script>
 </body>
 </html>
