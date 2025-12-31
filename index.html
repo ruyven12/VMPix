@@ -485,6 +485,14 @@
     100%{ opacity: 0; }
   }
 
+  /* Restore HUD MAIN boot/scroll-in (wrapper) */
+  @keyframes hudMainScrollBoot{
+    0%{ opacity: 0; transform: translateY(18px); filter: blur(1px); }
+    65%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+    78%{ transform: translateY(2px); }
+    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+  }
+
   .hudStub{
     display: grid;
     place-items: center;
@@ -627,7 +635,7 @@
     const maxWidth = (mainBox ? mainBox.clientWidth : t.clientWidth) || 320;
 
     // Greedy word-wrap by measured width
-    const words = fullText.split(/\\s+/);
+    const words = fullText.split(/\s+/);
     const lines = [];
     let line = '';
 
