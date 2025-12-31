@@ -563,6 +563,104 @@
     .hudIntroType{ animation: none !important; width: auto; }
     .hudIntroText.is-active{ animation: none !important; }
   }
+
+  /* =============================
+   NEON FRAME (SVG tracer) - HUD MAIN addon
+   ============================= */
+  .neonFrameWrap{
+    width: 100%;
+    margin-top: 16px;
+    padding: 8px 10px 14px;
+    display: grid;
+    place-items: center;
+  }
+
+  /* Give it a predictable test size (tweak later) */
+  .neonFrame{
+    width: min(920px, 100%);
+    height: 220px;
+    display: block;
+  }
+
+  .frameBase{
+    fill: rgba(255, 40, 40, 0.08);
+    stroke: rgba(255, 70, 70, 0.65);
+    stroke-width: 10;
+    stroke-linejoin: round;
+  }
+
+  .frameTrace{
+    fill: transparent;
+    stroke: rgba(255, 90, 90, 1);
+    stroke-width: 12;
+    stroke-linejoin: round;
+
+    /* bright segment length + gap (path-length dependent) */
+    stroke-dasharray: 140 2200;
+    stroke-dashoffset: 0;
+    animation: traceRun 1.8s linear infinite;
+  }
+
+  @keyframes traceRun{
+    to { stroke-dashoffset: -2340; }
+  }
+
+
+
+  .neonFrameWrap{ position: relative; }
+
+  /* Center text safely INSIDE the polygon frame */
+  .neonFrameText{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 0;              /* we’ll pad the inner container instead */
+    text-align: center;
+    pointer-events: none;
+  }
+
+  /* Inner container keeps the text fully within the “bubble” */
+  
+  .neonFrameTextInner{
+    width: 82%;
+    height: 70%;
+    display: grid;
+    place-items: center;
+    padding: 18px 22px;
+
+    /* don't hard-clip words; allow wrap and (if needed) scroll */
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Subtle scrollbar (optional; safe default) */
+  .neonFrameTextInner::-webkit-scrollbar{ width: 8px; }
+  .neonFrameTextInner::-webkit-scrollbar-track{ background: rgba(255,255,255,0.04); border-radius: 999px; }
+  .neonFrameTextInner::-webkit-scrollbar-thumb{ background: rgba(255,90,90,0.35); border-radius: 999px; }
+
+/* Make sure the typed text wraps nicely */
+  
+  .neonFrameTextInner .hudMainType{
+    display: block;
+    width: 100%;
+    max-width: 78ch;
+    line-height: 1.45;
+
+    /* wrapping rules: never cut mid-word; allow nice breaks */
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+
+    /* responsive size so long text is less likely to overflow */
+    font-size: clamp(12px, 1.05vw, 15px);
+  }
+
+@media (max-width: 520px){
+    .neonFrame{ height: 190px; }
+  }
+
 </style>
 </head>
 
@@ -589,7 +687,45 @@
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Music</span></span>
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Wrestling</span></span>
             </div>
-            <div class="hudStub hudMain"><span class="hudMainLoad"><span class="hudMainType" data-hud-main-text>Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.</span></span></div>
+            <div class="hudStub hudMain">
+  <div class="neonFrameWrap" aria-hidden="false">
+    <svg class="neonFrame" viewBox="0 0 1000 520" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Base dim glow -->
+      <path class="frameBase" d="
+        M120 20 H880
+        L980 120 V400
+        L880 500 H120
+        L20 400 V120
+        Z" />
+
+      <!-- Bright energized tracer (animated) -->
+      <path class="frameTrace" d="
+        M120 20 H880
+        L980 120 V400
+        L880 500 H120
+        L20 400 V120
+        Z" filter="url(#glow)" />
+    </svg>
+
+    <!-- Typed HUD main text, placed INSIDE the frame -->
+    <div class="neonFrameText">
+      <div class="neonFrameTextInner">
+        <span class="hudMainType"><span data-hud-main-text>Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+</span></div>
           </div>
         </div>
       </div>
