@@ -463,9 +463,9 @@
               </a>
             </div>
             <div class="hudStub">
-              <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
-              <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Music</span></span>
-              <span class="hudIntroText" style="--intro-chars:9;"><span class="hudIntroType">Wrestling</span></span>
+              <span class="hudIntroText"><span class="hudIntroType">Intro</span></span>
+              <span class="hudIntroText"><span class="hudIntroType">Music</span></span>
+              <span class="hudIntroText"><span class="hudIntroType">Wrestling</span></span>
             </div>
             <div class="hudStub hudMain">HUD MAIN (nav + grid next)</div>
           </div>
@@ -474,5 +474,22 @@
     </main>
   </section>
 </div>
+
+<script>
+  // Auto-set --intro-chars based on the text inside .hudIntroType
+  // Leaves any manually-set --intro-chars alone (so nothing breaks).
+  document.querySelectorAll('.hudIntroText').forEach(el => {
+    const alreadySet = el.style.getPropertyValue('--intro-chars');
+    if (alreadySet) return;
+
+    const t = el.querySelector('.hudIntroType');
+    if (!t) return;
+
+    // Use trimmed text length
+    const n = (t.textContent || '').trim().length || 1;
+    el.style.setProperty('--intro-chars', n);
+  });
+</script>
+
 </body>
 </html>
