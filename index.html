@@ -453,6 +453,20 @@
   @media (max-width: 900px){
     /* Keep the full-height behavior; just let content breathe */
     .hud{ height: calc(var(--vh) * 100); }
+
+    /* Lock the page to the viewport on mobile (prevent initial scroll / rubber-band) */
+    html, body{
+      height: calc(var(--vh) * 100);
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    /* iOS/Safari: make sure the body can’t drift */
+    body{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+    }
   }
 
   /* Motion reduction */
