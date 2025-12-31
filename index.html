@@ -442,12 +442,15 @@
   /* The main text element itself */
   [data-hud-main-text]{
     position: relative;
-	display: inline-block;      /* keeps caret snug to text */
+	display: block;
     width: 100%;
+	max-width: 100%;
     box-sizing: border-box;
     white-space: normal;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
+	hyphens: auto;
+	text-align: center;
   }
 
   /* HUD MAIN body padding */
@@ -652,7 +655,7 @@ opacity: 0;
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 0;              /* we’ll pad the inner container instead */
+    padding: 0 14px;              /* we’ll pad the inner container instead */
     text-align: center;
     pointer-events: none;
   }
@@ -660,7 +663,7 @@ opacity: 0;
   /* Inner container keeps the text fully within the “bubble” */
   
   .neonFrameTextInner{
-    width: 700px;
+    width: min(700px, 100%);
 	left: 50px;
 	right: 50px;
     height: 70%;
@@ -701,8 +704,10 @@ opacity: 0;
   }
 
 @media (max-width: 520px){
-    .neonFrame{ height: 190px; }
+  .neonFrameTextInner .hudMainType{
+    letter-spacing: .06em;
   }
+}
 
 </style>
 </head>
