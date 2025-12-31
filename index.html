@@ -246,7 +246,7 @@
 
   /* HUD Content */
 
-  /* Staggered section reveal (inside HUD) */
+  /* Staggered section reveal (inside HUD) + scanline sweep */
   .hudTopbar,
   .hudContent > :nth-child(2),
   .hudContent > :nth-child(3){
@@ -254,19 +254,45 @@
     will-change: transform, opacity, filter;
   }
 
+  /* Scanline overlay (attached to each section) */
+  .hudTopbar,
+  .hudStub{
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hudTopbar::after,
+  .hudStub::after{
+    content: "";
+    position: absolute;
+    inset: -30% -20%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.16), transparent);
+    transform: translateX(-70%) rotate(-10deg);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: blur(0.2px);
+  }
+
   .hudTopbar{
     transform: translateY(-8px);
-    animation: hudTopbarIn 540ms ease-out 720ms forwards;
+    animation:
+      hudTopbarIn 540ms ease-out 720ms forwards,
+      hudScanSweep 1100ms ease-in-out 760ms 1;
   }
 
   .hudContent > :nth-child(2){
     transform: translateY(10px);
-    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
+    animation:
+      hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards,
+      hudScanSweep 1200ms ease-in-out 860ms 1;
   }
 
   .hudContent > :nth-child(3){
     transform: translateY(8px);
-    animation: hudFooterIn 540ms ease-out 940ms forwards;
+    animation:
+      hudFooterIn 540ms ease-out 940ms forwards,
+      hudScanSweep 1200ms ease-in-out 980ms 1;
   }
 
   @keyframes hudTopbarIn{
@@ -280,6 +306,14 @@
 
   @keyframes hudFooterIn{
     to{ opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes hudScanSweep{
+    0%{ opacity: 0; transform: translateX(-75%) rotate(-10deg); }
+    12%{ opacity: .65; }
+    55%{ opacity: .35; }
+    100%{ opacity: 0; transform: translateX(75%) rotate(-10deg); }
+  }
   }
 
   /* Phase 1 placeholder */
@@ -318,6 +352,20 @@
   /* Motion reduction */
   @media (prefers-reduced-motion: reduce){
     .hud{ animation: none !important; opacity: 1; transform: none; filter: none; }
+    .hudNoise{ animation: none !important; }
+    .hudTopbar,
+    .hudContent > :nth-child(2),
+    .hudContent > :nth-child(3){
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    .hudTopbar::after,
+    .hudStub::after{
+      display: none !important;
+    }
+  }
     .hudNoise{ animation: none !important; }
     .hudTopbar,
     .hudContent > :nth-child(2),
