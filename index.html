@@ -567,7 +567,6 @@
       // Toggle this one
       btn.classList.toggle('is-active');
     });
-
     // Keyboard activate (Enter / Space) for non-button elements
     root.addEventListener('keydown', (e) => {
       const key = e.key;
@@ -579,6 +578,18 @@
       e.preventDefault();
       btn.click();
     });
+
+    // Default selection on load: Intro
+    (function setDefaultTab(){
+      const group = 'mainTabs';
+      const buttons = Array.from(root.querySelectorAll(`[data-hud-btn][data-group="${CSS.escape(group)}"]`));
+      if (!buttons.length) return;
+
+      const introBtn = buttons.find(b => ((b.textContent || '').trim().toLowerCase() === 'intro')) || buttons[0];
+
+      buttons.forEach(b => b.classList.remove('is-active'));
+      introBtn.classList.add('is-active');
+    })();
   })();
 </script>
 
