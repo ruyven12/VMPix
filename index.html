@@ -333,7 +333,8 @@
     border: 1px solid rgba(255,60,60,.32);
     border-radius: var(--hud-radius);
     background: rgba(0,0,0,.18);
-
+	text-decoration: none;
+    color: inherit;
     cursor: pointer;
     position: relative;
 
@@ -728,11 +729,12 @@
               </a>
             </div>
             <div class="hudStub">
-              <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Home</span></span>
-              <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Music</span></span>
-              <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Wrestling</span></span>
-			  <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">About</span></span>
-            </div>
+			<a class="hudIntroText" href="#/home" data-nav="home"><span class="hudIntroType">Home</span></a>
+  <a class="hudIntroText" href="#/music" data-nav="music"><span class="hudIntroType">Music</span></a>
+  <a class="hudIntroText" href="#/wrestling" data-nav="wrestling"><span class="hudIntroType">Wrestling</span></a>
+  <a class="hudIntroText" href="#/about" data-nav="about"><span class="hudIntroType">About</span></a>
+</div>
+
             <div class="hudStub hudMain">
   <div class="neonFrameWrap" aria-hidden="false">
     <svg class="neonFrame" viewBox="0 0 1000 520" preserveAspectRatio="none" aria-hidden="true">
@@ -782,6 +784,31 @@
 
 <script>
 
+function applyRoute(){
+  // routes like "#/music" -> "music"
+  const hash = location.hash || '#/home';
+  const route = (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
+
+  // highlight active nav
+  document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
+    a.classList.toggle('is-active', a.getAttribute('data-nav') === route);
+  });
+
+  // update HUD main text (keep your existing typing function)
+  const copyByRoute = {
+    home: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
+    music: "Music Archives - Coming Soon",
+    wrestling: "Wrestling Archives - Coming Soon",
+    about: "About Me - Coming Soon"
+  };
+
+  typeHudMainText(copyByRoute[route] || copyByRoute.home);
+
+  // optional: pulse if you wired it
+  if (typeof pulseFrame === 'function') pulseFrame();
+}
+
+
 function pulseFrame(){
   const wrap = document.querySelector('.neonFrameWrap');
   if (!wrap) return;
@@ -819,10 +846,8 @@ function pulseFrame(){
     const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer to prevent last-character clipping
     el.style.setProperty('--intro-chars', n);
   });
-    // HUD MAIN: line-by-line terminal typing
-  // - Wraps text into lines that fit the HUD MAIN width
-  // - Types each line sequentially
-  // - Can be re-run when tabs change
+
+  // HUD MAIN: terminal typing (paragraph mode)
   function typeHudMainText(newText){
     const t = document.querySelector('[data-hud-main-text]');
     if (!t) return;
@@ -830,107 +855,40 @@ function pulseFrame(){
     const fullText = (newText ?? t.textContent ?? '').toString().trim();
     if (!fullText) return;
 
-    // PARAGRAPH MODE: one block of text that wraps naturally (no forced line elements)
-// Terminal typing (no clipping): type characters into the same element
-t.classList.add('isTyping');
-t.textContent = '';
+    t.classList.add('isTyping');
+    t.textContent = '';
 
-const speedMs = 12; // lower = faster (try 10–18)
-let i = 0;
+    const speedMs = 12; // lower = faster (try 10–18)
+    let i = 0;
 
-// cancel any previous run (if function is called again)
-if (t._typeTimer) clearInterval(t._typeTimer);
+    // cancel any previous run (if function is called again)
+    if (t._typeTimer) clearInterval(t._typeTimer);
 
-t._typeTimer = setInterval(() => {
-  i++;
-  t.textContent = fullText.slice(0, i);
+    t._typeTimer = setInterval(() => {
+      i++;
+      t.textContent = fullText.slice(0, i);
 
-  if (i >= fullText.length) {
-    clearInterval(t._typeTimer);
-    t._typeTimer = null;
-    // keep caret blinking after typing finishes
-// t.classList.remove('isTyping');
-    t.textContent = fullText;       // ensure exact final text
-  }
-}, speedMs);
-
+      if (i >= fullText.length) {
+        clearInterval(t._typeTimer);
+        t._typeTimer = null;
+        // keep caret blinking after typing finishes
+        // t.classList.remove('isTyping');
+        t.textContent = fullText;       // ensure exact final text
+      }
+    }, speedMs);
   }
 
-  // Initial load: type whatever is already in the element
+  // ROUTING: respond to hash changes (tabs are now anchors)
+  window.addEventListener('hashchange', applyRoute);
+
+  // Initial load: default to #/home if no hash, then apply route
   (function(){
-    const t = document.querySelector('[data-hud-main-text]');
-    if (!t) return;
-    typeHudMainText((t.textContent || '').trim());
-	pulseFrame();
+    if (!location.hash) location.hash = '#/home';
+    applyRoute();
   })();
 
-
-  // Click highlight behavior (no logic yet)
-  // - Add data-hud-btn to any button you want to be selectable
-  // - Use data-group to make buttons mutually-exclusive within a group
-  (function(){
-    const root = document.getElementById('hud') || document;
-
-    root.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-hud-btn]');
-      if (!btn) return;
-
-      const group = btn.getAttribute('data-group') || '';
-
-      // If grouped, turn off others in that same group
-      if (group){
-        root.querySelectorAll(`[data-hud-btn][data-group="${CSS.escape(group)}"]`).forEach(b => {
-          if (b !== btn) b.classList.remove('is-active');
-        });
-      }
-
-      // Toggle this one
-      btn.classList.toggle('is-active');
-
-      // If this is a tab in mainTabs, update the HUD MAIN text
-      if (group === 'mainTabs' && btn.classList.contains('is-active')){
-        const label = ((btn.textContent || '').trim().toLowerCase());
-
-        const copyByTab = {
-          intro: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
-          music: "Music Archives - Coming Soon",
-          wrestling: "Wrestling Archives - Coming Soon",
-		  about: "About Me - Coming Soon"
-        };
-
-        // Fall back safely if someone renames a tab label later
-        const nextText = copyByTab[label] || copyByTab.intro;
-        typeHudMainText(nextText);
-		pulseFrame();
-
-      }
-
-    });
-    // Keyboard activate (Enter / Space) for non-button elements
-    root.addEventListener('keydown', (e) => {
-      const key = e.key;
-      if (key !== 'Enter' && key !== ' ') return;
-
-      const btn = e.target.closest('[data-hud-btn]');
-      if (!btn) return;
-
-      e.preventDefault();
-      btn.click();
-    });
-
-    // Default selection on load: Intro
-    (function setDefaultTab(){
-      const group = 'mainTabs';
-      const buttons = Array.from(root.querySelectorAll(`[data-hud-btn][data-group="${CSS.escape(group)}"]`));
-      if (!buttons.length) return;
-
-      const introBtn = buttons.find(b => ((b.textContent || '').trim().toLowerCase() === 'intro')) || buttons[0];
-
-      buttons.forEach(b => b.classList.remove('is-active'));
-      introBtn.classList.add('is-active');
-    })();
-  })();
 </script>
+
 
 </body>
 </html>
