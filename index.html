@@ -353,15 +353,20 @@
   }
 
   /* Fallout-style type-in (Intro only) */
-  .hudIntroText{$1
-    cursor: pointer;
-    transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease, filter 160ms ease;
-  }
-
-  /* Highlight state for Intro/Music/Wrestling (match the "Local" selected look) */
   .hudIntroText{
+    text-align: center;
+    display: inline-block;
+    white-space: nowrap;
+    padding: 5px 22px 5px 10px; /* extra right room for dot */
+    border: 1px solid rgba(255,60,60,.32);
+    border-radius: var(--hud-radius);
+    background: rgba(0,0,0,.18);
+
+    cursor: pointer;
     position: relative;
-    padding-right: 22px; /* room for dot */
+
+    /* Smooth state changes */
+    transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, filter 180ms ease;
   }
 
   .hudIntroText::after{
@@ -378,14 +383,16 @@
     opacity: 0;
   }
 
+  /* Active state (adds the 1px border emphasis + a quick "power-on" animation) */
   .hudIntroText.is-active{
     background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
-    border-color: rgba(255,60,60,.62);
+    border-color: rgba(255,60,60,.45); /* subtle 1px outline */
     box-shadow:
       0 0 0 1px rgba(255,60,60,.20),
       0 0 24px rgba(255,60,60,.28),
       inset 0 0 22px rgba(255,60,60,.20);
     filter: brightness(1.06);
+    animation: hudPillActivate 220ms ease-out;
   }
 
   .hudIntroText.is-active::after{
@@ -395,6 +402,12 @@
   }
 
   .hudIntroText:active{ transform: translateY(1px); }
+
+  @keyframes hudPillActivate{
+    0%{ box-shadow: 0 0 0 0 rgba(255,60,60,0); filter: brightness(1); }
+    55%{ box-shadow: 0 0 0 1px rgba(255,60,60,.26), 0 0 28px rgba(255,60,60,.30), inset 0 0 26px rgba(255,60,60,.22); filter: brightness(1.08); }
+    100%{ }
+  }
 
   .hudIntroType{
     display: inline-block;
@@ -455,25 +468,9 @@
   }
 
   /* Motion reduction */
-  @media (prefers-reduced-motion: reduce){
-    .hud{ animation: none !important; opacity: 1; transform: none; filter: none; }
-    .hudNoise{ animation: none !important; }
-    .hudSweep{ animation: none !important; display: none !important; }
+  @media (prefers-reduced-motion: reduce){$1
 
-    .hudTopbar,
-    .hudContent > :nth-child(2),
-    .hudContent > :nth-child(3){
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-      filter: none !important;
-    }
-
-    .hudTopbar::after,
-    .hudStub::after{
-      animation: none !important;
-      display: none !important;
-    }
+    .hudIntroText.is-active{ animation: none !important; }
   }
 </style>
 </head>
