@@ -268,18 +268,26 @@
     z-index: 2;
   }
 
-  /* Sweep overlay */
+  /* Sweep overlay (transparent, shows HUD beneath) */
   .hudTopbar::after,
   .hudStub::after{
     content: "";
     position: absolute;
     inset: -35% -25%;
-    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    /* Thin luminous scanline only (no filled panel) */
+    background: linear-gradient(
+      90deg,
+      rgba(255,60,60,0) 0%,
+      rgba(255,60,60,.9) 48%,
+      rgba(255,60,60,.9) 52%,
+      rgba(255,60,60,0) 100%
+    );
     transform: translateX(-80%) rotate(-10deg);
     opacity: 0;
     pointer-events: none;
     mix-blend-mode: screen;
     z-index: 3;
+  }
   }
 
   /* Staggered entrance */
