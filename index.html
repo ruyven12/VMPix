@@ -358,15 +358,40 @@
     transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease, filter 160ms ease;
   }
 
-  /* Highlight state for Intro/Music/Wrestling (keeps the same pill look) */
+  /* Highlight state for Intro/Music/Wrestling (match the "Local" selected look) */
+  .hudIntroText{
+    position: relative;
+    padding-right: 22px; /* room for dot */
+  }
+
+  .hudIntroText::after{
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    background: rgba(255,60,60,.35);
+    box-shadow: 0 0 0 1px rgba(255,60,60,.18);
+    opacity: 0;
+  }
+
   .hudIntroText.is-active{
-    background: linear-gradient(180deg, rgba(255,60,60,.14), rgba(0,0,0,.14));
-    border-color: rgba(255,60,60,.52);
+    background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
+    border-color: rgba(255,60,60,.62);
     box-shadow:
       0 0 0 1px rgba(255,60,60,.20),
-      0 0 22px rgba(255,60,60,.24),
-      inset 0 0 22px rgba(255,60,60,.18);
-    filter: brightness(1.05);
+      0 0 24px rgba(255,60,60,.28),
+      inset 0 0 22px rgba(255,60,60,.20);
+    filter: brightness(1.06);
+  }
+
+  .hudIntroText.is-active::after{
+    opacity: 1;
+    background: rgba(255,60,60,.92);
+    box-shadow: 0 0 10px rgba(255,60,60,.55), 0 0 0 1px rgba(255,60,60,.24);
   }
 
   .hudIntroText:active{ transform: translateY(1px); }
