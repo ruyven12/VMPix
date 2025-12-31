@@ -552,7 +552,7 @@
     place-items: center;
     padding: 0 14px;
     text-align: center;
-    pointer-events: none;
+    pointer-events: auto;
   }
 
   .neonFrameTextInner{
@@ -706,6 +706,11 @@
   @keyframes traceRun{
     to { stroke-dashoffset: -2340; }
   }
+  
+  body.route-music .neonFrameWrap{
+    display: none;
+  }
+
 </style>
 
 </head>
@@ -769,8 +774,8 @@
     <div class="neonFrameText">
       <div class="neonFrameTextInner">
         <div class="hudMainType"><div class="hudMainTextBox">
-<span data-hud-main-text>Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.</div>
-</div></span>
+<div id="hudMainMount"></div>
+</div></div>
       </div>
     </div>
   </div>
@@ -783,44 +788,6 @@
 </div>
 
 <script>
-
-function applyRoute(){
-  // routes like "#/music" -> "music"
-  const hash = location.hash || '#/home';
-  const route = (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
-
-  // highlight active nav
-  document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
-    a.classList.toggle('is-active', a.getAttribute('data-nav') === route);
-  });
-
-  // update HUD main text (keep your existing typing function)
-  const copyByRoute = {
-    home: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
-    music: "Music Archives - Coming Soon",
-    wrestling: "Wrestling Archives - Coming Soon",
-    about: "About Me - Coming Soon"
-  };
-
-  typeHudMainText(copyByRoute[route] || copyByRoute.home);
-
-  // optional: pulse if you wired it
-  if (typeof pulseFrame === 'function') pulseFrame();
-}
-
-
-function pulseFrame(){
-  const wrap = document.querySelector('.neonFrameWrap');
-  if (!wrap) return;
-
-  wrap.classList.remove('pulse');
-  // force reflow so the animation can restart every time
-  void wrap.offsetWidth;
-  wrap.classList.add('pulse');
-}
-
-
-
   // --- Device-aware full-height handling ---
   // Mobile browsers can lie about 100vh because of the address bar.
   // We set --vh to the *actual* innerHeight so the HUD truly fits the screen.
@@ -847,9 +814,19 @@ function pulseFrame(){
     el.style.setProperty('--intro-chars', n);
   });
 
+  function pulseFrame(){
+    const wrap = document.querySelector('.neonFrameWrap');
+    if (!wrap) return;
+
+    wrap.classList.remove('pulse');
+    // force reflow so the animation can restart every time
+    void wrap.offsetWidth;
+    wrap.classList.add('pulse');
+  }
+
   // HUD MAIN: terminal typing (paragraph mode)
-  function typeHudMainText(newText){
-    const t = document.querySelector('[data-hud-main-text]');
+  function typeHudMainText(newText, el){
+    const t = el || document.querySelector('[data-hud-main-text]');
     if (!t) return;
 
     const fullText = (newText ?? t.textContent ?? '').toString().trim();
@@ -878,17 +855,122 @@ function pulseFrame(){
     }, speedMs);
   }
 
-  // ROUTING: respond to hash changes (tabs are now anchors)
-  window.addEventListener('hashchange', applyRoute);
+  // Stop any in-flight typing timers so previous route text can't keep running
+  function stopAllTyping(){
+    document.querySelectorAll('[data-hud-main-text]').forEach(el => {
+      if (el && el._typeTimer){
+        clearInterval(el._typeTimer);
+        el._typeTimer = null;
+      }
+      if (el) el.classList.remove('isTyping');
+    });
+  }
+
+
+  // =============================
+  // Capability Modules (Routes)
+  // =============================
+  const mount = () => document.getElementById('hudMainMount');
+
+  function setActiveTopNav(route){
+    document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
+      a.classList.toggle('is-active', a.getAttribute('data-nav') === route);
+    });
+  }
+
+  function routeKeyFromHash(){
+    const hash = location.hash || '#/home';
+    return (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
+  }
+
+  const ROUTE_COPY = {
+    home: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
+    wrestling: "Wrestling Archives - Coming Soon",
+    about: "About Me - Coming Soon"
+  };
+
+  const modules = {
+    home: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        m.innerHTML = '<span data-hud-main-text></span>';
+      },
+      onEnter(){
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.home, el);
+      }
+    },
+
+    music: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        // Music clears the HUD main area for now
+        m.innerHTML = '';
+      },
+      onEnter(){
+        // Music module intentionally blank for now
+      }
+    },
+
+    wrestling: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        m.innerHTML = '<span data-hud-main-text></span>';
+      },
+      onEnter(){
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.wrestling, el);
+      }
+    },
+
+    about: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        m.innerHTML = '<span data-hud-main-text></span>';
+      },
+      onEnter(){
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.about, el);
+      }
+    }
+  };
+
+  let currentRoute = null;
+
+  function navigate(route){
+    const next = modules[route] ? route : 'home';
+
+    // Route class on <body> (for visual state)
+    document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
+    document.body.classList.add(`route-${next}`);
+	
+    setActiveTopNav(next);
+
+  stopAllTyping();
+
+    // Render fresh UI into mount for this route
+    modules[next].render();
+
+    // Enter route
+    currentRoute = next;
+    modules[next].onEnter();
+
+    pulseFrame();
+  }
+
+  // ROUTING: respond to hash changes (tabs are anchors)
+  window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
 
   // Initial load: default to #/home if no hash, then apply route
   (function(){
     if (!location.hash) location.hash = '#/home';
-    applyRoute();
+    navigate(routeKeyFromHash());
   })();
-
 </script>
-
 
 </body>
 </html>
