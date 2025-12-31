@@ -7,6 +7,9 @@
 
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap');
+  /* =============================
+   THEME TOKENS
+   ============================= */
   :root {
     --bg: #050608;
     --fg: rgba(226,232,240,0.92);
@@ -15,8 +18,14 @@
     --radius: 18px;
   }
 
+  /* =============================
+   BASE RESET
+   ============================= */
   * { box-sizing: border-box; }
 
+  /* =============================
+   PAGE BACKGROUND + TYPOGRAPHY
+   ============================= */
   html, body {
     margin: 0;
     background-color: var(--bg);
@@ -34,10 +43,18 @@
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   }
 
+  /* =============================
+   APP SHELL / VIEWS
+   ============================= */
+
   #app { min-height: 100%; display: grid; }
   .view { display: none; min-height: 100vh; }
   .view.active { display: grid; }
-#view-home { grid-template-rows: auto 1fr; }
+  #view-home { grid-template-rows: auto 1fr; }
+
+  /* =============================
+   HEADER / BRAND BAR
+   ============================= */
 
   header {
     position: sticky;
@@ -54,39 +71,27 @@
 
   .brandLink { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
   .brandImg { height: 100px; width: auto; display: block; }
-
-  /* Keep Matrix layers (even if we re-add intro later) */
-  .matrixLayer {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 700ms ease;
-  }
-  #matrixMask { z-index: 9998; background: #000; }
-  #matrixRain { z-index: 9999; }
-  .matrixLayer.on { opacity: 1; }
-  .matrixLayer.hide { opacity: 0; }
-  .matrixLayer.off { display: none; }
 </style>
 </head>
-<body>
-  <canvas id="matrixMask" class="matrixLayer"></canvas>
-  <canvas id="matrixRain" class="matrixLayer"></canvas>
 
-  <div id="app">
+
+
+<body>
+<div id="app">
+
 <section id="view-home" class="view active">
+
       <header>
         <a class="brandLink" href="#/home">
           <img class="brandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
         </a>
       </header>
 
+
       <!-- Everything below the red line has been removed. We'll rebuild from here. -->
-      <main></main>
+      <main>
+
+</main>
     </section>
   </div>
 </body>
