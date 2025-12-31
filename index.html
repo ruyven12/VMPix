@@ -17,6 +17,9 @@
     --border: rgba(255,255,255,0.14);
     --shadow: 0 10px 30px rgba(0,0,0,0.35);
     --radius: 18px;
+
+    /* Device-aware viewport height helper (mobile-safe) */
+    --vh: 1vh;
   }
 
   /* =============================
@@ -100,7 +103,7 @@
   /* Container that lives under your site header */
   .hudStage{
     /* Flush HUD to top of page (no vertical centering / no top padding) */
-    min-height: 100vh;
+    min-height: calc(var(--vh) * 100);
     display: grid;
     justify-items: center;
     align-items: start;
@@ -109,7 +112,9 @@
 
   .hud{
     width: min(1080px, 100%);
-    aspect-ratio: 16 / 9;
+    /* Make the HUD fill the usable screen height (device-aware) */
+    height: calc(var(--vh) * 100);
+
     border-radius: 22px;
     position: relative;
     overflow: hidden;
@@ -382,7 +387,7 @@
     animation: hudPillActivate 220ms ease-out;
   }
 
-  
+
   .hudIntroText:active{ transform: translateY(1px); }
 
   @keyframes hudPillActivate{
@@ -446,12 +451,18 @@
 
   /* Responsive */
   @media (max-width: 900px){
-    .hud{ aspect-ratio: auto; height: 76vh; }
+    /* Keep the full-height behavior; just let content breathe */
+    .hud{ height: calc(var(--vh) * 100); }
   }
 
   /* Motion reduction */
-  @media (prefers-reduced-motion: reduce){$1
+  @media (prefers-reduced-motion: reduce){
+    .hud, .hudSweep, .hudNoise,
+    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
+      animation: none !important;
+    }
 
+    .hudIntroType{ animation: none !important; width: auto; }
     .hudIntroText.is-active{ animation: none !important; }
   }
 </style>
@@ -489,6 +500,18 @@
 </div>
 
 <script>
+  // --- Device-aware full-height handling ---
+  // Mobile browsers can lie about 100vh because of the address bar.
+  // We set --vh to the *actual* innerHeight so the HUD truly fits the screen.
+  (function(){
+    const setVH = () => {
+      document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+    };
+    setVH();
+    window.addEventListener('resize', setVH, { passive: true });
+    window.addEventListener('orientationchange', setVH, { passive: true });
+  })();
+
   // Auto-set --intro-chars based on the text inside .hudIntroType
   // Leaves any manually-set --intro-chars alone (so nothing breaks).
   document.querySelectorAll('.hudIntroText').forEach(el => {
