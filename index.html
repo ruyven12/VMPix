@@ -6,8 +6,12 @@
   <title>Voodoo Media</title>
 
   <style>
+  /* =============================
+   IMPORTS
+   ============================= */
   @import url('https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+
   /* =============================
    THEME TOKENS
    ============================= */
@@ -20,6 +24,30 @@
 
     /* Device-aware viewport height helper (mobile-safe) */
     --vh: 1vh;
+  }
+
+  /* =============================
+   HUD TOKENS (LOGBOOK HUD)
+   ============================= */
+  :root {
+    /* HUD palette (red) */
+    --hud-bg: #040405;
+    --hud-bg2: #07070a;
+    --hud-panel: rgba(12, 7, 9, .72);
+    --hud-panel2: rgba(18, 8, 10, .55);
+
+    --hud-r1:#ff2a2a;
+    --hud-r2:#ff4c4c;
+    --hud-r3:#ff9a9a;
+
+    --hud-line: rgba(255, 60, 60, .28);
+    --hud-line2: rgba(255, 60, 60, .16);
+    --hud-txt: rgba(255, 210, 210, .92);
+    --hud-muted: rgba(255, 210, 210, .62);
+
+    --hud-glow: 0 0 18px rgba(255,60,60,.42), 0 0 48px rgba(255,60,60,.16);
+    --hud-shadow: 0 14px 40px rgba(0,0,0,.55);
+    --hud-radius: 18px;
   }
 
   /* =============================
@@ -50,7 +78,6 @@
   /* =============================
    APP SHELL / VIEWS
    ============================= */
-
   #app { min-height: 100%; display: grid; }
   .view { display: none; min-height: 100vh; }
   .view.active { display: grid; }
@@ -59,7 +86,6 @@
   /* =============================
    HEADER / BRAND BAR
    ============================= */
-
   header {
     position: sticky;
     top: 0;
@@ -77,30 +103,8 @@
   .brandImg { height: 100px; width: auto; display: block; }
 
   /* =============================
-   LOGBOOK HUD (Phase 1: shell only)
+   HUD LAYOUT / STAGE
    ============================= */
-  :root {
-    /* HUD palette (red) */
-    --hud-bg: #040405;
-    --hud-bg2: #07070a;
-    --hud-panel: rgba(12, 7, 9, .72);
-    --hud-panel2: rgba(18, 8, 10, .55);
-
-    --hud-r1:#ff2a2a;
-    --hud-r2:#ff4c4c;
-    --hud-r3:#ff9a9a;
-
-    --hud-line: rgba(255, 60, 60, .28);
-    --hud-line2: rgba(255, 60, 60, .16);
-    --hud-txt: rgba(255, 210, 210, .92);
-    --hud-muted: rgba(255, 210, 210, .62);
-
-    --hud-glow: 0 0 18px rgba(255,60,60,.42), 0 0 48px rgba(255,60,60,.16);
-    --hud-shadow: 0 14px 40px rgba(0,0,0,.55);
-    --hud-radius: 18px;
-  }
-
-  /* Container that lives under your site header */
   .hudStage{
     /* Flush HUD to top of page (no vertical centering / no top padding) */
     min-height: calc(var(--vh) * 100);
@@ -158,7 +162,6 @@
     pointer-events: none;
   }
 
-  /* Ambient horizontal sweep (subtle, periodic) */
   .hudSweep{
     position: absolute;
     left: 0;
@@ -180,13 +183,6 @@
     animation: hudAmbientSweep 4s ease-in-out 2.2s infinite;
   }
 
-  @keyframes hudAmbientSweep{
-    0%{ transform: translateY(-10%); opacity: 0; }
-    6%{ opacity: .55; }
-    12%{ opacity: .0; }
-    100%{ transform: translateY(140%); opacity: 0; }
-  }
-
   .hudNoise{
     position: absolute;
     inset: 0;
@@ -196,18 +192,6 @@
     mix-blend-mode: overlay;
     pointer-events: none;
     animation: hudNoiseDrift 3.2s steps(2,end) infinite;
-  }
-
-  @keyframes hudBootIn{
-    0%{ opacity:0; transform: translateY(12px) scale(.98); filter: blur(2px); }
-    55%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
-    100%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
-  }
-
-  @keyframes hudNoiseDrift{
-    0%{ transform: translate(0,0); }
-    50%{ transform: translate(-2%, 1%); }
-    100%{ transform: translate(0,0); }
   }
 
   .hudFrame{
@@ -255,7 +239,9 @@
     color: var(--hud-txt);
   }
 
-  /* HUD Topbar */
+  /* =============================
+   HUD TOPBAR (brand)
+   ============================= */
   .hudTopbar{
     display: flex;
     align-items: center;
@@ -279,9 +265,9 @@
     filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
   }
 
-  /* HUD Content */
-
-  /* Staggered section reveal (inside HUD) + scanline sweep */
+  /* =============================
+   HUD CONTENT (reveal + sweep)
+   ============================= */
   .hudTopbar,
   .hudContent > :nth-child(2),
   .hudContent > :nth-child(3){
@@ -289,7 +275,6 @@
     will-change: transform, opacity, filter;
   }
 
-  /* Section containers need to clip the sweep */
   .hudTopbar,
   .hudStub{
     font-size: 14px;
@@ -299,14 +284,12 @@
     overflow: hidden;
   }
 
-  /* Keep content above the sweep */
   .hudTopbar > *,
   .hudStub > *{
     position: relative;
     z-index: 2;
   }
 
-  /* Sweep overlay (opaque scan panel) */
   .hudTopbar::after,
   .hudStub::after{
     content: "";
@@ -320,7 +303,6 @@
     z-index: 3;
   }
 
-  /* Staggered entrance */
   .hudTopbar{
     transform: translateY(-8px);
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
@@ -336,10 +318,336 @@
     animation: hudFooterIn 540ms ease-out 940ms forwards;
   }
 
-  /* Sweep timing (on the pseudo elements) */
   .hudTopbar::after{ animation: hudScanSweep 1100ms ease-in-out 760ms 1; }
   .hudContent > :nth-child(2)::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
   .hudContent > :nth-child(3)::after{ animation: hudScanSweep 1200ms ease-in-out 980ms 1; }
+
+  /* =============================
+   HUD INTRO PILLS (tabs)
+   ============================= */
+  .hudIntroText{
+    text-align: center;
+    display: inline-block;
+    white-space: nowrap;
+    padding: 5px 10px;
+    border: 1px solid rgba(255,60,60,.32);
+    border-radius: var(--hud-radius);
+    background: rgba(0,0,0,.18);
+
+    cursor: pointer;
+    position: relative;
+
+    transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, filter 180ms ease;
+  }
+
+  .hudIntroText.is-active{
+    background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
+    border-color: rgba(255,60,60,.45);
+    box-shadow:
+      0 0 0 1px rgba(255,60,60,.20),
+      0 0 24px rgba(255,60,60,.28),
+      inset 0 0 22px rgba(255,60,60,.20);
+    filter: brightness(1.06);
+    animation: hudPillActivate 220ms ease-out;
+  }
+
+  .hudIntroText:active{ transform: translateY(1px); }
+
+  .hudIntroType{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0ch;
+    animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
+  }
+
+  .hudContent > :nth-child(2){
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+  }
+
+  .hudContent > :nth-child(2),
+  .hudContent > :nth-child(3){
+    font-family: 'Orbitron', system-ui, sans-serif;
+  }
+
+  /* =============================
+   HUD MAIN
+   ============================= */
+  .hudMain{
+    border: 1px solid rgba(255,60,60,.32);
+    background: rgba(0,0,0,.18);
+    padding: 5px;
+    font-size: 15px;
+    border-radius: var(--hud-radius);
+  }
+
+  .hudMainTextBox{
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 22px;
+  }
+
+  [data-hud-main-text]{
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+    text-align: center;
+  }
+
+  .hudMain{
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .hudMainLoad{
+    display: block;
+    width: 100%;
+    will-change: transform, opacity, filter;
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(1px);
+    animation: hudMainScrollBoot 820ms ease-out 1040ms forwards;
+  }
+
+  .hudMainType{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow: visible;
+    letter-spacing: .10em;
+    text-transform: none;
+  }
+
+  .hudLineOuter{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    overflow: visible;
+  }
+
+  .hudLineInner{
+    display: inline-block;
+    white-space: normal;
+    overflow: visible;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    width: auto;
+    opacity: 0;
+  }
+
+  .hudLine:last-child::after{
+    content: "";
+    display: inline-block;
+    width: 0.6ch;
+    height: 1em;
+    margin-left: 0.3ch;
+    border-right: 2px solid rgba(255, 210, 210, .85);
+    transform: translateY(1px);
+    animation: hudCaretBlink 640ms steps(2, end) calc(var(--last-line-delay) + 240ms) infinite;
+  }
+
+  [data-hud-main-text].isTyping::after{
+    content: "▌";
+    display: inline-block;
+    margin-left: 2px;
+    transform: translateY(1px);
+    animation: hudCaretBlink 850ms steps(1, end) infinite;
+  }
+
+  .hudStub{
+    display: grid;
+    place-items: center;
+    border-radius: var(--hud-radius);
+    border: 1px dashed rgba(255,60,60,.26);
+    background: rgba(0,0,0,.18);
+    color: var(--hud-muted);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 12px;
+  }
+
+  .hudStub.hudMain{
+    border: 1px solid rgba(255,60,60,.32);
+    border-radius: var(--hud-radius);
+
+    place-items: start center;
+    align-content: start;
+    padding-top: 20px;
+  }
+
+  /* =============================
+   NEON FRAME (SVG tracer) - HUD MAIN addon
+   ============================= */
+  .neonFrameWrap{
+    width: 100%;
+    margin-top: 16px;
+    padding: 8px 10px 14px;
+    display: grid;
+    place-items: center;
+  }
+
+  .neonFrame{
+    width: min(920px, 100%);
+    height: 125px;
+    display: block;
+  }
+
+  /* =============================
+   CHANGE PULSE (frame reacts)
+   ============================= */
+  .neonFrameWrap.pulse{
+    animation: hudPulse 260ms ease-out;
+  }
+
+  .neonFrameWrap.pulse .frameTrace{
+    animation:
+      traceRun 1.8s linear infinite,
+      traceSurge 260ms ease-out;
+  }
+
+  .frameBase{
+    fill: rgba(255, 40, 40, 0.08);
+    stroke: rgba(255, 70, 70, 0.65);
+    stroke-width: 10;
+    stroke-linejoin: round;
+  }
+
+  .frameTrace{
+    fill: transparent;
+    stroke: rgba(255, 90, 90, 1);
+    stroke-width: 12;
+    stroke-linejoin: round;
+
+    stroke-dasharray: 140 2200;
+    stroke-dashoffset: 0;
+    animation: traceRun 1.8s linear infinite;
+  }
+
+  .neonFrameWrap{ position: relative; }
+
+  .neonFrameText{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 0 14px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .neonFrameTextInner{
+    width: min(700px, 100%);
+    left: 50px;
+    right: 50px;
+    height: 70%;
+    display: grid;
+    place-items: center;
+    padding: 18px 22px;
+    padding-left: 5px;
+    padding-right: 10px;
+
+    overflow-x: visible;
+    overflow-y: visible;
+
+    box-sizing: border-box;
+  }
+
+  .neonFrameTextInner::-webkit-scrollbar{ width: 8px; }
+  .neonFrameTextInner::-webkit-scrollbar-track{ background: rgba(255,255,255,0.04); border-radius: 999px; }
+  .neonFrameTextInner::-webkit-scrollbar-thumb{ background: rgba(255,90,90,0.35); border-radius: 999px; }
+
+  .neonFrameTextInner .hudMainType{
+    display: block;
+    width: 100%;
+    max-width: 78ch;
+    line-height: 1.45;
+
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+
+    font-size: clamp(12px, 1.05vw, 15px);
+  }
+
+  /* =============================
+   RESPONSIVE
+   ============================= */
+  @media (max-width: 900px){
+    .hud{ height: calc(var(--vh) * 100); }
+
+    html, body{
+      height: calc(var(--vh) * 100);
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 520px){
+    .neonFrameTextInner .hudMainType{
+      letter-spacing: .06em;
+    }
+  }
+
+  /* =============================
+   MOTION REDUCTION
+   ============================= */
+  @media (prefers-reduced-motion: reduce){
+    .hud, .hudSweep, .hudNoise,
+    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
+      animation: none !important;
+    }
+
+    .hudIntroType{ animation: none !important; width: auto; }
+    .hudIntroText.is-active{ animation: none !important; }
+  }
+
+  /* =============================
+   KEYFRAMES
+   ============================= */
+  @keyframes hudAmbientSweep{
+    0%{ transform: translateY(-10%); opacity: 0; }
+    6%{ opacity: .55; }
+    12%{ opacity: .0; }
+    100%{ transform: translateY(140%); opacity: 0; }
+  }
+
+  @keyframes hudBootIn{
+    0%{ opacity:0; transform: translateY(12px) scale(.98); filter: blur(2px); }
+    55%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
+    100%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
+  }
+
+  @keyframes hudNoiseDrift{
+    0%{ transform: translate(0,0); }
+    50%{ transform: translate(-2%, 1%); }
+    100%{ transform: translate(0,0); }
+  }
 
   @keyframes hudTopbarIn{ to{ opacity: 1; transform: translateY(0); } }
 
@@ -357,183 +665,17 @@
     100%{ opacity: 0; transform: translateX(85%) rotate(-10deg); }
   }
 
-  /* Fallout-style type-in (Intro only) */
-  .hudIntroText{
-    text-align: center;
-    display: inline-block;
-    white-space: nowrap;
-    padding: 5px 10px; /* balanced padding, no indicator dot */
-    border: 1px solid rgba(255,60,60,.32);
-    border-radius: var(--hud-radius);
-    background: rgba(0,0,0,.18);
-
-    cursor: pointer;
-    position: relative;
-
-    /* Smooth state changes */
-    transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, filter 180ms ease;
-  }
-
-
-  /* Active state (adds the 1px border emphasis + a quick "power-on" animation) */
-  .hudIntroText.is-active{
-    background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
-    border-color: rgba(255,60,60,.45); /* subtle 1px outline */
-    box-shadow:
-      0 0 0 1px rgba(255,60,60,.20),
-      0 0 24px rgba(255,60,60,.28),
-      inset 0 0 22px rgba(255,60,60,.20);
-    filter: brightness(1.06);
-    animation: hudPillActivate 220ms ease-out;
-  }
-
-
-  .hudIntroText:active{ transform: translateY(1px); }
-
   @keyframes hudPillActivate{
     0%{ box-shadow: 0 0 0 0 rgba(255,60,60,0); filter: brightness(1); }
     55%{ box-shadow: 0 0 0 1px rgba(255,60,60,.26), 0 0 28px rgba(255,60,60,.30), inset 0 0 26px rgba(255,60,60,.22); filter: brightness(1.08); }
     100%{ }
   }
 
-  .hudIntroType{
-    display: inline-block;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 0ch;
-    animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
-  }
-
   @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
 
-  /* Intro row centers the bubble */
-  .hudContent > :nth-child(2){
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: transparent;
-    border: none;
+  @keyframes hudLineTypeInPxPx{
+    to{ opacity: 1; }
   }
-
-  /* HUD MAIN + FOOTER typography (Orbitron) */
-  .hudContent > :nth-child(2),
-  .hudContent > :nth-child(3){
-    font-family: 'Orbitron', system-ui, sans-serif;
-  }
-
-  /* HUD MAIN container (solid border to match Intro) */
-  .hudMain{
-    border: 1px solid rgba(255,60,60,.32);
-    background: rgba(0,0,0,.18);
-    padding: 5px;
-    font-size: 15px;
-    border-radius: var(--hud-radius);
-  }
-
-  /* HUD MAIN text: sci-fi boot/scroll + type-in */
-
-  /* HUD MAIN text containment box (prevents awkward measure + clipping) */
-  .hudMainTextBox{
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 22px;
-  }
-  /* The main text element itself */
-  [data-hud-main-text]{
-    position: relative;
-	display: block;
-    width: 100%;
-	max-width: 100%;
-    box-sizing: border-box;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-	hyphens: auto;
-	text-align: center;
-  }
-
-  /* HUD MAIN body padding */
-  .hudMain{
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  .hudMainLoad{
-    display: block;
-    width: 100%;
-    will-change: transform, opacity, filter;
-    opacity: 0;
-    transform: translateY(18px);
-    filter: blur(1px);
-    animation: hudMainScrollBoot 820ms ease-out 1040ms forwards;
-  }
-
-
-  .hudMainType{
-    /* Use flex to center the actual line elements */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    width: 100%;
-    max-width: 100%;
-
-    /* keep your safety clipping */
-    overflow: visible;
-/* keep your vibe */
-    letter-spacing: .10em;
-    text-transform: none;
-  }
-
-
-    /* Line-by-line terminal typing (HUD MAIN) */
-  .hudLineOuter{
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    text-align: center;
-    overflow: visible;
-  }
-
-  .hudLineInner{
-    display: inline-block;
-    white-space: normal;          /* allow wrapping */
-	overflow: visible;            /* never shave characters */
-	max-width: 100%;
-	overflow-wrap: anywhere;      /* if it can't fit, break */
-	word-break: break-word;
-
-
-    /* Pixel-based typing width (driven by JS) */
-    width: auto;
-opacity: 0;
-  }
-
-
-/* Caret only on the last typed line */
-  .hudLine:last-child::after{
-    content: "";
-    display: inline-block;
-    width: 0.6ch;
-    height: 1em;
-    margin-left: 0.3ch;
-    border-right: 2px solid rgba(255, 210, 210, .85);
-    transform: translateY(1px);
-    animation: hudCaretBlink 640ms steps(2, end) calc(var(--last-line-delay) + 240ms) infinite;
-  }
-
-    @keyframes hudLineTypeInPxPx{
-  to{ opacity: 1; }
-}
-
-  [data-hud-main-text].isTyping::after{
-  content: "▌";
-  display: inline-block;
-  margin-left: 2px;
-  transform: translateY(1px);
-  animation: hudCaretBlink 850ms steps(1, end) infinite;
-}
 
   @keyframes hudCaretBlink{
     0%{ opacity: 0; }
@@ -541,7 +683,6 @@ opacity: 0;
     100%{ opacity: 0; }
   }
 
-  /* Restore HUD MAIN boot/scroll-in (wrapper) */
   @keyframes hudMainScrollBoot{
     0%{ opacity: 0; transform: translateY(18px); filter: blur(1px); }
     65%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
@@ -549,167 +690,23 @@ opacity: 0;
     100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
   }
 
-  .hudStub{
-    display: grid;
-    place-items: center;
-    border-radius: var(--hud-radius);
-    border: 1px dashed rgba(255,60,60,.26);
-    background: rgba(0,0,0,.18);
-    color: var(--hud-muted);
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    font-weight: 800;
-    font-size: 12px;
+  @keyframes hudPulse{
+    0%   { transform: scale(1); filter: brightness(1); }
+    40%  { transform: scale(1.012); filter: brightness(1.12); }
+    100% { transform: scale(1); filter: brightness(1); }
   }
 
-  /* Re-assert HUD MAIN rounded solid border (override stub defaults) */
-  .hudStub.hudMain{
-    border: 1px solid rgba(255,60,60,.32);
-    border-radius: var(--hud-radius);
-
-    /* top-align content with padding */
-    place-items: start center;
-    align-content: start;
-    padding-top: 20px;
-}
-
-  /* Responsive */
-  @media (max-width: 900px){
-    /* Keep the full-height behavior; just let content breathe */
-    .hud{ height: calc(var(--vh) * 100); }
-
-    /* Lock the page to the viewport on mobile (prevent initial scroll / rubber-band) */
-    html, body{
-      height: calc(var(--vh) * 100);
-      overflow: hidden;
-      overscroll-behavior: none;
-    }
-
-    /* iOS/Safari: make sure the body can’t drift */
-    body{
-      position: fixed;
-      inset: 0;
-      width: 100%;
-    }
-  }
-
-  /* Motion reduction */
-  @media (prefers-reduced-motion: reduce){
-    .hud, .hudSweep, .hudNoise,
-    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
-      animation: none !important;
-    }
-
-    .hudIntroType{ animation: none !important; width: auto; }
-    .hudIntroText.is-active{ animation: none !important; }
-  }
-
-  /* =============================
-   NEON FRAME (SVG tracer) - HUD MAIN addon
-   ============================= */
-  .neonFrameWrap{
-    width: 100%;
-    margin-top: 16px;
-    padding: 8px 10px 14px;
-    display: grid;
-    place-items: center;
-  }
-
-  /* Give it a predictable test size (tweak later) */
-  .neonFrame{
-    width: min(920px, 100%);
-    height: 125px;
-    display: block;
-  }
-
-  .frameBase{
-    fill: rgba(255, 40, 40, 0.08);
-    stroke: rgba(255, 70, 70, 0.65);
-    stroke-width: 10;
-    stroke-linejoin: round;
-  }
-
-  .frameTrace{
-    fill: transparent;
-    stroke: rgba(255, 90, 90, 1);
-    stroke-width: 12;
-    stroke-linejoin: round;
-
-    /* bright segment length + gap (path-length dependent) */
-    stroke-dasharray: 140 2200;
-    stroke-dashoffset: 0;
-    animation: traceRun 1.8s linear infinite;
+  @keyframes traceSurge{
+    0%   { stroke-width: 12; filter: drop-shadow(0 0 0 rgba(255,90,90,0)); }
+    40%  { stroke-width: 15; filter: drop-shadow(0 0 16px rgba(255,90,90,.55)); }
+    100% { stroke-width: 12; filter: drop-shadow(0 0 0 rgba(255,90,90,0)); }
   }
 
   @keyframes traceRun{
     to { stroke-dashoffset: -2340; }
   }
-
-
-
-  .neonFrameWrap{ position: relative; }
-
-  /* Center text safely INSIDE the polygon frame */
-  .neonFrameText{
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: 0 14px;              /* we’ll pad the inner container instead */
-    text-align: center;
-    pointer-events: none;
-  }
-
-  /* Inner container keeps the text fully within the “bubble” */
-  
-  .neonFrameTextInner{
-    width: min(700px, 100%);
-	left: 50px;
-	right: 50px;
-    height: 70%;
-    display: grid;
-    place-items: center;
-    padding: 18px 22px;
-	padding-left: 5px;
-	padding-right: 10px;
-
-    /* don't hard-clip words; allow wrap and (if needed) scroll */
-    overflow-x: visible;
-    overflow-y: visible;
-  
-    box-sizing: border-box;
-}
-
-  /* Subtle scrollbar (optional; safe default) */
-  .neonFrameTextInner::-webkit-scrollbar{ width: 8px; }
-  .neonFrameTextInner::-webkit-scrollbar-track{ background: rgba(255,255,255,0.04); border-radius: 999px; }
-  .neonFrameTextInner::-webkit-scrollbar-thumb{ background: rgba(255,90,90,0.35); border-radius: 999px; }
-
-/* Make sure the typed text wraps nicely */
-  
-  .neonFrameTextInner .hudMainType{
-    display: block;
-    width: 100%;
-    max-width: 78ch;
-    line-height: 1.45;
-
-    /* wrapping rules: never cut mid-word; allow nice breaks */
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: break-word;
-    hyphens: auto;
-
-    /* responsive size so long text is less likely to overflow */
-    font-size: clamp(12px, 1.05vw, 15px);
-  }
-
-@media (max-width: 520px){
-  .neonFrameTextInner .hudMainType{
-    letter-spacing: .06em;
-  }
-}
-
 </style>
+
 </head>
 
 <body>
@@ -784,6 +781,19 @@ opacity: 0;
 </div>
 
 <script>
+
+function pulseFrame(){
+  const wrap = document.querySelector('.neonFrameWrap');
+  if (!wrap) return;
+
+  wrap.classList.remove('pulse');
+  // force reflow so the animation can restart every time
+  void wrap.offsetWidth;
+  wrap.classList.add('pulse');
+}
+
+
+
   // --- Device-aware full-height handling ---
   // Mobile browsers can lie about 100vh because of the address bar.
   // We set --vh to the *actual* innerHeight so the HUD truly fits the screen.
@@ -851,6 +861,7 @@ t._typeTimer = setInterval(() => {
     const t = document.querySelector('[data-hud-main-text]');
     if (!t) return;
     typeHudMainText((t.textContent || '').trim());
+	pulseFrame();
   })();
 
 
@@ -890,6 +901,8 @@ t._typeTimer = setInterval(() => {
         // Fall back safely if someone renames a tab label later
         const nextText = copyByTab[label] || copyByTab.intro;
         typeHudMainText(nextText);
+		pulseFrame();
+
       }
 
     });
