@@ -204,6 +204,42 @@
     color: var(--hud-txt);
   }
 
+  /* HUD Topbar */
+  .hudTopbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--hud-radius);
+    border: 1px solid rgba(255,60,60,.22);
+    background: linear-gradient(180deg, rgba(18,8,10,.72), rgba(10,6,7,.55));
+    box-shadow: inset 0 0 0 1px rgba(255,60,60,.08);
+  }
+
+  .hudBrandLink{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hudBrandImg{
+    height: 60px;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
+  }
+
+  /* HUD Content */
+
+  .hudContent{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 74px 1fr 54px;
+    padding: 14px 16px;
+    gap: 12px;
+    color: var(--hud-txt);
+  }
+
   /* Phase 1 placeholder */
   .hudStub{
     display: grid;
@@ -232,11 +268,7 @@
 
 <section id="view-home" class="view active">
 
-      <header>
-        <a class="brandLink" href="#/home">
-          <img class="brandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
-        </a>
-      </header>
+      
 
 
       <!-- Everything below the red line has been removed. We'll rebuild from here. -->
@@ -250,7 +282,11 @@
       <div class="hudFrameCorners" aria-hidden="true"></div>
 
       <div class="hudContent">
-        <div class="hudStub">HUD TOPBAR (next)</div>
+        <div class="hudTopbar">
+          <a class="hudBrandLink" href="#/home">
+            <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
+          </a>
+        </div>
         <div class="hudStub">HUD MAIN (nav + grid next)</div>
         <div class="hudStub">HUD FOOTER (next)</div>
       </div>
