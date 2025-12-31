@@ -287,7 +287,50 @@
   </div>
 </div>
 </main>
-</section>
+    </section>
+
+    <script>
+      // Safety-net: if the host/editor/runtime wipes #app, re-inject the HUD markup.
+      (function(){
+        function ensureHUD(){
+          var app = document.getElementById('app');
+          if(!app) return;
+          if(document.querySelector('.hudStage')) return; // already present
+
+          app.innerHTML = `
+<section id="view-home" class="view active">
+  <main>
+    <div class="hudStage">
+      <div class="hud" id="hud">
+        <div class="hudNoise" aria-hidden="true"></div>
+        <div class="hudSweep" aria-hidden="true"></div>
+        <div class="hudFrame" aria-hidden="true"></div>
+        <div class="hudFrameCorners" aria-hidden="true"></div>
+
+        <div class="hudContent">
+          <div class="hudTopbar">
+            <a class="hudBrandLink" href="#/home">
+              <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
+            </a>
+          </div>
+          <div class="hudStub">
+            <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
+          </div>
+          <div class="hudStub hudMain">HUD MAIN (nav + grid next)</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>`;
+        }
+
+        if(document.readyState === 'loading'){
+          document.addEventListener('DOMContentLoaded', ensureHUD);
+        } else {
+          ensureHUD();
+        }
+      })();
+    </script>
 </div>
 </body>
 </html>
