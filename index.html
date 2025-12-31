@@ -153,7 +153,7 @@
     pointer-events: none;
   }
 
-    /* Ambient horizontal sweep (subtle, periodic) */
+  /* Ambient horizontal sweep (subtle, periodic) */
   .hudSweep{
     position: absolute;
     left: 0;
@@ -286,24 +286,21 @@
 
   /* Section containers need to clip the sweep */
   .hudTopbar,
-  .hudStub,
-  .hudIntroRow{
+  .hudStub{
     position: relative;
     overflow: hidden;
   }
 
   /* Keep content above the sweep */
   .hudTopbar > *,
-  .hudStub > *,
-  .hudIntroRow > *{
+  .hudStub > *{
     position: relative;
     z-index: 2;
   }
 
   /* Sweep overlay (opaque scan panel) */
   .hudTopbar::after,
-  .hudStub::after,
-  .hudIntroRow::after{
+  .hudStub::after{
     content: "";
     position: absolute;
     inset: -35% -25%;
@@ -321,16 +318,11 @@
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
-  $1
-
-  .hudIntroRow{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  .hudContent > :nth-child(2){
+    transform: translateY(10px);
+    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
   }
-/* Ensure the second row (.hudStub) behaves like a flex row (not the default grid stub) */
+
   .hudContent > :nth-child(3){
     transform: translateY(8px);
     animation: hudFooterIn 540ms ease-out 940ms forwards;
@@ -375,7 +367,7 @@
     animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
   }
 
-  @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } } }
+  @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
 
   /* Intro row centers the bubble */
   .hudContent > :nth-child(2){
@@ -385,8 +377,6 @@
     background: transparent;
     border: none;
   }
-
-  /* Intro text pill handled by .hudIntroText + .hudIntroType (prevents clipping) */
 
   /* HUD MAIN + FOOTER typography (Orbitron) */
   .hudContent > :nth-child(2),
@@ -451,44 +441,33 @@
 </style>
 </head>
 
-
-
 <body>
 <div id="app">
+  <section id="view-home" class="view active">
+    <main>
+      <!-- LOGBOOK HUD (Phase 1: shell) -->
+      <div class="hudStage">
+        <div class="hud" id="hud">
+          <div class="hudNoise" aria-hidden="true"></div>
+          <div class="hudSweep" aria-hidden="true"></div>
+          <div class="hudFrame" aria-hidden="true"></div>
+          <div class="hudFrameCorners" aria-hidden="true"></div>
 
-<section id="view-home" class="view active">
-
-      
-
-
-      <!-- Everything below the red line has been removed. We'll rebuild from here. -->
-      <main>
-
-  <!-- LOGBOOK HUD (Phase 1: shell) -->
-  <div class="hudStage">
-    <div class="hud" id="hud">
-      <div class="hudNoise" aria-hidden="true"></div>
-      <div class="hudSweep" aria-hidden="true"></div>
-      <div class="hudFrame" aria-hidden="true"></div>
-      <div class="hudFrameCorners" aria-hidden="true"></div>
-
-      <div class="hudContent">
-        <div class="hudTopbar">
-          <a class="hudBrandLink" href="#/home">
-            <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
-          </a>
+          <div class="hudContent">
+            <div class="hudTopbar">
+              <a class="hudBrandLink" href="#/home">
+                <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
+              </a>
+            </div>
+            <div class="hudStub">
+              <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
+            </div>
+            <div class="hudStub hudMain">HUD MAIN (nav + grid next)</div>
+          </div>
         </div>
-        <div class="hudIntroRow">$1 style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
-          <span class="hudIntroText" style="--intro-chars:6;"><span class="hudIntroType">Status</span></span>
-          <span class="hudIntroText" style="--intro-chars:4;"><span class="hudIntroType">Test</span></span>
-        </div>
-        <div class="hudStub hudMain">HUD MAIN (nav + grid next)</div>
       </div>
-    </div>
-  </div>
-
-</main>
-    </section>
-  </div>
+    </main>
+  </section>
+</div>
 </body>
 </html>
