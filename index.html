@@ -334,21 +334,13 @@
     overflow: hidden;
     width: 0ch;
     /* start typing after the section itself fades in */
-    animation: hudTypeIn 1200ms steps(var(--intro-chars), end) 1040ms forwards;
+    animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
   }
 
-  .hudCaret{
-    display: inline-block;
-    margin-left: 0.35ch;
-    color: var(--hud-txt);
-    opacity: 0;
-    transform: translateY(-0.05em);
-    animation: hudCaretOn 1ms linear 1040ms forwards, hudCaretBlink 800ms steps(1,end) 1040ms infinite;
-  }
+  
 
   @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
-  @keyframes hudCaretOn{ to{ opacity: 1; } }
-  @keyframes hudCaretBlink{ 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+   50%,100%{opacity:0;} }
 
   /* Phase 1 placeholder */
   .hudStub{
@@ -419,7 +411,7 @@
           </a>
         </div>
         <div class="hudStub">
-          <span class="hudIntroText" style="--intro-chars:5;">Intro</span><span class="hudCaret" aria-hidden="true">▮</span>
+          <span class="hudIntroText" style="--intro-chars:5;">Intro</span>
         </div>
         <div class="hudStub">HUD MAIN (nav + grid next)</div>
       </div>
