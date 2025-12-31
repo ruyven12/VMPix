@@ -98,10 +98,12 @@
 
   /* Container that lives under your site header */
   .hudStage{
-    min-height: calc(100vh - 122px); /* header height approx */
+    /* Flush HUD to top of page (no vertical centering / no top padding) */
+    min-height: 100vh;
     display: grid;
-    place-items: center;
-    padding: clamp(14px, 2.5vw, 28px);
+    justify-items: center;
+    align-items: start;
+    padding: 0;
   }
 
   .hud{
