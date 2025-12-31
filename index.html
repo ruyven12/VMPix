@@ -441,14 +441,14 @@
   }
 
   .hudMainType{
-    display: inline-block;
-    white-space: nowrap;
+    display: block;
+    white-space: normal; /* allow wrapping inside HUD MAIN */
     overflow: hidden;
-    width: 0ch;
+    max-width: 100%;
     letter-spacing: .10em;
     text-transform: uppercase;
     animation: hudMainTypeIn 1300ms steps(var(--main-chars), end) 1120ms forwards;
-  }
+}
 
   .hudMainType::after{
     content: "";
@@ -469,7 +469,9 @@
   }
 
   @keyframes hudMainTypeIn{
-    to{ width: calc(var(--main-chars) * 1ch); }
+    from{ max-height: 0; }
+    to{ max-height: 999px; }
+}
   }
 
   @keyframes hudCaretBlink{
