@@ -153,6 +153,35 @@
     pointer-events: none;
   }
 
+    /* Ambient horizontal sweep (subtle, periodic) */
+  .hudSweep{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -20%;
+    height: 22%;
+    background: linear-gradient(
+      to bottom,
+      rgba(255,60,60,0) 0%,
+      rgba(255,60,60,.10) 45%,
+      rgba(255,60,60,.16) 50%,
+      rgba(255,60,60,.10) 55%,
+      rgba(255,60,60,0) 100%
+    );
+    opacity: .0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    filter: blur(0.4px);
+    animation: hudAmbientSweep 16s ease-in-out 2.2s infinite;
+  }
+
+  @keyframes hudAmbientSweep{
+    0%{ transform: translateY(-10%); opacity: 0; }
+    6%{ opacity: .55; }
+    12%{ opacity: .0; }
+    100%{ transform: translateY(140%); opacity: 0; }
+  }
+
   .hudNoise{
     position: absolute;
     inset: 0;
@@ -380,6 +409,7 @@
   @media (prefers-reduced-motion: reduce){
     .hud{ animation: none !important; opacity: 1; transform: none; filter: none; }
     .hudNoise{ animation: none !important; }
+    .hudSweep{ animation: none !important; display: none !important; }
 
     .hudTopbar,
     .hudContent > :nth-child(2),
@@ -416,6 +446,7 @@
   <div class="hudStage">
     <div class="hud" id="hud">
       <div class="hudNoise" aria-hidden="true"></div>
+      <div class="hudSweep" aria-hidden="true"></div>
       <div class="hudFrame" aria-hidden="true"></div>
       <div class="hudFrameCorners" aria-hidden="true"></div>
 
