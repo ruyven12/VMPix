@@ -486,7 +486,7 @@
     if (!t) return;
 
     // Use trimmed text length
-    const n = (t.textContent || '').trim().length || 1;
+    const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer to prevent last-character clipping
     el.style.setProperty('--intro-chars', n);
   });
 </script>
