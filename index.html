@@ -449,15 +449,22 @@
 
   .hudMainType{
     display: block;
-    white-space: normal; /* allow wrapping inside HUD MAIN */
-    overflow: hidden;
     max-width: 100%;
     letter-spacing: .10em;
     text-transform: uppercase;
-    animation: hudMainTypeIn 1300ms steps(var(--main-chars), end) 1120ms forwards;
-}
+  }
 
-  .hudMainType::after{
+  /* Line-by-line terminal typing (HUD MAIN) */
+  .hudLine{
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0ch;
+    animation: hudLineTypeIn 780ms steps(var(--line-chars), end) var(--line-delay) forwards;
+  }
+
+  /* Caret only on the last typed line */
+  .hudLine:last-child::after{
     content: "";
     display: inline-block;
     width: 0.6ch;
@@ -465,20 +472,11 @@
     margin-left: 0.3ch;
     border-right: 2px solid rgba(255, 210, 210, .85);
     transform: translateY(1px);
-    animation: hudCaretBlink 640ms steps(2, end) 1220ms infinite;
+    animation: hudCaretBlink 640ms steps(2, end) calc(var(--last-line-delay) + 240ms) infinite;
   }
 
-  @keyframes hudMainScrollBoot{
-    0%{ opacity: 0; transform: translateY(18px); filter: blur(1px); }
-    65%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
-    78%{ transform: translateY(2px); }
-    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
-  }
-
-  @keyframes hudMainTypeIn{
-    from{ max-height: 0; }
-    to{ max-height: 999px; }
-}
+  @keyframes hudLineTypeIn{
+    to{ width: calc(var(--line-chars) * 1ch); }
   }
 
   @keyframes hudCaretBlink{
@@ -601,14 +599,76 @@
     const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer to prevent last-character clipping
     el.style.setProperty('--intro-chars', n);
   });
-
-  // Auto-set --main-chars for HUD MAIN type-in (keeps it device/font agnostic)
+  // HUD MAIN: line-by-line terminal typing
+  // - Wraps text into lines that fit the HUD MAIN width
+  // - Types each line sequentially
   (function(){
     const t = document.querySelector('[data-hud-main-text]');
     if (!t) return;
 
-    const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer
-    t.style.setProperty('--main-chars', n);
+    const fullText = (t.textContent || '').trim();
+    if (!fullText) return;
+
+    // Create a hidden probe to measure text widths using the same computed styles
+    const probe = document.createElement('span');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.whiteSpace = 'nowrap';
+    probe.style.pointerEvents = 'none';
+
+    const cs = window.getComputedStyle(t);
+    probe.style.font = cs.font;
+    probe.style.letterSpacing = cs.letterSpacing;
+    probe.style.textTransform = cs.textTransform;
+
+    document.body.appendChild(probe);
+
+    const mainBox = t.closest('.hudStub.hudMain') || t.closest('.hudMain') || t.parentElement;
+    const maxWidth = (mainBox ? mainBox.clientWidth : t.clientWidth) || 320;
+
+    // Greedy word-wrap by measured width
+    const words = fullText.split(/\\s+/);
+    const lines = [];
+    let line = '';
+
+    for (const w of words){
+      const candidate = line ? (line + ' ' + w) : w;
+      probe.textContent = candidate;
+
+      // margin so we never hit the border/padding
+      if (probe.getBoundingClientRect().width <= (maxWidth - 32)){
+        line = candidate;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+
+    // Replace content with line spans
+    t.textContent = '';
+
+    const baseDelay = 1120; // ms (keeps your prior start timing)
+    const perLine = 820;    // ms typing time per line
+    const gap = 120;        // ms between lines
+
+    lines.forEach((txt, i) => {
+      const span = document.createElement('span');
+      span.className = 'hudLine';
+      span.textContent = txt;
+
+      const chars = (txt.trim().length || 1) + 1; // +1 buffer
+      span.style.setProperty('--line-chars', chars);
+      span.style.setProperty('--line-delay', (baseDelay + i * (perLine + gap)) + 'ms');
+
+      t.appendChild(span);
+    });
+
+    // Tell the caret when the last line starts
+    const lastDelay = baseDelay + (lines.length ? (lines.length - 1) * (perLine + gap) : 0);
+    t.style.setProperty('--last-line-delay', lastDelay + 'ms');
+
+    probe.remove();
   })();
 
   // Click highlight behavior (no logic yet)
