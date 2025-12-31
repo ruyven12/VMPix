@@ -254,80 +254,69 @@
     will-change: transform, opacity, filter;
   }
 
-  /* Scanline overlay (attached to each section) */
+  /* Section containers need to clip the sweep */
   .hudTopbar,
   .hudStub{
     position: relative;
     overflow: hidden;
   }
 
+  /* Keep content above the sweep */
+  .hudTopbar > *,
+  .hudStub > *{
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Sweep overlay */
   .hudTopbar::after,
   .hudStub::after{
     content: "";
     position: absolute;
-    inset: -30% -20%;
-    background: linear-gradient(90deg, transparent, rgba(255,60,60,.16), transparent);
-    transform: translateX(-70%) rotate(-10deg);
+    inset: -35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-80%) rotate(-10deg);
     opacity: 0;
     pointer-events: none;
     mix-blend-mode: screen;
-    filter: blur(0.2px);
+    z-index: 3;
   }
 
+  /* Staggered entrance */
   .hudTopbar{
     transform: translateY(-8px);
-    animation:
-      hudTopbarIn 540ms ease-out 720ms forwards,
-      hudScanSweep 1100ms ease-in-out 760ms 1;
+    animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
   .hudContent > :nth-child(2){
     transform: translateY(10px);
-    animation:
-      hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards,
-      hudScanSweep 1200ms ease-in-out 860ms 1;
+    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
   }
 
   .hudContent > :nth-child(3){
     transform: translateY(8px);
-    animation:
-      hudFooterIn 540ms ease-out 940ms forwards,
-      hudScanSweep 1200ms ease-in-out 980ms 1;
+    animation: hudFooterIn 540ms ease-out 940ms forwards;
   }
 
-  @keyframes hudTopbarIn{
-    to{ opacity: 1; transform: translateY(0); }
-  }
+  /* Sweep timing (on the pseudo elements) */
+  .hudTopbar::after{ animation: hudScanSweep 1100ms ease-in-out 760ms 1; }
+  .hudContent > :nth-child(2)::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
+  .hudContent > :nth-child(3)::after{ animation: hudScanSweep 1200ms ease-in-out 980ms 1; }
+
+  @keyframes hudTopbarIn{ to{ opacity: 1; transform: translateY(0); } }
 
   @keyframes hudSectionIn{
     0%{ opacity: 0; transform: translateY(10px); filter: blur(1px); }
     100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
   }
 
-  @keyframes hudFooterIn{
-    to{ opacity: 1; transform: translateY(0); }
-  }
+  @keyframes hudFooterIn{ to{ opacity: 1; transform: translateY(0); } }
 
   @keyframes hudScanSweep{
-    0%{ opacity: 0; transform: translateX(-75%) rotate(-10deg); }
-    12%{ opacity: .65; }
-    55%{ opacity: .35; }
-    100%{ opacity: 0; transform: translateX(75%) rotate(-10deg); }
-  }
-  }
-
-  /* Phase 1 placeholder */
-  .hudStub{
-    display: grid;
-    place-items: center;
-    border-radius: var(--hud-radius);
-    border: 1px dashed rgba(255,60,60,.26);
-    background: rgba(0,0,0,.18);
-    color: var(--hud-muted);
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    font-weight: 800;
-    font-size: 12px;
+    0%{ opacity: 0; transform: translateX(-85%) rotate(-10deg); }
+    12%{ opacity: .85; }
+    55%{ opacity: .45; }
+    100%{ opacity: 0; transform: translateX(85%) rotate(-10deg); }
   }
 
   /* Phase 1 placeholder */
@@ -353,6 +342,7 @@
   @media (prefers-reduced-motion: reduce){
     .hud{ animation: none !important; opacity: 1; transform: none; filter: none; }
     .hudNoise{ animation: none !important; }
+
     .hudTopbar,
     .hudContent > :nth-child(2),
     .hudContent > :nth-child(3){
@@ -361,19 +351,11 @@
       transform: none !important;
       filter: none !important;
     }
+
     .hudTopbar::after,
     .hudStub::after{
-      display: none !important;
-    }
-  }
-    .hudNoise{ animation: none !important; }
-    .hudTopbar,
-    .hudContent > :nth-child(2),
-    .hudContent > :nth-child(3){
       animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-      filter: none !important;
+      display: none !important;
     }
   }
 </style>
