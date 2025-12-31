@@ -430,6 +430,54 @@
     border-radius: var(--hud-radius);
   }
 
+  /* HUD MAIN text: sci-fi boot/scroll + type-in */
+  .hudMainLoad{
+    display: inline-block;
+    will-change: transform, opacity, filter;
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(1px);
+    animation: hudMainScrollBoot 820ms ease-out 1040ms forwards;
+  }
+
+  .hudMainType{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0ch;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    animation: hudMainTypeIn 1300ms steps(var(--main-chars), end) 1120ms forwards;
+  }
+
+  .hudMainType::after{
+    content: "";
+    display: inline-block;
+    width: 0.6ch;
+    height: 1em;
+    margin-left: 0.3ch;
+    border-right: 2px solid rgba(255, 210, 210, .85);
+    transform: translateY(1px);
+    animation: hudCaretBlink 640ms steps(2, end) 1220ms infinite;
+  }
+
+  @keyframes hudMainScrollBoot{
+    0%{ opacity: 0; transform: translateY(18px); filter: blur(1px); }
+    65%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+    78%{ transform: translateY(2px); }
+    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+  }
+
+  @keyframes hudMainTypeIn{
+    to{ width: calc(var(--main-chars) * 1ch); }
+  }
+
+  @keyframes hudCaretBlink{
+    0%{ opacity: 0; }
+    50%{ opacity: 1; }
+    100%{ opacity: 0; }
+  }
+
   .hudStub{
     display: grid;
     place-items: center;
@@ -510,7 +558,7 @@
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Music</span></span>
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Wrestling</span></span>
             </div>
-            <div class="hudStub hudMain">Testing, will add more in a sec</div>
+            <div class="hudStub hudMain"><span class="hudMainLoad"><span class="hudMainType" data-hud-main-text>Testing, will add more in a sec</span></span></div>
           </div>
         </div>
       </div>
@@ -544,6 +592,15 @@
     const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer to prevent last-character clipping
     el.style.setProperty('--intro-chars', n);
   });
+
+  // Auto-set --main-chars for HUD MAIN type-in (keeps it device/font agnostic)
+  (function(){
+    const t = document.querySelector('[data-hud-main-text]');
+    if (!t) return;
+
+    const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer
+    t.style.setProperty('--main-chars', n);
+  })();
 
   // Click highlight behavior (no logic yet)
   // - Add data-hud-btn to any button you want to be selectable
