@@ -289,10 +289,14 @@
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
-  /* HUD MAIN typography (Orbitron) */
-  .hudContent > :nth-child(2){
+  /* HUD MAIN + FOOTER typography (Orbitron) */
+  .hudContent > :nth-child(2),
+  .hudContent > :nth-child(3){
     font-family: 'Orbitron', system-ui, sans-serif;
+  }
 
+  /* HUD MAIN animation */
+  .hudContent > :nth-child(2){
     transform: translateY(10px);
     animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
   }
