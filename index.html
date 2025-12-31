@@ -426,7 +426,7 @@
     border: 1px solid rgba(255,60,60,.32);
     background: rgba(0,0,0,.18);
     padding: 5px;
-    font-size: 12px; /* bumped up 1px */
+    font-size: 15px;
     border-radius: var(--hud-radius);
   }
 
@@ -437,7 +437,8 @@
     padding-right: 10px;
   }
 
-  .hudMainLoad{$1display: block;
+  .hudMainLoad{
+    display: block;
     width: 100%;
     will-change: transform, opacity, filter;
     opacity: 0;
@@ -446,16 +447,27 @@
     animation: hudMainScrollBoot 820ms ease-out 1040ms forwards;
   }
 
+
   .hudMainType{
-    display: block;
+    /* Use flex to center the actual line elements */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
     max-width: 100%;
-	overflow: hidden;
+
+    /* keep your safety clipping */
+    overflow: hidden;
+
+    /* keep your vibe */
     letter-spacing: .10em;
     text-transform: none;
   }
 
+
   /* Line-by-line terminal typing (HUD MAIN) */
-  .hudLine{
+   .hudLine{
     display: block;
     max-width: 100%;
     white-space: nowrap;
@@ -463,6 +475,9 @@
     width: 0ch;
     animation: hudLineTypeIn 780ms steps(var(--line-chars), end) var(--line-delay) forwards;
   }
+
+
+
 
   /* Caret only on the last typed line */
   .hudLine:last-child::after{
@@ -608,14 +623,15 @@
     const n = ((t.textContent || '').trim().length || 1) + 1; // +1 buffer to prevent last-character clipping
     el.style.setProperty('--intro-chars', n);
   });
-  // HUD MAIN: line-by-line terminal typing
+    // HUD MAIN: line-by-line terminal typing
   // - Wraps text into lines that fit the HUD MAIN width
   // - Types each line sequentially
-  (function(){
+  // - Can be re-run when tabs change
+  function typeHudMainText(newText){
     const t = document.querySelector('[data-hud-main-text]');
     if (!t) return;
 
-    const fullText = (t.textContent || '').trim();
+    const fullText = (newText ?? t.textContent ?? '').toString().trim();
     if (!fullText) return;
 
     // Create a hidden probe to measure text widths using the same computed styles
@@ -625,6 +641,7 @@
     probe.style.whiteSpace = 'nowrap';
     probe.style.pointerEvents = 'none';
 
+    // Ensure we measure using the same computed font styles as the main text
     const cs = window.getComputedStyle(t);
     probe.style.font = cs.font;
     probe.style.letterSpacing = cs.letterSpacing;
@@ -634,10 +651,14 @@
 
     const mainBox = t.closest('.hudStub.hudMain') || t.closest('.hudMain') || t.parentElement;
     const boxCS = mainBox ? window.getComputedStyle(mainBox) : null;
+
     const padL = boxCS ? parseFloat(boxCS.paddingLeft) || 0 : 0;
     const padR = boxCS ? parseFloat(boxCS.paddingRight) || 0 : 0;
+
     const rectW = mainBox ? mainBox.getBoundingClientRect().width : t.getBoundingClientRect().width;
-    const maxWidth = Math.max(140, rectW - padL - padR - 48);
+
+    // Safety margin helps avoid pixel-rounding + letter-spacing overshoot
+    const maxWidth = Math.max(140, rectW - padL - padR - 96);
 
     // Greedy word-wrap by measured width
     const words = fullText.split(/\s+/);
@@ -648,7 +669,6 @@
       const candidate = line ? (line + ' ' + w) : w;
       probe.textContent = candidate;
 
-      // margin so we never hit the border/padding
       if (probe.getBoundingClientRect().width <= maxWidth){
         line = candidate;
       } else {
@@ -661,7 +681,7 @@
     // Replace content with line spans
     t.textContent = '';
 
-    const baseDelay = 1120; // ms (keeps your prior start timing)
+    const baseDelay = 160;  // start quickly on tab switch
     const perLine = 820;    // ms typing time per line
     const gap = 120;        // ms between lines
 
@@ -682,7 +702,15 @@
     t.style.setProperty('--last-line-delay', lastDelay + 'ms');
 
     probe.remove();
+  }
+
+  // Initial load: type whatever is already in the element
+  (function(){
+    const t = document.querySelector('[data-hud-main-text]');
+    if (!t) return;
+    typeHudMainText((t.textContent || '').trim());
   })();
+
 
   // Click highlight behavior (no logic yet)
   // - Add data-hud-btn to any button you want to be selectable
@@ -705,6 +733,22 @@
 
       // Toggle this one
       btn.classList.toggle('is-active');
+
+      // If this is a tab in mainTabs, update the HUD MAIN text
+      if (group === 'mainTabs' && btn.classList.contains('is-active')){
+        const label = ((btn.textContent || '').trim().toLowerCase());
+
+        const copyByTab = {
+          intro: "Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.",
+          music: "MUSIC: Coming Soon - work in progress",
+          wrestling: "WRESTLING: Coming Soon - work in progress"
+        };
+
+        // Fall back safely if someone renames a tab label later
+        const nextText = copyByTab[label] || copyByTab.intro;
+        typeHudMainText(nextText);
+      }
+
     });
     // Keyboard activate (Enter / Space) for non-button elements
     root.addEventListener('keydown', (e) => {
