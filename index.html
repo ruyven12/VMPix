@@ -319,8 +319,13 @@
   }
 
   .hudContent > :nth-child(2){
-    transform: translateY(10px);
-    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: transparent;
+    border: none;
   }
 
   .hudContent > :nth-child(3){
@@ -472,6 +477,8 @@
         </div>
         <div class="hudStub">
           <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
+          <span class="hudIntroText" style="--intro-chars:6;"><span class="hudIntroType">Status</span></span>
+          <span class="hudIntroText" style="--intro-chars:4;"><span class="hudIntroType">Test</span></span>
         </div>
         <div class="hudStub hudMain">HUD MAIN (nav + grid next)</div>
       </div>
