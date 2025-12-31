@@ -437,9 +437,8 @@
     padding-right: 10px;
   }
 
-  .hudMainLoad{
-    overflow: hidden; /* ensure scroll-in animation clips correctly */
-    display: inline-block;
+  .hudMainLoad{$1display: block;
+    width: 100%;
     will-change: transform, opacity, filter;
     opacity: 0;
     transform: translateY(18px);
@@ -450,13 +449,15 @@
   .hudMainType{
     display: block;
     max-width: 100%;
+	overflow: hidden;
     letter-spacing: .10em;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   /* Line-by-line terminal typing (HUD MAIN) */
   .hudLine{
     display: block;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     width: 0ch;
@@ -627,12 +628,16 @@
     const cs = window.getComputedStyle(t);
     probe.style.font = cs.font;
     probe.style.letterSpacing = cs.letterSpacing;
-    probe.style.textTransform = cs.textTransform;
+    probe.style.textTransform = 'none';
 
     document.body.appendChild(probe);
 
     const mainBox = t.closest('.hudStub.hudMain') || t.closest('.hudMain') || t.parentElement;
-    const maxWidth = (mainBox ? mainBox.clientWidth : t.clientWidth) || 320;
+    const boxCS = mainBox ? window.getComputedStyle(mainBox) : null;
+    const padL = boxCS ? parseFloat(boxCS.paddingLeft) || 0 : 0;
+    const padR = boxCS ? parseFloat(boxCS.paddingRight) || 0 : 0;
+    const rectW = mainBox ? mainBox.getBoundingClientRect().width : t.getBoundingClientRect().width;
+    const maxWidth = Math.max(140, rectW - padL - padR - 48);
 
     // Greedy word-wrap by measured width
     const words = fullText.split(/\s+/);
@@ -644,7 +649,7 @@
       probe.textContent = candidate;
 
       // margin so we never hit the border/padding
-      if (probe.getBoundingClientRect().width <= (maxWidth - 32)){
+      if (probe.getBoundingClientRect().width <= maxWidth){
         line = candidate;
       } else {
         if (line) lines.push(line);
