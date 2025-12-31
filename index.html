@@ -327,6 +327,29 @@
     100%{ opacity: 0; transform: translateX(85%) rotate(-10deg); }
   }
 
+  /* Fallout-style type-in (Intro only) */
+  .hudIntroText{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0ch;
+    /* start typing after the section itself fades in */
+    animation: hudTypeIn 1200ms steps(var(--intro-chars), end) 1040ms forwards;
+  }
+
+  .hudCaret{
+    display: inline-block;
+    margin-left: 0.35ch;
+    color: var(--hud-txt);
+    opacity: 0;
+    transform: translateY(-0.05em);
+    animation: hudCaretOn 1ms linear 1040ms forwards, hudCaretBlink 800ms steps(1,end) 1040ms infinite;
+  }
+
+  @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
+  @keyframes hudCaretOn{ to{ opacity: 1; } }
+  @keyframes hudCaretBlink{ 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+
   /* Phase 1 placeholder */
   .hudStub{
     display: grid;
@@ -395,7 +418,9 @@
             <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
           </a>
         </div>
-        <div class="hudStub">Intro</div>
+        <div class="hudStub">
+          <span class="hudIntroText" style="--intro-chars:5;">Intro</span><span class="hudCaret" aria-hidden="true">▮</span>
+        </div>
         <div class="hudStub">HUD MAIN (nav + grid next)</div>
       </div>
     </div>
