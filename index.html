@@ -37,29 +37,7 @@
   #app { min-height: 100%; display: grid; }
   .view { display: none; min-height: 100vh; }
   .view.active { display: grid; }
-
-  #view-start { place-items: center; padding: 28px; text-align: center; }
-
-  .splash {
-    width: min(980px, 92vw);
-    background: transparent;
-    border-radius: var(--radius);
-    position: relative;
-    user-select: none;
-  }
-
-  .hero-link {
-    display: block;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.02);
-  }
-
-  .hero-img { display: block; width: 100%; height: auto; }
-
-  #view-home { grid-template-rows: auto 1fr; }
+#view-home { grid-template-rows: auto 1fr; }
 
   header {
     position: sticky;
@@ -100,15 +78,7 @@
   <canvas id="matrixRain" class="matrixLayer"></canvas>
 
   <div id="app">
-    <section id="view-start" class="view">
-      <div class="splash">
-        <a class="hero-link" href="#/home">
-          <img class="hero-img" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
-        </a>
-      </div>
-    </section>
-
-    <section id="view-home" class="view active">
+<section id="view-home" class="view active">
       <header>
         <a class="brandLink" href="#/home">
           <img class="brandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" />
