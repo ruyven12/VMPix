@@ -328,6 +328,15 @@
     border: none;
   }
 
+  /* Ensure the second row (.hudStub) behaves like a flex row (not the default grid stub) */
+  .hudContent > :nth-child(2).hudStub{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
   .hudContent > :nth-child(3){
     transform: translateY(8px);
     animation: hudFooterIn 540ms ease-out 940ms forwards;
