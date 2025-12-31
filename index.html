@@ -286,21 +286,24 @@
 
   /* Section containers need to clip the sweep */
   .hudTopbar,
-  .hudStub{
+  .hudStub,
+  .hudIntroRow{
     position: relative;
     overflow: hidden;
   }
 
   /* Keep content above the sweep */
   .hudTopbar > *,
-  .hudStub > *{
+  .hudStub > *,
+  .hudIntroRow > *{
     position: relative;
     z-index: 2;
   }
 
   /* Sweep overlay (opaque scan panel) */
   .hudTopbar::after,
-  .hudStub::after{
+  .hudStub::after,
+  .hudIntroRow::after{
     content: "";
     position: absolute;
     inset: -35% -25%;
@@ -318,25 +321,16 @@
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
-  .hudContent > :nth-child(2){
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: transparent;
-    border: none;
-  }
+  $1
 
-  /* Ensure the second row (.hudStub) behaves like a flex row (not the default grid stub) */
-  .hudContent > :nth-child(2).hudStub{
+  .hudIntroRow{
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
   }
-
+/* Ensure the second row (.hudStub) behaves like a flex row (not the default grid stub) */
   .hudContent > :nth-child(3){
     transform: translateY(8px);
     animation: hudFooterIn 540ms ease-out 940ms forwards;
@@ -484,8 +478,7 @@
             <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
           </a>
         </div>
-        <div class="hudStub">
-          <span class="hudIntroText" style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
+        <div class="hudIntroRow">$1 style="--intro-chars:5;"><span class="hudIntroType">Intro</span></span>
           <span class="hudIntroText" style="--intro-chars:6;"><span class="hudIntroType">Status</span></span>
           <span class="hudIntroText" style="--intro-chars:4;"><span class="hudIntroType">Test</span></span>
         </div>
