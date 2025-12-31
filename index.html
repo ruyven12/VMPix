@@ -339,9 +339,19 @@
 
   /* Re-assert Intro panel styling (keep original hudStub look) */
   .hudContent > :nth-child(2){
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+  }
+
+  /* Intro text pill (hug text with padding) */
+  .hudContent > :nth-child(2) .hudIntroText{
+    padding: 0 15px;
     border: 1px dashed rgba(255,60,60,.26);
-    background: rgba(0,0,0,.18);
     border-radius: var(--hud-radius);
+    background: rgba(0,0,0,.18);
   }
 
   @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
