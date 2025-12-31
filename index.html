@@ -431,6 +431,25 @@
   }
 
   /* HUD MAIN text: sci-fi boot/scroll + type-in */
+
+  /* HUD MAIN text containment box (prevents awkward measure + clipping) */
+  .hudMainTextBox{
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 22px;
+  }
+  /* The main text element itself */
+  [data-hud-main-text]{
+    position: relative;
+	display: inline-block;      /* keeps caret snug to text */
+    width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
   /* HUD MAIN body padding */
   .hudMain{
     padding-left: 10px;
@@ -458,28 +477,38 @@
     max-width: 100%;
 
     /* keep your safety clipping */
-    overflow: hidden;
-
-    /* keep your vibe */
+    overflow: visible;
+/* keep your vibe */
     letter-spacing: .10em;
     text-transform: none;
   }
 
 
-  /* Line-by-line terminal typing (HUD MAIN) */
-   .hudLine{
+    /* Line-by-line terminal typing (HUD MAIN) */
+  .hudLineOuter{
     display: block;
+    width: 100%;
     max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 0ch;
-    animation: hudLineTypeIn 780ms steps(var(--line-chars), end) var(--line-delay) forwards;
+    text-align: center;
+    overflow: visible;
+  }
+
+  .hudLineInner{
+    display: inline-block;
+    white-space: normal;          /* allow wrapping */
+	overflow: visible;            /* never shave characters */
+	max-width: 100%;
+	overflow-wrap: anywhere;      /* if it can't fit, break */
+	word-break: break-word;
+
+
+    /* Pixel-based typing width (driven by JS) */
+    width: auto;
+opacity: 0;
   }
 
 
-
-
-  /* Caret only on the last typed line */
+/* Caret only on the last typed line */
   .hudLine:last-child::after{
     content: "";
     display: inline-block;
@@ -491,9 +520,17 @@
     animation: hudCaretBlink 640ms steps(2, end) calc(var(--last-line-delay) + 240ms) infinite;
   }
 
-  @keyframes hudLineTypeIn{
-    to{ width: calc(var(--line-chars) * 1ch); }
-  }
+    @keyframes hudLineTypeInPxPx{
+  to{ opacity: 1; }
+}
+
+  [data-hud-main-text].isTyping::after{
+  content: "▌";
+  display: inline-block;
+  margin-left: 2px;
+  transform: translateY(1px);
+  animation: hudCaretBlink 850ms steps(1, end) infinite;
+}
 
   @keyframes hudCaretBlink{
     0%{ opacity: 0; }
@@ -623,16 +660,22 @@
   /* Inner container keeps the text fully within the “bubble” */
   
   .neonFrameTextInner{
-    width: 82%;
+    width: 700px;
+	left: 50px;
+	right: 50px;
     height: 70%;
     display: grid;
     place-items: center;
     padding: 18px 22px;
+	padding-left: 5px;
+	padding-right: 10px;
 
     /* don't hard-clip words; allow wrap and (if needed) scroll */
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
+    overflow-x: visible;
+    overflow-y: visible;
+  
+    box-sizing: border-box;
+}
 
   /* Subtle scrollbar (optional; safe default) */
   .neonFrameTextInner::-webkit-scrollbar{ width: 8px; }
@@ -683,7 +726,7 @@
               </a>
             </div>
             <div class="hudStub">
-              <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Intro</span></span>
+              <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Home</span></span>
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Music</span></span>
               <span class="hudIntroText" role="button" tabindex="0" data-hud-btn data-group="mainTabs"><span class="hudIntroType">Wrestling</span></span>
             </div>
@@ -720,13 +763,14 @@
     <!-- Typed HUD main text, placed INSIDE the frame -->
     <div class="neonFrameText">
       <div class="neonFrameTextInner">
-        <span class="hudMainType"><span data-hud-main-text>Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.</span></span>
+        <div class="hudMainType"><div class="hudMainTextBox">
+<span data-hud-main-text>Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.</div>
+</div></span>
       </div>
     </div>
   </div>
 </div>
-</span></div>
-          </div>
+</div>
         </div>
       </div>
     </main>
@@ -770,74 +814,30 @@
     const fullText = (newText ?? t.textContent ?? '').toString().trim();
     if (!fullText) return;
 
-    // Create a hidden probe to measure text widths using the same computed styles
-    const probe = document.createElement('span');
-    probe.style.position = 'absolute';
-    probe.style.visibility = 'hidden';
-    probe.style.whiteSpace = 'nowrap';
-    probe.style.pointerEvents = 'none';
+    // PARAGRAPH MODE: one block of text that wraps naturally (no forced line elements)
+// Terminal typing (no clipping): type characters into the same element
+t.classList.add('isTyping');
+t.textContent = '';
 
-    // Ensure we measure using the same computed font styles as the main text
-    const cs = window.getComputedStyle(t);
-    probe.style.font = cs.font;
-    probe.style.letterSpacing = cs.letterSpacing;
-    probe.style.textTransform = 'none';
+const speedMs = 12; // lower = faster (try 10–18)
+let i = 0;
 
-    document.body.appendChild(probe);
+// cancel any previous run (if function is called again)
+if (t._typeTimer) clearInterval(t._typeTimer);
 
-    const mainBox = t.closest('.hudStub.hudMain') || t.closest('.hudMain') || t.parentElement;
-    const boxCS = mainBox ? window.getComputedStyle(mainBox) : null;
+t._typeTimer = setInterval(() => {
+  i++;
+  t.textContent = fullText.slice(0, i);
 
-    const padL = boxCS ? parseFloat(boxCS.paddingLeft) || 0 : 0;
-    const padR = boxCS ? parseFloat(boxCS.paddingRight) || 0 : 0;
+  if (i >= fullText.length) {
+    clearInterval(t._typeTimer);
+    t._typeTimer = null;
+    // keep caret blinking after typing finishes
+// t.classList.remove('isTyping');
+    t.textContent = fullText;       // ensure exact final text
+  }
+}, speedMs);
 
-    const rectW = mainBox ? mainBox.getBoundingClientRect().width : t.getBoundingClientRect().width;
-
-    // Safety margin helps avoid pixel-rounding + letter-spacing overshoot
-    const maxWidth = Math.max(140, rectW - padL - padR - 96);
-
-    // Greedy word-wrap by measured width
-    const words = fullText.split(/\s+/);
-    const lines = [];
-    let line = '';
-
-    for (const w of words){
-      const candidate = line ? (line + ' ' + w) : w;
-      probe.textContent = candidate;
-
-      if (probe.getBoundingClientRect().width <= maxWidth){
-        line = candidate;
-      } else {
-        if (line) lines.push(line);
-        line = w;
-      }
-    }
-    if (line) lines.push(line);
-
-    // Replace content with line spans
-    t.textContent = '';
-
-    const baseDelay = 160;  // start quickly on tab switch
-    const perLine = 820;    // ms typing time per line
-    const gap = 120;        // ms between lines
-
-    lines.forEach((txt, i) => {
-      const span = document.createElement('span');
-      span.className = 'hudLine';
-      span.textContent = txt;
-
-      const chars = (txt.trim().length || 1) + 1; // +1 buffer
-      span.style.setProperty('--line-chars', chars);
-      span.style.setProperty('--line-delay', (baseDelay + i * (perLine + gap)) + 'ms');
-
-      t.appendChild(span);
-    });
-
-    // Tell the caret when the last line starts
-    const lastDelay = baseDelay + (lines.length ? (lines.length - 1) * (perLine + gap) : 0);
-    t.style.setProperty('--last-line-delay', lastDelay + 'ms');
-
-    probe.remove();
   }
 
   // Initial load: type whatever is already in the element
@@ -875,7 +875,7 @@
         const label = ((btn.textContent || '').trim().toLowerCase());
 
         const copyByTab = {
-          intro: "Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is a placeholder.",
+          intro: "Welcome to the landing site for Voodoo Media. This site is the housing hub for my photographical journey through my life. It will feature multiple medium types as time goes on, but for now, this is merely a placeholder until I add more info.",
           music: "MUSIC: Coming Soon - work in progress",
           wrestling: "WRESTLING: Coming Soon - work in progress"
         };
