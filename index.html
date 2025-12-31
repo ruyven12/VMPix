@@ -174,9 +174,6 @@
     50%{ transform: translate(-2%, 1%); }
     100%{ transform: translate(0,0); }
   }
-    50%{ transform: translate(-2%, 1%); }
-    100%{ transform: translate(0,0); }
-  }
 
   .hudFrame{
     position: absolute;
@@ -249,14 +246,54 @@
 
   /* HUD Content */
 
-  .hudContent{
-    position: absolute;
-    inset: 0;
+  /* Staggered section reveal (inside HUD) */
+  .hudTopbar,
+  .hudContent > :nth-child(2),
+  .hudContent > :nth-child(3){
+    opacity: 0;
+    will-change: transform, opacity, filter;
+  }
+
+  .hudTopbar{
+    transform: translateY(-8px);
+    animation: hudTopbarIn 540ms ease-out 720ms forwards;
+  }
+
+  .hudContent > :nth-child(2){
+    transform: translateY(10px);
+    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
+  }
+
+  .hudContent > :nth-child(3){
+    transform: translateY(8px);
+    animation: hudFooterIn 540ms ease-out 940ms forwards;
+  }
+
+  @keyframes hudTopbarIn{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes hudSectionIn{
+    0%{ opacity: 0; transform: translateY(10px); filter: blur(1px); }
+    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+  }
+
+  @keyframes hudFooterIn{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* Phase 1 placeholder */
+  .hudStub{
     display: grid;
-    grid-template-rows: 74px 1fr 54px;
-    padding: 14px 16px;
-    gap: 12px;
-    color: var(--hud-txt);
+    place-items: center;
+    border-radius: var(--hud-radius);
+    border: 1px dashed rgba(255,60,60,.26);
+    background: rgba(0,0,0,.18);
+    color: var(--hud-muted);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 12px;
   }
 
   /* Phase 1 placeholder */
@@ -282,6 +319,14 @@
   @media (prefers-reduced-motion: reduce){
     .hud{ animation: none !important; opacity: 1; transform: none; filter: none; }
     .hudNoise{ animation: none !important; }
+    .hudTopbar,
+    .hudContent > :nth-child(2),
+    .hudContent > :nth-child(3){
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
   }
 </style>
 </head>
