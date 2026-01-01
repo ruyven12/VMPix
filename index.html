@@ -560,10 +560,95 @@
 
   @keyframes fogDrift{
     0%,100%{ transform: translate(0,0) scale(1.02); }
-    50%{ transform: translate(14px,-10px) scale(1.06); }
+    
+
+  /* =============================
+   HUD-WIDE ATMOSPHERE (full main HUD background)
+   ============================= */
+  #hudEmbers{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    opacity:.95;
+  }
+  .hudAtmos{
+    position:absolute; inset:-28%;
+    background:
+      radial-gradient(60% 45% at 50% 40%, rgba(255,60,80,0.20), transparent 60%),
+      radial-gradient(45% 35% at 30% 65%, rgba(255,30,40,0.16), transparent 62%),
+      radial-gradient(45% 35% at 70% 65%, rgba(255,30,40,0.16), transparent 62%),
+      radial-gradient(120% 90% at 50% 120%, rgba(0,0,0,0.78), rgba(0,0,0,0.0) 56%);
+    filter: blur(18px);
+    opacity: .95;
+    transform: translate3d(0,0,0);
+    animation: fogDrift 10s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .hudFilm{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.70) 100%),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.040) 0px,
+        rgba(255,255,255,.040) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+    opacity: .16;
+    mix-blend-mode: overlay;
+    pointer-events:none;
   }
 
-  #menuEmbers{
+  /* Ensure layering: atmosphere behind, content above */
+  #hudEmbers, .hudAtmos, .hudFilm{ z-index: 0; }
+  .hudNoise, .hudSweep, .hudFrame, .hudFrameCorners{ z-index: 1; }
+  .hudContent{ z-index: 2; }
+
+  /* =============================
+   MENU BOX: make it mobile-friendly (no squish)
+   ============================= */
+  .neonFrameWrap{
+    width: min(980px, 100%);
+    margin: 0 auto;
+  }
+  .neonFrame{
+    width: 100%;
+    height: clamp(110px, 22vw, 150px);
+    display:block;
+  }
+  .hudOrn{
+    width: 100%;
+    height: clamp(110px, 22vw, 150px);
+  }
+  .neonFrameText{
+    max-width: min(760px, 92%);
+    padding: 14px 16px;
+  }
+  .hudMainText{
+    font-size: clamp(12px, 2.8vw, 18px);
+    line-height: 1.35;
+  }
+  .hudIntroType{
+    font-size: clamp(12px, 3.2vw, 14px);
+  }
+
+  /* menuHero becomes a simple centering wrapper now (atmosphere moved to HUD) */
+  .menuHero{
+    padding: 0;
+    margin: 0 auto;
+    border-radius: 0;
+    overflow: visible;
+    isolation: auto;
+    background: none !important;
+  }
+  .menuHero::before,
+  .menuHero::after{ content:none !important; }
+
+50%{ transform: translate(14px,-10px) scale(1.06); }
+  }
+
+  #hudEmbers{
     position:absolute; inset:0;
     width:100%; height:100%;
     z-index: 1;
@@ -813,6 +898,8 @@
    MOTION REDUCTION
    ============================= */
   @media (prefers-reduced-motion: reduce){
+    #hudEmbers{ display:none !important; }
+    .hudAtmos{ animation: none !important; }
     .hud, .hudSweep, .hudNoise,
     .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
       animation: none !important;
@@ -905,6 +992,158 @@
     display: none;
   }
 
+
+  /* Extra slow smoke layer (separate from hudAtmos) */
+  .hudSmoke{
+    position:absolute;
+    inset:-35%;
+    background:
+      radial-gradient(55% 40% at 20% 55%, rgba(255,40,60,0.10), transparent 62%),
+      radial-gradient(55% 40% at 80% 60%, rgba(255,40,60,0.10), transparent 62%),
+      radial-gradient(90% 70% at 50% 35%, rgba(255,90,120,0.08), transparent 66%),
+      radial-gradient(120% 100% at 50% 120%, rgba(0,0,0,0.72), rgba(0,0,0,0.0) 58%);
+    filter: blur(26px);
+    opacity: .65;
+    transform: translate3d(0,0,0);
+    animation: slowFog 26s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes slowFog{
+    0%,100%{ transform: translate(-8px, 6px) scale(1.02); }
+    50%{ transform: translate(18px,-14px) scale(1.08); }
+  }
+
+  /* Layer order: keep smoke behind content */
+  .hudSmoke{ z-index: 0; }
+
+  /* Nav "go hard" spice: sheen + surge */
+  .hudIntroText::after{
+    content:"";
+    position:absolute; inset:-1px;
+    border-radius: inherit;
+    background: linear-gradient(115deg,
+      transparent 0%,
+      rgba(255,140,170,0.00) 35%,
+      rgba(255,140,170,0.28) 48%,
+      rgba(255,140,170,0.00) 62%,
+      transparent 100%);
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events:none;
+  }
+  .hudIntroText:hover{
+    border-color: rgba(255,110,140,.62);
+    box-shadow:
+      0 0 0 1px rgba(255,60,80,.22),
+      0 0 28px rgba(255,60,80,.34),
+      inset 0 0 18px rgba(255,60,80,.18);
+    filter: brightness(1.10);
+  }
+  .hudIntroText:hover::after{
+    opacity: 1;
+    animation: pillSheen 820ms ease-out;
+  }
+  @keyframes pillSheen{
+    from{  }
+    to{ transform: translateX(120%); }
+  }
+
+  /* Whole HUD reacts briefly on hover/click */
+  #hud.hud-surge .hudFrame,
+  #hud.hud-surge .hudFrameCorners{
+    filter: brightness(1.18);
+  }
+  #hud.hud-surge{
+    animation: hudSurge 240ms ease-out;
+  }
+  @keyframes hudSurge{
+    0%{ filter: brightness(1); }
+    40%{ filter: brightness(1.10); }
+    100%{ filter: brightness(1); }
+  }
+
+
+  /* =============================
+   Remove faint outer HUD border (keep everything else)
+   ============================= */
+  #hud{
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  .hudFrame,
+  .hudFrameCorners{
+    border-color: transparent !important;
+  }
+
+
+  /* =============================
+   KILL faint outer rounded rectangle (container/pseudo outline)
+   Safe: targets only the outer HUD container + its overlay layers
+   ============================= */
+  #hud,
+  #hud::before,
+  #hud::after{
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* If any wrapper around #hud is drawing a subtle frame, neutralize it too */
+  .hud,
+  .hud::before,
+  .hud::after,
+  .hudShell,
+  .hudShell::before,
+  .hudShell::after,
+  .hudPanel,
+  .hudPanel::before,
+  .hudPanel::after{
+    border-color: transparent !important;
+    outline: none !important;
+  }
+
+  /* The vignette/film overlays can "read" like a border when clipped with radius */
+  #hudEmbers,
+  .hudAtmos,
+  .hudSmoke,
+  .hudFilm,
+  .hudNoise,
+  .hudSweep{
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+
+  /* =============================
+   FINAL: remove the faint outer HUD outline completely
+   (it was coming from .hudFrame and .hudFrameCorners)
+   ============================= */
+  .hudFrame{
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .hudFrameCorners::before,
+  .hudFrameCorners::after{
+    border: 0 !important;
+    filter: none !important;
+  }
+
+
+  /* =============================
+   Disable global HUD surge (prevents "movie refresh" feel) - safe override
+   ============================= */
+  #hud.hud-surge{
+    animation: none !important;
+    filter: none !important;
+  }
+  #hud.hud-surge .hudFrame,
+  #hud.hud-surge .hudFrameCorners{
+    filter: none !important;
+  }
+
 </style>
 
 </head>
@@ -916,7 +1155,12 @@
       <!-- LOGBOOK HUD (Phase 1: shell) -->
       <div class="hudStage">
         <div class="hud" id="hud">
-          <div class="hudNoise" aria-hidden="true"></div>
+          <!-- HUD-wide atmosphere (full background) -->
+          <canvas id="hudEmbers" aria-hidden="true"></canvas>
+          <div class="hudAtmos" aria-hidden="true"></div>
+                    <div class="hudSmoke" aria-hidden="true"></div>
+<div class="hudFilm" aria-hidden="true"></div>
+<div class="hudNoise" aria-hidden="true"></div>
           <div class="hudSweep" aria-hidden="true"></div>
           <div class="hudFrame" aria-hidden="true"></div>
           <div class="hudFrameCorners" aria-hidden="true"></div>
@@ -936,7 +1180,6 @@
 
             <div class="hudStub hudMain">
   <div class="menuHero" aria-hidden="false">
-    <canvas id="menuEmbers" aria-hidden="true"></canvas>
 <div class="neonFrameWrap" aria-hidden="false">
     <svg class="neonFrame" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
       <defs>
@@ -1202,6 +1445,12 @@
   function navigate(route){
     const next = modules[route] ? route : 'home';
 
+    // If user clicks the current tab, do NOT re-render (prevents "refresh" / restart)
+    if (next === currentRoute){
+      setActiveTopNav(next);
+      return;
+    }
+
     // Route class on <body> (for visual state)
     document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
     document.body.classList.add(`route-${next}`);
@@ -1233,8 +1482,8 @@
   // MAIN MENU ATMOSPHERE: Embers canvas (surrounds the box)
   // =============================
   (function(){
-    const hero = document.querySelector('.menuHero');
-    const canvas = document.getElementById('menuEmbers');
+    const hero = document.getElementById('hud');
+    const canvas = document.getElementById('hudEmbers');
     if (!hero || !canvas) return;
 
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1245,12 +1494,20 @@
 
     let w = 0, h = 0, dpr = Math.min(2, window.devicePixelRatio || 1);
     const particles = [];
-    const COUNT = 70;
+    const COUNT = 350;
 
+
+    let lastW = -1, lastH = -1;
     function resize(){
       const r = hero.getBoundingClientRect();
-      w = Math.max(1, Math.floor(r.width));
-      h = Math.max(1, Math.floor(r.height));
+      const nw = Math.max(1, Math.floor(r.width));
+      const nh = Math.max(1, Math.floor(r.height));
+
+      // Guard: avoid unnecessary canvas resets (prevents "refresh" feeling on hover repaints)
+      if (nw === lastW && nh === lastH) return;
+      lastW = nw; lastH = nh;
+
+      w = nw; h = nh;
       canvas.width  = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = w + 'px';
@@ -1263,8 +1520,8 @@
         x: Math.random() * w,
         y: h + Math.random() * (h * 0.25),
         r: 0.8 + Math.random() * 2.2,
-        vy: 0.22 + Math.random() * 0.75,
-        vx: (Math.random() - 0.5) * 0.35,
+        vy: 0.45 + Math.random() * 1.25,
+        vx: (Math.random() - 0.5) * 0.75,
         a: 0.12 + Math.random() * 0.30,
         tw: 0.7 + Math.random() * 1.6,
         ph: Math.random() * Math.PI * 2
@@ -1290,7 +1547,6 @@
       g.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0,0,w,h);
-
       for (let i=0; i<particles.length; i++){
         const p = particles[i];
         p.y -= p.vy * (dt/16.7);
@@ -1327,6 +1583,33 @@
     } else {
       window.addEventListener('resize', resize, { passive: true });
     }
+  })();
+
+
+  // =============================
+  // HUD reactive surge on nav hover/click
+  // =============================
+  (function(){
+    const hud = document.getElementById('hud');
+    if (!hud) return;
+
+
+    // Disabled: global HUD surge caused a refresh-like flash.
+    return;
+    let t;
+    let lastSurge = 0;
+    function triggerHudSurge(){
+      const now = performance.now();
+      if (now - lastSurge < 420) return; // throttle
+      lastSurge = now;
+
+      hud.classList.add('hud-surge');
+      clearTimeout(t);
+      t = setTimeout(() => hud.classList.remove('hud-surge'), 260);
+    }
+
+    document.querySelectorAll('.hudIntroText').forEach(a => {
+});
   })();
 
 </script>
