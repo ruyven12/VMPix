@@ -63,7 +63,7 @@
   // Edit these safely later — no other code changes needed.
   // ------------------------------------------------------------
   const ORANGE_BOX_HEIGHT = '56px';        // strip height (try 48–72px)
-  const ORANGE_BOX_MARGIN_TOP = '18px';    // space below neon title frame
+  const ORANGE_BOX_MARGIN_TOP = '5px';    // space below neon title frame
   const ORANGE_BOX_MAX_WIDTH = '96%';      // keep inside the big HUD container
 
   // Border styling to match the outside vibe (thin neon red)
@@ -334,7 +334,6 @@ glassOuter.style.margin = '0';
       hudMain.style.padding = _prevHudMainPadding || "";
     }
     _prevHudMainPadding = null;
-
 
     restoreFrameVisibility();
 
