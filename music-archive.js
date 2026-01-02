@@ -57,20 +57,25 @@
     const hudMain = document.querySelector('.hudStub.hudMain');
     if (!hudMain) return;
 
-    const strip = document.getElementById('musicInfoStrip');
+    // IMPORTANT:
+    // hudMain.clientHeight INCLUDES padding, and we intentionally add a big padding-bottom
+    // to reserve space for the pinned bottom strip.
+    // So we size the panel to the *inner content box* (clientHeight minus paddings)
+    // and let the reserved padding-bottom keep us clear of the strip.
 
-    // Use actual DOM sizes if present; fall back to constants
     const hudH = hudMain.clientHeight || 0;
-    const stripH = strip ? strip.offsetHeight : pxToNum(ORANGE_BOX_HEIGHT);
+    const cs = window.getComputedStyle ? window.getComputedStyle(hudMain) : null;
 
-    const bottom = pxToNum(ORANGE_BOX_BOTTOM);
-    const safe = pxToNum(ORANGE_BOX_SAFE_GAP);
+    const padTop = cs ? pxToNum(cs.paddingTop) : 0;
+    const padBottom = cs ? pxToNum(cs.paddingBottom) : 0;
+
+    // Inner content area height (green box region)
+    const innerH = Math.max(0, hudH - padTop - padBottom);
+
+    // Account for the panel's top margin so it doesn't push past the reserved area
     const topGap = pxToNum(GREEN_BOX_MARGIN_TOP);
+    const avail = Math.max(0, innerH - topGap);
 
-    // Space available ABOVE the strip (the “green box” region)
-    const avail = Math.max(0, hudH - (stripH + bottom + safe + topGap));
-
-    // Fill it
     _contentPanelEl.style.height = `${avail}px`;
     _contentPanelEl.style.maxHeight = `${avail}px`;
   }
