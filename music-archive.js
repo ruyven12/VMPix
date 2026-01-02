@@ -120,11 +120,32 @@
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
 
-    // Music-only: hide the inner "glass" panel (the faint translucent window)
-    const glass = document.querySelector('.neonFrameTextInner');
-    if (glass){
-      if (_prevGlassDisplay === null) _prevGlassDisplay = glass.style.display || "";
-      glass.style.display = 'none';
+    // Music-only: remove the faint translucent "glass" look WITHOUT hiding the mount.
+    // IMPORTANT: #hudMainMount lives inside .neonFrameTextInner, so we must NOT set display:none.
+    const glassInner = document.querySelector('.neonFrameTextInner');
+    const glassOuter = document.querySelector('.neonFrameText');
+
+    // store + neutralize inner layer
+    if (glassInner){
+      if (_prevGlassDisplay === null) _prevGlassDisplay = glassInner.style.display || "";
+      if (!glassInner.dataset._musicPrevBg) glassInner.dataset._musicPrevBg = glassInner.style.background || "";
+      if (!glassInner.dataset._musicPrevShadow) glassInner.dataset._musicPrevShadow = glassInner.style.boxShadow || "";
+      if (!glassInner.dataset._musicPrevFilter) glassInner.dataset._musicPrevFilter = glassInner.style.filter || "";
+      if (!glassInner.dataset._musicPrevBackdrop) glassInner.dataset._musicPrevBackdrop = glassInner.style.backdropFilter || "";
+
+      glassInner.style.display = 'block';
+      glassInner.style.background = 'transparent';
+      glassInner.style.boxShadow = 'none';
+      glassInner.style.filter = 'none';
+      glassInner.style.backdropFilter = 'none';
+    }
+
+    // store + neutralize outer layer (some of the "window" may live here)
+    if (glassOuter){
+      if (!glassOuter.dataset._musicPrevBg) glassOuter.dataset._musicPrevBg = glassOuter.style.background || "";
+      if (!glassOuter.dataset._musicPrevShadow) glassOuter.dataset._musicPrevShadow = glassOuter.style.boxShadow || "";
+      glassOuter.style.background = 'transparent';
+      glassOuter.style.boxShadow = 'none';
     }
 
     // Simple title only (baseline)
@@ -145,12 +166,29 @@
 
     restoreFrameHeight();
 
-    // restore inner glass panel
-    const glass = document.querySelector('.neonFrameTextInner');
-    if (glass){
-      glass.style.display = _prevGlassDisplay || "";
+    // restore glass layers
+    const glassInner = document.querySelector('.neonFrameTextInner');
+    const glassOuter = document.querySelector('.neonFrameText');
+
+    if (glassInner){
+      glassInner.style.display = _prevGlassDisplay || "";
+      glassInner.style.background = glassInner.dataset._musicPrevBg || "";
+      glassInner.style.boxShadow = glassInner.dataset._musicPrevShadow || "";
+      glassInner.style.filter = glassInner.dataset._musicPrevFilter || "";
+      glassInner.style.backdropFilter = glassInner.dataset._musicPrevBackdrop || "";
+      delete glassInner.dataset._musicPrevBg;
+      delete glassInner.dataset._musicPrevShadow;
+      delete glassInner.dataset._musicPrevFilter;
+      delete glassInner.dataset._musicPrevBackdrop;
     }
     _prevGlassDisplay = null;
+
+    if (glassOuter){
+      glassOuter.style.background = glassOuter.dataset._musicPrevBg || "";
+      glassOuter.style.boxShadow = glassOuter.dataset._musicPrevShadow || "";
+      delete glassOuter.dataset._musicPrevBg;
+      delete glassOuter.dataset._musicPrevShadow;
+    }
 
     restoreFrameVisibility();
 
