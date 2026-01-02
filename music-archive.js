@@ -17,6 +17,12 @@
     // HUD main container (big translucent box) restore
   let _prevHudMainTransform = null;
 
+  // HUD main sizing restore (Music-only)
+  let _prevHudMainMinHeight = null;
+  let _prevHudMainHeight = null;
+  let _prevHudStubMinHeight = null;
+  let _prevHudStubHeight = null;
+
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
@@ -73,7 +79,11 @@
   // Manual nudges for the BIG HUD container (small values!)
   const HUD_MAIN_X_OFFSET = '0px';
   const HUD_MAIN_Y_OFFSET = '0px';
-  const HUD_MAIN_HEIGHT = '100px';
+    // 👉 HEIGHT CONTROL for the BIG translucent HUD region (Music only)
+  // Use min-height for safety (won't clip). If you want strict height, set HUD_MAIN_USE_STRICT_HEIGHT = true.
+  const HUD_MAIN_MIN_HEIGHT = '520px';         // <- THIS is the main dial (try 420–720px)
+  const HUD_MAIN_USE_STRICT_HEIGHT = false;    // true = force exact height (can clip)
+
 
   
     // ------------------------------------------------------------
@@ -171,17 +181,35 @@
 
     // Music-only: HUD main container (big translucent box) controls
 const hudMainBox = document.querySelector('.hudStub.hudMain');
+const hudStubBox = hudMainBox ? hudMainBox.closest('.hudStub') : document.querySelector('.hudStub');
+
 if (hudMainBox){
   // store for restore (only once per route entry)
   if (_prevHudMainBg === null) _prevHudMainBg = hudMainBox.style.background || "";
   if (_prevHudMainTransform === null) _prevHudMainTransform = hudMainBox.style.transform || "";
+  if (_prevHudMainMinHeight === null) _prevHudMainMinHeight = hudMainBox.style.minHeight || "";
+  if (_prevHudMainHeight === null) _prevHudMainHeight = hudMainBox.style.height || "";
 
   // background control (translucent fill)
   hudMainBox.style.background = HUD_MAIN_BG;
 
   // position nudge control (small!)
   hudMainBox.style.transform = `translate(${HUD_MAIN_X_OFFSET}, ${HUD_MAIN_Y_OFFSET})`;
+
+  // ✅ height control (this is your GREEN BOX dial)
+  hudMainBox.style.minHeight = HUD_MAIN_MIN_HEIGHT;
+  hudMainBox.style.height = HUD_MAIN_USE_STRICT_HEIGHT ? HUD_MAIN_MIN_HEIGHT : "";
 }
+
+if (hudStubBox){
+  // Some themes size the translucent region on the outer .hudStub instead.
+  if (_prevHudStubMinHeight === null) _prevHudStubMinHeight = hudStubBox.style.minHeight || "";
+  if (_prevHudStubHeight === null) _prevHudStubHeight = hudStubBox.style.height || "";
+
+  hudStubBox.style.minHeight = HUD_MAIN_MIN_HEIGHT;
+  hudStubBox.style.height = HUD_MAIN_USE_STRICT_HEIGHT ? HUD_MAIN_MIN_HEIGHT : "";
+}
+
 
 
     ensureFrameVisibleForMusic();
@@ -306,14 +334,28 @@ glassOuter.style.margin = '0';
   }
 
   function destroy(){
-    // restore HUD main box (background + transform)
+    // restore HUD main box (background + transform + sizing)
 const hudMainBox = document.querySelector('.hudStub.hudMain');
+const hudStubBox = hudMainBox ? hudMainBox.closest('.hudStub') : document.querySelector('.hudStub');
+
 if (hudMainBox){
   hudMainBox.style.background = _prevHudMainBg || "";
   hudMainBox.style.transform = _prevHudMainTransform || "";
+  hudMainBox.style.minHeight = _prevHudMainMinHeight || "";
+  hudMainBox.style.height = _prevHudMainHeight || "";
 }
+if (hudStubBox){
+  hudStubBox.style.minHeight = _prevHudStubMinHeight || "";
+  hudStubBox.style.height = _prevHudStubHeight || "";
+}
+
 _prevHudMainBg = null;
 _prevHudMainTransform = null;
+_prevHudMainMinHeight = null;
+_prevHudMainHeight = null;
+_prevHudStubMinHeight = null;
+_prevHudStubHeight = null;
+
 
 
     restoreFrameHeight();
