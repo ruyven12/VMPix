@@ -1,3 +1,4 @@
+// music-archive.js (user working file)
 // Phase 2 clean baseline (DEDUPED)
 // - Keeps HUD neon frame visible on Music route
 // - Removes HUD main container fill only (Music only) — border stays
@@ -41,6 +42,38 @@
   let _prevMenuPaddingTop = null;
   let _prevFrameHeight = null;
   let _prevOrnHeight = null;
+
+  // content sizing (Music route only)
+  let _onResize = null;
+
+  function pxToNum(v) {
+    const n = parseFloat(String(v || '').replace('px', ''));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function sizeContentPanelToHud() {
+    if (!_contentPanelEl) return;
+
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (!hudMain) return;
+
+    const strip = document.getElementById('musicInfoStrip');
+
+    // Use actual DOM sizes if present; fall back to constants
+    const hudH = hudMain.clientHeight || 0;
+    const stripH = strip ? strip.offsetHeight : pxToNum(ORANGE_BOX_HEIGHT);
+
+    const bottom = pxToNum(ORANGE_BOX_BOTTOM);
+    const safe = pxToNum(ORANGE_BOX_SAFE_GAP);
+    const topGap = pxToNum(GREEN_BOX_MARGIN_TOP);
+
+    // Space available ABOVE the strip (the “green box” region)
+    const avail = Math.max(0, hudH - (stripH + bottom + safe + topGap));
+
+    // Fill it
+    _contentPanelEl.style.height = `${avail}px`;
+    _contentPanelEl.style.maxHeight = `${avail}px`;
+  }
 
   // ---- Music-only tuning ----
   const MUSIC_FRAME_HEIGHT = '110px'; // adjust safely (100px–130px)
@@ -115,7 +148,7 @@
   const GREEN_BOX_MOBILE_TEXT_ALIGN = 'left';
 
   // Optional: make it scroll if content is tall
-  const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll' // 'auto' | 'hidden' | 'scroll'
+  const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll'
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
@@ -149,9 +182,7 @@
     wrap.style.transform = `translateY(${MUSIC_FRAME_Y_OFFSET})`;
 
     // Music-only: adjust the header wrap height (translucent layer)
-    // Music-only: adjust the header wrap height (translucent layer)
-    if (_prevWrapMinHeight === null)
-      _prevWrapMinHeight = wrap.style.minHeight || '';
+    if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || '';
     if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || '';
 
     wrap.style.minHeight = NEON_WRAP_MIN_HEIGHT;
@@ -162,23 +193,21 @@
       const s = document.createElement('style');
       s.id = 'musicWrapOverlayKill';
       s.textContent = `
-    .route-music .neonFrameWrap::before,
-    .route-music .neonFrameWrap::after{
-      content:none !important;
-      display:none !important;
-      opacity:0 !important;
-    }
-  `;
+        .route-music .neonFrameWrap::before,
+        .route-music .neonFrameWrap::after{
+          content:none !important;
+          display:none !important;
+          opacity:0 !important;
+        }
+      `;
       document.head.appendChild(s);
     }
 
     // If the parent is centering, force top alignment for Music
     const menuHero = document.querySelector('.menuHero');
     if (menuHero) {
-      if (_prevMenuAlign === null)
-        _prevMenuAlign = menuHero.style.alignItems || '';
-      if (_prevMenuPaddingTop === null)
-        _prevMenuPaddingTop = menuHero.style.paddingTop || '';
+      if (_prevMenuAlign === null) _prevMenuAlign = menuHero.style.alignItems || '';
+      if (_prevMenuPaddingTop === null) _prevMenuPaddingTop = menuHero.style.paddingTop || '';
       menuHero.style.alignItems = 'flex-start';
       menuHero.style.paddingTop = '0px';
     }
@@ -191,7 +220,6 @@
       wrap.style.transform = _prevWrapTransform || '';
       wrap.style.minHeight = _prevWrapMinHeight || '';
       wrap.style.height = _prevWrapHeight || '';
-      // --- restore neonFrameWrap opacity ---
       if (wrap.dataset.prevOpacity !== undefined) {
         wrap.style.opacity = wrap.dataset.prevOpacity;
         delete wrap.dataset.prevOpacity;
@@ -251,15 +279,12 @@
     const strip = document.getElementById('musicInfoStrip');
     if (!strip) return;
 
-    // Were we already active?
     const wasActive = tabEl.classList.contains('is-active');
 
-    // Clear sweep from ALL tabs so we can re-run cleanly
     strip.querySelectorAll('.hudTab').forEach((t) => {
       t.classList.remove('sweep');
     });
 
-    // If it wasn't active, switch active tab
     if (!wasActive) {
       strip.querySelectorAll('.hudTab').forEach((t) => {
         t.classList.remove('is-active');
@@ -269,12 +294,10 @@
       tabEl.setAttribute('aria-selected', 'true');
     }
 
-    // Always restart underline sweep on the clicked tab
     tabEl.classList.remove('sweep');
-    void tabEl.offsetWidth; // force reflow (restarts keyframes)
+    void tabEl.offsetWidth;
     tabEl.classList.add('sweep');
 
-    // Always restart scan ping + border pulse on every click
     strip.classList.remove('ping', 'pulse');
     void strip.offsetWidth;
     strip.classList.add('ping');
@@ -294,34 +317,19 @@
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
 
-    // ------------------------------------------------------------
-    // OPTION B (TEST / NOW DEFAULT):
-    // Hide the entire .neonFrameTextInner box (glass layer),
-    // BUT first move #hudMainMount out of it so our text still shows.
-    //
-    // EDIT THIS "BOX" BEHAVIOR HERE:
-    // - Want the glass back? Comment out `glassInner.style.display = 'none';`
-    // - Want title nudged? Adjust MUSIC_TITLE_Y_OFFSET above.
-    // - Want extra padding? Adjust MUSIC_TITLE_PADDING_Y above.
-    // ------------------------------------------------------------
+    // OPTION B: move mount out of inner glass, hide inner
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
 
     if (glassInner && glassOuter) {
-      // store + sanitize outer (some themes add a window bg/shadow here)
-      if (_prevOuterBg === null)
-        _prevOuterBg = glassOuter.style.background || '';
-      if (_prevOuterShadow === null)
-        _prevOuterShadow = glassOuter.style.boxShadow || '';
-      if (_prevOuterPos === null)
-        _prevOuterPos = glassOuter.style.position || '';
+      if (_prevOuterBg === null) _prevOuterBg = glassOuter.style.background || '';
+      if (_prevOuterShadow === null) _prevOuterShadow = glassOuter.style.boxShadow || '';
+      if (_prevOuterPos === null) _prevOuterPos = glassOuter.style.position || '';
 
       glassOuter.style.background = 'transparent';
       glassOuter.style.boxShadow = 'none';
       if (!glassOuter.style.position) glassOuter.style.position = 'relative';
 
-      // ✅ CENTER LOCK FOR OPTION B
-      // Make the OUTER box a true full-height flex-center container
       glassOuter.style.display = 'flex';
       glassOuter.style.alignItems = 'center';
       glassOuter.style.justifyContent = 'center';
@@ -329,17 +337,14 @@
       glassOuter.style.padding = '0';
       glassOuter.style.margin = '0';
 
-      // store mount original position for restore (only once)
       if (_prevMountParent === null) {
         _prevMountParent = mountEl.parentNode;
         _prevMountNextSibling = mountEl.nextSibling;
         _prevMountStyle = mountEl.getAttribute('style') || '';
       }
 
-      // move mount to the outer layer (so we can hide the inner)
       glassOuter.appendChild(mountEl);
 
-      // make mount fill the frame and center its contents
       mountEl.style.display = 'flex';
       mountEl.style.alignItems = 'center';
       mountEl.style.justifyContent = 'center';
@@ -350,67 +355,52 @@
       mountEl.style.paddingTop = MUSIC_TITLE_PADDING_Y;
       mountEl.style.paddingBottom = MUSIC_TITLE_PADDING_Y;
 
-      // now safe to truly remove the inner glass container
-      if (_prevGlassDisplay === null)
-        _prevGlassDisplay = glassInner.style.display || '';
+      if (_prevGlassDisplay === null) _prevGlassDisplay = glassInner.style.display || '';
       glassInner.style.display = 'none';
     }
 
-    // Simple title only (baseline)
     _mount.innerHTML = `<span data-hud-main-text
-     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:none;
-            display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
-     The World of Music
-   </span>`;
+      style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:none;
+             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
+      The World of Music
+    </span>`;
 
-    // ------------------------------------------------------------
-    // ORANGE BOX (info strip) — CREATE AREA ONLY (no content yet)
-    // Edit ORANGE_BOX_* constants above to reposition/size/style it.
-    // ------------------------------------------------------------
     const hudMain = document.querySelector('.hudStub.hudMain');
     if (hudMain && !_orangeBoxEl) {
       if (_prevHudMainPadding === null) {
         _prevHudMainPadding = hudMain.style.padding || '';
       }
 
-      // Keep this minimal; just enough to not crush layout.
-      hudMain.style.position = 'relative'; // anchor for absolute children
-      // Device-aware padding: bottom space follows the pinned orange strip
+      hudMain.style.position = 'relative';
       hudMain.style.padding = `0 18px calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP})`;
 
-      // ------------------------------------------------------------
-      // GREEN BOX (main content area) — placeholder container
-      // This is the big area that will change when tabs are clicked.
-      // ------------------------------------------------------------
+      // Ensure hudMain has a reliable height context for our “green box” sizing
+      hudMain.style.boxSizing = 'border-box';
+      hudMain.style.overflow = 'hidden';
+
       if (!_contentPanelEl) {
         _contentPanelEl = document.createElement('div');
         _contentPanelEl.id = 'musicContentPanel';
 
-        // Visual + layout: fills the main space above the orange strip
         _contentPanelEl.style.width = '100%';
-        _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
-        _contentPanelEl.style.margin = '5px auto 0';
-        _contentPanelEl.style.minHeight = GREEN_BOX_DESKTOP_MIN_HEIGHT; // device-aware baseline
+        _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
+        _contentPanelEl.style.margin = `${GREEN_BOX_MARGIN_TOP} auto 0`;
+        _contentPanelEl.style.minHeight = GREEN_BOX_DESKTOP_MIN_HEIGHT;
         _contentPanelEl.style.borderRadius = '10px';
 
-        // Match HUD vibe (subtle, not overpowering)
         _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
         _contentPanelEl.style.background = 'rgba(0,0,0,0.10)';
-        _contentPanelEl.style.boxShadow =
-          '0 0 0 1px rgba(255,70,110,0.08) inset';
+        _contentPanelEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.08) inset';
 
-        // Content panel layout (tunable)
         _contentPanelEl.style.boxSizing = 'border-box';
         _contentPanelEl.style.padding = GREEN_BOX_PADDING;
         _contentPanelEl.style.overflowY = GREEN_BOX_OVERFLOW_Y;
 
-        // Default: center content (you can change these constants above)
         _contentPanelEl.style.display = 'flex';
         _contentPanelEl.style.alignItems = GREEN_BOX_ALIGN_ITEMS;
         _contentPanelEl.style.justifyContent = GREEN_BOX_JUSTIFY_CONTENT;
         _contentPanelEl.style.textAlign = GREEN_BOX_TEXT_ALIGN;
 
-        // Mobile overrides (optional)
         if (window.matchMedia && window.matchMedia('(max-width: 520px)').matches) {
           _contentPanelEl.style.padding = GREEN_BOX_MOBILE_PADDING;
           _contentPanelEl.style.alignItems = GREEN_BOX_MOBILE_ALIGN_ITEMS;
@@ -419,69 +409,60 @@
           _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
         }
 
-        // Temporary placeholder text (safe to remove later)
         _contentPanelEl.innerHTML = `
-  <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-    <strong>Welcome to the Music section for this page.</strong><br><br>
-    Please make your selection below.
-  </div>
-`;
+          <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
+            <strong>Welcome to the Music section for this page.</strong><br><br>
+            Please make your selection below.
+          </div>
+        `;
 
-        // IMPORTANT: append BEFORE the orange strip so it sits above it
         hudMain.appendChild(_contentPanelEl);
       }
 
       _orangeBoxEl = document.createElement('div');
       _orangeBoxEl.id = 'musicInfoStrip';
 
-      // ===== HUD TABS ANIMATION (Combo A) =====
-      // Content panel wipe animation (safe test harness)
+      // styles injected (content wipe + strip)
       if (!document.getElementById('musicContentWipeStyles')) {
         const cs = document.createElement('style');
         cs.id = 'musicContentWipeStyles';
         cs.textContent = `
-  /* Content wipe (panel) */
-  #musicContentPanel{ position:relative; }
-  #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
-  #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
+          #musicContentPanel{ position:relative; }
+          #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
+          #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
 
-  @keyframes musicContentWipeOut{
-    0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
-    100%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 0% 0% 100%); }
-  }
-  @keyframes musicContentWipeIn{
-    0%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 100% 0% 0%); }
-    100%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
-  }
+          @keyframes musicContentWipeOut{
+            0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
+            100%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 0% 0% 100%); }
+          }
+          @keyframes musicContentWipeIn{
+            0%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 100% 0% 0%); }
+            100%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
+          }
 
-  /* Terminal-type helper (optional) */
-  #musicContentPanel .termLine{
-    opacity:.85;
-    font-size:14px;
-    letter-spacing:.04em;
-    text-transform:none;
-    font-variant:normal;
-    display:inline-block;
-    white-space:pre-wrap;
-  }
-  #musicContentPanel .termText{
-    text-transform:none;
-    font-variant:normal;
-  }
-  #musicContentPanel .termCaret{
-    display:inline-block;
-    width:0.6ch;
-    transform:translateY(1px);
-    animation:termBlink 700ms steps(1) infinite;
-  }
-  @keyframes termBlink{ 50%{ opacity:0; } }
+          #musicContentPanel .termLine{
+            opacity:.85;
+            font-size:14px;
+            letter-spacing:.04em;
+            text-transform:none;
+            font-variant:normal;
+            display:inline-block;
+            white-space:pre-wrap;
+          }
+          #musicContentPanel .termText{ text-transform:none; font-variant:normal; }
+          #musicContentPanel .termCaret{
+            display:inline-block;
+            width:0.6ch;
+            transform:translateY(1px);
+            animation:termBlink 700ms steps(1) infinite;
+          }
+          @keyframes termBlink{ 50%{ opacity:0; } }
 
-  /* Reduced motion: no wipe, just swap */
-  @media (prefers-reduced-motion: reduce){
-    #musicContentPanel.wipe-out,
-    #musicContentPanel.wipe-in{ animation:none !important; }
-  }
-`;
+          @media (prefers-reduced-motion: reduce){
+            #musicContentPanel.wipe-out,
+            #musicContentPanel.wipe-in{ animation:none !important; }
+          }
+        `;
         document.head.appendChild(cs);
       }
 
@@ -489,143 +470,125 @@
         const style = document.createElement('style');
         style.id = 'musicInfoStripStyles';
         style.textContent = `
-    /* Strip */
-    #musicInfoStrip{ overflow:hidden; }
+          #musicInfoStrip{ overflow:hidden; }
 
-    /* Tabs layout */
-    #musicInfoStrip .hudTabs{
-      display:flex;
-      gap:16px;
-      align-items:center;
-      justify-content:center;
-      white-space:nowrap;
-      user-select:none;
-    }
+          #musicInfoStrip .hudTabs{
+            display:flex;
+            gap:16px;
+            align-items:center;
+            justify-content:center;
+            white-space:nowrap;
+            user-select:none;
+          }
 
-    /* Tab base */
-    #musicInfoStrip .hudTab{
-      position:relative;
-      cursor:pointer;
-      pointer-events:auto;
-      padding:10px 6px;
-      font-size:${ORANGE_BOX_TEXT_SIZE};
-      letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
-      text-transform:uppercase;
-      opacity:.75;
-      transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
-    }
+          #musicInfoStrip .hudTab{
+            position:relative;
+            cursor:pointer;
+            pointer-events:auto;
+            padding:10px 6px;
+            font-size:${ORANGE_BOX_TEXT_SIZE};
+            letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
+            text-transform:uppercase;
+            opacity:.75;
+            transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
+          }
 
-    #musicInfoStrip .hudTab:hover{
-      opacity:.95;
-      filter:brightness(1.15);
-      transform:translateY(-1px);
-    }
+          #musicInfoStrip .hudTab:hover{
+            opacity:.95;
+            filter:brightness(1.15);
+            transform:translateY(-1px);
+          }
 
-    /* Underline (sweep) */
-    #musicInfoStrip .hudTab::after{
-      content:"";
-      position:absolute;
-      left:0; right:0;
-      bottom:4px;
-      height:2px;
-      border-radius:999px;
-      opacity:0;
-      transform:scaleX(0);
-      transform-origin:left center;
-      background:rgba(255,70,110,0.85);
-      box-shadow:0 0 10px rgba(255,70,110,0.35);
-      transition:opacity 160ms ease;
-    }
+          #musicInfoStrip .hudTab::after{
+            content:"";
+            position:absolute;
+            left:0; right:0;
+            bottom:4px;
+            height:2px;
+            border-radius:999px;
+            opacity:0;
+            transform:scaleX(0);
+            transform-origin:left center;
+            background:rgba(255,70,110,0.85);
+            box-shadow:0 0 10px rgba(255,70,110,0.35);
+            transition:opacity 160ms ease;
+          }
 
-    #musicInfoStrip .hudTab.is-active{
-      opacity:1;
-      filter:brightness(1.25);
-    }
-    #musicInfoStrip .hudTab.is-active::after{ opacity:1; }
+          #musicInfoStrip .hudTab.is-active{ opacity:1; filter:brightness(1.25); }
+          #musicInfoStrip .hudTab.is-active::after{ opacity:1; }
 
-    @keyframes hudUnderlineSweep{
-      0%{ transform:scaleX(0); }
-      70%{ transform:scaleX(1.06); } /* tiny overshoot */
-      100%{ transform:scaleX(1); }
-    }
-    #musicInfoStrip .hudTab.sweep::after{
-      animation:hudUnderlineSweep 220ms cubic-bezier(.2,.9,.2,1) both;
-    }
+          @keyframes hudUnderlineSweep{
+            0%{ transform:scaleX(0); }
+            70%{ transform:scaleX(1.06); }
+            100%{ transform:scaleX(1); }
+          }
+          #musicInfoStrip .hudTab.sweep::after{
+            animation:hudUnderlineSweep 220ms cubic-bezier(.2,.9,.2,1) both;
+          }
 
-    /* Scanline ping overlay */
-    #musicInfoStrip .scanPing{
-      pointer-events:none;
-      position:absolute;
-      left:-30%;
-      top:0;
-      width:30%;
-      height:100%;
-      opacity:0;
-      background:linear-gradient(
-        90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,.10) 45%,
-        rgba(255,255,255,0) 100%
-      );
-      filter:blur(.2px);
-      transform:skewX(-18deg);
-    }
+          #musicInfoStrip .scanPing{
+            pointer-events:none;
+            position:absolute;
+            left:-30%;
+            top:0;
+            width:30%;
+            height:100%;
+            opacity:0;
+            background:linear-gradient(
+              90deg,
+              rgba(255,255,255,0) 0%,
+              rgba(255,255,255,.10) 45%,
+              rgba(255,255,255,0) 100%
+            );
+            filter:blur(.2px);
+            transform:skewX(-18deg);
+          }
 
-    @keyframes hudScanPing{
-      0%{ transform:translateX(0) skewX(-18deg); opacity:0; }
-      10%{ opacity:.65; }
-      60%{ opacity:.35; }
-      100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
-    }
-    #musicInfoStrip.ping .scanPing{
-      animation:hudScanPing 320ms ease-out both;
-    }
+          @keyframes hudScanPing{
+            0%{ transform:translateX(0) skewX(-18deg); opacity:0; }
+            10%{ opacity:.65; }
+            60%{ opacity:.35; }
+            100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
+          }
+          #musicInfoStrip.ping .scanPing{ animation:hudScanPing 320ms ease-out both; }
 
-    /* Optional: small border pulse */
-    @keyframes hudBorderPulse{
-      0%{ box-shadow:${ORANGE_BOX_GLOW}; }
-      50%{ box-shadow:0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 26px rgba(255,70,110,0.18); }
-      100%{ box-shadow:${ORANGE_BOX_GLOW}; }
-    }
-    #musicInfoStrip.pulse{
-      animation:hudBorderPulse 240ms ease-out both;
-    }
-  `;
+          @keyframes hudBorderPulse{
+            0%{ box-shadow:${ORANGE_BOX_GLOW}; }
+            50%{ box-shadow:0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 26px rgba(255,70,110,0.18); }
+            100%{ box-shadow:${ORANGE_BOX_GLOW}; }
+          }
+          #musicInfoStrip.pulse{ animation:hudBorderPulse 240ms ease-out both; }
+        `;
         document.head.appendChild(style);
       }
 
       _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.width = '100%';
-      _orangeBoxEl.style.transform = `translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
-      // ⬇️ PIN ORANGE BOX TO BOTTOM OF HUD MAIN
       _orangeBoxEl.style.position = 'absolute';
       _orangeBoxEl.style.left = '50%';
-      _orangeBoxEl.style.bottom = ORANGE_BOX_BOTTOM; // adjust up/down if needed
+      _orangeBoxEl.style.bottom = ORANGE_BOX_BOTTOM;
       _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
 
       _orangeBoxEl.style.border = 'none';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
       _orangeBoxEl.style.background = ORANGE_BOX_BG;
       _orangeBoxEl.style.boxShadow = 'none';
-      // Center contents in the strip (safe: affects only the strip)
       _orangeBoxEl.style.display = 'flex';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
       _orangeBoxEl.style.textAlign = 'center';
 
-      // Put HUD-style text inside (we'll turn these into real tabs later)
       _orangeBoxEl.innerHTML = `
-  <div class="hudTabs" role="tablist" aria-label="Music sections">
-    <div class="hudTab" data-tab="archives" role="tab" aria-selected="false">Archives</div>
-    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
-    <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
-    <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
-  </div>
-  <div class="scanPing" aria-hidden="true"></div>
-`;
+        <div class="hudTabs" role="tablist" aria-label="Music sections">
+          <div class="hudTab" data-tab="archives" role="tab" aria-selected="false">Archives</div>
+          <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
+          <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
+          <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
+        </div>
+        <div class="scanPing" aria-hidden="true"></div>
+      `;
 
-      // --- TAB CLICK HANDLING (TEST CONTENT ONLY) ---
       const WIPE_OUT_MS = 140;
       const WIPE_IN_MS = 180;
       const TYPE_MS = 7;
@@ -634,21 +597,18 @@
       function wipeSwapContent(nextHtml, terminalText) {
         if (!_contentPanelEl) return;
         const prefersReduced =
-          window.matchMedia &&
-          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReduced) {
           _contentPanelEl.innerHTML = nextHtml;
           return;
         }
 
-        // restart any running animations cleanly
         _contentPanelEl.classList.remove('wipe-out', 'wipe-in');
         void _contentPanelEl.offsetWidth;
         _contentPanelEl.classList.add('wipe-out');
 
         window.setTimeout(() => {
-          // stage 1: load the container first (optional)
           if (terminalText) {
             _contentPanelEl.innerHTML = `
               <div class="termLine"><span class="termText"></span><span class="termCaret">▌</span></div>
@@ -664,7 +624,6 @@
           window.setTimeout(() => {
             _contentPanelEl.classList.remove('wipe-in');
 
-            // stage 2: terminal-style type-in after wipe completes
             if (terminalText) {
               const term = _contentPanelEl.querySelector('.termText');
               if (!term) return;
@@ -695,26 +654,20 @@
           if (_contentPanelEl) {
             const label = tab.textContent.trim();
             if (label === 'Origins') {
-              wipeSwapContent(
-                '',
+              wipeSwapContent('',
                 `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time. However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
 
                 Back then, I started to just take pictures (albeit not the best, but gotta start somewhere) for keepsakes of what I've seen and been through. From going to a lot of the 13 High shows between 2011 and a lot of 2012, I was hooked. And as through those shows, most of those bands from there became life-long friends of mine, and I wouldn't trade it for the world. Fast forward now to 2025 and 14 years later it is still a prevalent force in my life. Without that one decision back then, who knows where I would be today! This page is dedicated to the vast journey that it has been and will continue to be until I can no longer do it anymore.`
               );
             } else if (label === 'Notes') {
-              wipeSwapContent(
-                '',
-                  `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
-                  
+              wipeSwapContent('',
+                `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
+
                    2: This is a complete work in progress and things will change throughout. If you see something that looks off, please let me know (Contact section coming soon).`
               );
             } else {
               wipeSwapContent(
-                `
-                <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">
-                  ${label} – Coming Soon
-                </div>
-              `,
+                `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
                 `${label} – Coming Soon`
               );
             }
@@ -722,10 +675,17 @@
         });
       });
 
-      // no content yet; just a visible area
       _orangeBoxEl.style.pointerEvents = 'auto';
-
       hudMain.appendChild(_orangeBoxEl);
+
+      // Size content panel to fill the “green box” area above the strip
+      sizeContentPanelToHud();
+
+      // Keep it sized on resize
+      if (!_onResize) {
+        _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
+        window.addEventListener('resize', _onResize, { passive: true });
+      }
     }
   }
 
@@ -734,7 +694,6 @@
   }
 
   function destroy() {
-    // restore HUD main box background
     const hudMainBox = document.querySelector('.hudStub.hudMain');
     if (hudMainBox) {
       hudMainBox.style.background = _prevHudMainBg || '';
@@ -743,17 +702,14 @@
 
     restoreFrameHeight();
 
-    // restore glass + mount position (Option B)
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
 
-    // unhide inner
     if (glassInner) {
       glassInner.style.display = _prevGlassDisplay || '';
     }
     _prevGlassDisplay = null;
 
-    // restore outer styles
     if (glassOuter) {
       glassOuter.style.background = _prevOuterBg || '';
       glassOuter.style.boxShadow = _prevOuterShadow || '';
@@ -763,16 +719,10 @@
     _prevOuterShadow = null;
     _prevOuterPos = null;
 
-    // move mount back where it originally lived
     if (_mount && _prevMountParent) {
-      // restore style attribute exactly (removes our flex/transform/padding, etc.)
       _mount.setAttribute('style', _prevMountStyle || '');
 
-      // reinsert back at original spot
-      if (
-        _prevMountNextSibling &&
-        _prevMountNextSibling.parentNode === _prevMountParent
-      ) {
+      if (_prevMountNextSibling && _prevMountNextSibling.parentNode === _prevMountParent) {
         _prevMountParent.insertBefore(_mount, _prevMountNextSibling);
       } else {
         _prevMountParent.appendChild(_mount);
@@ -783,13 +733,11 @@
     _prevMountNextSibling = null;
     _prevMountStyle = null;
 
-    // ORANGE BOX cleanup (Music only)
     if (_orangeBoxEl && _orangeBoxEl.parentNode) {
       _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
     }
     _orangeBoxEl = null;
 
-    // GREEN BOX cleanup (Music only)
     if (_contentPanelEl && _contentPanelEl.parentNode) {
       _contentPanelEl.parentNode.removeChild(_contentPanelEl);
     }
@@ -802,6 +750,11 @@
     _prevHudMainPadding = null;
 
     restoreFrameVisibility();
+
+    if (_onResize) {
+      window.removeEventListener('resize', _onResize);
+      _onResize = null;
+    }
 
     if (_mount) {
       _mount.innerHTML = '';
