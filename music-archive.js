@@ -723,7 +723,6 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
           );
         });
       });
-      });
 
       _orangeBoxEl.style.pointerEvents = 'auto';
       hudMain.appendChild(_orangeBoxEl);
