@@ -73,6 +73,7 @@
   // Manual nudges for the BIG HUD container (small values!)
   const HUD_MAIN_X_OFFSET = '0px';
   const HUD_MAIN_Y_OFFSET = '0px';
+  const HUD_MAIN_HEIGHT = '100px';
 
   
     // ------------------------------------------------------------
