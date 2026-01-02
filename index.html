@@ -1144,6 +1144,69 @@
     filter: none !important;
   }
 
+
+  /* =============================
+   WIPE CONSTRAINT: keep scan/wipe INSIDE bubbles only
+   - disables HUD-wide wipe layers (topbar/stub)
+   - enables pill-only wipe on route pulse
+   ============================= */
+
+  /* Disable HUD-wide wipe surfaces */
+  .hudTopbar::after,
+  .hudStub::after{
+    animation: none !important;
+    opacity: 0 !important;
+    content: none !important;
+    background: none !important;
+  }
+  .hudSweep{
+    display: none !important;
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  /* Pill-only wipe on pulse (no full-bar wipe) */
+  .hudIntroText{
+    position: relative;
+    overflow: hidden; /* confines wipe to the pill bubble */
+  }
+  .hudIntroText::after{
+    content:"";
+    position:absolute;
+    inset:-35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-85%) rotate(-10deg);
+    opacity: 0;
+    pointer-events:none;
+    mix-blend-mode: screen;
+    z-index: 3;
+  }
+  .hudIntroText.isPulse::after{
+    opacity: 1;
+    animation: hudScanSweep 980ms ease-in-out 1;
+  }
+
+  /* Main text bubble wipe stays bubble-only */
+  .neonFrameTextInner{
+    position: relative;
+    overflow: hidden;
+  }
+  .neonFrameTextInner::after{
+    content:"";
+    position:absolute;
+    inset:-35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-85%) rotate(-10deg);
+    opacity: 0;
+    pointer-events:none;
+    mix-blend-mode: screen;
+    z-index: 3;
+  }
+  .neonFrameWrap.pulse .neonFrameTextInner::after{
+    opacity: 1;
+    animation: hudScanSweep 1050ms ease-in-out 1;
+  }
+
 </style>
 
 </head>
@@ -1319,10 +1382,18 @@
     const wrap = document.querySelector('.neonFrameWrap');
     if (!wrap) return;
 
+    // frame pulse (existing)
     wrap.classList.remove('pulse');
-    // force reflow so the animation can restart every time
     void wrap.offsetWidth;
     wrap.classList.add('pulse');
+
+    // pill-only wipe pulse (new) — does NOT affect layout
+    const pills = document.querySelectorAll('.hudIntroText');
+    pills.forEach(p => p.classList.remove('isPulse'));
+    // force reflow once (cheap) so animation can restart
+    void document.body.offsetWidth;
+    pills.forEach(p => p.classList.add('isPulse'));
+    window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
   }
 
   // HUD MAIN: terminal typing (paragraph mode)
