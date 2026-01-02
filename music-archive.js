@@ -698,11 +698,10 @@
           // Archives is a driven UI: expand viewport (green box) ONLY for this tab
           if (label === 'Archives') {
             setArchiveViewportExpanded(true);
-            wipeSwapContent(
-              '<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">Archives – Coming Soon</div>',
-              'Archives – Coming Soon'
-            );
+            // Archives: start with a clean canvas (boxes will be added next)
+            wipeSwapContent('', '');
             return;
+          }
           }
 
           // All other tabs: revert to original auto-sizing
