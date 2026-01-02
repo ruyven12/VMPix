@@ -2,7 +2,8 @@
 // Phase 2 clean baseline (DEDUPED)
 // - Keeps HUD neon frame visible on Music route
 // - Removes HUD main container fill only (Music only) — border stays
-// - Allows Music-only frame height control
+// - Allows Music-only frame height + vertical placement control
+// - OPTION B: Re-parent #hudMainMount so .neonFrameTextInner can be display:none (glass removed)
 // - Displays: THE WORLD OF MUSIC
 
 (function(){
@@ -16,11 +17,16 @@
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
-  
-  // mount re-parenting restore (Option B test)
+
+  // mount re-parenting restore (Option B)
   let _prevMountParent = null;
   let _prevMountNextSibling = null;
   let _prevMountStyle = null;
+
+  // glassOuter restore (in case it has backgrounds/shadows set elsewhere)
+  let _prevOuterBg = null;
+  let _prevOuterShadow = null;
+  let _prevOuterPos = null;
 
   // spacing (wrap position) restore
   let _prevWrapTransform = null;
@@ -34,12 +40,15 @@
 
   // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
   // Negative values move the frame UP, positive values move it DOWN.
-  // Tweak this one line to dial in the exact vertical placement.
-  // Examples:
-  //   '-40px'  = slightly up
-  //   '0px'    = default / centered
-  //   '30px'   = pushed down
   const MUSIC_FRAME_Y_OFFSET = '0px';
+
+  // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
+  // Negative = move title UP, positive = move title DOWN.
+  const MUSIC_TITLE_Y_OFFSET = '0px';
+
+  // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
+  // Use small values like '6px'–'14px'. Set to '0px' for none.
+  const MUSIC_TITLE_PADDING_Y = '0px';
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic(){
@@ -51,7 +60,7 @@
     }
     wrap.style.display = 'block'; // override route-music CSS
 
-    // Music-only positioning (optional)
+    // Music-only positioning
     if (_prevWrapTransform === null) {
       _prevWrapTransform = wrap.style.transform || "";
     }
@@ -125,36 +134,59 @@
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
 
-        // Music-only: remove the faint translucent "glass" look WITHOUT hiding the mount.
-    // IMPORTANT: #hudMainMount lives inside .neonFrameTextInner, so we must NOT set display:none.
+    // ------------------------------------------------------------
+    // OPTION B (TEST / NOW DEFAULT):
+    // Hide the entire .neonFrameTextInner box (glass layer),
+    // BUT first move #hudMainMount out of it so our text still shows.
+    //
+    // EDIT THIS "BOX" BEHAVIOR HERE:
+    // - Want the glass back? Comment out `glassInner.style.display = 'none';`
+    // - Want title nudged? Adjust MUSIC_TITLE_Y_OFFSET above.
+    // - Want extra padding? Adjust MUSIC_TITLE_PADDING_Y above.
+    // ------------------------------------------------------------
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
 
-    // store + neutralize inner layer
-    if (glassInner){
-      if (_prevGlassDisplay === null) _prevGlassDisplay = glassInner.style.display || "";
-      if (!glassInner.dataset._musicPrevBg) glassInner.dataset._musicPrevBg = glassInner.style.background || "";
-      if (!glassInner.dataset._musicPrevShadow) glassInner.dataset._musicPrevShadow = glassInner.style.boxShadow || "";
-      if (!glassInner.dataset._musicPrevFilter) glassInner.dataset._musicPrevFilter = glassInner.style.filter || "";
-      if (!glassInner.dataset._musicPrevBackdrop) glassInner.dataset._musicPrevBackdrop = glassInner.style.backdropFilter || "";
+    if (glassInner && glassOuter) {
 
-      glassInner.style.display = 'block';
-      glassInner.style.background = 'transparent';
-      glassInner.style.boxShadow = 'none';
-      glassInner.style.filter = 'none';
-      glassInner.style.backdropFilter = 'none';
-    }
-
-    // store + neutralize outer layer (some of the "window" may live here)
-    if (glassOuter){
-      if (!glassOuter.dataset._musicPrevBg) glassOuter.dataset._musicPrevBg = glassOuter.style.background || "";
-      if (!glassOuter.dataset._musicPrevShadow) glassOuter.dataset._musicPrevShadow = glassOuter.style.boxShadow || "";
+      // store + sanitize outer (some themes add a window bg/shadow here)
+      if (_prevOuterBg === null) _prevOuterBg = glassOuter.style.background || "";
+      if (_prevOuterShadow === null) _prevOuterShadow = glassOuter.style.boxShadow || "";
+      if (_prevOuterPos === null) _prevOuterPos = glassOuter.style.position || "";
       glassOuter.style.background = 'transparent';
       glassOuter.style.boxShadow = 'none';
+      if (!glassOuter.style.position) glassOuter.style.position = 'relative';
+
+      // store mount original position for restore (only once)
+      if (_prevMountParent === null) {
+        _prevMountParent = mountEl.parentNode;
+        _prevMountNextSibling = mountEl.nextSibling;
+        _prevMountStyle = mountEl.getAttribute('style') || "";
+      }
+
+      // move mount to the outer layer (so we can hide the inner)
+      glassOuter.appendChild(mountEl);
+
+      // make mount fill the frame and center its contents
+      mountEl.style.display = 'flex';
+      mountEl.style.alignItems = 'center';
+      mountEl.style.justifyContent = 'center';
+      mountEl.style.width = '100%';
+      mountEl.style.height = '100%';
+      mountEl.style.position = 'relative';
+      mountEl.style.zIndex = '2';
+      mountEl.style.transform = `translateY(${MUSIC_TITLE_Y_OFFSET})`;
+      mountEl.style.paddingTop = MUSIC_TITLE_PADDING_Y;
+      mountEl.style.paddingBottom = MUSIC_TITLE_PADDING_Y;
+
+      // now safe to truly remove the inner glass container
+      if (_prevGlassDisplay === null) _prevGlassDisplay = glassInner.style.display || "";
+      glassInner.style.display = 'none';
     }
 
     // Simple title only (baseline)
-    _mount.innerHTML = '<span data-hud-main-text style="font-size:16px; letter-spacing:.14em; text-transform:uppercase;">The World of Music</span>';
+    _mount.innerHTML =
+      '<span data-hud-main-text style="font-size:16px; letter-spacing:.14em; text-transform:uppercase;">The World of Music</span>';
   }
 
   function onEnter(){
@@ -171,29 +203,42 @@
 
     restoreFrameHeight();
 
-        // restore glass layers
+    // restore glass + mount position (Option B)
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
 
+    // unhide inner
     if (glassInner){
       glassInner.style.display = _prevGlassDisplay || "";
-      glassInner.style.background = glassInner.dataset._musicPrevBg || "";
-      glassInner.style.boxShadow = glassInner.dataset._musicPrevShadow || "";
-      glassInner.style.filter = glassInner.dataset._musicPrevFilter || "";
-      glassInner.style.backdropFilter = glassInner.dataset._musicPrevBackdrop || "";
-      delete glassInner.dataset._musicPrevBg;
-      delete glassInner.dataset._musicPrevShadow;
-      delete glassInner.dataset._musicPrevFilter;
-      delete glassInner.dataset._musicPrevBackdrop;
     }
     _prevGlassDisplay = null;
 
+    // restore outer styles
     if (glassOuter){
-      glassOuter.style.background = glassOuter.dataset._musicPrevBg || "";
-      glassOuter.style.boxShadow = glassOuter.dataset._musicPrevShadow || "";
-      delete glassOuter.dataset._musicPrevBg;
-      delete glassOuter.dataset._musicPrevShadow;
+      glassOuter.style.background = _prevOuterBg || "";
+      glassOuter.style.boxShadow = _prevOuterShadow || "";
+      glassOuter.style.position = _prevOuterPos || "";
     }
+    _prevOuterBg = null;
+    _prevOuterShadow = null;
+    _prevOuterPos = null;
+
+    // move mount back where it originally lived
+    if (_mount && _prevMountParent) {
+      // restore style attribute exactly (removes our flex/transform/padding, etc.)
+      _mount.setAttribute('style', _prevMountStyle || "");
+
+      // reinsert back at original spot
+      if (_prevMountNextSibling && _prevMountNextSibling.parentNode === _prevMountParent) {
+        _prevMountParent.insertBefore(_mount, _prevMountNextSibling);
+      } else {
+        _prevMountParent.appendChild(_mount);
+      }
+    }
+
+    _prevMountParent = null;
+    _prevMountNextSibling = null;
+    _prevMountStyle = null;
 
     restoreFrameVisibility();
 
