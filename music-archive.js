@@ -49,6 +49,7 @@
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
+  const MUSIC_TITLE_VISUAL_NUDGE = '-12px';
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic(){
@@ -196,7 +197,12 @@ glassOuter.style.margin = '0';
 
     // Simple title only (baseline)
     _mount.innerHTML =
-		'<span data-hud-main-text style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase; display:inline-block; position:relative; top:-6px;">The World of Music</span>';
+  `<span data-hud-main-text
+     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+            display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
+     The World of Music
+   </span>`;
+
 
   }
 
