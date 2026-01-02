@@ -92,11 +92,22 @@
       _prevWrapDisplay = wrap.style.display || "";
     }
     wrap.style.display = 'block'; // override route-music CSS
-	// --- Music-only: hide neonFrameWrap visually (keep layout) ---
+	// --- Music-only: remove only wrap's overlay/fill (do NOT hide wrap itself) ---
 if (wrap.dataset.prevOpacity === undefined) {
   wrap.dataset.prevOpacity = wrap.style.opacity || "";
 }
-wrap.style.opacity = '0';
+wrap.style.opacity = '1'; // keep the container visible so frame/title still show
+
+if (wrap.dataset.prevBg === undefined) {
+  wrap.dataset.prevBg = wrap.style.background || "";
+}
+if (wrap.dataset.prevShadow === undefined) {
+  wrap.dataset.prevShadow = wrap.style.boxShadow || "";
+}
+
+wrap.style.background = 'transparent';
+wrap.style.boxShadow = 'none';
+
 
 
     // Music-only positioning
@@ -113,6 +124,20 @@ if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || "";
 wrap.style.minHeight = NEON_WRAP_MIN_HEIGHT;
 wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : "";
 
+// Kill neonFrameWrap pseudo-element overlays (Music only)
+if (!document.getElementById('musicWrapOverlayKill')) {
+  const s = document.createElement('style');
+  s.id = 'musicWrapOverlayKill';
+  s.textContent = `
+    .route-music .neonFrameWrap::before,
+    .route-music .neonFrameWrap::after{
+      content:none !important;
+      display:none !important;
+      opacity:0 !important;
+    }
+  `;
+  document.head.appendChild(s);
+}
 
 
     // If the parent is centering, force top alignment for Music
@@ -137,6 +162,15 @@ if (wrap.dataset.prevOpacity !== undefined) {
   wrap.style.opacity = wrap.dataset.prevOpacity;
   delete wrap.dataset.prevOpacity;
 }
+if (wrap.dataset.prevBg !== undefined) {
+  wrap.style.background = wrap.dataset.prevBg;
+  delete wrap.dataset.prevBg;
+}
+if (wrap.dataset.prevShadow !== undefined) {
+  wrap.style.boxShadow = wrap.dataset.prevShadow;
+  delete wrap.dataset.prevShadow;
+}
+
 
 
     }
