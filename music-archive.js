@@ -77,6 +77,10 @@
   const ORANGE_BOX_RADIUS = '10px';
   const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';
   const ORANGE_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
+  // ORANGE BOX text styling (match the small HUD instruction text vibe)
+  const ORANGE_BOX_TEXT_SIZE = '11px';
+  const ORANGE_BOX_TEXT_TRACKING = '.12em';
+
 
 
   // Ensure neon frame is visible on Music route
@@ -272,6 +276,21 @@ glassOuter.style.margin = '0';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
       _orangeBoxEl.style.background = ORANGE_BOX_BG;
       _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
+	        // Center contents in the strip (safe: affects only the strip)
+      _orangeBoxEl.style.display = 'flex';
+      _orangeBoxEl.style.alignItems = 'center';
+      _orangeBoxEl.style.justifyContent = 'center';
+      _orangeBoxEl.style.textAlign = 'center';
+
+      // Put HUD-style text inside (we'll turn these into real tabs later)
+      _orangeBoxEl.innerHTML =
+        `<span style="
+            font-size:${ORANGE_BOX_TEXT_SIZE};
+            letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
+            text-transform:uppercase;
+            opacity:.85;
+          ">INTRODUCTION / HOW IT STARTED</span>`;
+
 
       // no content yet; just a visible area
       _orangeBoxEl.style.pointerEvents = 'none';
