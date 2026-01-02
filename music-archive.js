@@ -706,7 +706,7 @@
                 '',
                   `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
                   
-                   2: This is a complete work in progress and things will change throughout. If you see something that looks off, please let me know.`
+                   2: This is a complete work in progress and things will change throughout. If you see something that looks off, please let me know (Contact section coming soon).`
               );
             } else {
               wipeSwapContent(
