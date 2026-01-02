@@ -92,6 +92,12 @@
       _prevWrapDisplay = wrap.style.display || "";
     }
     wrap.style.display = 'block'; // override route-music CSS
+	// --- Music-only: hide neonFrameWrap visually (keep layout) ---
+if (wrap.dataset.prevOpacity === undefined) {
+  wrap.dataset.prevOpacity = wrap.style.opacity || "";
+}
+wrap.style.opacity = '0';
+
 
     // Music-only positioning
     if (_prevWrapTransform === null) {
@@ -126,6 +132,12 @@ wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : "";
       wrap.style.transform = _prevWrapTransform || "";
       wrap.style.minHeight = _prevWrapMinHeight || "";
 wrap.style.height = _prevWrapHeight || "";
+// --- restore neonFrameWrap opacity ---
+if (wrap.dataset.prevOpacity !== undefined) {
+  wrap.style.opacity = wrap.dataset.prevOpacity;
+  delete wrap.dataset.prevOpacity;
+}
+
 
     }
     _prevWrapDisplay = null;
@@ -168,32 +180,41 @@ wrap.style.height = _prevWrapHeight || "";
     _prevOrnHeight = null;
   }
   
-  function animateHudTab(tabEl){
+function animateHudTab(tabEl){
   if (!tabEl) return;
 
   const strip = document.getElementById('musicInfoStrip');
   if (!strip) return;
 
-  // Clear active + sweep
+  // Were we already active?
+  const wasActive = tabEl.classList.contains('is-active');
+
+  // Clear sweep from ALL tabs so we can re-run cleanly
   strip.querySelectorAll('.hudTab').forEach(t => {
-    t.classList.remove('is-active', 'sweep');
-    t.setAttribute('aria-selected', 'false');
+    t.classList.remove('sweep');
   });
 
-  // Set active
-  tabEl.classList.add('is-active');
-  tabEl.setAttribute('aria-selected', 'true');
+  // If it wasn't active, switch active tab
+  if (!wasActive) {
+    strip.querySelectorAll('.hudTab').forEach(t => {
+      t.classList.remove('is-active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    tabEl.classList.add('is-active');
+    tabEl.setAttribute('aria-selected', 'true');
+  }
 
-  // Restart underline sweep
+  // Always restart underline sweep on the clicked tab
   tabEl.classList.remove('sweep');
-  void tabEl.offsetWidth; // force reflow
+  void tabEl.offsetWidth;     // force reflow (restarts keyframes)
   tabEl.classList.add('sweep');
 
-  // Restart scan ping + border pulse
+  // Always restart scan ping + border pulse on every click
   strip.classList.remove('ping','pulse');
   void strip.offsetWidth;
   strip.classList.add('ping','pulse');
 }
+
 
 
   function render(mountEl){
