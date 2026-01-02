@@ -46,6 +46,36 @@
         text-transform:none;
       }
 
+      /* Posters-only test grid (safe + scoped) */
+      .showsWip{
+        text-align:center;
+        opacity:.75;
+        margin-top: 10px;
+        font-family:'Orbitron', system-ui, sans-serif;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+        font-size:12px;
+      }
+      .showsPosterGrid{
+        width:100%;
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap:14px;
+        margin-top: 10px;
+      }
+      .showsPosterCard{
+        border-radius: 14px;
+        overflow:hidden;
+        background: rgba(0,0,0,.18);
+        box-shadow: 0 10px 26px rgba(0,0,0,.45);
+      }
+      .showsPosterImg{
+        width:100%;
+        height: 170px;
+        object-fit: cover;
+        display:block;
+      }
+
       /* Years pills + overflow dropdown (scoped, non-destructive)
          We DO style the pills here, but only when they live inside .yearsNav,
          so we don't affect any other YearPill usage elsewhere.
@@ -342,6 +372,151 @@
     };
   }
 
+  // ================================
+  // TEST PORT: shows posters only
+  // Ported safely from the old working script (show_url / poster_url logic)
+  // ================================
+
+  const API_BASE = "https://music-archive-3lfa.onrender.com";
+  const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
+
+  let SHOWS_CACHE = null;
+  let SHOWS_LOADING = null;
+
+  function parseCsvLine(line) {
+    const out = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        out.push(cur.trim());
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+
+    out.push(cur.trim());
+    return out;
+  }
+
+  async function loadShowsFromCsv() {
+    const res = await fetch(SHOWS_ENDPOINT);
+    const text = await res.text();
+    if (!text || !text.trim()) return [];
+
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const headerLine = lines.shift();
+    if (!headerLine) return [];
+
+    const header = parseCsvLine(headerLine).map((h) => h.trim());
+    const headerLower = header.map((h) => h.toLowerCase());
+
+    const nameIdx =
+      headerLower.indexOf("show_name") !== -1
+        ? headerLower.indexOf("show_name")
+        : headerLower.indexOf("title");
+
+    // ✅ key part: show_url -> poster_url (same behavior as your working script)
+    const urlIdx =
+      headerLower.indexOf("show_url") !== -1
+        ? headerLower.indexOf("show_url")
+        : headerLower.indexOf("poster_url");
+
+    const dateIdx =
+      headerLower.indexOf("show_date") !== -1
+        ? headerLower.indexOf("show_date")
+        : headerLower.indexOf("date");
+
+    const rows = [];
+
+    for (const line of lines) {
+      const cols = parseCsvLine(line);
+
+      const row = {
+        title: nameIdx !== -1 ? (cols[nameIdx] || "").trim() : "",
+        poster_url: urlIdx !== -1 ? (cols[urlIdx] || "").trim() : "",
+        date: dateIdx !== -1 ? (cols[dateIdx] || "").trim() : "",
+      };
+
+      rows.push(row);
+    }
+
+    return rows;
+  }
+
+  async function ensureShowsLoaded() {
+    if (Array.isArray(SHOWS_CACHE)) return SHOWS_CACHE;
+    if (SHOWS_LOADING) return SHOWS_LOADING;
+
+    SHOWS_LOADING = (async () => {
+      try {
+        const rows = await loadShowsFromCsv();
+        SHOWS_CACHE = rows;
+        return rows;
+      } catch (e) {
+        console.warn("Shows CSV load failed:", e);
+        SHOWS_CACHE = [];
+        return [];
+      } finally {
+        SHOWS_LOADING = null;
+      }
+    })();
+
+    return SHOWS_LOADING;
+  }
+
+  function yearFromShowDate(raw) {
+    const parts = String(raw || "").trim().split("/");
+    if (parts.length !== 3) return null;
+    let y = (parts[2] || "").trim();
+    if (!y) return null;
+    if (y.length === 2) y = "20" + y;
+    const n = Number(y);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function getShowsForYear(year, allShows) {
+    const yr = Number(year);
+    if (!Array.isArray(allShows) || !allShows.length) return [];
+    return allShows.filter((s) => yearFromShowDate(s.date) === yr);
+  }
+
+  function renderPostersOnly({ year, shows, containerEl }) {
+    if (!containerEl) return;
+
+    const posters = (shows || []).filter((s) => s && s.poster_url);
+
+    if (!posters.length) {
+      containerEl.innerHTML = `<div class="showsWip">Work in progress</div>`;
+      return;
+    }
+
+    containerEl.innerHTML = `
+      <div class="showsPosterGrid" aria-label="Show posters for ${year}">
+        ${posters
+          .map(
+            (s) => `
+          <div class="showsPosterCard">
+            <img class="showsPosterImg" src="${s.poster_url}" alt="${(s.title || "Show").replace(/"/g, "&quot;")}" loading="lazy" />
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
   function render() {
     ensureShowsStyles();
 
@@ -387,7 +562,7 @@
     if (!mountEl) return;
 
     // Example: what happens when a year is clicked
-    function handleSelectYear(year) {
+    async function handleSelectYear(year) {
       activeYear = year;
 
       // 1) Re-render pills so active state updates
@@ -402,10 +577,22 @@
         moreLabel: 'More ▾'
       });
 
-      // 2) Update content area (placeholder)
+      // 2) Posters-only test (do NOT change data flow yet)
       const content = panelEl.querySelector('#showsYearContent');
       if (content) {
-        content.innerHTML = `Work in progress`;
+        // show a tiny loading state
+        content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
+
+        // prevent older async calls from overwriting newer selection
+        const requestId = String(Date.now()) + String(Math.random());
+        content.dataset.req = requestId;
+
+        const all = await ensureShowsLoaded();
+        // if user clicked again while loading, bail
+        if (content.dataset.req !== requestId) return;
+
+        const showsForYear = getShowsForYear(year, all);
+        renderPostersOnly({ year, shows: showsForYear, containerEl: content });
       }
 
       // 3) Later: call your real year-render function here
