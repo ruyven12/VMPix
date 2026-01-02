@@ -48,7 +48,7 @@
   // This controls .neonFrameWrap (the magenta debug layer we confirmed).
   // Use MIN height for safety; set strict=true only if you want a fixed box.
   const NEON_WRAP_MIN_HEIGHT = '140px';        // try 140px–260px
-  const NEON_WRAP_STRICT_HEIGHT = false;       // true = force exact height (can clip)
+  const NEON_WRAP_STRICT_HEIGHT = true;       // true = force exact height (can clip)
 
   // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
   // Negative values move the frame UP, positive values move it DOWN.
