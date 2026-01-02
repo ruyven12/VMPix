@@ -167,6 +167,34 @@ wrap.style.height = _prevWrapHeight || "";
     _prevFrameHeight = null;
     _prevOrnHeight = null;
   }
+  
+  function animateHudTab(tabEl){
+  if (!tabEl) return;
+
+  const strip = document.getElementById('musicInfoStrip');
+  if (!strip) return;
+
+  // Clear active + sweep
+  strip.querySelectorAll('.hudTab').forEach(t => {
+    t.classList.remove('is-active', 'sweep');
+    t.setAttribute('aria-selected', 'false');
+  });
+
+  // Set active
+  tabEl.classList.add('is-active');
+  tabEl.setAttribute('aria-selected', 'true');
+
+  // Restart underline sweep
+  tabEl.classList.remove('sweep');
+  void tabEl.offsetWidth; // force reflow
+  tabEl.classList.add('sweep');
+
+  // Restart scan ping + border pulse
+  strip.classList.remove('ping','pulse');
+  void strip.offsetWidth;
+  strip.classList.add('ping','pulse');
+}
+
 
   function render(mountEl){
     if (!mountEl) return;
@@ -267,6 +295,117 @@ glassOuter.style.margin = '0';
 
       _orangeBoxEl = document.createElement('div');
       _orangeBoxEl.id = 'musicInfoStrip';
+	  
+	  // ===== HUD TABS ANIMATION (Combo A) =====
+if (!document.getElementById('musicInfoStripStyles')) {
+  const style = document.createElement('style');
+  style.id = 'musicInfoStripStyles';
+  style.textContent = `
+    /* Strip */
+    #musicInfoStrip{ overflow:hidden; }
+
+    /* Tabs layout */
+    #musicInfoStrip .hudTabs{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+      user-select:none;
+    }
+
+    /* Tab base */
+    #musicInfoStrip .hudTab{
+      position:relative;
+      cursor:pointer;
+      pointer-events:auto;
+      padding:10px 6px;
+      font-size:${ORANGE_BOX_TEXT_SIZE};
+      letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
+      text-transform:uppercase;
+      opacity:.75;
+      transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
+    }
+
+    #musicInfoStrip .hudTab:hover{
+      opacity:.95;
+      filter:brightness(1.15);
+      transform:translateY(-1px);
+    }
+
+    /* Underline (sweep) */
+    #musicInfoStrip .hudTab::after{
+      content:"";
+      position:absolute;
+      left:0; right:0;
+      bottom:4px;
+      height:2px;
+      border-radius:999px;
+      opacity:0;
+      transform:scaleX(0);
+      transform-origin:left center;
+      background:rgba(255,70,110,0.85);
+      box-shadow:0 0 10px rgba(255,70,110,0.35);
+      transition:opacity 160ms ease;
+    }
+
+    #musicInfoStrip .hudTab.is-active{
+      opacity:1;
+      filter:brightness(1.25);
+    }
+    #musicInfoStrip .hudTab.is-active::after{ opacity:1; }
+
+    @keyframes hudUnderlineSweep{
+      0%{ transform:scaleX(0); }
+      70%{ transform:scaleX(1.06); } /* tiny overshoot */
+      100%{ transform:scaleX(1); }
+    }
+    #musicInfoStrip .hudTab.sweep::after{
+      animation:hudUnderlineSweep 220ms cubic-bezier(.2,.9,.2,1) both;
+    }
+
+    /* Scanline ping overlay */
+    #musicInfoStrip .scanPing{
+      pointer-events:none;
+      position:absolute;
+      left:-30%;
+      top:0;
+      width:30%;
+      height:100%;
+      opacity:0;
+      background:linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.10) 45%,
+        rgba(255,255,255,0) 100%
+      );
+      filter:blur(.2px);
+      transform:skewX(-18deg);
+    }
+
+    @keyframes hudScanPing{
+      0%{ transform:translateX(0) skewX(-18deg); opacity:0; }
+      10%{ opacity:.65; }
+      60%{ opacity:.35; }
+      100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
+    }
+    #musicInfoStrip.ping .scanPing{
+      animation:hudScanPing 320ms ease-out both;
+    }
+
+    /* Optional: small border pulse */
+    @keyframes hudBorderPulse{
+      0%{ box-shadow:${ORANGE_BOX_GLOW}; }
+      50%{ box-shadow:0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 26px rgba(255,70,110,0.18); }
+      100%{ box-shadow:${ORANGE_BOX_GLOW}; }
+    }
+    #musicInfoStrip.pulse{
+      animation:hudBorderPulse 240ms ease-out both;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 
       _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
@@ -290,17 +429,20 @@ glassOuter.style.margin = '0';
       _orangeBoxEl.style.textAlign = 'center';
 
       // Put HUD-style text inside (we'll turn these into real tabs later)
-      _orangeBoxEl.innerHTML =
-        `<span style="
-            font-size:${ORANGE_BOX_TEXT_SIZE};
-            letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
-            text-transform:uppercase;
-            opacity:.85;
-          ">INTRODUCTION  /  ORIGINS  /  NOTES  /  UPDATES</span>`;
+      _orangeBoxEl.innerHTML = `
+  <div class="hudTabs" role="tablist" aria-label="Music sections">
+    <div class="hudTab is-active" data-tab="intro" role="tab" aria-selected="true">Introduction</div>
+    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
+    <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
+    <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
+  </div>
+  <div class="scanPing" aria-hidden="true"></div>
+`;
+
 
 
       // no content yet; just a visible area
-      _orangeBoxEl.style.pointerEvents = 'none';
+      _orangeBoxEl.style.pointerEvents = 'auto';
 
       hudMain.appendChild(_orangeBoxEl);
     }
