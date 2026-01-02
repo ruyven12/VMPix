@@ -380,9 +380,9 @@
         // Visual + layout: fills the main space above the orange strip
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
-        _contentPanelEl.style.margin = '14px auto 0';
-        _contentPanelEl.style.minHeight = '520px'; // adjust later if you want
-        _contentPanelEl.style.borderRadius = '12px';
+        _contentPanelEl.style.margin = '10px auto 0';
+        _contentPanelEl.style.minHeight = '700px'; // adjust later if you want
+        _contentPanelEl.style.borderRadius = '10px';
 
         // Match HUD vibe (subtle, not overpowering)
         _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
