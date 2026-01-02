@@ -68,6 +68,8 @@
   // ORANGE BOX (info strip) tuning knobs (Music only)
   // ------------------------------------------------------------
   const ORANGE_BOX_HEIGHT = '56px';
+  const ORANGE_BOX_BOTTOM = '12px'; // distance from bottom of hudMain when pinned
+  const ORANGE_BOX_SAFE_GAP = '16px'; // extra breathing room between strip + content/padding
   const ORANGE_BOX_MARGIN_TOP = '2px';
   const ORANGE_BOX_MAX_WIDTH = '96%';
 
@@ -372,7 +374,8 @@
 
       // Keep this minimal; just enough to not crush layout.
       hudMain.style.position = 'relative'; // anchor for absolute children
-      hudMain.style.padding = '0 18px 80px'; // space for bottom orange box
+      // Device-aware padding: bottom space follows the pinned orange strip
+      hudMain.style.padding = `0 18px calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP})`;
 
       // ------------------------------------------------------------
       // GREEN BOX (main content area) — placeholder container
@@ -386,7 +389,7 @@
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
         _contentPanelEl.style.margin = '5px auto 0';
-        _contentPanelEl.style.minHeight = '700px'; // adjust later if you want
+        _contentPanelEl.style.minHeight = GREEN_BOX_MIN_HEIGHT; // device-aware baseline
         _contentPanelEl.style.borderRadius = '10px';
 
         // Match HUD vibe (subtle, not overpowering)
@@ -546,7 +549,7 @@
       // ⬇️ PIN ORANGE BOX TO BOTTOM OF HUD MAIN
       _orangeBoxEl.style.position = 'absolute';
       _orangeBoxEl.style.left = '50%';
-      _orangeBoxEl.style.bottom = '12px'; // adjust up/down if needed
+      _orangeBoxEl.style.bottom = ORANGE_BOX_BOTTOM; // adjust up/down if needed
       _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
 
       _orangeBoxEl.style.border = 'none';
