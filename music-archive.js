@@ -576,7 +576,6 @@
           }
         });
       });
-      });
 
       // no content yet; just a visible area
       _orangeBoxEl.style.pointerEvents = 'auto';
