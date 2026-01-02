@@ -261,16 +261,23 @@ glassOuter.style.margin = '0';
       }
 
       // Keep this minimal; just enough to not crush layout.
-      hudMain.style.padding = '0 18px 18px';
+      hudMain.style.position = 'relative'; // anchor for absolute children
+	  hudMain.style.padding = '0 18px 80px'; // space for bottom orange box
+
 
       _orangeBoxEl = document.createElement('div');
       _orangeBoxEl.id = 'musicInfoStrip';
 
       _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
-      _orangeBoxEl.style.margin = `${ORANGE_BOX_MARGIN_TOP} auto 0`;
       _orangeBoxEl.style.width = '100%';
       _orangeBoxEl.style.transform = `translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
+	  // ⬇️ PIN ORANGE BOX TO BOTTOM OF HUD MAIN
+	  _orangeBoxEl.style.position = 'absolute';
+	  _orangeBoxEl.style.left = '50%';
+	  _orangeBoxEl.style.bottom = '12px'; // adjust up/down if needed
+	  _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
+
 
       _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
