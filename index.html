@@ -1322,6 +1322,50 @@
       padding: 12px 14px !important;
     }
   }
+  
+  /* =============================
+   FINAL MOBILE OVERRIDE:
+   keep text wrapping AND keep it inside the frame box
+   ============================= */
+@media (max-width: 520px){
+  /* remove padding drift from the overlay container */
+  .neonFrameText{
+    padding: 0 !important;
+  }
+
+  /* hard-lock the inner bed to the SVG opening */
+  .neonFrameTextInner{
+    position: absolute !important;
+
+    /* equal insets = centered + stays inside end caps */
+    left: clamp(34px, 8vw, 54px) !important;
+    right: clamp(34px, 8vw, 54px) !important;
+    width: auto !important;
+
+    /* vertically center it in the frame */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+
+    /* give it enough vertical room for wrapped lines */
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+
+    /* allow wrapping */
+    overflow: visible !important;
+  }
+
+  /* make sure the typed text wraps like desktop */
+  .neonFrameTextInner .hudMainType,
+  .neonFrameTextInner .hudMainTextBox,
+  .neonFrameTextInner [data-hud-main-text]{
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+}
+
 
 </style>
 
