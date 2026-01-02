@@ -10,31 +10,12 @@
   "use strict";
 
   let _mount = null;
-  
-    // ------------------------------------------------------------
-  // DEBUG: outline the header "translucent" layer (Music only)
-  // Toggle to true to see the exact element we’re styling.
-  // ------------------------------------------------------------
-  const DEBUG_HEADER_LAYER_BORDER = true;
-
-  let _prevGlassOuterBorder = null;
-  let _prevGlassInnerBorder = null;
-  let _prevNeonFrameBorder  = null;
-  let _prevNeonWrapBorder   = null;
-
 
   // restore state
   let _prevWrapDisplay = null;
+  let _prevWrapMinHeight = null;
+  let _prevWrapHeight = null;
   let _prevHudMainBg = null;
-    // HUD main container (big translucent box) restore
-  let _prevHudMainTransform = null;
-
-  // HUD main sizing restore (Music-only)
-  let _prevHudMainMinHeight = null;
-  let _prevHudMainHeight = null;
-  let _prevHudStubMinHeight = null;
-  let _prevHudStubHeight = null;
-
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
@@ -55,20 +36,19 @@
   let _prevMenuPaddingTop = null;
   let _prevFrameHeight = null;
   let _prevOrnHeight = null;
-  
-  // ------------------------------------------------------------
-  // ORANGE BOX (info strip) restore — Music route only
-  // ------------------------------------------------------------
-  let _orangeBoxEl = null;
-  let _prevHudMainPadding = null;
-
 
   // ---- Music-only tuning ----
   const MUSIC_FRAME_HEIGHT = '110px'; // adjust safely (100px–130px)
 
+  // 👉 HEADER WRAP (translucent layer) HEIGHT CONTROL (MUSIC ONLY)
+  // This controls .neonFrameWrap (the magenta debug layer we confirmed).
+  // Use MIN height for safety; set strict=true only if you want a fixed box.
+  const NEON_WRAP_MIN_HEIGHT = '180px';        // try 140px–260px
+  const NEON_WRAP_STRICT_HEIGHT = false;       // true = force exact height (can clip)
+
   // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
   // Negative values move the frame UP, positive values move it DOWN.
-  const MUSIC_FRAME_Y_OFFSET = '0px';
+  const MUSIC_FRAME_Y_OFFSET = '-25px';
 
   // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
@@ -77,45 +57,7 @@
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
-  const MUSIC_TITLE_VISUAL_NUDGE = '-64px';
-  
-    // ------------------------------------------------------------
-  // HUDSTUB MAIN (big translucent box) tuning knobs (Music only)
-  // Edit these safely later
-  // ------------------------------------------------------------
-
-  // Background for the BIG HUD container.
-  // Use 'transparent' to remove the fill, or an rgba for translucent glass.
-  const HUD_MAIN_BG = 'rgba(0,0,0,0.15)'; // e.g. 'rgba(0,0,0,0.15)'
-
-  // Manual nudges for the BIG HUD container (small values!)
-  const HUD_MAIN_X_OFFSET = '0px';
-  const HUD_MAIN_Y_OFFSET = '0px';
-    // 👉 HEIGHT CONTROL for the BIG translucent HUD region (Music only)
-  // Use min-height for safety (won't clip). If you want strict height, set HUD_MAIN_USE_STRICT_HEIGHT = true.
-  const HUD_MAIN_MIN_HEIGHT = '520px';         // <- THIS is the main dial (try 420–720px)
-  const HUD_MAIN_USE_STRICT_HEIGHT = false;    // true = force exact height (can clip)
-
-
-  
-    // ------------------------------------------------------------
-  // ORANGE BOX (info strip) tuning knobs (Music only)
-  // Edit these safely later — no other code changes needed.
-  // ------------------------------------------------------------
-  const ORANGE_BOX_HEIGHT = '56px';        // strip height (try 48–72px)
-  // 👉 Manual position nudges (Music only)
-  // Use small values like '-20px' to '20px' while dialing in.
-  const ORANGE_BOX_X_OFFSET = '0px';   // left/right
-  const ORANGE_BOX_Y_OFFSET = '0px';   // up/down
-  const ORANGE_BOX_MARGIN_TOP = '5px';    // space below neon title frame
-  const ORANGE_BOX_MAX_WIDTH = '96%';      // keep inside the big HUD container
-
-  // Border styling to match the outside vibe (thin neon red)
-  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.55)';
-  const ORANGE_BOX_RADIUS = '10px';
-  const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';  // very subtle fill (set to 'transparent' if you want none)
-  const ORANGE_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
-
+  const MUSIC_TITLE_VISUAL_NUDGE = '-60px';
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic(){
@@ -133,6 +75,12 @@
     }
     wrap.style.transform = `translateY(${MUSIC_FRAME_Y_OFFSET})`;
 
+    // Music-only: adjust the header wrap height (translucent layer)
+    if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || \"\";
+    if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || \"\";
+    wrap.style.minHeight = NEON_WRAP_MIN_HEIGHT;
+    wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : \"\";
+
     // If the parent is centering, force top alignment for Music
     const menuHero = document.querySelector('.menuHero');
     if (menuHero){
@@ -148,9 +96,13 @@
     if (wrap){
       wrap.style.display = _prevWrapDisplay || "";
       wrap.style.transform = _prevWrapTransform || "";
+      wrap.style.minHeight = _prevWrapMinHeight || \"\";
+      wrap.style.height = _prevWrapHeight || \"\";
     }
     _prevWrapDisplay = null;
     _prevWrapTransform = null;
+    _prevWrapMinHeight = null;
+    _prevWrapHeight = null;
 
     const menuHero = document.querySelector('.menuHero');
     if (menuHero){
@@ -191,38 +143,12 @@
     if (!mountEl) return;
     _mount = mountEl;
 
-    // Music-only: HUD main container (big translucent box) controls
-const hudMainBox = document.querySelector('.hudStub.hudMain');
-const hudStubBox = hudMainBox ? hudMainBox.closest('.hudStub') : document.querySelector('.hudStub');
-
-if (hudMainBox){
-  // store for restore (only once per route entry)
-  if (_prevHudMainBg === null) _prevHudMainBg = hudMainBox.style.background || "";
-  if (_prevHudMainTransform === null) _prevHudMainTransform = hudMainBox.style.transform || "";
-  if (_prevHudMainMinHeight === null) _prevHudMainMinHeight = hudMainBox.style.minHeight || "";
-  if (_prevHudMainHeight === null) _prevHudMainHeight = hudMainBox.style.height || "";
-
-  // background control (translucent fill)
-  hudMainBox.style.background = HUD_MAIN_BG;
-
-  // position nudge control (small!)
-  hudMainBox.style.transform = `translate(${HUD_MAIN_X_OFFSET}, ${HUD_MAIN_Y_OFFSET})`;
-
-  // ✅ height control (this is your GREEN BOX dial)
-  hudMainBox.style.minHeight = HUD_MAIN_MIN_HEIGHT;
-  hudMainBox.style.height = HUD_MAIN_USE_STRICT_HEIGHT ? HUD_MAIN_MIN_HEIGHT : "";
-}
-
-if (hudStubBox){
-  // Some themes size the translucent region on the outer .hudStub instead.
-  if (_prevHudStubMinHeight === null) _prevHudStubMinHeight = hudStubBox.style.minHeight || "";
-  if (_prevHudStubHeight === null) _prevHudStubHeight = hudStubBox.style.height || "";
-
-  hudStubBox.style.minHeight = HUD_MAIN_MIN_HEIGHT;
-  hudStubBox.style.height = HUD_MAIN_USE_STRICT_HEIGHT ? HUD_MAIN_MIN_HEIGHT : "";
-}
-
-
+    // Music-only: remove HUD main container fill; keep the 1px border
+    const hudMainBox = document.querySelector('.hudStub.hudMain');
+    if (hudMainBox){
+      _prevHudMainBg = hudMainBox.style.background || "";
+      hudMainBox.style.background = 'transparent';
+    }
 
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
@@ -239,40 +165,6 @@ if (hudStubBox){
     // ------------------------------------------------------------
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
-	
-	    // ------------------------------------------------------------
-    // DEBUG: put a 2px border around the header layers so we can
-    // identify WHICH element is the "translucent box" you mean.
-    // ------------------------------------------------------------
-    if (DEBUG_HEADER_LAYER_BORDER) {
-      const neonFrame = document.querySelector('.neonFrame');
-      const neonWrap  = document.querySelector('.neonFrameWrap');
-
-      // 1) Most likely: glassOuter (neonFrameText)
-      if (glassOuter) {
-        if (_prevGlassOuterBorder === null) _prevGlassOuterBorder = glassOuter.style.border || "";
-        glassOuter.style.border = '2px solid lime';
-      }
-
-      // 2) Inner layer (often the actual “glass”), though you may be hiding it in Option B
-      if (glassInner) {
-        if (_prevGlassInnerBorder === null) _prevGlassInnerBorder = glassInner.style.border || "";
-        glassInner.style.border = '2px solid cyan';
-      }
-
-      // 3) The full neon frame container
-      if (neonFrame) {
-        if (_prevNeonFrameBorder === null) _prevNeonFrameBorder = neonFrame.style.border || "";
-        neonFrame.style.border = '2px solid yellow';
-      }
-
-      // 4) The neon wrap (positioning wrapper)
-      if (neonWrap) {
-        if (_prevNeonWrapBorder === null) _prevNeonWrapBorder = neonWrap.style.border || "";
-        neonWrap.style.border = '2px solid magenta';
-      }
-    }
-
 
     if (glassInner && glassOuter) {
 
@@ -293,7 +185,6 @@ glassOuter.style.justifyContent = 'center';
 glassOuter.style.height = '100%';
 glassOuter.style.padding = '0';
 glassOuter.style.margin = '0';
-
 
       // store mount original position for restore (only once)
       if (_prevMountParent === null) {
@@ -324,54 +215,10 @@ glassOuter.style.margin = '0';
     // Simple title only (baseline)
     _mount.innerHTML =
   `<span data-hud-main-text
-     style="font-size:20px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
      The World of Music
    </span>`;
-   
-       // ------------------------------------------------------------
-    // ORANGE BOX (info strip) — CREATE AREA ONLY (no content yet)
-    //
-    // WHERE TO EDIT STYLE LATER:
-    // - Change the constants near the top: ORANGE_BOX_*
-    // - This block only wires it into the DOM (safe/reversible)
-    // ------------------------------------------------------------
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (hudMain && !_orangeBoxEl) {
-
-      // Save existing padding so we can restore on destroy
-      if (_prevHudMainPadding === null) {
-        _prevHudMainPadding = hudMain.style.padding || "";
-      }
-
-      // Ensure there's room for the strip beneath the neon title frame.
-      // NOTE: This only affects the Music route and is restored on destroy.
-      // If you already have padding you want to keep, tell me and we’ll preserve it.
-      hudMain.style.padding = '0 18px 18px';
-
-      _orangeBoxEl = document.createElement('div');
-      _orangeBoxEl.id = 'musicInfoStrip'; // orange box
-
-      // Base geometry
-      _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
-      _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
-      _orangeBoxEl.style.margin = `${ORANGE_BOX_MARGIN_TOP} auto 0`;
-	  _orangeBoxEl.style.transform = `translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`; // <- YOUR DIALS
-      _orangeBoxEl.style.width = '100%';
-
-      // Border / look (matches outside vibe)
-      _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
-      _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
-      _orangeBoxEl.style.background = ORANGE_BOX_BG;
-      _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
-
-      // Keep it visually clean for now (no text/content yet)
-      _orangeBoxEl.style.pointerEvents = 'none';
-
-      hudMain.appendChild(_orangeBoxEl);
-    }
-
-
 
   }
 
@@ -380,29 +227,12 @@ glassOuter.style.margin = '0';
   }
 
   function destroy(){
-    // restore HUD main box (background + transform + sizing)
-const hudMainBox = document.querySelector('.hudStub.hudMain');
-const hudStubBox = hudMainBox ? hudMainBox.closest('.hudStub') : document.querySelector('.hudStub');
-
-if (hudMainBox){
-  hudMainBox.style.background = _prevHudMainBg || "";
-  hudMainBox.style.transform = _prevHudMainTransform || "";
-  hudMainBox.style.minHeight = _prevHudMainMinHeight || "";
-  hudMainBox.style.height = _prevHudMainHeight || "";
-}
-if (hudStubBox){
-  hudStubBox.style.minHeight = _prevHudStubMinHeight || "";
-  hudStubBox.style.height = _prevHudStubHeight || "";
-}
-
-_prevHudMainBg = null;
-_prevHudMainTransform = null;
-_prevHudMainMinHeight = null;
-_prevHudMainHeight = null;
-_prevHudStubMinHeight = null;
-_prevHudStubHeight = null;
-
-
+    // restore HUD main box background
+    const hudMainBox = document.querySelector('.hudStub.hudMain');
+    if (hudMainBox){
+      hudMainBox.style.background = _prevHudMainBg || "";
+    }
+    _prevHudMainBg = null;
 
     restoreFrameHeight();
 
@@ -439,42 +269,9 @@ _prevHudStubHeight = null;
       }
     }
 
-    // ------------------------------------------------------------
-    // DEBUG border restore (Music only)
-    // ------------------------------------------------------------
-    const glassInner2 = document.querySelector('.neonFrameTextInner');
-    const glassOuter2 = document.querySelector('.neonFrameText');
-    const neonFrame2  = document.querySelector('.neonFrame');
-    const neonWrap2   = document.querySelector('.neonFrameWrap');
-
-    if (glassOuter2) glassOuter2.style.border = _prevGlassOuterBorder || "";
-    if (glassInner2) glassInner2.style.border = _prevGlassInnerBorder || "";
-    if (neonFrame2)  neonFrame2.style.border  = _prevNeonFrameBorder  || "";
-    if (neonWrap2)   neonWrap2.style.border   = _prevNeonWrapBorder   || "";
-
-    _prevGlassOuterBorder = null;
-    _prevGlassInnerBorder = null;
-    _prevNeonFrameBorder  = null;
-    _prevNeonWrapBorder   = null;
-
-
     _prevMountParent = null;
     _prevMountNextSibling = null;
     _prevMountStyle = null;
-	
-	    // ------------------------------------------------------------
-    // ORANGE BOX cleanup (Music only)
-    // ------------------------------------------------------------
-    if (_orangeBoxEl && _orangeBoxEl.parentNode) {
-      _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
-    }
-    _orangeBoxEl = null;
-
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (hudMain) {
-      hudMain.style.padding = _prevHudMainPadding || "";
-    }
-    _prevHudMainPadding = null;
 
     restoreFrameVisibility();
 
