@@ -313,6 +313,24 @@
     _prevOrnHeight = null;
   }
 
+  // ------------------------------------------------------------
+  // ARCHIVES HEADER UI (Bands / Shows selector)
+  // This renders ONLY inside the Archive content panel
+  // All spacing, sizing, glow, and layout values are adjustable below
+  // ------------------------------------------------------------
+
+  function renderArchiveHeaderUI() {
+    return `
+      <div class="archiveHeaderWrap">
+        <!-- Bands / Shows toggle -->
+        <div class="archiveModeToggle">
+          <button class="archiveModeBtn is-active" data-mode="bands">Bands</button>
+          <button class="archiveModeBtn" data-mode="shows">Shows</button>
+        </div>
+      </div>
+    `;
+  }
+
   function animateHudTab(tabEl) {
     if (!tabEl) return;
 
@@ -470,6 +488,61 @@
           #musicContentPanel{ position:relative; }
           #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
           #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
+
+          /* --------------------------------------------------
+             ARCHIVES HEADER (Bands / Shows)
+             All values below are SAFE TO TUNE
+          -------------------------------------------------- */
+
+          .archiveHeaderWrap{
+            width:100%;
+            display:flex;
+            justify-content:center;
+            margin-bottom:26px; /* space below header */
+          }
+
+          .archiveModeToggle{
+            display:flex;
+            gap:10px; /* spacing between buttons */
+            padding:6px;
+            border-radius:999px;
+            background:rgba(0,0,0,0.35);
+            box-shadow:
+              0 0 0 1px rgba(255,80,110,0.35) inset,
+              0 0 22px rgba(255,80,110,0.25);
+          }
+
+          .archiveModeBtn{
+            min-width:96px; /* button width */
+            padding:8px 18px; /* vertical / horizontal padding */
+            border-radius:999px;
+            border:none;
+            background:transparent;
+            color:rgba(255,190,200,0.75);
+            font-size:13px;
+            letter-spacing:.12em;
+            text-transform:uppercase;
+            cursor:pointer;
+            transition:all 160ms ease;
+          }
+
+          .archiveModeBtn:hover{
+            color:#fff;
+          }
+
+          .archiveModeBtn.is-active{
+            background:linear-gradient(
+              180deg,
+              rgba(255,120,140,0.95),
+              rgba(255,70,90,0.85)
+            );
+            color:#120306;
+            box-shadow:
+              0 0 0 1px rgba(255,255,255,0.45) inset,
+              0 0 26px rgba(255,90,120,0.75);
+          }
+
+          /* -------------------------------------------------- */
 
           @keyframes musicContentWipeOut{
             0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
@@ -701,6 +774,7 @@
             // Archives: start with a clean canvas (boxes will be added next)
             wipeSwapContent('', '');
             return;
+          }
           }
 
           // All other tabs: revert to original auto-sizing
