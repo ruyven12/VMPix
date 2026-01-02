@@ -37,7 +37,7 @@
 
     // ---- Music-only frame height control ----
     // You can tweak this value safely without affecting other routes
-    const MUSIC_FRAME_HEIGHT = '110px'; // try 100px–130px
+    const MUSIC_FRAME_HEIGHT = '80px'; // try 100px–130px
 
     const frame = document.querySelector('.neonFrame');
     const orn   = document.querySelector('.hudOrn');
