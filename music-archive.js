@@ -150,12 +150,23 @@
     if (glassInner && glassOuter) {
 
       // store + sanitize outer (some themes add a window bg/shadow here)
-      if (_prevOuterBg === null) _prevOuterBg = glassOuter.style.background || "";
-      if (_prevOuterShadow === null) _prevOuterShadow = glassOuter.style.boxShadow || "";
-      if (_prevOuterPos === null) _prevOuterPos = glassOuter.style.position || "";
-      glassOuter.style.background = 'transparent';
-      glassOuter.style.boxShadow = 'none';
-      if (!glassOuter.style.position) glassOuter.style.position = 'relative';
+if (_prevOuterBg === null) _prevOuterBg = glassOuter.style.background || "";
+if (_prevOuterShadow === null) _prevOuterShadow = glassOuter.style.boxShadow || "";
+if (_prevOuterPos === null) _prevOuterPos = glassOuter.style.position || "";
+
+glassOuter.style.background = 'transparent';
+glassOuter.style.boxShadow = 'none';
+if (!glassOuter.style.position) glassOuter.style.position = 'relative';
+
+// ✅ CENTER LOCK FOR OPTION B
+// Make the OUTER box a true full-height flex-center container
+glassOuter.style.display = 'flex';
+glassOuter.style.alignItems = 'center';
+glassOuter.style.justifyContent = 'center';
+glassOuter.style.height = '100%';
+glassOuter.style.padding = '0';
+glassOuter.style.margin = '0';
+
 
       // store mount original position for restore (only once)
       if (_prevMountParent === null) {
@@ -185,7 +196,7 @@
 
     // Simple title only (baseline)
     _mount.innerHTML =
-		'<span data-hud-main-text style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase; display:inline-block;">The World of Music</span>';
+		'<span data-hud-main-text style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase; display:inline-block; position:relative; top:-6px;">The World of Music</span>';
 
   }
 
