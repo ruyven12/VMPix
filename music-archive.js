@@ -96,7 +96,9 @@
 
     if (isExpanded) {
       // Archives-only vertical positioning
+      // Adjust this to move the whole archive UI down from the frame.
       _contentPanelEl.style.marginTop = '40px';
+
       sizeContentPanelToHud();
       if (!_onResize) {
         _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
@@ -113,6 +115,342 @@
         _onResize = null;
       }
     }
+  }
+
+  // ------------------------------------------------------------
+  // ARCHIVES UI (Bands/Shows) — injected ONLY when Archives tab is active
+  // ------------------------------------------------------------
+
+  // One-time CSS injection for the Archives UI.
+  // Everything is scoped under #musicArchiveUI so it won't affect the rest of the site.
+  function ensureArchiveUIStyles() {
+    if (document.getElementById('musicArchiveUIStyles')) return;
+
+    const s = document.createElement('style');
+    s.id = 'musicArchiveUIStyles';
+    s.textContent = `
+      /* =========================
+         ARCHIVE UI TUNING KNOBS
+         Change these vars to adjust spacing/sizes.
+         ========================= */
+      #musicArchiveUI{
+        --au-maxWidth: 900px;          /* overall max width of the archive UI block */
+        --au-gap: 14px;               /* vertical spacing between rows */
+        --au-padX: 18px;              /* inner horizontal padding */
+        --au-padY: 16px;              /* inner vertical padding */
+
+        --au-frameRadius: 14px;
+        --au-frameBorder: rgba(255,70,110,0.35);
+        --au-frameGlow: 0 0 0 1px rgba(255,70,110,0.10) inset, 0 0 26px rgba(255,70,110,0.14);
+
+        /* Bands/Shows toggle sizes */
+        --au-toggleH: 48px;
+        --au-toggleW: 360px;
+        --au-toggleRadius: 999px;
+        --au-toggleText: 15px;
+        --au-toggleTracking: .08em;
+
+        /* Pills */
+        --au-pillH: 34px;
+        --au-pillRadius: 999px;
+        --au-pillText: 13px;
+        --au-pillTracking: .10em;
+        --au-pillGap: 10px;
+
+        /* Accent colors */
+        --au-accent: rgba(255,70,110,0.95);
+        --au-accentSoft: rgba(255,70,110,0.35);
+        --au-accentDim: rgba(255,70,110,0.18);
+        --au-gold: rgba(255,190,70,0.95);
+        --au-goldSoft: rgba(255,190,70,0.20);
+      }
+
+      #musicArchiveUI{
+        width:100%;
+        height:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding: var(--au-padY) var(--au-padX);
+        box-sizing:border-box;
+      }
+
+      /* Main framed block */
+      #musicArchiveUI .au-shell{
+        width: min(var(--au-maxWidth), 100%);
+        border-radius: var(--au-frameRadius);
+        border: 1px solid var(--au-frameBorder);
+        background: rgba(0,0,0,0.10);
+        box-shadow: var(--au-frameGlow);
+        padding: 18px 18px 16px;
+        box-sizing:border-box;
+      }
+
+      #musicArchiveUI .au-row{ display:flex; justify-content:center; }
+      #musicArchiveUI .au-col{ display:flex; flex-direction:column; gap: var(--au-gap); }
+
+      /* =========================
+         Bands / Shows Toggle (top)
+         ========================= */
+      #musicArchiveUI .au-toggleFrame{
+        position:relative;
+        width: min(var(--au-toggleW), 100%);
+        height: var(--au-toggleH);
+        border-radius: 18px;
+        border: 1px solid rgba(255,70,110,0.28);
+        background: rgba(0,0,0,0.18);
+        box-shadow: 0 0 0 1px rgba(255,70,110,0.08) inset, 0 0 22px rgba(255,70,110,0.16);
+        overflow:hidden;
+      }
+
+      /* Decorative “sci-fi” corners */
+      #musicArchiveUI .au-toggleFrame::before,
+      #musicArchiveUI .au-toggleFrame::after{
+        content:"";
+        position:absolute;
+        top:50%;
+        width:34px;
+        height:20px;
+        transform:translateY(-50%);
+        border:1px solid rgba(255,70,110,0.35);
+        box-shadow:0 0 14px rgba(255,70,110,0.18);
+        opacity:.9;
+      }
+      #musicArchiveUI .au-toggleFrame::before{
+        left:10px;
+        border-right:none;
+        border-top-left-radius:10px;
+        border-bottom-left-radius:10px;
+      }
+      #musicArchiveUI .au-toggleFrame::after{
+        right:10px;
+        border-left:none;
+        border-top-right-radius:10px;
+        border-bottom-right-radius:10px;
+      }
+
+      #musicArchiveUI .au-toggle{
+        position:absolute;
+        inset: 8px;
+        border-radius: var(--au-toggleRadius);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,70,110,0.22);
+        box-shadow: 0 0 0 1px rgba(255,70,110,0.06) inset;
+      }
+
+      #musicArchiveUI .au-toggleBtn{
+        flex:1;
+        height:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size: var(--au-toggleText);
+        letter-spacing: var(--au-toggleTracking);
+        text-transform:uppercase;
+        cursor:pointer;
+        user-select:none;
+        color: rgba(255,255,255,0.72);
+        position:relative;
+        z-index:2;
+      }
+
+      /* Active slider */
+      #musicArchiveUI .au-toggleSlider{
+        position:absolute;
+        top:0; bottom:0;
+        width:50%;
+        border-radius: var(--au-toggleRadius);
+        background: radial-gradient(circle at 30% 40%, rgba(255,190,70,0.92), rgba(255,70,110,0.78));
+        box-shadow: 0 0 18px rgba(255,190,70,0.16), 0 0 22px rgba(255,70,110,0.22);
+        transition: transform 160ms ease;
+        z-index:1;
+        opacity:.95;
+      }
+
+      #musicArchiveUI[data-mode="bands"] .au-toggleSlider{ transform: translateX(0%); }
+      #musicArchiveUI[data-mode="shows"] .au-toggleSlider{ transform: translateX(100%); }
+
+      #musicArchiveUI[data-mode="bands"] .au-toggleBtn[data-mode="bands"],
+      #musicArchiveUI[data-mode="shows"] .au-toggleBtn[data-mode="shows"]{
+        color: rgba(0,0,0,0.78);
+        font-weight: 700;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+      }
+
+      /* =========================
+         Secondary pills row
+         ========================= */
+      #musicArchiveUI .au-pills{ display:flex; gap: var(--au-pillGap); flex-wrap:wrap; justify-content:center; }
+
+      #musicArchiveUI .au-pill{
+        height: var(--au-pillH);
+        padding: 0 16px;
+        border-radius: var(--au-pillRadius);
+        border: 1px solid rgba(255,70,110,0.20);
+        background: rgba(0,0,0,0.16);
+        box-shadow: 0 0 0 1px rgba(255,70,110,0.05) inset;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size: var(--au-pillText);
+        letter-spacing: var(--au-pillTracking);
+        text-transform:uppercase;
+        cursor:pointer;
+        user-select:none;
+        color: rgba(255,255,255,0.70);
+        transition: transform 140ms ease, filter 140ms ease, opacity 140ms ease;
+      }
+
+      #musicArchiveUI .au-pill:hover{ transform: translateY(-1px); filter: brightness(1.12); opacity: .95; }
+
+      #musicArchiveUI .au-pill.is-active{
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,190,70,0.38);
+        box-shadow: 0 0 0 1px rgba(255,190,70,0.10) inset, 0 0 18px rgba(255,190,70,0.12);
+        color: rgba(255,255,255,0.88);
+      }
+
+      /* =========================
+         Helper text + legend
+         ========================= */
+      #musicArchiveUI .au-help{
+        text-align:center;
+        font-size: 12px;
+        letter-spacing: .08em;
+        opacity: .75;
+        text-transform:none;
+        margin-top: 2px;
+      }
+
+      #musicArchiveUI .au-legend{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 14px;
+        font-size: 11px;
+        letter-spacing: .06em;
+        opacity:.75;
+        margin-top: 6px;
+      }
+      #musicArchiveUI .au-dot{
+        width:10px; height:10px; border-radius:3px;
+        display:inline-block;
+        margin-right:6px;
+        border: 1px solid rgba(255,255,255,0.12);
+      }
+      #musicArchiveUI .au-dot.gray{ background: rgba(120,120,120,0.35); }
+      #musicArchiveUI .au-dot.yellow{ background: rgba(255,190,70,0.55); }
+      #musicArchiveUI .au-dot.green{ background: rgba(70,255,140,0.40); }
+
+      @media (max-width: 520px){
+        #musicArchiveUI{ --au-toggleW: 320px; --au-padX: 10px; }
+        #musicArchiveUI .au-shell{ padding: 14px 12px 12px; }
+      }
+    `;
+
+    document.head.appendChild(s);
+  }
+
+  // HTML shell for the Archives UI (static layout for now)
+  function archiveUIHtml() {
+    return `
+      <div id="musicArchiveUI" data-mode="bands">
+        <div class="au-shell">
+          <div class="au-col">
+            <!-- Row 1: Bands / Shows toggle -->
+            <div class="au-row">
+              <div class="au-toggleFrame" aria-label="Archive mode">
+                <div class="au-toggle">
+                  <div class="au-toggleSlider" aria-hidden="true"></div>
+                  <div class="au-toggleBtn" data-mode="bands" role="button" aria-pressed="true">Bands</div>
+                  <div class="au-toggleBtn" data-mode="shows" role="button" aria-pressed="false">Shows</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Secondary pills (placeholders for now) -->
+            <div class="au-row">
+              <div class="au-pills" aria-label="Archive sections">
+                <div class="au-pill is-active" data-pill="intro">Introduction</div>
+                <div class="au-pill" data-pill="started">How It Started</div>
+                <div class="au-pill" data-pill="faq">Notes-FAQ</div>
+                <div class="au-pill" data-pill="updates">Updates</div>
+              </div>
+            </div>
+
+            <!-- Helper text -->
+            <div class="au-help">Select a band from the list.</div>
+
+            <!-- Row 3: Category pills -->
+            <div class="au-row">
+              <div class="au-pills" aria-label="Band scope">
+                <div class="au-pill is-active" data-scope="local">Local</div>
+                <div class="au-pill" data-scope="regional">Regional</div>
+                <div class="au-pill" data-scope="national">National</div>
+                <div class="au-pill" data-scope="international">International</div>
+              </div>
+            </div>
+
+            <!-- Row 4: Alpha-range pills -->
+            <div class="au-row">
+              <div class="au-pills" aria-label="Band range">
+                <div class="au-pill is-active" data-range="oc">O-C</div>
+                <div class="au-pill" data-range="dg">D-G</div>
+                <div class="au-pill" data-range="hk">H-K</div>
+                <div class="au-pill" data-range="lo">L-O</div>
+                <div class="au-pill" data-range="ps">P-S</div>
+                <div class="au-pill" data-range="tz">T-Z</div>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="au-legend" aria-label="Legend">
+              <span><span class="au-dot gray"></span>= Nothing yet</span>
+              <span><span class="au-dot yellow"></span>= In Progress</span>
+              <span><span class="au-dot green"></span>= Fully updated</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // One-time event delegation for the Archives UI.
+  // Keeps it fast and avoids re-binding on every wipe.
+  function ensureArchiveUIEvents() {
+    if (!_contentPanelEl || _contentPanelEl.dataset.archiveUiBound === '1') return;
+
+    _contentPanelEl.dataset.archiveUiBound = '1';
+
+    _contentPanelEl.addEventListener('click', (e) => {
+      const root = _contentPanelEl.querySelector('#musicArchiveUI');
+      if (!root) return; // only active when archive UI is mounted
+
+      const toggleBtn = e.target.closest('.au-toggleBtn');
+      if (toggleBtn && root.contains(toggleBtn)) {
+        const mode = toggleBtn.getAttribute('data-mode');
+        root.setAttribute('data-mode', mode);
+        root.querySelectorAll('.au-toggleBtn').forEach((b) => {
+          const isOn = b.getAttribute('data-mode') === mode;
+          b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+        });
+        return;
+      }
+
+      const pill = e.target.closest('.au-pill');
+      if (pill && root.contains(pill)) {
+        // "group" by attribute type so each row can have its own active state
+        const groupAttr = ['data-pill', 'data-scope', 'data-range'].find((a) => pill.hasAttribute(a));
+        if (!groupAttr) return;
+
+        const groupSelector = `[${groupAttr}]`;
+        pill.parentElement.querySelectorAll(groupSelector).forEach((p) => p.classList.remove('is-active'));
+        pill.classList.add('is-active');
+      }
+    });
   }
 
   // ---- Music-only tuning ----
@@ -749,18 +1087,19 @@
               term.textContent = '';
               let i = 0;
               _typeTimer = window.setInterval(() => {
-                i += 1;
-                term.textContent = terminalText.slice(0, i);
                 if (i >= terminalText.length) {
                   window.clearInterval(_typeTimer);
                   _typeTimer = null;
+                  return;
                 }
+                term.textContent += terminalText.charAt(i);
               }, TYPE_MS);
             }
           }, WIPE_IN_MS);
         }, WIPE_OUT_MS);
       }
 
+      // Attach tab click handlers
       _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
         tab.addEventListener('click', () => {
           animateHudTab(tab);
@@ -768,126 +1107,28 @@
 
           const label = tab.textContent.trim();
 
-          // Archives is a driven UI: expand viewport (green box) ONLY for this tab
           if (label === 'Archives') {
             setArchiveViewportExpanded(true);
-            // Archives: start with a clean canvas (boxes will be added next)
-            wipeSwapContent('', '');
+            ensureArchiveUIStyles();
+            wipeSwapContent(archiveUIHtml(), '');
+            ensureArchiveUIEvents();
             return;
           }
-          }
 
-          // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
 
           if (label === 'Origins') {
-            wipeSwapContent(
-              '',
-              `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time. However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
-
-Back then, I started to just take pictures (albeit not the best, but gotta start somewhere) for keepsakes of what I've seen and been through. From going to a lot of the 13 High shows between 2011 and a lot of 2012, I was hooked. And as through those shows, most of those bands from there became life-long friends of mine, and I wouldn't trade it for the world. Fast forward now to 2025 and 14 years later it is still a prevalent force in my life. Without that one decision back then, who knows where I would be today! This page is dedicated to the vast journey that it has been and will continue to be until I can no longer do it anymore.`
-            );
+            wipeSwapContent('', '');
             return;
           }
-
           if (label === 'Notes') {
-            wipeSwapContent(
-              '',
-              `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
-
-2: This is a complete work in progress and things will change throughout. If you see something that looks off, please let me know (Contact section coming soon).`
-            );
+            wipeSwapContent('', '');
             return;
           }
-
-          // Updates (or anything else)
-          wipeSwapContent(
-            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
-            `${label} – Coming Soon`
-          );
+          wipeSwapContent('', '');
         });
       });
 
-      _orangeBoxEl.style.pointerEvents = 'auto';
       hudMain.appendChild(_orangeBoxEl);
-
-      // Default: keep original auto-sizing unless Archives is selected
-      setArchiveViewportExpanded(false);
     }
   }
-
-  function onEnter() {
-    // no-op for now
-  }
-
-  function destroy() {
-    const hudMainBox = document.querySelector('.hudStub.hudMain');
-    if (hudMainBox) {
-      hudMainBox.style.background = _prevHudMainBg || '';
-    }
-    _prevHudMainBg = null;
-
-    restoreFrameHeight();
-
-    const glassInner = document.querySelector('.neonFrameTextInner');
-    const glassOuter = document.querySelector('.neonFrameText');
-
-    if (glassInner) {
-      glassInner.style.display = _prevGlassDisplay || '';
-    }
-    _prevGlassDisplay = null;
-
-    if (glassOuter) {
-      glassOuter.style.background = _prevOuterBg || '';
-      glassOuter.style.boxShadow = _prevOuterShadow || '';
-      glassOuter.style.position = _prevOuterPos || '';
-    }
-    _prevOuterBg = null;
-    _prevOuterShadow = null;
-    _prevOuterPos = null;
-
-    if (_mount && _prevMountParent) {
-      _mount.setAttribute('style', _prevMountStyle || '');
-
-      if (_prevMountNextSibling && _prevMountNextSibling.parentNode === _prevMountParent) {
-        _prevMountParent.insertBefore(_mount, _prevMountNextSibling);
-      } else {
-        _prevMountParent.appendChild(_mount);
-      }
-    }
-
-    _prevMountParent = null;
-    _prevMountNextSibling = null;
-    _prevMountStyle = null;
-
-    if (_orangeBoxEl && _orangeBoxEl.parentNode) {
-      _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
-    }
-    _orangeBoxEl = null;
-
-    if (_contentPanelEl && _contentPanelEl.parentNode) {
-      _contentPanelEl.parentNode.removeChild(_contentPanelEl);
-    }
-    _contentPanelEl = null;
-
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (hudMain) {
-      hudMain.style.padding = _prevHudMainPadding || '';
-    }
-    _prevHudMainPadding = null;
-
-    restoreFrameVisibility();
-
-    if (_onResize) {
-      window.removeEventListener('resize', _onResize);
-      _onResize = null;
-    }
-
-    if (_mount) {
-      _mount.innerHTML = '';
-      _mount = null;
-    }
-  }
-
-  window.MusicArchive = { render, onEnter, destroy };
-})();
