@@ -16,6 +16,11 @@
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
+  
+  // mount re-parenting restore (Option B test)
+  let _prevMountParent = null;
+  let _prevMountNextSibling = null;
+  let _prevMountStyle = null;
 
   // spacing (wrap position) restore
   let _prevWrapTransform = null;
@@ -120,7 +125,7 @@
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
 
-    // Music-only: remove the faint translucent "glass" look WITHOUT hiding the mount.
+        // Music-only: remove the faint translucent "glass" look WITHOUT hiding the mount.
     // IMPORTANT: #hudMainMount lives inside .neonFrameTextInner, so we must NOT set display:none.
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
@@ -166,7 +171,7 @@
 
     restoreFrameHeight();
 
-    // restore glass layers
+        // restore glass layers
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
 
