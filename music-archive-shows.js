@@ -73,12 +73,12 @@
         */
         padding: 14px 16px;     /* <-- adjust inner spacing here */
 
-        /* ===== CONTAINER BORDER ===== */
-        border: 2px solid rgba(255, 60, 60, .35);
-        border-radius: 14px;
-
-        /* Subtle background to separate from page texture */
-        background: rgba(8, 8, 10, .45);
+        /* ===== CONTAINER BORDER (TURNED OFF) =====
+           You asked to remove the border around the year pills area.
+           If you ever want it back, restore border/background here.
+        */
+        border: none;
+        background: transparent;
       }
       .yearsNav .yearsPills{
         display:flex;
@@ -87,77 +87,85 @@
         align-items:center;
       }
 
-      /* --- Pill look/feel to match your "orange box" vibe --- */
+      /* --- Pill look/feel to match your "orange box" vibe ---
+         We keep behavior the same; this is styling only.
+      */
       .yearsNav .YearPill{
         -webkit-appearance:none;
         appearance:none;
         border:none;
-        background:rgba(10,10,12,.55);
-        color:rgba(255,255,255,.92);
-        padding:6px 12px;
+        background:transparent;
+        color:rgba(255,255,255,.88);
+        padding:8px 14px 10px;
         border-radius:10px;
         font-family:'Orbitron', system-ui, sans-serif;
         font-size:12px;
-        letter-spacing:.08em;
+        letter-spacing:.10em;
         text-transform:uppercase;
         cursor:pointer;
         user-select:none;
         position:relative;
-        box-shadow:
-          0 10px 24px rgba(0,0,0,.35);
+
+        /* Softer "tab" feel like the orange box area */
+        opacity:.9;
         transition:
           transform .14s ease,
-          box-shadow .14s ease,
-          background-color .14s ease,
+          opacity .14s ease,
           color .14s ease,
           filter .14s ease;
       }
 
       .yearsNav .YearPill:hover{
         transform: translateY(-1px);
-        background: rgba(18,18,22,.70);
-        box-shadow:
-          0 14px 34px rgba(0,0,0,.45),
-          0 0 18px rgba(255, 60, 60, .12);
+        opacity:1;
+        filter: brightness(1.08);
       }
 
       .yearsNav .YearPill:active{
-        transform: translateY(0px) scale(.99);
-        filter: brightness(1.05);
+        transform: translateY(0px);
+        filter: brightness(1.12);
       }
 
       .yearsNav .YearPill:focus-visible{
         outline:none;
-        box-shadow:
-          0 0 0 1px rgba(255,255,255,.06) inset,
-          0 14px 34px rgba(0,0,0,.45),
-          0 0 0 2px rgba(255, 92, 92, .35);
+        filter: brightness(1.12);
       }
 
-      /* Selected/active year pill */
+      /* Underline (the red line you liked)
+         Using background-size animation (more robust vs existing theme button styles).
+      */
+      .yearsNav .YearPill{
+        background-image: linear-gradient(to right, rgba(255, 60, 60, .95), rgba(255, 60, 60, .95));
+        background-repeat: no-repeat;
+        background-position: 50% calc(100% - 2px);
+        background-size: 0% 2px;
+        transition:
+          transform .14s ease,
+          opacity .14s ease,
+          color .14s ease,
+          filter .14s ease,
+          background-size .18s ease;
+      }
+
       .yearsNav .YearPill.YearPillActive{
-        background: rgba(35, 10, 14, .72);
         color: rgba(255,255,255,.98);
-        box-shadow:
-          0 14px 38px rgba(0,0,0,.50),
-          0 0 26px rgba(255, 60, 60, .22);
+        opacity: 1;
+        background-size: 100% 2px !important; /* <-- show underline */
       }
 
-      /* Optional: tiny "sheen" sweep on hover (subtle) */
+      /* Subtle hover sheen (optional, matches HUD vibe) */
       .yearsNav .YearPill::after{
         content:"";
         position:absolute;
         inset:0;
         border-radius:inherit;
         pointer-events:none;
-        background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.10) 45%, transparent 60%);
+        background: radial-gradient(circle at 50% 120%, rgba(255, 60, 60, .18), transparent 55%);
         opacity:0;
-        transform: translateX(-12%);
-        transition: opacity .18s ease, transform .28s ease;
+        transition: opacity .18s ease;
       }
       .yearsNav .YearPill:hover::after{
-        opacity:.35;
-        transform: translateX(12%);
+        opacity:.55;
       }
 
       /* Dropdown */
