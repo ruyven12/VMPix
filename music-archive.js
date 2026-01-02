@@ -358,7 +358,7 @@
 
     // Simple title only (baseline)
     _mount.innerHTML = `<span data-hud-main-text
-     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:none;
             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
      The World of Music
    </span>`;
@@ -459,19 +459,14 @@
     opacity:.85;
     font-size:14px;
     letter-spacing:.04em;
-    text-transform:uppercase;
+    text-transform:none;
     font-variant:normal;
     display:inline-block;
     white-space:pre-wrap;
   }
   #musicContentPanel .termText{
-    text-transform:uppercase;
+    text-transform:none;
     font-variant:normal;
-  }
-  /* Origins override: allow normal case */
-  #musicContentPanel.termNoCaps .termLine,
-  #musicContentPanel.termNoCaps .termText{
-    text-transform:none !important;
   }
   #musicContentPanel .termCaret{
     display:inline-block;
@@ -636,7 +631,7 @@
       const TYPE_MS = 7;
       let _typeTimer = null;
 
-      function wipeSwapContent(nextHtml, terminalText, noCaps) {
+      function wipeSwapContent(nextHtml, terminalText) {
         if (!_contentPanelEl) return;
         const prefersReduced =
           window.matchMedia &&
@@ -654,11 +649,6 @@
 
         window.setTimeout(() => {
           // stage 1: load the container first (optional)
-          if (noCaps) {
-            _contentPanelEl.classList.add('termNoCaps');
-          } else {
-            _contentPanelEl.classList.remove('termNoCaps');
-          }
           if (terminalText) {
             _contentPanelEl.innerHTML = `
               <div class="termLine"><span class="termText"></span><span class="termCaret">▌</span></div>
@@ -705,8 +695,11 @@
           if (_contentPanelEl) {
             const label = tab.textContent.trim();
             if (label === 'Origins') {
-              $1,
-                true
+              wipeSwapContent(
+                '',
+                `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time. However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
+
+Back then, I started to just take pictures (albeit not the best, but gotta start somewhere) for keepsakes of what I've seen and been through. From going to a lot of the 13 High shows between 2011 and a lot of 2012, I was hooked. And as through those shows, most of those bands from there became life-long friends of mine, and I wouldn't trade it for the world. Fast forward now to 2025 and 14 years later it is still a prevalent force in my life. Without that one decision back then, who knows where I would be today! This page is dedicated to the vast journey that it has been and will continue to be until I can no longer do it anymore.`
               );
             } else {
               wipeSwapContent(
