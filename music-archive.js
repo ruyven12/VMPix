@@ -455,9 +455,18 @@
   }
 
   /* Terminal-type helper (optional) */
-  #musicContentPanel .termLine{$1text-transform:none;
+  #musicContentPanel .termLine{
+    opacity:.85;
+    font-size:14px;
+    letter-spacing:.04em;
+    text-transform:none;
+    font-variant:normal;
     display:inline-block;
     white-space:pre-wrap;
+  }
+  #musicContentPanel .termText{
+    text-transform:none !important;
+    font-variant:normal;
   }
   #musicContentPanel .termCaret{
     display:inline-block;
