@@ -531,7 +531,7 @@
       _orangeBoxEl.style.bottom = '12px'; // adjust up/down if needed
       _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
 
-      _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
+      _orangeBoxEl.style.border = 'none';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
       _orangeBoxEl.style.background = ORANGE_BOX_BG;
       _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
