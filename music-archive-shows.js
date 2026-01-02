@@ -193,7 +193,7 @@
     containerEl,
     years,              // array like [2026, 2025, ...]
     activeYear,         // number
-    maxVisible = 8,     // how many pills before overflow
+    maxVisible = 4,     // how many pills before overflow
     onSelectYear,       // function(year) {}
     pillClass = 'yearPill',       // TODO: set to your existing pill class
     pillActiveClass = 'isActive', // TODO: set to your existing active class
@@ -365,7 +365,7 @@
         containerEl: mountEl,
         years,
         activeYear,
-        maxVisible: 8,
+        maxVisible: 4,
         onSelectYear: handleSelectYear,
         pillClass,
         pillActiveClass,
@@ -388,7 +388,7 @@
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: 8,
+      maxVisible: 4,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
