@@ -702,7 +702,6 @@
             wipeSwapContent('', '');
             return;
           }
-          }
 
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
