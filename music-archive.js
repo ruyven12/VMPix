@@ -543,7 +543,7 @@
       // Put HUD-style text inside (we'll turn these into real tabs later)
       _orangeBoxEl.innerHTML = `
   <div class="hudTabs" role="tablist" aria-label="Music sections">
-    <div class="hudTab is-active" data-tab="intro" role="tab" aria-selected="true">Introduction</div>
+    <div class="hudTab" data-tab="archives" role="tab" aria-selected="false">Archives</div>
     <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
     <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
     <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
