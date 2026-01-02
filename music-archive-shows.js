@@ -30,9 +30,8 @@
       }
 
       /* Years pills + overflow dropdown (scoped, non-destructive)
-         NOTE: If you already have pill styles/classes in your main CSS,
-               keep them! We intentionally do NOT style .yearPill here.
-               We only style the overflow menu container.
+         We DO style the pills here, but only when they live inside .yearsNav,
+         so we don't affect any other YearPill usage elsewhere.
       */
       .yearsNav{
         display:flex;
@@ -47,6 +46,86 @@
         flex-wrap:wrap;
         align-items:center;
       }
+
+      /* --- Pill look/feel to match your "orange box" vibe --- */
+      .yearsNav .YearPill{
+        -webkit-appearance:none;
+        appearance:none;
+        border:1px solid rgba(255, 92, 92, .35);
+        background:rgba(10,10,12,.55);
+        color:rgba(255,255,255,.92);
+        padding:6px 12px;
+        border-radius:10px;
+        font-size:12px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        cursor:pointer;
+        user-select:none;
+        position:relative;
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.04) inset,
+          0 10px 24px rgba(0,0,0,.35);
+        transition:
+          transform .14s ease,
+          box-shadow .14s ease,
+          background-color .14s ease,
+          border-color .14s ease,
+          color .14s ease,
+          filter .14s ease;
+      }
+
+      .yearsNav .YearPill:hover{
+        transform: translateY(-1px);
+        border-color: rgba(255, 92, 92, .55);
+        background: rgba(18,18,22,.70);
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.06) inset,
+          0 14px 34px rgba(0,0,0,.45),
+          0 0 18px rgba(255, 60, 60, .10);
+      }
+
+      .yearsNav .YearPill:active{
+        transform: translateY(0px) scale(.99);
+        filter: brightness(1.05);
+      }
+
+      .yearsNav .YearPill:focus-visible{
+        outline:none;
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.06) inset,
+          0 14px 34px rgba(0,0,0,.45),
+          0 0 0 2px rgba(255, 92, 92, .35);
+      }
+
+      /* Selected/active year pill */
+      .yearsNav .YearPill.YearPillActive{
+        border-color: rgba(255, 92, 92, .85);
+        background: rgba(35, 10, 14, .72);
+        color: rgba(255,255,255,.98);
+        box-shadow:
+          0 0 0 1px rgba(255, 92, 92, .18) inset,
+          0 14px 38px rgba(0,0,0,.50),
+          0 0 26px rgba(255, 60, 60, .18);
+      }
+
+      /* Optional: tiny "sheen" sweep on hover (subtle) */
+      .yearsNav .YearPill::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:inherit;
+        pointer-events:none;
+        background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.10) 45%, transparent 60%);
+        opacity:0;
+        transform: translateX(-12%);
+        transition: opacity .18s ease, transform .28s ease;
+      }
+      .yearsNav .YearPill:hover::after{
+        opacity:.35;
+        transform: translateX(12%);
+      }
+
+      /* Dropdown */
       .yearsNav .yearsMore{
         position:relative;
         display:inline-block;
@@ -61,7 +140,7 @@
         overflow:auto;
         padding:8px;
         border-radius:12px;
-        background:rgba(20,20,20,.98);
+        background:rgba(12,12,14,.98);
         border:1px solid rgba(255,255,255,.12);
         box-shadow:0 12px 36px rgba(0,0,0,.55);
         display:none;
@@ -75,9 +154,12 @@
         border-radius:10px;
         background:transparent;
         border:0;
-        color:inherit;
+        color:rgba(255,255,255,.92);
         cursor:pointer;
         opacity:.92;
+        letter-spacing:.04em;
+        text-transform:uppercase;
+        font-size:12px;
       }
       .yearsNav .yearsMenu .menuItem:hover{
         background:rgba(255,255,255,.08);
