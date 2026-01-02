@@ -573,7 +573,9 @@
                 </div>
               `;
             }
+          }
         });
+      });
       });
 
       // no content yet; just a visible area
