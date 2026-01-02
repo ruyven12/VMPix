@@ -52,6 +52,12 @@
   }
 
   function sizeContentPanelToHud() {
+    // ARCHIVES VIEWPORT TUNING
+    // Top offset pulls the panel DOWN
+    // Bottom offset pulls the panel UP
+    const ARCHIVES_TOP_OFFSET_PX = 40;   // move down from the frame
+    const ARCHIVES_BOTTOM_OFFSET_PX = 20; // lift up from the bottom strip
+
     if (!_contentPanelEl) return;
 
     const hudMain = document.querySelector('.hudStub.hudMain');
@@ -74,7 +80,10 @@
 
     // Account for the panel's top margin so it doesn't push past the reserved area
     const topGap = pxToNum(GREEN_BOX_MARGIN_TOP);
-    const avail = Math.max(0, innerH - topGap);
+    const avail = Math.max(
+      0,
+      innerH - topGap - ARCHIVES_TOP_OFFSET_PX - ARCHIVES_BOTTOM_OFFSET_PX
+    );
 
     _contentPanelEl.style.height = `${avail}px`;
     _contentPanelEl.style.maxHeight = `${avail}px`;
@@ -86,6 +95,8 @@
     if (!_contentPanelEl) return;
 
     if (isExpanded) {
+      // Archives-only vertical positioning
+      _contentPanelEl.style.marginTop = '40px';
       sizeContentPanelToHud();
       if (!_onResize) {
         _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
@@ -93,6 +104,7 @@
       }
     } else {
       // revert to original behavior
+      _contentPanelEl.style.marginTop = '';
       _contentPanelEl.style.height = '';
       _contentPanelEl.style.maxHeight = '';
 
@@ -722,6 +734,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             `${label} – Coming Soon`
           );
         });
+      });
       });
 
       _orangeBoxEl.style.pointerEvents = 'auto';
