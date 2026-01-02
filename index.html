@@ -818,10 +818,10 @@
     width: min(700px, 100%);
     left: 50px;
     right: 50px;
-    height: 70%;
+    height: 50%;
     display: grid;
     place-items: center;
-    padding: 18px 22px;
+    padding: 5px 20px;
     padding-left: 5px;
     padding-right: 10px;
 
@@ -835,14 +835,20 @@
 
   /* "Glass bed" for text to match the generated render */
   .neonFrameTextInner{
-    background:
-      radial-gradient(120% 140% at 50% 25%, rgba(255,80,110,0.10), rgba(0,0,0,0.00) 60%),
-      linear-gradient(to bottom, rgba(0,0,0,0.52), rgba(0,0,0,0.20));
-    border-radius: 18px;
-    box-shadow:
-      inset 0 0 0 1px rgba(255,80,110,0.18),
-      inset 0 0 26px rgba(255,40,60,0.12);
-    backdrop-filter: blur(2px);
+  background: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+
+  /* =============================
+   DESKTOP TUNE: shift inner glass bed slightly left
+   (aligns the glass bed with the frame geometry)
+   ============================= */
+  @media (min-width: 521px){
+    .neonFrameTextInner{
+      transform: translateX(-30px);
+    }
   }
 
   /* Slightly brighter caret for the "menu" look */
@@ -1205,6 +1211,116 @@
   .neonFrameWrap.pulse .neonFrameTextInner::after{
     opacity: 1;
     animation: hudScanSweep 1050ms ease-in-out 1;
+  }
+
+
+  /* =============================
+   MOBILE TUNE (requested): keep the main bubble/frame aligned on phones
+   Safe overrides only (no layout rewrites)
+   ============================= */
+  @media (max-width: 520px){
+    /* Pull content upward / reduce dead space */
+    .hudContent{
+      padding: 10px 10px;
+      gap: 8px;
+      grid-template-rows: 64px 50px 1fr;
+    }
+
+    /* Keep the main frame + ornaments from getting too tall */
+    .neonFrame,
+    .hudOrn{
+      height: 112px;
+    }
+
+    /* Make the inner glass bed fit better on narrow screens */
+    .neonFrameTextInner{
+      left: 18px;
+      right: 18px;
+      height: 74%;
+      padding: 12px 14px;
+    }
+
+    /* Slightly larger, more readable type on mobile */
+    .neonFrameTextInner .hudMainType{
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 32ch;
+    }
+  }
+
+
+  /* =============================
+   MOBILE FIX (requested): center inner text bed to frame
+   ============================= */
+  @media (max-width: 520px){
+    .neonFrameTextInner{
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: calc(100% - 36px); /* matches frame inset */
+    }
+  }
+
+
+  
+/* =============================
+   DESKTOP FIX (requested): widen inner glass bed on LEFT only
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    left: 28px;   /* widened left edge to align with frame guide */
+  }
+}
+
+
+
+/* =============================
+   DESKTOP TUNE: extend inner glass bed 20px to the RIGHT (no reposition)
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    right: -20px; /* extend width to the right only */
+  }
+}
+
+
+
+/* =============================
+   DESKTOP TUNE: widen inner glass bed by 20px (centered; no movement)
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    width: min(720px, 100%); /* +20px from the original 700px */
+  }
+}
+
+
+/* =============================
+   MOBILE FIX (requested): lock the inner text bed to the frame geometry
+   (previous left/right rules didn't apply because the element wasn't positioned)
+   ============================= */
+  @media (max-width: 520px){
+    /* remove any centering drift from padding on the overlay */
+    .neonFrameText{
+      padding: 0 !important;
+    }
+
+    /* position the inner bed explicitly with equal insets that match the frame opening */
+    .neonFrameTextInner{
+      position: absolute;
+
+      /* inset tuned to the SVG frame opening (prevents overlap with the end caps) */
+      left: clamp(34px, 8vw, 54px);
+      right: clamp(34px, 8vw, 54px);
+      width: auto !important;
+
+      /* keep it vertically centered in the frame */
+      top: 50%;
+      transform: translateY(-50%);
+
+      height: 74%;
+      padding: 12px 14px !important;
+    }
   }
 
 </style>
