@@ -1093,7 +1093,6 @@
                   return;
                 }
                 term.textContent += terminalText.charAt(i);
-                i++;
               }, TYPE_MS);
             }
           }, WIPE_IN_MS);
@@ -1117,6 +1116,15 @@
           }
 
           setArchiveViewportExpanded(false);
+
+          if (label === 'Origins') {
+            wipeSwapContent('', '');
+            return;
+          }
+          if (label === 'Notes') {
+            wipeSwapContent('', '');
+            return;
+          }
           wipeSwapContent('', '');
         });
       });
@@ -1124,43 +1132,3 @@
       hudMain.appendChild(_orangeBoxEl);
     }
   }
-
-  function destroy() {
-    restoreFrameVisibility();
-    restoreFrameHeight();
-
-    if (_onResize) {
-      window.removeEventListener('resize', _onResize);
-      _onResize = null;
-    }
-
-    if (_orangeBoxEl && _orangeBoxEl.parentNode) {
-      _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
-    }
-    _orangeBoxEl = null;
-
-    if (_contentPanelEl && _contentPanelEl.parentNode) {
-      _contentPanelEl.parentNode.removeChild(_contentPanelEl);
-    }
-    _contentPanelEl = null;
-
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (hudMain && _prevHudMainPadding !== null) {
-      hudMain.style.padding = _prevHudMainPadding;
-    }
-    _prevHudMainPadding = null;
-
-    const hudMainBox = document.querySelector('.hudStub.hudMain');
-    if (hudMainBox && _prevHudMainBg !== null) {
-      hudMainBox.style.background = _prevHudMainBg;
-    }
-    _prevHudMainBg = null;
-  }
-
-  // Mount / unmount hooks (SmugMug route aware)
-  document.addEventListener('smugmug:route:music:enter', () => render(document.querySelector('[data-hud-main-text]')?.parentNode));
-  document.addEventListener('smugmug:route:music:exit', destroy);
-
-})();(() => {
-                if (i >= terminalText.length) {
-          
