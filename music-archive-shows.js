@@ -405,8 +405,7 @@
       // 2) Update content area (placeholder)
       const content = panelEl.querySelector('#showsYearContent');
       if (content) {
-        content.innerHTML = `Selected year: <strong>${year}</strong><br><br>
-          Next step: render the ${year} show table + poster hover system here.`;
+        content.innerHTML = `Work in progress`;
       }
 
       // 3) Later: call your real year-render function here
