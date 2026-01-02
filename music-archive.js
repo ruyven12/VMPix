@@ -61,13 +61,13 @@
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
-  const MUSIC_TITLE_VISUAL_NUDGE = '-90px';
+  const MUSIC_TITLE_VISUAL_NUDGE = '-93px';
   
     // ------------------------------------------------------------
   // ORANGE BOX (info strip) tuning knobs (Music only)
   // ------------------------------------------------------------
   const ORANGE_BOX_HEIGHT = '56px';
-  const ORANGE_BOX_MARGIN_TOP = '18px';
+  const ORANGE_BOX_MARGIN_TOP = '10px';
   const ORANGE_BOX_MAX_WIDTH = '96%';
 
   const ORANGE_BOX_X_OFFSET = '0px';
