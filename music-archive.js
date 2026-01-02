@@ -16,6 +16,10 @@
   let _prevWrapMinHeight = null;
   let _prevWrapHeight = null;
   let _prevHudMainBg = null;
+    // ORANGE BOX (info strip) restore — Music route only
+  let _orangeBoxEl = null;
+  let _prevHudMainPadding = null;
+
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
@@ -58,6 +62,22 @@
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
   const MUSIC_TITLE_VISUAL_NUDGE = '-60px';
+  
+    // ------------------------------------------------------------
+  // ORANGE BOX (info strip) tuning knobs (Music only)
+  // ------------------------------------------------------------
+  const ORANGE_BOX_HEIGHT = '56px';
+  const ORANGE_BOX_MARGIN_TOP = '18px';
+  const ORANGE_BOX_MAX_WIDTH = '96%';
+
+  const ORANGE_BOX_X_OFFSET = '0px';
+  const ORANGE_BOX_Y_OFFSET = '0px';
+
+  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.55)';
+  const ORANGE_BOX_RADIUS = '10px';
+  const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';
+  const ORANGE_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
+
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic(){
@@ -224,6 +244,41 @@ glassOuter.style.margin = '0';
             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
      The World of Music
    </span>`;
+   
+       // ------------------------------------------------------------
+    // ORANGE BOX (info strip) — CREATE AREA ONLY (no content yet)
+    // Edit ORANGE_BOX_* constants above to reposition/size/style it.
+    // ------------------------------------------------------------
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (hudMain && !_orangeBoxEl) {
+
+      if (_prevHudMainPadding === null) {
+        _prevHudMainPadding = hudMain.style.padding || "";
+      }
+
+      // Keep this minimal; just enough to not crush layout.
+      hudMain.style.padding = '0 18px 18px';
+
+      _orangeBoxEl = document.createElement('div');
+      _orangeBoxEl.id = 'musicInfoStrip';
+
+      _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
+      _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
+      _orangeBoxEl.style.margin = `${ORANGE_BOX_MARGIN_TOP} auto 0`;
+      _orangeBoxEl.style.width = '100%';
+      _orangeBoxEl.style.transform = `translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
+
+      _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
+      _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
+      _orangeBoxEl.style.background = ORANGE_BOX_BG;
+      _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
+
+      // no content yet; just a visible area
+      _orangeBoxEl.style.pointerEvents = 'none';
+
+      hudMain.appendChild(_orangeBoxEl);
+    }
+
 
   }
 
@@ -277,6 +332,19 @@ glassOuter.style.margin = '0';
     _prevMountParent = null;
     _prevMountNextSibling = null;
     _prevMountStyle = null;
+	
+	    // ORANGE BOX cleanup (Music only)
+    if (_orangeBoxEl && _orangeBoxEl.parentNode) {
+      _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
+    }
+    _orangeBoxEl = null;
+
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (hudMain){
+      hudMain.style.padding = _prevHudMainPadding || "";
+    }
+    _prevHudMainPadding = null;
+
 
     restoreFrameVisibility();
 
