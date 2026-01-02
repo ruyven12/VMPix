@@ -14,6 +14,9 @@
   // restore state
   let _prevWrapDisplay = null;
   let _prevHudMainBg = null;
+    // HUD main container (big translucent box) restore
+  let _prevHudMainTransform = null;
+
 
   // inner glass panel restore
   let _prevGlassDisplay = null;
@@ -57,6 +60,20 @@
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
   const MUSIC_TITLE_VISUAL_NUDGE = '-64px';
+  
+    // ------------------------------------------------------------
+  // HUDSTUB MAIN (big translucent box) tuning knobs (Music only)
+  // Edit these safely later
+  // ------------------------------------------------------------
+
+  // Background for the BIG HUD container.
+  // Use 'transparent' to remove the fill, or an rgba for translucent glass.
+  const HUD_MAIN_BG = 'transparent'; // e.g. 'rgba(0,0,0,0.18)'
+
+  // Manual nudges for the BIG HUD container (small values!)
+  const HUD_MAIN_X_OFFSET = '0px';
+  const HUD_MAIN_Y_OFFSET = '0px';
+
   
     // ------------------------------------------------------------
   // ORANGE BOX (info strip) tuning knobs (Music only)
@@ -151,12 +168,20 @@
     if (!mountEl) return;
     _mount = mountEl;
 
-    // Music-only: remove HUD main container fill; keep the 1px border
-    const hudMainBox = document.querySelector('.hudStub.hudMain');
-    if (hudMainBox){
-      _prevHudMainBg = hudMainBox.style.background || "";
-      hudMainBox.style.background = 'transparent';
-    }
+    // Music-only: HUD main container (big translucent box) controls
+const hudMainBox = document.querySelector('.hudStub.hudMain');
+if (hudMainBox){
+  // store for restore (only once per route entry)
+  if (_prevHudMainBg === null) _prevHudMainBg = hudMainBox.style.background || "";
+  if (_prevHudMainTransform === null) _prevHudMainTransform = hudMainBox.style.transform || "";
+
+  // background control (translucent fill)
+  hudMainBox.style.background = HUD_MAIN_BG;
+
+  // position nudge control (small!)
+  hudMainBox.style.transform = `translate(${HUD_MAIN_X_OFFSET}, ${HUD_MAIN_Y_OFFSET})`;
+}
+
 
     ensureFrameVisibleForMusic();
     applyMusicFrameHeight();
@@ -280,12 +305,15 @@ glassOuter.style.margin = '0';
   }
 
   function destroy(){
-    // restore HUD main box background
-    const hudMainBox = document.querySelector('.hudStub.hudMain');
-    if (hudMainBox){
-      hudMainBox.style.background = _prevHudMainBg || "";
-    }
-    _prevHudMainBg = null;
+    // restore HUD main box (background + transform)
+const hudMainBox = document.querySelector('.hudStub.hudMain');
+if (hudMainBox){
+  hudMainBox.style.background = _prevHudMainBg || "";
+  hudMainBox.style.transform = _prevHudMainTransform || "";
+}
+_prevHudMainBg = null;
+_prevHudMainTransform = null;
+
 
     restoreFrameHeight();
 
