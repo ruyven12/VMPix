@@ -38,7 +38,22 @@
         align-items:center;
         gap:10px;
         flex-wrap:wrap; /* keep your current multi-row behavior */
-        margin: 6px 0 14px;
+
+        /* ===== EDIT SPACING HERE =====
+           padding: inner spacing of the year selector container
+           margin: spacing relative to content above/below
+        */
+        padding: 14px 16px;     /* <-- adjust inner spacing here */
+        margin: 0 0 18px;       /* <-- adjust vertical placement here */
+
+        /* ===== CONTAINER BORDER =====
+           2px border to visually align with main content panel
+        */
+        border: 2px solid rgba(255, 60, 60, .35);
+        border-radius: 14px;
+
+        /* Subtle background to separate from page texture */
+        background: rgba(8, 8, 10, .45);
       }
       .yearsNav .yearsPills{
         display:flex;
@@ -301,6 +316,10 @@
     return `
       <div class="showsWrap">
         <!-- Year pills mount point (non-destructive) -->
+        <!-- Year selector container
+             NOTE: This aligns to the top of the content area
+             Adjust spacing via .yearsNav padding/margin above
+        -->
         <div id="showsYearsMount"></div>
 
         <!-- Your year table / posters will go here next -->
