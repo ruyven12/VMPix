@@ -101,7 +101,7 @@
   const GREEN_BOX_PADDING = '18px 18px'; // top/bottom left/right padding inside panel
 
   // Visual style
-  const GREEN_BOX_RADIUS = '12px';
+  const GREEN_BOX_RADIUS = '5px';
   const GREEN_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.25)';
   const GREEN_BOX_BG = 'rgba(0,0,0,0.10)';
   const GREEN_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.08) inset';
@@ -380,7 +380,7 @@
         // Visual + layout: fills the main space above the orange strip
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
-        _contentPanelEl.style.margin = '10px auto 0';
+        _contentPanelEl.style.margin = '5px auto 0';
         _contentPanelEl.style.minHeight = '700px'; // adjust later if you want
         _contentPanelEl.style.borderRadius = '10px';
 
@@ -399,8 +399,8 @@
         // Temporary placeholder text (safe to remove later)
         _contentPanelEl.innerHTML = `
   <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-    <strong>Welcome to the Music Archives for Voodoo Media!</strong><br><br>
-    This script/app houses the information for the entire music catalog loaded into my SmugMug site.
+    <strong>Welcome to the Music section for this page.</strong><br><br>
+    Please make your selection below.
   </div>
 `;
 
