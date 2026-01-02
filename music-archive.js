@@ -269,7 +269,7 @@
     // Always restart scan ping + border pulse on every click
     strip.classList.remove('ping', 'pulse');
     void strip.offsetWidth;
-    strip.classList.add('ping', 'pulse');
+    strip.classList.add('ping');
   }
 
   function render(mountEl) {
