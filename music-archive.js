@@ -786,15 +786,20 @@ if (label === 'Bands' || label === 'Shows') {
     return;
   }
 
-  // Shows
-  wipeSwapContent(
-    `<div style="max-width:860px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-      <strong>Shows</strong><br><br>
-      Shows content goes here.
-    </div>`,
-    ''
-  );
-  return;
+ // Shows (external module)
+const html =
+  window.MusicArchiveShows?.render?.() ||
+  `<div style="opacity:.7">Shows module not loaded.</div>`;
+
+wipeSwapContent(html, '');
+
+window.setTimeout(() => {
+  const panel = document.getElementById('musicContentPanel');
+  window.MusicArchiveShows?.onMount?.(panel);
+}, 360);
+
+return;
+
 }
 
 
