@@ -93,7 +93,7 @@
 
     // Keep it simple: one centered line of text.
     // (The HUD already centers/frames this area for us.)
-    _mount.innerHTML = '<span data-hud-main-text>The World of Music</span>';
+    _mount.innerHTML = '<span data-hud-main-text style="font-size:16px; letter-spacing:.14em; text-transform:uppercase;">The World of Music</span>';
   }
 
   function onEnter(){
