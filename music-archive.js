@@ -534,7 +534,7 @@
       _orangeBoxEl.style.border = 'none';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
       _orangeBoxEl.style.background = ORANGE_BOX_BG;
-      _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
+      _orangeBoxEl.style.boxShadow = 'none';
       // Center contents in the strip (safe: affects only the strip)
       _orangeBoxEl.style.display = 'flex';
       _orangeBoxEl.style.alignItems = 'center';
