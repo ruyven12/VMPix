@@ -435,6 +435,34 @@
       _orangeBoxEl.id = 'musicInfoStrip';
 
       // ===== HUD TABS ANIMATION (Combo A) =====
+      // Content panel wipe animation (safe test harness)
+      if (!document.getElementById('musicContentWipeStyles')) {
+        const cs = document.createElement('style');
+        cs.id = 'musicContentWipeStyles';
+        cs.textContent = `
+  /* Content wipe (panel) */
+  #musicContentPanel{ position:relative; }
+  #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
+  #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
+
+  @keyframes musicContentWipeOut{
+    0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
+    100%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 100% 0% 0%); }
+  }
+  @keyframes musicContentWipeIn{
+    0%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 0% 0% 100%); }
+    100%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
+  }
+
+  /* Reduced motion: no wipe, just swap */
+  @media (prefers-reduced-motion: reduce){
+    #musicContentPanel.wipe-out,
+    #musicContentPanel.wipe-in{ animation:none !important; }
+  }
+`;
+        document.head.appendChild(cs);
+      }
+
       if (!document.getElementById('musicInfoStripStyles')) {
         const style = document.createElement('style');
         style.id = 'musicInfoStripStyles';
@@ -576,25 +604,56 @@
 `;
 
       // --- TAB CLICK HANDLING (TEST CONTENT ONLY) ---
+      const WIPE_OUT_MS = 140;
+      const WIPE_IN_MS = 180;
+
+      function wipeSwapContent(nextHtml) {
+        if (!_contentPanelEl) return;
+        const prefersReduced =
+          window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReduced) {
+          _contentPanelEl.innerHTML = nextHtml;
+          return;
+        }
+
+        // restart any running animations cleanly
+        _contentPanelEl.classList.remove('wipe-out', 'wipe-in');
+        void _contentPanelEl.offsetWidth;
+        _contentPanelEl.classList.add('wipe-out');
+
+        window.setTimeout(() => {
+          _contentPanelEl.innerHTML = nextHtml;
+          _contentPanelEl.classList.remove('wipe-out');
+          void _contentPanelEl.offsetWidth;
+          _contentPanelEl.classList.add('wipe-in');
+
+          window.setTimeout(() => {
+            _contentPanelEl.classList.remove('wipe-in');
+          }, WIPE_IN_MS);
+        }, WIPE_OUT_MS);
+      }
+
       _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
         tab.addEventListener('click', () => {
           animateHudTab(tab);
           if (_contentPanelEl) {
             const label = tab.textContent.trim();
             if (label === 'Origins') {
-              _contentPanelEl.innerHTML = `
+              wipeSwapContent(`
                 <div style="max-width:820px; opacity:.85; font-size:14px; line-height:1.7; letter-spacing:.03em; text-transform:none;">
                   Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time. However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
                   <br><br>
                   Back then, I started to just take pictures (albeit not the best, but gotta start somewhere) for keepsakes of what I've seen and been through. From going to a lot of the 13 High shows between 2011 and a lot of 2012, I was hooked. And as through those shows, most of those bands from there became life-long friends of mine, and I wouldn't trade it for the world. Fast forward now to 2025 and 14 years later it is still a prevalent force in my life. Without that one decision back then, who knows where I would be today! This page is dedicated to the vast journey that it has been and will continue to be until I can no longer do it anymore.
                 </div>
-              `;
+              `);
             } else {
-              _contentPanelEl.innerHTML = `
+              wipeSwapContent(`
                 <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">
                   ${label} – Coming Soon
                 </div>
-              `;
+              `);
             }
           }
         });
