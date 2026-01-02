@@ -36,19 +36,22 @@
       .yearsNav{
         display:flex;
         align-items:center;
+        justify-content:center; /* <-- centers pills horizontally */
         gap:10px;
         flex-wrap:wrap; /* keep your current multi-row behavior */
 
+        /* ===== EDIT POSITIONING HERE =====
+           Top spacing relative to the content panel
+        */
+        margin-top: 5px;        /* <-- distance from top of content window */
+        margin-bottom: 18px;    /* <-- space below the year bar */
+
         /* ===== EDIT SPACING HERE =====
            padding: inner spacing of the year selector container
-           margin: spacing relative to content above/below
         */
         padding: 14px 16px;     /* <-- adjust inner spacing here */
-        margin: 0 0 18px;       /* <-- adjust vertical placement here */
 
-        /* ===== CONTAINER BORDER =====
-           2px border to visually align with main content panel
-        */
+        /* ===== CONTAINER BORDER ===== */
         border: 2px solid rgba(255, 60, 60, .35);
         border-radius: 14px;
 
@@ -315,6 +318,8 @@
     // Return ONLY the HTML that belongs inside #musicContentPanel
     return `
       <div class="showsWrap">
+        <!-- Year selector is intentionally placed FIRST so it hugs the top
+             Adjust vertical spacing via .yearsNav margin-top above -->
         <!-- Year pills mount point (non-destructive) -->
         <!-- Year selector container
              NOTE: This aligns to the top of the content area
@@ -360,7 +365,7 @@
         containerEl: mountEl,
         years,
         activeYear,
-        maxVisible: 4,
+        maxVisible: 8,
         onSelectYear: handleSelectYear,
         pillClass,
         pillActiveClass,
@@ -383,7 +388,7 @@
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: 4,
+      maxVisible: 8,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
