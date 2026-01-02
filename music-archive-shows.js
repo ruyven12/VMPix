@@ -13,14 +13,23 @@
         width:100%;
         max-width:980px;
         margin:0 auto;
+        box-sizing:border-box;
 
         /* IMPORTANT:
-           The parent content panel centers its children vertically.
-           We counter that here so the year bar can sit at the TOP.
+           The parent content panel is centering its children vertically.
+           To counter that, we make THIS wrapper fill the available height,
+           then lay out our children from the top.
         */
+        height:100%;
+        min-height:100%;
+        align-self:stretch;
+
         display:flex;
         flex-direction:column;
         justify-content:flex-start; /* <-- forces top alignment */
+
+        /* ===== EDIT TOP GAP HERE ===== */
+        padding-top: 5px; /* <-- space from top border of content window */
       }
       .showsTitle{
         opacity:.9;
@@ -43,10 +52,10 @@
       */
       .yearsNav{
         /* ===== POSITIONING MODE =====
-           This pins the year bar to the top edge of the content window
+           Normal flow inside .showsWrap.
+           Top gap is controlled by .showsWrap padding-top.
         */
-        position: sticky;
-        top: 5px; /* <-- distance from top of content window */
+        position: relative;
         display:flex;
         align-items:center;
         justify-content:center; /* <-- centers pills horizontally */
@@ -56,7 +65,7 @@
         /* ===== EDIT POSITIONING HERE =====
            Top spacing relative to the content panel
         */
-        margin-top: 5px;        /* <-- distance from top of content window */
+        margin-top: 0px;        /* <-- top handled by .showsWrap padding-top */
         margin-bottom: 18px;    /* <-- space below the year bar */
 
         /* ===== EDIT SPACING HERE =====
@@ -206,7 +215,7 @@
     containerEl,
     years,              // array like [2026, 2025, ...]
     activeYear,         // number
-    maxVisible = 8,     // how many pills before overflow
+    maxVisible = 4,     // how many pills before overflow
     onSelectYear,       // function(year) {}
     pillClass = 'yearPill',       // TODO: set to your existing pill class
     pillActiveClass = 'isActive', // TODO: set to your existing active class
@@ -378,7 +387,7 @@
         containerEl: mountEl,
         years,
         activeYear,
-        maxVisible: 8,
+        maxVisible: 4,
         onSelectYear: handleSelectYear,
         pillClass,
         pillActiveClass,
@@ -401,7 +410,7 @@
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: 8,
+      maxVisible: 4,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
