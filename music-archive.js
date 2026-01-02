@@ -693,14 +693,16 @@
       _orangeBoxEl.style.textAlign = 'center';
 
       _orangeBoxEl.innerHTML = `
-        <div class="hudTabs" role="tablist" aria-label="Music sections">
-          <div class="hudTab" data-tab="archives" role="tab" aria-selected="false">Archives</div>
-          <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
-          <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
-          <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
-        </div>
-        <div class="scanPing" aria-hidden="true"></div>
-      `;
+  <div class="hudTabs" role="tablist" aria-label="Music sections">
+    <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
+    <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
+    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
+    <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
+    <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
+  </div>
+  <div class="scanPing" aria-hidden="true"></div>
+`;
+
 
       const WIPE_OUT_MS = 140;
       const WIPE_IN_MS = 180;
@@ -768,13 +770,33 @@
 
           const label = tab.textContent.trim();
 
-          // Archives is a driven UI: expand viewport (green box) ONLY for this tab
-          if (label === 'Archives') {
-            setArchiveViewportExpanded(true);
-            // Archives: start with a clean canvas (boxes will be added next)
-            wipeSwapContent('', '');
-            return;
-          }
+          // Bands + Shows are the driven UI now (use the expanded green viewport)
+if (label === 'Bands' || label === 'Shows') {
+  setArchiveViewportExpanded(true);
+
+  // OPTION A (simple for now): just show placeholder content
+  if (label === 'Bands') {
+    wipeSwapContent(
+      `<div style="max-width:860px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
+        <strong>Bands</strong><br><br>
+        Bands content goes here.
+      </div>`,
+      ''
+    );
+    return;
+  }
+
+  // Shows
+  wipeSwapContent(
+    `<div style="max-width:860px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
+      <strong>Shows</strong><br><br>
+      Shows content goes here.
+    </div>`,
+    ''
+  );
+  return;
+}
+
 
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
