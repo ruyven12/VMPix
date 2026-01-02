@@ -198,7 +198,7 @@ glassOuter.style.margin = '0';
     // Simple title only (baseline)
     _mount.innerHTML =
   `<span data-hud-main-text
-     style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+     style="font-size:20px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
      The World of Music
    </span>`;
