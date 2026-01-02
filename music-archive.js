@@ -10,6 +10,18 @@
   "use strict";
 
   let _mount = null;
+  
+    // ------------------------------------------------------------
+  // DEBUG: outline the header "translucent" layer (Music only)
+  // Toggle to true to see the exact element we’re styling.
+  // ------------------------------------------------------------
+  const DEBUG_HEADER_LAYER_BORDER = true;
+
+  let _prevGlassOuterBorder = null;
+  let _prevGlassInnerBorder = null;
+  let _prevNeonFrameBorder  = null;
+  let _prevNeonWrapBorder   = null;
+
 
   // restore state
   let _prevWrapDisplay = null;
@@ -81,8 +93,8 @@
   const HUD_MAIN_Y_OFFSET = '0px';
     // 👉 HEIGHT CONTROL for the BIG translucent HUD region (Music only)
   // Use min-height for safety (won't clip). If you want strict height, set HUD_MAIN_USE_STRICT_HEIGHT = true.
-  const HUD_MAIN_MIN_HEIGHT = '450px';         // <- THIS is the main dial (try 420–720px)
-  const HUD_MAIN_USE_STRICT_HEIGHT = true;    // true = force exact height (can clip)
+  const HUD_MAIN_MIN_HEIGHT = '520px';         // <- THIS is the main dial (try 420–720px)
+  const HUD_MAIN_USE_STRICT_HEIGHT = false;    // true = force exact height (can clip)
 
 
   
@@ -227,6 +239,40 @@ if (hudStubBox){
     // ------------------------------------------------------------
     const glassInner = document.querySelector('.neonFrameTextInner');
     const glassOuter = document.querySelector('.neonFrameText');
+	
+	    // ------------------------------------------------------------
+    // DEBUG: put a 2px border around the header layers so we can
+    // identify WHICH element is the "translucent box" you mean.
+    // ------------------------------------------------------------
+    if (DEBUG_HEADER_LAYER_BORDER) {
+      const neonFrame = document.querySelector('.neonFrame');
+      const neonWrap  = document.querySelector('.neonFrameWrap');
+
+      // 1) Most likely: glassOuter (neonFrameText)
+      if (glassOuter) {
+        if (_prevGlassOuterBorder === null) _prevGlassOuterBorder = glassOuter.style.border || "";
+        glassOuter.style.border = '2px solid lime';
+      }
+
+      // 2) Inner layer (often the actual “glass”), though you may be hiding it in Option B
+      if (glassInner) {
+        if (_prevGlassInnerBorder === null) _prevGlassInnerBorder = glassInner.style.border || "";
+        glassInner.style.border = '2px solid cyan';
+      }
+
+      // 3) The full neon frame container
+      if (neonFrame) {
+        if (_prevNeonFrameBorder === null) _prevNeonFrameBorder = neonFrame.style.border || "";
+        neonFrame.style.border = '2px solid yellow';
+      }
+
+      // 4) The neon wrap (positioning wrapper)
+      if (neonWrap) {
+        if (_prevNeonWrapBorder === null) _prevNeonWrapBorder = neonWrap.style.border || "";
+        neonWrap.style.border = '2px solid magenta';
+      }
+    }
+
 
     if (glassInner && glassOuter) {
 
@@ -392,6 +438,25 @@ _prevHudStubHeight = null;
         _prevMountParent.appendChild(_mount);
       }
     }
+
+    // ------------------------------------------------------------
+    // DEBUG border restore (Music only)
+    // ------------------------------------------------------------
+    const glassInner2 = document.querySelector('.neonFrameTextInner');
+    const glassOuter2 = document.querySelector('.neonFrameText');
+    const neonFrame2  = document.querySelector('.neonFrame');
+    const neonWrap2   = document.querySelector('.neonFrameWrap');
+
+    if (glassOuter2) glassOuter2.style.border = _prevGlassOuterBorder || "";
+    if (glassInner2) glassInner2.style.border = _prevGlassInnerBorder || "";
+    if (neonFrame2)  neonFrame2.style.border  = _prevNeonFrameBorder  || "";
+    if (neonWrap2)   neonWrap2.style.border   = _prevNeonWrapBorder   || "";
+
+    _prevGlassOuterBorder = null;
+    _prevGlassInnerBorder = null;
+    _prevNeonFrameBorder  = null;
+    _prevNeonWrapBorder   = null;
+
 
     _prevMountParent = null;
     _prevMountNextSibling = null;
