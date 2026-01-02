@@ -76,10 +76,13 @@
     wrap.style.transform = `translateY(${MUSIC_FRAME_Y_OFFSET})`;
 
     // Music-only: adjust the header wrap height (translucent layer)
-    if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || "";
+    // Music-only: adjust the header wrap height (translucent layer)
+if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || "";
 if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || "";
-...
+
+wrap.style.minHeight = NEON_WRAP_MIN_HEIGHT;
 wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : "";
+
 
 
     // If the parent is centering, force top alignment for Music
