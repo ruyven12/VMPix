@@ -1519,11 +1519,19 @@
 </div>
 
 
-<!-- App modules (keep HUD markup/looks identical; logic moved to separate files) -->
+<!-- App modules (keep HUD markup/logic identical; logic moved to separate files) -->
+
+<!-- Music sub-modules FIRST -->
+<script src="music-archive-bands.js"></script>
+<script src="music-archive-shows.js"></script>
+
+<!-- Music router LAST -->
 <script src="music-archive.js"></script>
+
 <script src="wrestling-archive.js"></script>
 <script src="about-archive.js"></script>
 <script src="hud-app.js"></script>
+
 
 </body>
 </html>
