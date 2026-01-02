@@ -34,6 +34,13 @@
   let _prevMenuPaddingTop = null;
   let _prevFrameHeight = null;
   let _prevOrnHeight = null;
+  
+  // ------------------------------------------------------------
+  // ORANGE BOX (info strip) restore — Music route only
+  // ------------------------------------------------------------
+  let _orangeBoxEl = null;
+  let _prevHudMainPadding = null;
+
 
   // ---- Music-only tuning ----
   const MUSIC_FRAME_HEIGHT = '110px'; // adjust safely (100px–130px)
@@ -50,6 +57,21 @@
   // Use small values like '6px'–'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
   const MUSIC_TITLE_VISUAL_NUDGE = '-64px';
+  
+    // ------------------------------------------------------------
+  // ORANGE BOX (info strip) tuning knobs (Music only)
+  // Edit these safely later — no other code changes needed.
+  // ------------------------------------------------------------
+  const ORANGE_BOX_HEIGHT = '56px';        // strip height (try 48–72px)
+  const ORANGE_BOX_MARGIN_TOP = '18px';    // space below neon title frame
+  const ORANGE_BOX_MAX_WIDTH = '96%';      // keep inside the big HUD container
+
+  // Border styling to match the outside vibe (thin neon red)
+  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.55)';
+  const ORANGE_BOX_RADIUS = '10px';
+  const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';  // very subtle fill (set to 'transparent' if you want none)
+  const ORANGE_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
+
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic(){
@@ -202,6 +224,48 @@ glassOuter.style.margin = '0';
             display:inline-block; transform:translateY(${MUSIC_TITLE_VISUAL_NUDGE});">
      The World of Music
    </span>`;
+   
+       // ------------------------------------------------------------
+    // ORANGE BOX (info strip) — CREATE AREA ONLY (no content yet)
+    //
+    // WHERE TO EDIT STYLE LATER:
+    // - Change the constants near the top: ORANGE_BOX_*
+    // - This block only wires it into the DOM (safe/reversible)
+    // ------------------------------------------------------------
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (hudMain && !_orangeBoxEl) {
+
+      // Save existing padding so we can restore on destroy
+      if (_prevHudMainPadding === null) {
+        _prevHudMainPadding = hudMain.style.padding || "";
+      }
+
+      // Ensure there's room for the strip beneath the neon title frame.
+      // NOTE: This only affects the Music route and is restored on destroy.
+      // If you already have padding you want to keep, tell me and we’ll preserve it.
+      hudMain.style.padding = '0 18px 18px';
+
+      _orangeBoxEl = document.createElement('div');
+      _orangeBoxEl.id = 'musicInfoStrip'; // orange box
+
+      // Base geometry
+      _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
+      _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
+      _orangeBoxEl.style.margin = `${ORANGE_BOX_MARGIN_TOP} auto 0`;
+      _orangeBoxEl.style.width = '100%';
+
+      // Border / look (matches outside vibe)
+      _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
+      _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
+      _orangeBoxEl.style.background = ORANGE_BOX_BG;
+      _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
+
+      // Keep it visually clean for now (no text/content yet)
+      _orangeBoxEl.style.pointerEvents = 'none';
+
+      hudMain.appendChild(_orangeBoxEl);
+    }
+
 
 
   }
@@ -256,6 +320,21 @@ glassOuter.style.margin = '0';
     _prevMountParent = null;
     _prevMountNextSibling = null;
     _prevMountStyle = null;
+	
+	    // ------------------------------------------------------------
+    // ORANGE BOX cleanup (Music only)
+    // ------------------------------------------------------------
+    if (_orangeBoxEl && _orangeBoxEl.parentNode) {
+      _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
+    }
+    _orangeBoxEl = null;
+
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (hudMain) {
+      hudMain.style.padding = _prevHudMainPadding || "";
+    }
+    _prevHudMainPadding = null;
+
 
     restoreFrameVisibility();
 
