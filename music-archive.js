@@ -100,14 +100,19 @@
   // Inner padding (what you'll tool with)
   const GREEN_BOX_PADDING = '18px 18px'; // top/bottom left/right padding inside panel
 
-  // Visual style
-  const GREEN_BOX_RADIUS = '5px';
-  const GREEN_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.25)';
-  const GREEN_BOX_BG = 'rgba(0,0,0,0.10)';
-  const GREEN_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.08) inset';
+  // Content alignment (desktop/default)
+  const GREEN_BOX_ALIGN_ITEMS = 'center';
+  const GREEN_BOX_JUSTIFY_CONTENT = 'center';
+  const GREEN_BOX_TEXT_ALIGN = 'center';
+
+  // Mobile overrides (optional)
+  const GREEN_BOX_MOBILE_PADDING = '14px 12px';
+  const GREEN_BOX_MOBILE_ALIGN_ITEMS = 'flex-start';
+  const GREEN_BOX_MOBILE_JUSTIFY_CONTENT = 'flex-start';
+  const GREEN_BOX_MOBILE_TEXT_ALIGN = 'left';
 
   // Optional: make it scroll if content is tall
-  const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll'
+  const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll' // 'auto' | 'hidden' | 'scroll'
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
@@ -390,11 +395,24 @@
         _contentPanelEl.style.boxShadow =
           '0 0 0 1px rgba(255,70,110,0.08) inset';
 
-        // Center placeholder content
+        // Content panel layout (tunable)
+        _contentPanelEl.style.boxSizing = 'border-box';
+        _contentPanelEl.style.padding = GREEN_BOX_PADDING;
+        _contentPanelEl.style.overflowY = GREEN_BOX_OVERFLOW_Y;
+
+        // Default: center content (you can change these constants above)
         _contentPanelEl.style.display = 'flex';
-        _contentPanelEl.style.alignItems = 'center';
-        _contentPanelEl.style.justifyContent = 'center';
-        _contentPanelEl.style.textAlign = 'center';
+        _contentPanelEl.style.alignItems = GREEN_BOX_ALIGN_ITEMS;
+        _contentPanelEl.style.justifyContent = GREEN_BOX_JUSTIFY_CONTENT;
+        _contentPanelEl.style.textAlign = GREEN_BOX_TEXT_ALIGN;
+
+        // Mobile overrides (optional)
+        if (window.matchMedia && window.matchMedia('(max-width: 520px)').matches) {
+          _contentPanelEl.style.padding = GREEN_BOX_MOBILE_PADDING;
+          _contentPanelEl.style.alignItems = GREEN_BOX_MOBILE_ALIGN_ITEMS;
+          _contentPanelEl.style.justifyContent = GREEN_BOX_MOBILE_JUSTIFY_CONTENT;
+          _contentPanelEl.style.textAlign = GREEN_BOX_MOBILE_TEXT_ALIGN;
+        }
 
         // Temporary placeholder text (safe to remove later)
         _contentPanelEl.innerHTML = `
