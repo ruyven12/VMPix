@@ -447,12 +447,29 @@
 
   @keyframes musicContentWipeOut{
     0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
-    100%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 100% 0% 0%); }
+    100%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 0% 0% 100%); }
   }
   @keyframes musicContentWipeIn{
-    0%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 0% 0% 100%); }
+    0%{ opacity:0; filter:blur(.8px); clip-path:inset(0% 100% 0% 0%); }
     100%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
   }
+
+  /* Terminal-type helper (optional) */
+  #musicContentPanel .termLine{
+    opacity:.85;
+    font-size:14px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    display:inline-block;
+    white-space:pre-wrap;
+  }
+  #musicContentPanel .termCaret{
+    display:inline-block;
+    width:0.6ch;
+    transform:translateY(1px);
+    animation:termBlink 700ms steps(1) infinite;
+  }
+  @keyframes termBlink{ 50%{ opacity:0; } }
 
   /* Reduced motion: no wipe, just swap */
   @media (prefers-reduced-motion: reduce){
@@ -606,8 +623,10 @@
       // --- TAB CLICK HANDLING (TEST CONTENT ONLY) ---
       const WIPE_OUT_MS = 140;
       const WIPE_IN_MS = 180;
+      const TYPE_MS = 14;
+      let _typeTimer = null;
 
-      function wipeSwapContent(nextHtml) {
+      function wipeSwapContent(nextHtml, terminalText) {
         if (!_contentPanelEl) return;
         const prefersReduced =
           window.matchMedia &&
@@ -624,13 +643,43 @@
         _contentPanelEl.classList.add('wipe-out');
 
         window.setTimeout(() => {
-          _contentPanelEl.innerHTML = nextHtml;
+          // stage 1: load the container first (optional)
+          if (terminalText) {
+            _contentPanelEl.innerHTML = `
+              <div class="termLine"><span class="termText"></span><span class="termCaret">▌</span></div>
+            `;
+          } else {
+            _contentPanelEl.innerHTML = nextHtml;
+          }
+
           _contentPanelEl.classList.remove('wipe-out');
           void _contentPanelEl.offsetWidth;
           _contentPanelEl.classList.add('wipe-in');
 
           window.setTimeout(() => {
             _contentPanelEl.classList.remove('wipe-in');
+
+            // stage 2: terminal-style type-in after wipe completes
+            if (terminalText) {
+              const term = _contentPanelEl.querySelector('.termText');
+              if (!term) return;
+
+              if (_typeTimer) {
+                window.clearInterval(_typeTimer);
+                _typeTimer = null;
+              }
+
+              term.textContent = '';
+              let i = 0;
+              _typeTimer = window.setInterval(() => {
+                i += 1;
+                term.textContent = terminalText.slice(0, i);
+                if (i >= terminalText.length) {
+                  window.clearInterval(_typeTimer);
+                  _typeTimer = null;
+                }
+              }, TYPE_MS);
+            }
           }, WIPE_IN_MS);
         }, WIPE_OUT_MS);
       }
@@ -649,11 +698,14 @@
                 </div>
               `);
             } else {
-              wipeSwapContent(`
+              wipeSwapContent(
+                `
                 <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">
                   ${label} – Coming Soon
                 </div>
-              `);
+              `,
+                `${label} – Coming Soon`
+              );
             }
           }
         });
