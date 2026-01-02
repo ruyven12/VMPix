@@ -40,7 +40,7 @@
 
   // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
   // Negative values move the frame UP, positive values move it DOWN.
-  const MUSIC_FRAME_Y_OFFSET = '0px';
+  const MUSIC_FRAME_Y_OFFSET = '-25px';
 
   // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
