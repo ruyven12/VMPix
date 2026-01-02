@@ -552,6 +552,21 @@
   <div class="scanPing" aria-hidden="true"></div>
 `;
 
+      // --- TAB CLICK HANDLING (TEST CONTENT ONLY) ---
+      _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          animateHudTab(tab);
+          if (_contentPanelEl) {
+            const label = tab.textContent.trim();
+            _contentPanelEl.innerHTML = `
+              <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">
+                ${label} – Coming Soon
+              </div>
+            `;
+          }
+        });
+      });
+
       // no content yet; just a visible area
       _orangeBoxEl.style.pointerEvents = 'auto';
 
