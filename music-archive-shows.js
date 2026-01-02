@@ -383,7 +383,7 @@
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: 8,
+      maxVisible: 5,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
