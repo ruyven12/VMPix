@@ -101,7 +101,7 @@
   const GREEN_BOX_PADDING = '18px 18px'; // top/bottom left/right padding inside panel
 
   // Visual style
-  const GREEN_BOX_RADIUS = '12px';
+  const GREEN_BOX_RADIUS = '5px';
   const GREEN_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.25)';
   const GREEN_BOX_BG = 'rgba(0,0,0,0.10)';
   const GREEN_BOX_GLOW = '0 0 0 1px rgba(255,70,110,0.08) inset';
