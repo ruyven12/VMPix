@@ -44,7 +44,7 @@
 
   // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
-  const MUSIC_TITLE_Y_OFFSET = '-18px';
+  const MUSIC_TITLE_Y_OFFSET = '0px';
 
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
@@ -175,7 +175,6 @@
       mountEl.style.height = '100%';
       mountEl.style.position = 'relative';
       mountEl.style.zIndex = '2';
-      mountEl.style.transform = `translateY(${MUSIC_TITLE_Y_OFFSET})`;
       mountEl.style.paddingTop = MUSIC_TITLE_PADDING_Y;
       mountEl.style.paddingBottom = MUSIC_TITLE_PADDING_Y;
 
