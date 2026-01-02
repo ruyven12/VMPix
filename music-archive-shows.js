@@ -51,37 +51,34 @@
       .yearsNav .YearPill{
         -webkit-appearance:none;
         appearance:none;
-        border:1px solid rgba(255, 92, 92, .35);
+        border:none;
         background:rgba(10,10,12,.55);
         color:rgba(255,255,255,.92);
         padding:6px 12px;
         border-radius:10px;
+        font-family:'Orbitron', system-ui, sans-serif;
         font-size:12px;
-        letter-spacing:.06em;
+        letter-spacing:.08em;
         text-transform:uppercase;
         cursor:pointer;
         user-select:none;
         position:relative;
         box-shadow:
-          0 0 0 1px rgba(255,255,255,.04) inset,
           0 10px 24px rgba(0,0,0,.35);
         transition:
           transform .14s ease,
           box-shadow .14s ease,
           background-color .14s ease,
-          border-color .14s ease,
           color .14s ease,
           filter .14s ease;
       }
 
       .yearsNav .YearPill:hover{
         transform: translateY(-1px);
-        border-color: rgba(255, 92, 92, .55);
         background: rgba(18,18,22,.70);
         box-shadow:
-          0 0 0 1px rgba(255,255,255,.06) inset,
           0 14px 34px rgba(0,0,0,.45),
-          0 0 18px rgba(255, 60, 60, .10);
+          0 0 18px rgba(255, 60, 60, .12);
       }
 
       .yearsNav .YearPill:active{
@@ -99,13 +96,11 @@
 
       /* Selected/active year pill */
       .yearsNav .YearPill.YearPillActive{
-        border-color: rgba(255, 92, 92, .85);
         background: rgba(35, 10, 14, .72);
         color: rgba(255,255,255,.98);
         box-shadow:
-          0 0 0 1px rgba(255, 92, 92, .18) inset,
           0 14px 38px rgba(0,0,0,.50),
-          0 0 26px rgba(255, 60, 60, .18);
+          0 0 26px rgba(255, 60, 60, .22);
       }
 
       /* Optional: tiny "sheen" sweep on hover (subtle) */
@@ -305,8 +300,6 @@
     // Return ONLY the HTML that belongs inside #musicContentPanel
     return `
       <div class="showsWrap">
-        <div class="showsTitle">Shows</div>
-
         <!-- Year pills mount point (non-destructive) -->
         <div id="showsYearsMount"></div>
 
