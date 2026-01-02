@@ -1,4 +1,3 @@
-// music-archive.js
 // Phase 2 clean baseline (DEDUPED)
 // - Keeps HUD neon frame visible on Music route
 // - Removes HUD main container fill only (Music only) — border stays
@@ -19,6 +18,9 @@
     // ORANGE BOX (info strip) restore — Music route only
   let _orangeBoxEl = null;
   let _prevHudMainPadding = null;
+
+  // GREEN BOX (main changing content area) — Music route only
+  let _contentPanelEl = null;
 
 
   // inner glass panel restore
@@ -348,6 +350,44 @@ glassOuter.style.margin = '0';
 	  hudMain.style.padding = '0 18px 80px'; // space for bottom orange box
 
 
+      // ------------------------------------------------------------
+      // GREEN BOX (main content area) — placeholder container
+      // This is the big area that will change when tabs are clicked.
+      // ------------------------------------------------------------
+      if (!_contentPanelEl) {
+        _contentPanelEl = document.createElement('div');
+        _contentPanelEl.id = 'musicContentPanel';
+
+        // Visual + layout: fills the main space above the orange strip
+        _contentPanelEl.style.width = '100%';
+        _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
+        _contentPanelEl.style.margin = '14px auto 0';
+        _contentPanelEl.style.minHeight = '520px'; // adjust later if you want
+        _contentPanelEl.style.borderRadius = '12px';
+
+        // Match HUD vibe (subtle, not overpowering)
+        _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
+        _contentPanelEl.style.background = 'rgba(0,0,0,0.10)';
+        _contentPanelEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.08) inset';
+
+        // Center placeholder content
+        _contentPanelEl.style.display = 'flex';
+        _contentPanelEl.style.alignItems = 'center';
+        _contentPanelEl.style.justifyContent = 'center';
+        _contentPanelEl.style.textAlign = 'center';
+
+        // Temporary placeholder text (safe to remove later)
+        _contentPanelEl.innerHTML = `
+          <div style="opacity:.65; font-size:12px; letter-spacing:.14em; text-transform:uppercase;">
+            Content Panel (placeholder)
+          </div>
+        `;
+
+        // IMPORTANT: append BEFORE the orange strip so it sits above it
+        hudMain.appendChild(_contentPanelEl);
+      }
+
+
       _orangeBoxEl = document.createElement('div');
       _orangeBoxEl.id = 'musicInfoStrip';
 	  
@@ -561,6 +601,12 @@ if (!document.getElementById('musicInfoStripStyles')) {
       _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
     }
     _orangeBoxEl = null;
+
+	    // GREEN BOX cleanup (Music only)
+    if (_contentPanelEl && _contentPanelEl.parentNode) {
+      _contentPanelEl.parentNode.removeChild(_contentPanelEl);
+    }
+    _contentPanelEl = null;
 
     const hudMain = document.querySelector('.hudStub.hudMain');
     if (hudMain){
