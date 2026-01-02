@@ -92,7 +92,8 @@
   // Tweak these values to control padding/spacing/size/visual style.
 
   // Layout sizing
-  const GREEN_BOX_MIN_HEIGHT = '520px'; // main height (try 420px–820px)
+  const GREEN_BOX_DESKTOP_MIN_HEIGHT = '0px'; // desktop: auto-size to content (set to e.g. '320px' if you want a minimum)
+  const GREEN_BOX_MOBILE_MIN_HEIGHT = '520px'; // mobile baseline (try 420px–820px)
   const GREEN_BOX_MAX_WIDTH = ORANGE_BOX_MAX_WIDTH; // keep aligned with strip by default
 
   // Positioning inside hudMain
@@ -389,7 +390,7 @@
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
         _contentPanelEl.style.margin = '5px auto 0';
-        _contentPanelEl.style.minHeight = GREEN_BOX_MIN_HEIGHT; // device-aware baseline
+        _contentPanelEl.style.minHeight = GREEN_BOX_DESKTOP_MIN_HEIGHT; // device-aware baseline
         _contentPanelEl.style.borderRadius = '10px';
 
         // Match HUD vibe (subtle, not overpowering)
@@ -415,6 +416,7 @@
           _contentPanelEl.style.alignItems = GREEN_BOX_MOBILE_ALIGN_ITEMS;
           _contentPanelEl.style.justifyContent = GREEN_BOX_MOBILE_JUSTIFY_CONTENT;
           _contentPanelEl.style.textAlign = GREEN_BOX_MOBILE_TEXT_ALIGN;
+          _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
         }
 
         // Temporary placeholder text (safe to remove later)
