@@ -289,7 +289,7 @@ glassOuter.style.margin = '0';
             letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
             text-transform:uppercase;
             opacity:.85;
-          ">INTRODUCTION / HOW IT STARTED</span>`;
+          ">INTRODUCTION  /  ORIGINS  /  NOTES  /  UPDATES</span>`;
 
 
       // no content yet; just a visible area
