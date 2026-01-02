@@ -82,7 +82,7 @@
     // 👉 HEIGHT CONTROL for the BIG translucent HUD region (Music only)
   // Use min-height for safety (won't clip). If you want strict height, set HUD_MAIN_USE_STRICT_HEIGHT = true.
   const HUD_MAIN_MIN_HEIGHT = '450px';         // <- THIS is the main dial (try 420–720px)
-  const HUD_MAIN_USE_STRICT_HEIGHT = false;    // true = force exact height (can clip)
+  const HUD_MAIN_USE_STRICT_HEIGHT = true;    // true = force exact height (can clip)
 
 
   
