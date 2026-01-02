@@ -320,16 +320,28 @@
   // ------------------------------------------------------------
 
   function renderArchiveHeaderUI() {
-    return `
-      <div class="archiveHeaderWrap">
-        <!-- Bands / Shows toggle -->
-        <div class="archiveModeToggle">
-          <button class="archiveModeBtn is-active" data-mode="bands">Bands</button>
-          <button class="archiveModeBtn" data-mode="shows">Shows</button>
-        </div>
+  // ✅ Put your hosted PNG URL here
+  const HEADER_PNG_BANDS_ACTIVE = 'https://YOUR-IMAGE-HOST/bands-shows-bands-active.png';
+  const HEADER_PNG_SHOWS_ACTIVE = 'https://YOUR-IMAGE-HOST/bands-shows-shows-active.png'; // optional but recommended
+
+  return `
+    <div class="archiveHeaderWrap">
+      <div class="archiveHeaderGraphic" data-mode="bands">
+        <img
+          class="archiveHeaderImg"
+          src="${HEADER_PNG_BANDS_ACTIVE}"
+          alt="Bands / Shows"
+          draggable="false"
+        />
+
+        <!-- Invisible click zones that sit on top of the image -->
+        <button class="archiveHit hit-bands" data-mode="bands" aria-label="Bands"></button>
+        <button class="archiveHit hit-shows" data-mode="shows" aria-label="Shows"></button>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
+
 
   function animateHudTab(tabEl) {
     if (!tabEl) return;
@@ -495,36 +507,53 @@
           -------------------------------------------------- */
 
           .archiveHeaderWrap{
-            width:100%;
-            display:flex;
-            justify-content:center;
-            margin-bottom:26px; /* space below header */
-          }
+  width:100%;
+  display:flex;
+  justify-content:center;
+  margin-bottom:26px; /* space below header */
+}
 
-          .archiveModeToggle{
-            display:flex;
-            gap:10px; /* spacing between buttons */
-            padding:6px;
-            border-radius:999px;
-            background:rgba(0,0,0,0.35);
-            box-shadow:
-              0 0 0 1px rgba(255,80,110,0.35) inset,
-              0 0 22px rgba(255,80,110,0.25);
-          }
+.archiveHeaderGraphic{
+  position:relative;
+  width:min(520px, 100%);
+  display:block;
+}
 
-          .archiveModeBtn{
-            min-width:96px; /* button width */
-            padding:8px 18px; /* vertical / horizontal padding */
-            border-radius:999px;
-            border:none;
-            background:transparent;
-            color:rgba(255,190,200,0.75);
-            font-size:13px;
-            letter-spacing:.12em;
-            text-transform:uppercase;
-            cursor:pointer;
-            transition:all 160ms ease;
-          }
+.archiveHeaderImg{
+  width:100%;
+  height:auto;
+  display:block;
+  user-select:none;
+  pointer-events:none; /* clicks go to hit buttons */
+}
+
+/* Two invisible buttons that cover left/right halves */
+.archiveHit{
+  position:absolute;
+  top:0;
+  height:100%;
+  width:50%;
+  border:0;
+  background:transparent;
+  padding:0;
+  margin:0;
+  cursor:pointer;
+  opacity:0; /* invisible */
+}
+
+/* left half */
+.archiveHit.hit-bands{ left:0; }
+/* right half */
+.archiveHit.hit-shows{ right:0; }
+
+/* Optional: give a tiny hover “hotspot” glow for debugging (turn on if needed) */
+/*
+.archiveHit:hover{
+  opacity:.08;
+  background:rgba(255,70,110,0.35);
+}
+*/
+
 
           .archiveModeBtn:hover{
             color:#fff;
@@ -770,11 +799,65 @@
 
           // Archives is a driven UI: expand viewport (green box) ONLY for this tab
           if (label === 'Archives') {
-            setArchiveViewportExpanded(true);
-            // Archives: start with a clean canvas (boxes will be added next)
-            wipeSwapContent('', '');
-            return;
-          }
+  setArchiveViewportExpanded(true);
+
+  // Render header graphic into the green content panel
+  const html = `
+    ${renderArchiveHeaderUI()}
+    <div id="archiveBody" style="width:100%; max-width:980px;"></div>
+  `;
+
+  wipeSwapContent(html, '');
+
+  // After wipe-in completes, wire up click behavior
+  window.setTimeout(() => {
+    const panel = document.getElementById('musicContentPanel');
+    if (!panel) return;
+
+    const header = panel.querySelector('.archiveHeaderGraphic');
+    const img = panel.querySelector('.archiveHeaderImg');
+    const body = panel.querySelector('#archiveBody');
+    if (!header || !img || !body) return;
+
+    // ✅ Put your two hosted image URLs here too (must match your render function)
+    const PNG_BANDS = 'https://YOUR-IMAGE-HOST/bands-shows-bands-active.png';
+    const PNG_SHOWS = 'https://YOUR-IMAGE-HOST/bands-shows-shows-active.png';
+
+    function setMode(mode){
+      header.dataset.mode = mode;
+
+      // Swap the image if you have both states
+      if (mode === 'shows' && PNG_SHOWS && PNG_SHOWS.startsWith('http')) {
+        img.src = PNG_SHOWS;
+      } else {
+        img.src = PNG_BANDS;
+      }
+
+      // TODO: swap your real content here
+      if (mode === 'bands') {
+        body.innerHTML = `<div style="opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em;">
+          <strong>Bands</strong><br><br>
+          Bands content goes here.
+        </div>`;
+      } else {
+        body.innerHTML = `<div style="opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em;">
+          <strong>Shows</strong><br><br>
+          Shows content goes here.
+        </div>`;
+      }
+    }
+
+    // Bind hit zones
+    panel.querySelectorAll('.archiveHit').forEach((btn) => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    // Default state
+    setMode('bands');
+  }, 360); // ~WIPE_OUT + WIPE_IN timing
+  return;
+}
+
 
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
