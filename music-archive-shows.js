@@ -251,8 +251,8 @@
     let activeYear = 2025;
 
     // TODO: set these to match your existing pill class names (so we don't restyle)
-    const pillClass = 'yearPill';
-    const pillActiveClass = 'isActive';
+    const pillClass = 'YearPill';
+    const pillActiveClass = 'YearPillActive';
 
     const mountEl = panelEl.querySelector('#showsYearsMount');
     if (!mountEl) return;
