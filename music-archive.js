@@ -74,7 +74,7 @@
 
   // Background for the BIG HUD container.
   // Use 'transparent' to remove the fill, or an rgba for translucent glass.
-  const HUD_MAIN_BG = 'transparent'; // e.g. 'rgba(0,0,0,0)'
+  const HUD_MAIN_BG = 'rgba(0,0,0,0.15)'; // e.g. 'rgba(0,0,0,0.15)'
 
   // Manual nudges for the BIG HUD container (small values!)
   const HUD_MAIN_X_OFFSET = '0px';
