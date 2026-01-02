@@ -380,7 +380,7 @@
         // Visual + layout: fills the main space above the orange strip
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH; // keep alignment consistent
-        _contentPanelEl.style.margin = '10px auto 0';
+        _contentPanelEl.style.margin = '5px auto 0';
         _contentPanelEl.style.minHeight = '700px'; // adjust later if you want
         _contentPanelEl.style.borderRadius = '10px';
 
