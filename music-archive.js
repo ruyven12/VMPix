@@ -455,11 +455,7 @@
   }
 
   /* Terminal-type helper (optional) */
-  #musicContentPanel .termLine{
-    opacity:.85;
-    font-size:14px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
+  #musicContentPanel .termLine{$1text-transform:none;
     display:inline-block;
     white-space:pre-wrap;
   }
@@ -623,7 +619,7 @@
       // --- TAB CLICK HANDLING (TEST CONTENT ONLY) ---
       const WIPE_OUT_MS = 140;
       const WIPE_IN_MS = 180;
-      const TYPE_MS = 14;
+      const TYPE_MS = 7;
       let _typeTimer = null;
 
       function wipeSwapContent(nextHtml, terminalText) {
@@ -699,7 +695,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             } else {
               wipeSwapContent(
                 `
-                <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">
+                <div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:none;">
                   ${label} – Coming Soon
                 </div>
               `,
