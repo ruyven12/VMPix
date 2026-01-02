@@ -83,6 +83,31 @@
   const ORANGE_BOX_TEXT_SIZE = '11px';
   const ORANGE_BOX_TEXT_TRACKING = '.12em';
 
+    // ------------------------------------------------------------
+  // GREEN BOX (main content panel) tuning knobs (Music only)
+  // ------------------------------------------------------------
+  // This is the large area (your green box) that will swap content per tab.
+  // Tweak these values to control padding/spacing/size/visual style.
+
+  // Layout sizing
+  const GREEN_BOX_MIN_HEIGHT = '520px';      // main height (try 420px–820px)
+  const GREEN_BOX_MAX_WIDTH  = ORANGE_BOX_MAX_WIDTH; // keep aligned with strip by default
+
+  // Positioning inside hudMain
+  const GREEN_BOX_MARGIN_TOP = '14px';       // space from top of hudMain content area
+  const GREEN_BOX_MARGIN_BOTTOM = '0px';     // usually 0 because orange strip is pinned
+
+  // Inner padding (what you'll tool with)
+  const GREEN_BOX_PADDING = '18px 18px';     // top/bottom left/right padding inside panel
+
+  // Visual style
+  const GREEN_BOX_RADIUS = '12px';
+  const GREEN_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.25)';
+  const GREEN_BOX_BG     = 'rgba(0,0,0,0.10)';
+  const GREEN_BOX_GLOW   = '0 0 0 1px rgba(255,70,110,0.08) inset';
+
+  // Optional: make it scroll if content is tall
+  const GREEN_BOX_OVERFLOW_Y = 'auto';       // 'auto' | 'hidden' | 'scroll'
 
 
   // Ensure neon frame is visible on Music route
