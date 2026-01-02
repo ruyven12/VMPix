@@ -44,7 +44,7 @@
 
   // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
-  const MUSIC_TITLE_Y_OFFSET = '0px';
+  const MUSIC_TITLE_Y_OFFSET = '-18px';
 
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
@@ -186,7 +186,8 @@
 
     // Simple title only (baseline)
     _mount.innerHTML =
-      '<span data-hud-main-text style="font-size:16px; letter-spacing:.14em; text-transform:uppercase;">The World of Music</span>';
+		'<span data-hud-main-text style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:uppercase; display:inline-block;">The World of Music</span>';
+
   }
 
   function onEnter(){
