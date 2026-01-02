@@ -13,6 +13,14 @@
         width:100%;
         max-width:980px;
         margin:0 auto;
+
+        /* IMPORTANT:
+           The parent content panel centers its children vertically.
+           We counter that here so the year bar can sit at the TOP.
+        */
+        display:flex;
+        flex-direction:column;
+        justify-content:flex-start; /* <-- forces top alignment */
       }
       .showsTitle{
         opacity:.9;
@@ -34,6 +42,11 @@
          so we don't affect any other YearPill usage elsewhere.
       */
       .yearsNav{
+        /* ===== POSITIONING MODE =====
+           This pins the year bar to the top edge of the content window
+        */
+        position: sticky;
+        top: 5px; /* <-- distance from top of content window */
         display:flex;
         align-items:center;
         justify-content:center; /* <-- centers pills horizontally */
@@ -193,7 +206,7 @@
     containerEl,
     years,              // array like [2026, 2025, ...]
     activeYear,         // number
-    maxVisible = 4,     // how many pills before overflow
+    maxVisible = 8,     // how many pills before overflow
     onSelectYear,       // function(year) {}
     pillClass = 'yearPill',       // TODO: set to your existing pill class
     pillActiveClass = 'isActive', // TODO: set to your existing active class
@@ -365,7 +378,7 @@
         containerEl: mountEl,
         years,
         activeYear,
-        maxVisible: 4,
+        maxVisible: 8,
         onSelectYear: handleSelectYear,
         pillClass,
         pillActiveClass,
@@ -388,7 +401,7 @@
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: 4,
+      maxVisible: 8,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
