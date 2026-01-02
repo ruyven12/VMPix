@@ -76,10 +76,11 @@
     wrap.style.transform = `translateY(${MUSIC_FRAME_Y_OFFSET})`;
 
     // Music-only: adjust the header wrap height (translucent layer)
-    if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || \"\";
-    if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || \"\";
-    wrap.style.minHeight = NEON_WRAP_MIN_HEIGHT;
-    wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : \"\";
+    if (_prevWrapMinHeight === null) _prevWrapMinHeight = wrap.style.minHeight || "";
+if (_prevWrapHeight === null) _prevWrapHeight = wrap.style.height || "";
+...
+wrap.style.height = NEON_WRAP_STRICT_HEIGHT ? NEON_WRAP_MIN_HEIGHT : "";
+
 
     // If the parent is centering, force top alignment for Music
     const menuHero = document.querySelector('.menuHero');
@@ -96,8 +97,9 @@
     if (wrap){
       wrap.style.display = _prevWrapDisplay || "";
       wrap.style.transform = _prevWrapTransform || "";
-      wrap.style.minHeight = _prevWrapMinHeight || \"\";
-      wrap.style.height = _prevWrapHeight || \"\";
+      wrap.style.minHeight = _prevWrapMinHeight || "";
+wrap.style.height = _prevWrapHeight || "";
+
     }
     _prevWrapDisplay = null;
     _prevWrapTransform = null;
