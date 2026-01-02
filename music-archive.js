@@ -774,17 +774,23 @@
 if (label === 'Bands' || label === 'Shows') {
   setArchiveViewportExpanded(true);
 
-  // OPTION A (simple for now): just show placeholder content
-  if (label === 'Bands') {
-    wipeSwapContent(
-      `<div style="max-width:860px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-        <strong>Bands</strong><br><br>
-        Bands content goes here.
-      </div>`,
-      ''
-    );
-    return;
-  }
+ // Bands (external module)
+if (label === 'Bands') {
+  const html =
+    window.MusicArchiveBands?.render?.() ||
+    `<div style="opacity:.7">Bands module not loaded.</div>`;
+
+  wipeSwapContent(html, '');
+
+  // Optional post-mount hook (wait for wipe-in)
+  window.setTimeout(() => {
+    const panel = document.getElementById('musicContentPanel');
+    window.MusicArchiveBands?.onMount?.(panel);
+  }, 360);
+
+  return;
+}
+
 
  // Shows (external module)
 const html =
