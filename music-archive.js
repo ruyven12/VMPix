@@ -63,6 +63,10 @@
   // Edit these safely later — no other code changes needed.
   // ------------------------------------------------------------
   const ORANGE_BOX_HEIGHT = '56px';        // strip height (try 48–72px)
+  // 👉 Manual position nudges (Music only)
+  // Use small values like '-20px' to '20px' while dialing in.
+  const ORANGE_BOX_X_OFFSET = '0px';   // left/right
+  const ORANGE_BOX_Y_OFFSET = '0px';   // up/down
   const ORANGE_BOX_MARGIN_TOP = '5px';    // space below neon title frame
   const ORANGE_BOX_MAX_WIDTH = '96%';      // keep inside the big HUD container
 
@@ -252,6 +256,7 @@ glassOuter.style.margin = '0';
       _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.margin = `${ORANGE_BOX_MARGIN_TOP} auto 0`;
+	  _orangeBoxEl.style.transform = `translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`; // <- YOUR DIALS
       _orangeBoxEl.style.width = '100%';
 
       // Border / look (matches outside vibe)
