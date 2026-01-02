@@ -56,7 +56,7 @@
 
   // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
-  const MUSIC_TITLE_Y_OFFSET = '-60px';
+  const MUSIC_TITLE_Y_OFFSET = '-80px';
 
   // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
   // Use small values like '6px'–'14px'. Set to '0px' for none.
