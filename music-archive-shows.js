@@ -86,8 +86,8 @@
         justify-content:center;
       }
       .showsPosterImg{
-        width:140px;
-        height:190px;
+        width: 170px; /* desktop: fixed pixel width */
+        height: 170px; /* keep consistent card layout */
         object-fit:cover;
         border-radius:10px;
         flex-shrink:0;
