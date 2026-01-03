@@ -98,16 +98,10 @@
       .showsPosterTitle{
         font-family:'Orbitron', system-ui, sans-serif;
         font-size:15px;
-        letter-spacing:.04em;
-        text-transform:none;
+        letter-spacing:.08em;
+        text-transform:uppercase;
         color:rgba(255,255,255,.95);
         line-height:1.3;
-      }
-      .showsPosterDate{
-        margin-top:6px;
-        font-size:13px;
-        color:rgba(148,163,184,.95); /* soft blue/gray like reference */
-        letter-spacing:.02em;
       }
 
       /* mobile: stack poster + text */
@@ -556,32 +550,13 @@
     return allShows.filter((s) => yearFromShowDate(s.date) === yr);
   }
 
-  function formatShowDate(raw) {
-    if (!raw) return '';
-    const parts = String(raw).split('/');
-    if (parts.length !== 3) return raw;
-    let [m, d, y] = parts.map(p => p.trim());
-    if (y.length === 2) y = '20' + y;
-    const date = new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`);
-    if (isNaN(date)) return raw;
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  }
-
   function renderPostersOnly({ year, shows, containerEl }) {
     if (!containerEl) return;
 
     const posters = (shows || []).filter((s) => s && s.poster_url);
 
     if (!posters.length) {
-      containerEl.innerHTML = `<div class=\"showsWip\">Work in progress</div>`;
-      return;
-    }
-
-    containerEl.innerHTML = `<div class="showsWip">Work in progress</div>`;
+      containerEl.innerHTML = `<div class="showsWip">Work in progress</div>`;
       return;
     }
 
@@ -597,7 +572,6 @@
                 <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
                 <div class="showsPosterMeta">
                   <div class="showsPosterTitle">${safeTitle}</div>
-                  <div class="showsPosterDate">${formatShowDate(s.date)}</div>
                 </div>
               </div>
             `;
