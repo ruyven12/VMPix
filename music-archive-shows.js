@@ -91,31 +91,6 @@
           text-align:left;
         }
         .showsPosterImg{
-          width:150px; /* desktop-only */
-          margin:0;
-          flex-shrink:0;
-        }
-        .showsPosterMeta{
-          padding-left:16px;
-          align-items:flex-start;
-        }
-        .showsPosterTitle,
-        .showsPosterDate,
-        .showsPosterVenue{
-          text-align:left;
-          padding-left:0;
-          padding-right:0;
-        }
-      }
-        .showsPosterTitle,
-        .showsPosterDate,
-        .showsPosterVenue{
-          text-align:left;
-          padding-left:0;
-          padding-right:0;
-        }
-      }
-        .showsPosterImg{
           margin:0;
           flex-shrink:0;
         }
