@@ -76,35 +76,11 @@
       }
       .showsPosterRow{
         display:flex;
-        flex-direction:column; /* mobile default */
+        flex-direction:column; /* desktop: stack poster + title */
         align-items:center;
         gap:10px;
         padding:14px;
         text-align:center;
-      }
-
-      /* Desktop layout: poster left, text right */
-      @media (min-width: 701px){
-        .showsPosterRow{
-          flex-direction:row;
-          align-items:flex-start;
-          text-align:left;
-        }
-        .showsPosterImg{
-          margin:0;
-          flex-shrink:0;
-        }
-        .showsPosterMeta{
-          padding-left:16px;
-          align-items:flex-start;
-        }
-        .showsPosterTitle,
-        .showsPosterDate,
-        .showsPosterVenue{
-          text-align:left;
-          padding-left:0;
-          padding-right:0;
-        }
       }
       .showsPosterMeta{
         display:flex;
