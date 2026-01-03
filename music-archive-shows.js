@@ -88,34 +88,7 @@
         justify-content:center;
         width:100%;
       }
-      .showsPosterImg{
-        width:150px; /* fixed desktop width */
-        height:auto;
-        object-fit:cover;
-        border-radius:10px;
-        flex-shrink:0;
-      }
-      .showsPosterTitle{
-        font-family:'Orbitron', system-ui, sans-serif;
-        font-size:15px;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        color:rgba(255,255,255,.95);
-        line-height:1.3;
-      }
 
-      /* mobile: stack poster + text */
-      @media (max-width:700px){
-        .showsPosterRow{
-          flex-direction:column;
-          align-items:center;
-          text-align:center;
-        }
-        .showsPosterImg{
-          width:100%;
-          height:auto;
-        }
-      }
       .showsPosterImg{
         width:100%;
         height: 170px;
@@ -216,7 +189,14 @@
           transform .14s ease,
           opacity .14s ease,
           color .14s ease,
-          filter .14s ease;
+          filter .14s ease,
+          background-size .18s ease;
+
+        /* Underline (red line) */
+        background-image: linear-gradient(to right, rgba(255, 60, 60, .95), rgba(255, 60, 60, .95));
+        background-repeat: no-repeat;
+        background-position: 50% calc(100% - 2px);
+        background-size: 0% 2px;
       }
 
       .yearsNav .YearPill:hover{
@@ -235,29 +215,12 @@
         filter: brightness(1.12);
       }
 
-      /* Underline (the red line you liked)
-         Using background-size animation (more robust vs existing theme button styles).
-      */
-      .yearsNav .YearPill{
-        background-image: linear-gradient(to right, rgba(255, 60, 60, .95), rgba(255, 60, 60, .95));
-        background-repeat: no-repeat;
-        background-position: 50% calc(100% - 2px);
-        background-size: 0% 2px;
-        transition:
-          transform .14s ease,
-          opacity .14s ease,
-          color .14s ease,
-          filter .14s ease,
-          background-size .18s ease;
-      }
-
       .yearsNav .YearPill.YearPillActive{
         color: rgba(255,255,255,.98);
         opacity: 1;
-        background-size: 100% 2px !important; /* <-- show underline */
+        background-size: 100% 2px !important;
       }
 
-      /* Subtle hover sheen (optional, matches HUD vibe) */
       .yearsNav .YearPill::after{
         content:"";
         position:absolute;
@@ -268,15 +231,10 @@
         opacity:0;
         transition: opacity .18s ease;
       }
-      .yearsNav .YearPill:hover::after{
-        opacity:.55;
-      }
+      .yearsNav .YearPill:hover::after{ opacity:.55; }
 
       /* Dropdown */
-      .yearsNav .yearsMore{
-        position:relative;
-        display:inline-block;
-      }
+      .yearsNav .yearsMore{ position:relative; display:inline-block; }
       .yearsNav .yearsMenu{
         position:absolute;
         z-index:9999;
@@ -308,34 +266,24 @@
         text-transform:uppercase;
         font-size:12px;
       }
-      .yearsNav .yearsMenu .menuItem:hover{
-        background:rgba(255,255,255,.08);
-        opacity:1;
-      }
+      .yearsNav .yearsMenu .menuItem:hover{ background:rgba(255,255,255,.08); opacity:1; }
     `;
     document.head.appendChild(s);
   }
 
-  /**
-   * Mounts a "pills + More ▾ overflow" year selector into containerEl.
-   * Non-destructive: you decide where it mounts. It does NOT touch other UI.
-   *
-   * You can map this to your existing pill classes by changing:
-   *   pillClass / pillActiveClass
-   */
   function mountYearsPillsOverflow({
     containerEl,
-    years,              // array like [2026, 2025, ]
+    years,              // array like [2026, 2025, ...]
     activeYear,         // number
     maxVisible = 4,     // how many pills before overflow
     onSelectYear,       // function(year) {}
-    pillClass = 'yearPill',       // TODO: set to your existing pill class
-    pillActiveClass = 'isActive', // TODO: set to your existing active class
+    pillClass = 'YearPill',
+    pillActiveClass = 'YearPillActive',
     moreLabel = 'More ▾'
   }) {
     if (!containerEl) return;
 
-    const sorted = [years].map(Number).filter(Boolean).sort((a, b) => b - a);
+    const sorted = [...years].map(Number).filter(Boolean).sort((a, b) => b - a);
 
     // Split into visible + overflow
     const visible = [];
@@ -425,8 +373,7 @@
       if (typeof onSelectYear === 'function') onSelectYear(year);
     });
 
-    // Close menu on outside click + ESC (one-time per mount)
-    // We scope "outside" as clicks not inside yearsNav.
+    // Close menu on outside click + ESC
     const onDocClick = (e) => {
       if (!menu) return;
       if (!yearsNav || !yearsNav.contains(e.target)) closeMenu();
@@ -439,7 +386,6 @@
     document.addEventListener('click', onDocClick, { capture: true });
     document.addEventListener('keydown', onDocKey);
 
-    // Return a cleanup function in case you remount this module often
     return function cleanup() {
       document.removeEventListener('click', onDocClick, { capture: true });
       document.removeEventListener('keydown', onDocKey);
@@ -448,7 +394,6 @@
 
   // ================================
   // TEST PORT: shows posters only
-  // Ported safely from the old working script (show_url / poster_url logic)
   // ================================
 
   const API_BASE = "https://music-archive-3lfa.onrender.com";
@@ -489,9 +434,7 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/
-?
-/).filter((l) => l.trim());
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
     const headerLine = lines.shift();
     if (!headerLine) return [];
 
@@ -503,7 +446,6 @@
         ? headerLower.indexOf("show_name")
         : headerLower.indexOf("title");
 
-    // ✅ key part: show_url -> poster_url (same behavior as your working script)
     const urlIdx =
       headerLower.indexOf("show_url") !== -1
         ? headerLower.indexOf("show_url")
@@ -628,23 +570,10 @@
   function render() {
     ensureShowsStyles();
 
-    // Return ONLY the HTML that belongs inside #musicContentPanel
     return `
       <div class="showsWrap">
-        <!-- Year selector is intentionally placed FIRST so it hugs the top
-             Adjust vertical spacing via .yearsNav margin-top above -->
-        <!-- Year pills mount point (non-destructive) -->
-        <!-- Year selector container
-             NOTE: This aligns to the top of the content area
-             Adjust spacing via .yearsNav padding/margin above
-        -->
         <div id="showsYearsMount"></div>
-
-        <!-- Your year table / posters will go here next -->
-        <div id="showsYearContent" class="showsNote">
-          (Shows module is now split into its own file.)<br><br>
-          Next step: drop in your year table + poster hover system here.
-        </div>
+        <div id="showsYearContent" class="showsNote">Select a year above.</div>
       </div>
     `;
   }
@@ -658,21 +587,17 @@
       2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009
     ];
 
-    // TODO: replace with your real "current selected year"
     let activeYear = 2025;
 
-    // TODO: set these to match your existing pill class names (so we don't restyle)
     const pillClass = 'YearPill';
     const pillActiveClass = 'YearPillActive';
 
     const mountEl = panelEl.querySelector('#showsYearsMount');
     if (!mountEl) return;
 
-    // Example: what happens when a year is clicked
     async function handleSelectYear(year) {
       activeYear = year;
 
-      // 1) Re-render pills so active state updates
       mountYearsPillsOverflow({
         containerEl: mountEl,
         years,
@@ -684,29 +609,21 @@
         moreLabel: 'More ▾'
       });
 
-      // 2) Posters-only test (do NOT change data flow yet)
       const content = panelEl.querySelector('#showsYearContent');
       if (content) {
-        // show a tiny loading state
         content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
 
-        // prevent older async calls from overwriting newer selection
         const requestId = String(Date.now()) + String(Math.random());
         content.dataset.req = requestId;
 
         const all = await ensureShowsLoaded();
-        // if user clicked again while loading, bail
         if (content.dataset.req !== requestId) return;
 
         const showsForYear = getShowsForYear(year, all);
         renderPostersOnly({ year, shows: showsForYear, containerEl: content });
       }
-
-      // 3) Later: call your real year-render function here
-      // renderYearTable(year);
     }
 
-    // Initial mount
     mountYearsPillsOverflow({
       containerEl: mountEl,
       years,
