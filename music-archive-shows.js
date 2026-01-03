@@ -540,7 +540,7 @@
         ${posters
           .map((s) => {
             const title = String(s.title || '').trim();
-            const safeTitle = title.replace(/"/g, '&quot;');
+            const safeTitle = title.split('"').join('&quot;');
 
             const date = String(s.date || '').trim();
 
@@ -567,7 +567,7 @@
               return `${month} ${day}${suffix}, ${year}`;
             }
 
-            const safeDate = date ? formatPrettyDate(date).replace(/"/g, '&quot;') : '';(/"/g, '&quot;');
+            const safeDate = date ? formatPrettyDate(date).split('"').join('&quot;') : '';(/"/g, '&quot;');
 
             const venue = String(s.venue || '').trim();
             const city = String(s.city || '').trim();
@@ -575,7 +575,7 @@
 
             const place = [city, state].filter(Boolean).join(', ');
             const venueLine = [venue, place].filter(Boolean).join(' - ');
-            const safeVenueLine = venueLine.replace(/"/g, '&quot;');
+            const safeVenueLine = venueLine.split('"').join('&quot;');
 
             return `
               <div class="showsPosterCard showsPosterRow">
