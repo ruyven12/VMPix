@@ -434,9 +434,8 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/
-?
-/).filter((l) => l.trim());
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+
     const headerLine = lines.shift();
     if (!headerLine) return [];
 
@@ -535,6 +534,33 @@
       return;
     }
 
+    function formatPrettyDate(raw) {
+      const parts = String(raw || '').trim().split('/');
+      if (parts.length !== 3) return String(raw || '').trim();
+      const m = Number(parts[0]) - 1;
+      const d = Number(parts[1]);
+      let y = Number(parts[2]);
+      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || '').trim();
+      if (y < 100) y += 2000;
+
+      const dateObj = new Date(y, m, d);
+      if (Number.isNaN(dateObj.getTime())) return String(raw || '').trim();
+
+      const month = dateObj.toLocaleString('en-US', { month: 'long' });
+      const day = dateObj.getDate();
+      const year = dateObj.getFullYear();
+
+      const suffix = (day % 10 === 1 && day !== 11)
+        ? 'st'
+        : (day % 10 === 2 && day !== 12)
+          ? 'nd'
+          : (day % 10 === 3 && day !== 13)
+            ? 'rd'
+            : 'th';
+
+      return month + ' ' + day + suffix + ', ' + year;
+    }
+
     containerEl.innerHTML = `
       <div class="showsPosterGrid" aria-label="Show posters for ${year}">
         ${posters
@@ -542,32 +568,9 @@
             const title = String(s.title || '').trim();
             const safeTitle = title.split('"').join('&quot;');
 
-            const date = String(s.date || '').trim();
-
-            function formatPrettyDate(raw) {
-              const parts = raw.split('/');
-              if (parts.length !== 3) return raw;
-              const m = Number(parts[0]) - 1;
-              const d = Number(parts[1]);
-              let y = Number(parts[2]);
-              if (y < 100) y += 2000;
-
-              const dateObj = new Date(y, m, d);
-              if (isNaN(dateObj)) return raw;
-
-              const month = dateObj.toLocaleString('en-US', { month: 'long' });
-              const day = dateObj.getDate();
-              const year = dateObj.getFullYear();
-
-              const suffix = (day % 10 === 1 && day !== 11) ? 'st'
-                : (day % 10 === 2 && day !== 12) ? 'nd'
-                : (day % 10 === 3 && day !== 13) ? 'rd'
-                : 'th';
-
-              return `${month} ${day}${suffix}, ${year}`;
-            }
-
-            const safeDate = date ? formatPrettyDate(date).split('"').join('&quot;') : '';(/"/g, '&quot;');
+            const dateRaw = String(s.date || '').trim();
+            const prettyDate = dateRaw ? formatPrettyDate(dateRaw) : '';
+            const safeDate = prettyDate.split('"').join('&quot;');
 
             const venue = String(s.venue || '').trim();
             const city = String(s.city || '').trim();
