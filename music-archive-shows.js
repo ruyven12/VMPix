@@ -134,6 +134,22 @@
         text-align:center;
       }
 
+      .showsPosterDate{
+        margin-top:-6px;
+        padding:0 10px 8px;
+        font-size:11px;
+        letter-spacing:.06em;
+        opacity:.85;
+        text-align:center;
+      }
+      .showsPosterVenue{
+        padding:0 10px 12px;
+        font-size:11px;
+        letter-spacing:.04em;
+        opacity:.80;
+        text-align:center;
+      }
+
       /* Years pills + overflow dropdown (scoped, non-destructive)
          We DO style the pills here, but only when they live inside .yearsNav,
          so we don't affect any other YearPill usage elsewhere.
@@ -496,6 +512,16 @@
         ? headerLower.indexOf("show_date")
         : headerLower.indexOf("date");
 
+    const venueIdx = headerLower.indexOf("show_venue");
+    const cityIdx =
+      headerLower.indexOf("show_city") !== -1
+        ? headerLower.indexOf("show_city")
+        : headerLower.indexOf("city");
+    const stateIdx =
+      headerLower.indexOf("show_state") !== -1
+        ? headerLower.indexOf("show_state")
+        : headerLower.indexOf("state");
+
     const rows = [];
 
     for (const line of lines) {
@@ -505,6 +531,9 @@
         title: nameIdx !== -1 ? (cols[nameIdx] || "").trim() : "",
         poster_url: urlIdx !== -1 ? (cols[urlIdx] || "").trim() : "",
         date: dateIdx !== -1 ? (cols[dateIdx] || "").trim() : "",
+        venue: venueIdx !== -1 ? (cols[venueIdx] || "").trim() : "",
+        city: cityIdx !== -1 ? (cols[cityIdx] || "").trim() : "",
+        state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
       };
 
       rows.push(row);
@@ -567,11 +596,24 @@
             const title = String(s.title || '').trim();
             const safeTitle = title.replace(/"/g, '&quot;');
 
+            const date = String(s.date || '').trim();
+            const safeDate = date.replace(/"/g, '&quot;');
+
+            const venue = String(s.venue || '').trim();
+            const city = String(s.city || '').trim();
+            const state = String(s.state || '').trim();
+
+            const place = [city, state].filter(Boolean).join(', ');
+            const venueLine = [venue, place].filter(Boolean).join(' - ');
+            const safeVenueLine = venueLine.replace(/"/g, '&quot;');
+...
             return `
               <div class="showsPosterCard showsPosterRow">
                 <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
                 <div class="showsPosterMeta">
                   <div class="showsPosterTitle">${safeTitle}</div>
+                  ${safeDate ? `<div class="showsPosterDate">${safeDate}</div>` : ``}
+                  ${safeVenueLine ? `<div class="showsPosterVenue">${safeVenueLine}</div>` : ``}
                 </div>
               </div>
             `;
@@ -605,13 +647,12 @@
     `;
   }
 
-  // Optional: hook after content is placed into #musicContentPanel
   function onMount(panelEl) {
-    // ---- CONFIG: wire these into your real data + selection handler ----
+    if (!panelEl) return;
 
-    // Example years (add 2026 here when ready)
     const years = [
-      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017,
+      2026, 2025, 2024, 2023, 2022, 2021, 2020,
+      2019, 2018, 2017,
       2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009
     ];
 
