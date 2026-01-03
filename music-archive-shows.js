@@ -435,7 +435,9 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const lines = text.split(/
+?
+/).filter((l) => l.trim());
 
     const headerLine = lines.shift();
     if (!headerLine) return [];
@@ -528,10 +530,10 @@
   function renderPostersOnly({ year, shows, containerEl }) {
     if (!containerEl) return;
 
-    const posters = (shows || []).filter((s) => s && s.poster_url);
+    const posters = (shows || []).filter((s) => s);
 
     if (!posters.length) {
-      containerEl.innerHTML = `<div class="showsWip">Work in progress</div>`;
+      containerEl.innerHTML = `<div class=\"showsWip\">Work in progress</div>`;
       return;
     }
 
@@ -563,7 +565,7 @@
     }
 
     containerEl.innerHTML = `
-      <div class="showsPosterGrid" aria-label="Show posters for ${year}">
+      <div class=\"showsPosterGrid\" aria-label=\"Show posters for ${year}\">
         ${posters
           .map((s) => {
             const title = String(s.title || '').trim();
@@ -582,12 +584,14 @@
             const safeVenueLine = venueLine.split('"').join('&quot;');
 
             return `
-              <div class="showsPosterCard showsPosterRow">
-                <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
-                <div class="showsPosterMeta">
-                  <div class="showsPosterTitle">${safeTitle}</div>
-                  ${safeDate ? `<div class="showsPosterDate">${safeDate}</div>` : ``}
-                  ${safeVenueLine ? `<div class="showsPosterVenue">${safeVenueLine}</div>` : ``}
+              <div class=\"showsPosterCard showsPosterRow\">
+                ${s.poster_url
+                  ? `<img class=\"showsPosterImg\" src=\"${s.poster_url}\" alt=\"${safeTitle || 'Show'}\" loading=\"lazy\" />`
+                  : `<div class=\"showsPosterImg\" style=\"width:150px;height:1px;\"></div><div class=\"showsPosterVenue\" style=\"margin-top:6px;opacity:.6;\">No poster yet</div>`}
+                <div class=\"showsPosterMeta\">
+                  <div class=\"showsPosterTitle\">${safeTitle}</div>
+                  ${safeDate ? `<div class=\"showsPosterDate\">${safeDate}</div>` : ``}
+                  ${safeVenueLine ? `<div class=\"showsPosterVenue\">${safeVenueLine}</div>` : ``}
                 </div>
               </div>
             `;
@@ -601,9 +605,9 @@
     ensureShowsStyles();
 
     return `
-      <div class="showsWrap">
-        <div id="showsYearsMount"></div>
-        <div id="showsYearContent" class="showsNote">Select a year above.</div>
+      <div class=\"showsWrap\">
+        <div id=\"showsYearsMount\"></div>
+        <div id=\"showsYearContent\" class=\"showsNote\">Select a year above.</div>
       </div>
     `;
   }
@@ -641,7 +645,7 @@
 
       const content = panelEl.querySelector('#showsYearContent');
       if (content) {
-        content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
+        content.innerHTML = `<div class=\"showsWip\">Loading posters…</div>`;
 
         const requestId = String(Date.now()) + String(Math.random());
         content.dataset.req = requestId;
