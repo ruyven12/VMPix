@@ -435,9 +435,7 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/
-?
-/).filter((l) => l.trim());
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
 
     const headerLine = lines.shift();
     if (!headerLine) return [];
