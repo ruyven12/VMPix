@@ -59,9 +59,14 @@
       .showsPosterGrid{
         width:100%;
         display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)); /* desktop: 2 per row */
         gap:14px;
         margin-top: 10px;
+      }
+
+      /* mobile: 1 per row (matches scriptmusic behavior) */
+      @media (max-width: 700px){
+        .showsPosterGrid{ grid-template-columns: 1fr; }
       }
       .showsPosterCard{
         border-radius: 14px;
@@ -74,6 +79,17 @@
         height: 170px;
         object-fit: cover;
         display:block;
+      }
+      .showsPosterTitle{
+        padding:10px 10px 12px;
+        font-family:'Orbitron', system-ui, sans-serif;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        font-size:12px;
+        line-height:1.25;
+        color:rgba(255,255,255,.88);
+        opacity:.95;
+        text-align:center;
       }
 
       /* Years pills + overflow dropdown (scoped, non-destructive)
@@ -509,6 +525,7 @@
             (s) => `
           <div class="showsPosterCard">
             <img class="showsPosterImg" src="${s.poster_url}" alt="${(s.title || "Show").replace(/"/g, "&quot;")}" loading="lazy" />
+            <div class="showsPosterTitle">${(s.title || "").replace(/"/g, "&quot;")}</div>
           </div>
         `,
           )
