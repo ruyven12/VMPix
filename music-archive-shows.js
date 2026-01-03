@@ -434,7 +434,9 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const lines = text.split(/
+?
+/).filter((l) => l.trim());
     const headerLine = lines.shift();
     if (!headerLine) return [];
 
@@ -541,7 +543,31 @@
             const safeTitle = title.replace(/"/g, '&quot;');
 
             const date = String(s.date || '').trim();
-            const safeDate = date.replace(/"/g, '&quot;');
+
+            function formatPrettyDate(raw) {
+              const parts = raw.split('/');
+              if (parts.length !== 3) return raw;
+              const m = Number(parts[0]) - 1;
+              const d = Number(parts[1]);
+              let y = Number(parts[2]);
+              if (y < 100) y += 2000;
+
+              const dateObj = new Date(y, m, d);
+              if (isNaN(dateObj)) return raw;
+
+              const month = dateObj.toLocaleString('en-US', { month: 'long' });
+              const day = dateObj.getDate();
+              const year = dateObj.getFullYear();
+
+              const suffix = (day % 10 === 1 && day !== 11) ? 'st'
+                : (day % 10 === 2 && day !== 12) ? 'nd'
+                : (day % 10 === 3 && day !== 13) ? 'rd'
+                : 'th';
+
+              return `${month} ${day}${suffix}, ${year}`;
+            }
+
+            const safeDate = date ? formatPrettyDate(date).replace(/"/g, '&quot;') : '';(/"/g, '&quot;');
 
             const venue = String(s.venue || '').trim();
             const city = String(s.city || '').trim();
