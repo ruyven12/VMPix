@@ -69,10 +69,49 @@
         .showsPosterGrid{ grid-template-columns: 1fr; }
       }
       .showsPosterCard{
-        border-radius: 14px;
+        border-radius:14px;
         overflow:hidden;
-        background: rgba(0,0,0,.18);
-        box-shadow: 0 10px 26px rgba(0,0,0,.45);
+        background:rgba(0,0,0,.18);
+        box-shadow:0 10px 26px rgba(0,0,0,.45);
+      }
+      .showsPosterRow{
+        display:flex;
+        align-items:center;
+        gap:18px;
+        padding:14px;
+      }
+      .showsPosterMeta{
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+      }
+      .showsPosterImg{
+        width:140px;
+        height:190px;
+        object-fit:cover;
+        border-radius:10px;
+        flex-shrink:0;
+      }
+      .showsPosterTitle{
+        font-family:'Orbitron', system-ui, sans-serif;
+        font-size:15px;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+        color:rgba(255,255,255,.95);
+        line-height:1.3;
+      }
+
+      /* mobile: stack poster + text */
+      @media (max-width:700px){
+        .showsPosterRow{
+          flex-direction:column;
+          align-items:center;
+          text-align:center;
+        }
+        .showsPosterImg{
+          width:100%;
+          height:auto;
+        }
       }
       .showsPosterImg{
         width:100%;
@@ -523,9 +562,12 @@
         ${posters
           .map(
             (s) => `
-          <div class="showsPosterCard">
-            <img class="showsPosterImg" src="${s.poster_url}" alt="${(s.title || "Show").replace(/"/g, "&quot;")}" loading="lazy" />
-            <div class="showsPosterTitle">${(s.title || "").replace(/"/g, "&quot;")}</div>
+          <div class="showsPosterCard showsPosterRow">
+                <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
+                <div class="showsPosterMeta">
+                  <div class="showsPosterTitle">${safeTitle}</div>
+                </div>
+              </div>
           </div>
         `,
           )
