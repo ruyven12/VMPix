@@ -90,10 +90,11 @@
       }
 
       .showsPosterImg{
-        width:100%;
-        height: 170px;
-        object-fit: cover;
+        width:150px;
+        height:auto;
+        object-fit:cover;
         display:block;
+        margin:0 auto;
       }
       .showsPosterTitle{
         padding:10px 10px 12px;
