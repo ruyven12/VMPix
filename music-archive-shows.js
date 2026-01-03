@@ -59,7 +59,7 @@
       .showsPosterGrid{
         width:100%;
         display:grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr)); /* desktop: 2 per row */
+        grid-template-columns: 1fr; /* desktop: 1 per row (for now) */
         gap:14px;
         margin-top: 10px;
       }
@@ -76,14 +76,17 @@
       }
       .showsPosterRow{
         display:flex;
+        flex-direction:column; /* desktop: stack poster + title */
         align-items:center;
-        gap:18px;
+        gap:10px;
         padding:14px;
+        text-align:center;
       }
       .showsPosterMeta{
         display:flex;
         flex-direction:column;
         justify-content:center;
+        width:100%;
       }
       .showsPosterImg{
         width:150px; /* fixed desktop width */
