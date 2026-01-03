@@ -325,7 +325,7 @@
    */
   function mountYearsPillsOverflow({
     containerEl,
-    years,              // array like [2026, 2025, ...]
+    years,              // array like [2026, 2025, ]
     activeYear,         // number
     maxVisible = 4,     // how many pills before overflow
     onSelectYear,       // function(year) {}
@@ -335,7 +335,7 @@
   }) {
     if (!containerEl) return;
 
-    const sorted = [...years].map(Number).filter(Boolean).sort((a, b) => b - a);
+    const sorted = [years].map(Number).filter(Boolean).sort((a, b) => b - a);
 
     // Split into visible + overflow
     const visible = [];
@@ -489,7 +489,9 @@
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const lines = text.split(/
+?
+/).filter((l) => l.trim());
     const headerLine = lines.shift();
     if (!headerLine) return [];
 
@@ -606,7 +608,7 @@
             const place = [city, state].filter(Boolean).join(', ');
             const venueLine = [venue, place].filter(Boolean).join(' - ');
             const safeVenueLine = venueLine.replace(/"/g, '&quot;');
-...
+
             return `
               <div class="showsPosterCard showsPosterRow">
                 <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
