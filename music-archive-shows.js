@@ -90,7 +90,7 @@
       }
 
       .showsPosterImg{
-        width:150px;
+        width:200px;
         height:auto;
         object-fit:cover;
         display:block;
