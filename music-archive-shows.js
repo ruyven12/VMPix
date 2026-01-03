@@ -560,18 +560,20 @@
     containerEl.innerHTML = `
       <div class="showsPosterGrid" aria-label="Show posters for ${year}">
         ${posters
-          .map(
-            (s) => `
-          <div class="showsPosterCard showsPosterRow">
+          .map((s) => {
+            const title = String(s.title || '').trim();
+            const safeTitle = title.replace(/"/g, '&quot;');
+
+            return `
+              <div class="showsPosterCard showsPosterRow">
                 <img class="showsPosterImg" src="${s.poster_url}" alt="${safeTitle || 'Show'}" loading="lazy" />
                 <div class="showsPosterMeta">
                   <div class="showsPosterTitle">${safeTitle}</div>
                 </div>
               </div>
-          </div>
-        `,
-          )
-          .join("")}
+            `;
+          })
+          .join('')}
       </div>
     `;
   }
