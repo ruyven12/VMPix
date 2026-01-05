@@ -192,8 +192,10 @@ text-align:left;
            You asked to remove the border around the year pills area.
            If you ever want it back, restore border/background here.
         */
-        border: none;
-        background: transparent;
+        /* DEBUG: outline years selector container */
+border:2px solid rgba(0,255,255,.8);
+background: transparent;
+
       }
       .yearsNav .yearsPills{
         display:flex;
