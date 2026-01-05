@@ -46,12 +46,38 @@
         width:100%;
         max-width:1100px;
         margin:0 auto;
+        box-sizing:border-box;
+
+        /* Keep content top-aligned inside the parent panel */
+        height:100%;
+        min-height:100%;
+        align-self:stretch;
+
+        display:flex;
+        flex-direction:column;
+        justify-content:flex-start;
+
+        /* Allow scrolling within the Shows panel without losing the header */
+        overflow-y:auto;
+        overflow-x:hidden;
+
+        /* tweak top/bottom spacing */
         padding-top: 8px;
+        padding-bottom: 84px; /* room for bottom nav on small screens */
       }
+
 
       /* Year pills row */
       #showsYearsMount{
         display:flex;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 8px 6px;
+        backdrop-filter: blur(6px);
+        background: rgba(0,0,0,0.22);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+
         flex-wrap:wrap;
         gap:8px;
         justify-content:center;
@@ -635,7 +661,12 @@ for (let n = 1; n <= 20; n++) {
     if (_bandsIndexPromise) return _bandsIndexPromise;
 
     _bandsIndexPromise = fetch(`${API_BASE}/sheet/bands`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        if (ct.includes('application/json')) return r.json();
+        const txt = await r.text();
+        throw new Error(`Expected JSON from /sheet/bands but got ${ct || 'unknown'}: ${txt.slice(0,120)}`);
+      })
       .then((rows) => {
         const map = new Map();
         (rows || []).forEach((row) => {
