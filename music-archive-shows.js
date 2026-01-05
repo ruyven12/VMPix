@@ -485,6 +485,7 @@ function restoreScrollSnapshot(snapshot) {
       const year = Number(yearStr);
 
       closeMenu();
+	  try { btn.focus({ preventScroll: true }); } catch (_) {}
       if (typeof onSelectYear === "function") onSelectYear(year);
     };
 
