@@ -946,7 +946,7 @@ currentYearPretty = (showsForYear || []).map((s) => {
         day % 10 === 2 && day !== 12 ? "nd" :
         day % 10 === 3 && day !== 13 ? "rd" : "th";
       return month + " " + day + suffix + ", " + year2;
-    })(s.date) : ""),
+    })(s.date) : "",
   };
 });
 
