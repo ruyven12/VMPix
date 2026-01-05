@@ -309,6 +309,21 @@ text-align:left;
     `;
     document.head.appendChild(s);
   }
+  
+  function getScrollParent(el) {
+  let node = el;
+  while (node && node !== document.body) {
+    const style = window.getComputedStyle(node);
+    const overflowY = style.overflowY;
+    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  // fallback (SmugMug sometimes uses document scrolling)
+  return document.scrollingElement || document.documentElement;
+}
+
 
   function mountYearsPillsOverflow({
     containerEl,
@@ -696,33 +711,48 @@ text-align:left;
     if (!mountEl) return;
 
     async function handleSelectYear(year) {
-      activeYear = year;
+  // ✅ Save current scroll position (so clicking a year doesn't jump to top)
+  const scrollHost = getScrollParent(panelEl);
+  const savedTop = scrollHost ? scrollHost.scrollTop : 0;
 
-      mountYearsPillsOverflow({
-        containerEl: mountEl,
-        years,
-        activeYear,
-        maxVisible: years.length,
-        onSelectYear: handleSelectYear,
-        pillClass,
-        pillActiveClass,
-        moreLabel: "More ▾",
-      });
+  activeYear = year;
 
-      const content = panelEl.querySelector("#showsYearContent");
-      if (content) {
-        content.innerHTML = `<div class=\"showsWip\">Loading posters…</div>`;
+  mountYearsPillsOverflow({
+    containerEl: mountEl,
+    years,
+    activeYear,
+    maxVisible: years.length,
+    onSelectYear: handleSelectYear,
+    pillClass,
+    pillActiveClass,
+    moreLabel: "More ▾",
+  });
 
-        const requestId = String(Date.now()) + String(Math.random());
-        content.dataset.req = requestId;
+  // ✅ Restore scroll position after the nav re-renders
+  requestAnimationFrame(() => {
+    if (scrollHost) scrollHost.scrollTop = savedTop;
+  });
 
-        const all = await ensureShowsLoaded();
-        if (content.dataset.req !== requestId) return;
+  const content = panelEl.querySelector("#showsYearContent");
+  if (content) {
+    content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
 
-        const showsForYear = getShowsForYear(year, all);
-        renderPostersOnly({ year, shows: showsForYear, containerEl: content });
-      }
-    }
+    const requestId = String(Date.now()) + String(Math.random());
+    content.dataset.req = requestId;
+
+    const all = await ensureShowsLoaded();
+    if (content.dataset.req !== requestId) return;
+
+    const showsForYear = getShowsForYear(year, all);
+    renderPostersOnly({ year, shows: showsForYear, containerEl: content });
+
+    // ✅ Restore again after posters render (height changes can cause another jump)
+    requestAnimationFrame(() => {
+      if (scrollHost) scrollHost.scrollTop = savedTop;
+    });
+  }
+}
+
 
     mountYearsPillsOverflow({
       containerEl: mountEl,
