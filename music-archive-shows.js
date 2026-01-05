@@ -11,409 +11,214 @@
       /* Shows-only styles live here */
       .showsWrap{
         width:100%;
-        max-width:980px;
+        max-width:1100px;
         margin:0 auto;
-        box-sizing:border-box;
+        padding-top: 8px;
+      }
 
-        /* IMPORTANT:
-           The parent content panel is centering its children vertically.
-           To counter that, we make THIS wrapper fill the available height,
-           then lay out our children from the top.
-        */
-        height:100%;
-        min-height:100%;
-        align-self:stretch;
-
+      /* Year pills row */
+      #showsYearsMount{
         display:flex;
-        flex-direction:column;
-        justify-content:flex-start; /* <-- forces top alignment */
-
-        /* ===== EDIT TOP GAP HERE ===== */
-        padding-top: 2px; /* <-- space from top border of content window */
+        flex-wrap:wrap;
+        gap:8px;
+        justify-content:center;
+        align-items:center;
+        margin: 10px auto 6px;
       }
-      .showsTitle{
-        opacity:.9;
-        font-size:14px;
-        letter-spacing:.10em;
-        text-transform:uppercase;
-        margin-bottom:14px;
-      }
-      .showsNote{
-        opacity:.75;
-        font-size:13px;
-        line-height:1.6;
-        letter-spacing:.03em;
-        text-transform:none;
-      }
-
-      /* Posters-only test grid (safe + scoped) */
-      .showsWip{
-        text-align:center;
-        opacity:.75;
-        margin-top: 10px;
-        font-family:'Orbitron', system-ui, sans-serif;
-        letter-spacing:.08em;
-        text-transform:uppercase;
+      .YearPill{
+        cursor:pointer;
+        padding:6px 12px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.92);
         font-size:12px;
+        user-select:none;
+        line-height:1;
+        transition: transform .08s ease, background .12s ease, border-color .12s ease;
       }
-      .showsPosterGrid{
+      .YearPill:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.10); }
+      .YearPillActive{
+        background: rgba(255,255,255,0.95);
+        color: rgba(0,0,0,0.92);
+        border-color: rgba(255,255,255,0.75);
+      }
+
+      /* Year instruction / empty state */
+      .showsNote{
+        text-align:center;
+        color: rgba(255,255,255,0.75);
+        font-size:12px;
+        margin: 4px 0 14px;
+      }
+
+      /* Shows grid: 2 columns desktop, 1 column mobile */
+      .showsGrid{
         width:100%;
         display:grid;
-        grid-template-columns: 1fr; /* desktop: 1 per row (for now) */
-        gap:14px;
-        margin-top: 10px;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        align-items:start;
+      }
+      @media (max-width: 860px){
+        .showsGrid{ grid-template-columns: 1fr; }
       }
 
-      /* mobile: 1 per row (matches scriptmusic behavior) */
-      @media (max-width: 700px){
-  .showsPosterGrid{ grid-template-columns: 1fr; }
-
-  /* On small screens, stack poster above text */
-  .showsPosterRow{
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-  }
-  .showsPosterMeta{ width:100%; }
-  .showsPosterTitle,
-  .showsPosterDate,
-  .showsPosterVenue{ text-align:center; }
-
-  .showsPosterImg{
-    width:160px;
-    flex:0 0 auto;
-  }
-}
-
-.showsPosterSpacer{
-  height: 10px; /* "blank line" after the title */
-}
-
-
-
-      .showsPosterCard{
-        border-radius:14px;
+      /* Individual show tile */
+      .showTile{
+        border:1px solid rgba(255,255,255,0.10);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.04);
         overflow:hidden;
-		border:2px solid rgba(0,255,255,.8);
-        background:rgba(0,0,0,.18);
-        box-shadow:0 10px 26px rgba(0,0,0,.45);
       }
-      .showsPosterRow{
-		display:flex;
-		flex-direction:row;          /* <-- linear: poster left, text right */
-		align-items:flex-start;
-		gap:14px;
-		padding:14px;
-		text-align:left;
-	  }
-
-      .showsPosterMeta{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  width:100%;
-  min-width:0;                 /* <-- important for wrapping in flex */
-}
-
-
-      .showsPosterImg{
-  width:120px;                 /* <-- left column size */
-  height:auto;
-  object-fit:cover;
-  display:block;
-  flex:0 0 120px;              /* keeps it from shrinking weirdly */
-  border-radius:10px;
-}
-
-      .showsPosterTitle{
-        padding:10px 10px 12px;
-        font-family:'Orbitron', system-ui, sans-serif;
-        letter-spacing:.06em;
-        text-transform:uppercase;
-        font-size:12px;
-        line-height:1.25;
-		word-break: break-word;
-		overflow-wrap: anywhere;
-        color:rgba(255,255,255,.88);
-        opacity:.95;
-        text-align:left;
-		padding:0 0 6px;
-		overflow-wrap:anywhere;
-word-break:break-word;
-
+      .showTileHeader{
+        display:flex;
+        gap: 14px;
+        padding: 14px;
+        align-items:flex-start;
       }
-
-      .showsPosterDate{
-        margin-top:-6px;
-        font-size:11px;
-        letter-spacing:.06em;
-        opacity:.85;
-        padding:0 0 6px;
-text-align:left;
-
+      .showPosterWrap{
+        flex:0 0 auto;
+        width: 110px;
       }
-      .showsPosterVenue{
-        font-size:11px;
-        letter-spacing:.04em;
-        opacity:.80;
-        padding:0;
-		text-align:left;
-
-      }
-	  
-/* Bands dropdown inside each poster card */
-.showsBandsWrap{
-  max-height:0;
-  overflow:hidden;
-  opacity:0;
-  transition: max-height .22s ease, opacity .18s ease;
-  margin-top:0;
-  padding-top:0;
-  border-top:1px solid rgba(255,255,255,.10);
-}
-.showsPosterCard.isOpen .showsBandsWrap{
-  max-height:900px; /* big enough for 20 bands */
-  opacity:1;
-  margin-top:10px;
-  padding-top:10px;
-}
-.showsBandsLabel{
-  font-family:'Orbitron', system-ui, sans-serif;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  font-size:11px;
-  opacity:.85;
-  margin-bottom:8px;
-}
-.showsBandsList{
-  list-style:none;
-  padding:0;
-  margin:0;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.showsBandItem{
-  font-size:12px;
-  letter-spacing:.02em;
-  opacity:.9;
-  line-height:1.35;
-}
-.showsBandsEmpty{
-  font-size:12px;
-  opacity:.65;
-}
-
-
-	  .showsDetail{ width:100%; }
-
-.showsBackBtn{
-  border:2px solid rgba(0,255,255,.8);
-  background:rgba(0,0,0,.18);
-  color:rgba(255,255,255,.9);
-  border-radius:12px;
-  padding:10px 12px;
-  cursor:pointer;
-  font-family:'Orbitron', system-ui, sans-serif;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  font-size:12px;
-  margin-bottom:12px;
-}
-
-.showsDetailCard{
-  border-radius:14px;
-  overflow:hidden;
-  border:2px solid rgba(0,255,255,.8);
-  background:rgba(0,0,0,.18);
-  box-shadow:0 10px 26px rgba(0,0,0,.45);
-  padding:14px;
-  display:flex;
-  gap:14px;
-  align-items:flex-start;
-}
-
-.showsDetailImg{
-  width:220px;
-  height:auto;
-  border-radius:10px;
-  flex:0 0 auto;
-}
-
-@media (max-width:700px){
-  .showsDetailCard{
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-  }
-  .showsDetailImg{ width:240px; }
-}
-
-.showsDetailTitle{
-  font-family:'Orbitron', system-ui, sans-serif;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  font-size:14px;
-  line-height:1.25;
-  opacity:.95;
-  margin-bottom:8px;
-}
-
-.showsDetailDate,
-.showsDetailVenue{
-  font-size:12px;
-  opacity:.85;
-  margin-top:4px;
-}
-
-
-      /* Years pills + overflow dropdown (scoped, non-destructive)
-         We DO style the pills here, but only when they live inside .yearsNav,
-         so we don't affect any other YearPill usage elsewhere.
-      */
-      .yearsNav{
-		position: relative;
-		display:flex;
-		align-items:center;
-		justify-content:center;
-		gap:10px;
-
-	  /* important change */
-		flex-wrap:nowrap;
-
-		margin-top: 0px;
-		margin-bottom: 18px;
-		padding: 14px 16px;
-
-		border:2px solid rgba(0,255,255,.8);
-		background: transparent;
-	  }
-
-      .yearsNav .yearsPills{
-  display:flex;
-  gap:10px;
-
-  flex-wrap:nowrap;
-
-  /* make it a real scroll area */
-  width:100%;
-  max-width:100%;
-  overflow-x:auto;
-  overflow-y:hidden;
-
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
-  scroll-behavior:smooth;
-}
-
-
-
-      /* --- Pill look/feel to match your "orange box" vibe ---
-         We keep behavior the same; this is styling only.
-      */
-      .yearsNav .YearPill{
-        -webkit-appearance:none;
-        appearance:none;
-        border:none;
-        background:transparent;
-        color:rgba(255,255,255,.88);
-        padding:8px 14px 10px;
-        border-radius:10px;
-		flex: 0 0 auto;
-        font-family:'Orbitron', system-ui, sans-serif;
-        font-size:12px;
-        letter-spacing:.10em;
-        text-transform:uppercase;
-        cursor:pointer;
-        user-select:none;
-        position:relative;
-
-        /* Softer "tab" feel like the orange box area */
-        opacity:.9;
-        transition:
-          transform .14s ease,
-          opacity .14s ease,
-          color .14s ease,
-          filter .14s ease,
-          background-size .18s ease;
-
-        /* Underline (red line) */
-        background-image: linear-gradient(to right, rgba(255, 60, 60, .95), rgba(255, 60, 60, .95));
-        background-repeat: no-repeat;
-        background-position: 50% calc(100% - 2px);
-        background-size: 0% 2px;
-      }
-
-      .yearsNav .YearPill:hover{
-        transform: translateY(-1px);
-        opacity:1;
-        filter: brightness(1.08);
-      }
-
-      .yearsNav .YearPill:active{
-        transform: translateY(0px);
-        filter: brightness(1.12);
-      }
-
-      .yearsNav .YearPill:focus-visible{
-        outline:none;
-        filter: brightness(1.12);
-      }
-
-      .yearsNav .YearPill.YearPillActive{
-        color: rgba(255,255,255,.98);
-        opacity: 1;
-        background-size: 100% 2px !important;
-      }
-
-      .yearsNav .YearPill::after{
-        content:"";
-        position:absolute;
-        inset:0;
-        border-radius:inherit;
-        pointer-events:none;
-        background: radial-gradient(circle at 50% 120%, rgba(255, 60, 60, .18), transparent 55%);
-        opacity:0;
-        transition: opacity .18s ease;
-      }
-      .yearsNav .YearPill:hover::after{ opacity:.55; }
-
-      /* Dropdown */
-      .yearsNav .yearsMore{ position:relative; display:inline-block; }
-      .yearsNav .yearsMenu{
-        position:absolute;
-        z-index:9999;
-        top:calc(100% + 8px);
-        right:0;
-        min-width:180px;
-        max-height:260px;
-        overflow:auto;
-        padding:8px;
-        border-radius:12px;
-        background:rgba(12,12,14,.98);
-        border:1px solid rgba(255,255,255,.12);
-        box-shadow:0 12px 36px rgba(0,0,0,.55);
-        display:none;
-      }
-      .yearsNav .yearsMenu.isOpen{ display:block; }
-      .yearsNav .yearsMenu .menuItem{
+      .showPoster{
+        width:110px;
+        height:auto;
+        border-radius: 10px;
         display:block;
-        width:100%;
-        text-align:left;
-        padding:10px 12px;
-        border-radius:10px;
-        background:transparent;
-        border:0;
-        color:rgba(255,255,255,.92);
-        cursor:pointer;
-        opacity:.92;
-        letter-spacing:.04em;
-        text-transform:uppercase;
-        font-size:12px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
       }
-      .yearsNav .yearsMenu .menuItem:hover{ background:rgba(255,255,255,.08); opacity:1; }
-    `;
-    document.head.appendChild(s);
+      @media (max-width: 420px){
+        .showTileHeader{ gap: 10px; padding: 12px; }
+        .showPosterWrap{ width: 92px; }
+        .showPoster{ width: 92px; }
+      }
+
+      .showMeta{
+        flex:1 1 auto;
+        min-width:0;
+      }
+      .showTitle{
+        font-weight:700;
+        font-size:14px;
+        color: rgba(255,255,255,0.94);
+        margin: 0 0 4px;
+      }
+      .showDate{
+        font-size:12px;
+        color: rgba(148,163,184,0.95);
+        margin: 0 0 6px;
+      }
+      .showVenue{
+        font-size:12px;
+        color: rgba(255,255,255,0.75);
+        margin: 0 0 8px;
+      }
+      .showCamera{
+        font-size:11px;
+        color: rgba(255,255,255,0.60);
+        font-style: italic;
+        margin: 0 0 0;
+      }
+
+      .showActions{
+        display:flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .showBtn{
+        cursor:pointer;
+        padding:6px 10px;
+        border-radius: 10px;
+        border:1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.88);
+        font-size:12px;
+        line-height: 1;
+        user-select:none;
+      }
+      .showBtn:hover{ background: rgba(255,255,255,0.10); }
+
+      /* Expanded area (bands) */
+      .showExpand{
+        display:none;
+        padding: 0 14px 14px;
+      }
+      .showTile.isOpen .showExpand{ display:block; }
+
+      .bandGrid{
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+      }
+
+      .bandCard{
+        border-radius: 12px;
+        padding: 10px;
+        border: 2px solid rgba(255,255,255,0.12);
+        background: rgba(0,0,0,0.20);
+        text-align:center;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:flex-start;
+        gap: 8px;
+        min-height: 110px;
+      }
+      .bandCard.isGood{ border-color: rgba(34,197,94,0.70); }
+      .bandCard.isBad{ border-color: rgba(239,68,68,0.65); }
+
+      .bandLogo{
+        width: 74px;
+        height: 74px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.06);
+      }
+      .bandName{
+        font-size: 12px;
+        color: rgba(255,255,255,0.90);
+        line-height: 1.1;
+        word-break: break-word;
+      }
+
+      /* "More" dropdown */
+      .YearsMoreWrap{ position: relative; }
+      .YearsMoreBtn{
+        cursor:pointer;
+        padding:6px 12px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.92);
+        font-size:12px;
+        user-select:none;
+        line-height:1;
+      }
+      .YearsMoreMenu{
+        position:absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 50;
+        min-width: 170px;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      }
+      .YearsMoreItem{
+        cursor:pointer;
+        padding: 8px 10px;
+        border-radius: 10px;
+        color: rgba(255,255,255,0.86);
+        font-size: 12px;
+      }
+      .YearsMoreItem:hover{ background: rgba(255,255,255,0.08); }
+      .YearsMoreItem.isActive{ background: rgba(255,255,255,0.16); }
+      `;
+document.head.appendChild(s);
   }
   
   function getScrollParent(el) {
@@ -756,162 +561,13 @@ for (let n = 1; n <= 20; n++) {
     return allShows.filter((s) => yearFromShowDate(s.date) === yr);
   }
   
-  
-
-// ================================
-// Bands index (for Shows details)
-// ================================
-const BANDS_ENDPOINT = `${API_BASE}/sheet/bands`;
-let BANDS_INDEX = null; // map: normName -> { name, logo_url, smug_folder, region }
-let BANDS_LOADING = null;
-
-function normName(s) {
-  return (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function toSlug(s) {
-  return (s || "")
-    .trim()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9\s-]+/gi, "")
-    .replace(/\s+/g, "-")
-    .toLowerCase();
-}
-
-function cleanFolderPath(s) {
-  return (s || "").replace(/[:]/g, "").trim();
-}
-
-async function loadBandsIndex() {
-  const res = await fetch(BANDS_ENDPOINT);
-  const text = await res.text();
-  if (!text || !text.trim()) return {};
-
-  const lines = text.split(/\r?\n/).filter((l) => l.trim());
-  const headerLine = lines.shift();
-  if (!headerLine) return {};
-
-  const header = parseCsvLine(headerLine).map((h) => h.trim());
-  const headerLower = header.map((h) => h.toLowerCase());
-
-  const bandIdx = headerLower.indexOf("band");
-  const regionIdx = headerLower.indexOf("region");
-  const folderIdx = headerLower.indexOf("smug_folder");
-  const logoIdx = headerLower.indexOf("logo_url");
-
-  if (bandIdx === -1) return {};
-
-  const idx = {};
-
-  for (const line of lines) {
-    const cols = parseCsvLine(line);
-    const name = (cols[bandIdx] || "").trim();
-    if (!name) continue;
-
-    const region = regionIdx !== -1 ? (cols[regionIdx] || "").trim() : "";
-    const smug_folder = folderIdx !== -1 ? (cols[folderIdx] || "").trim() : "";
-    const logo_url = logoIdx !== -1 ? (cols[logoIdx] || "").trim() : "";
-
-    idx[normName(name)] = { name, region, smug_folder, logo_url };
-  }
-
-  return idx;
-}
-
-async function ensureBandsLoaded() {
-  if (BANDS_INDEX) return BANDS_INDEX;
-  if (BANDS_LOADING) return BANDS_LOADING;
-
-  BANDS_LOADING = (async () => {
-    try {
-      BANDS_INDEX = await loadBandsIndex();
-      return BANDS_INDEX;
-    } catch (e) {
-      console.warn("Bands CSV load failed:", e);
-      BANDS_INDEX = {};
-      return {};
-    } finally {
-      BANDS_LOADING = null;
-    }
-  })();
-
-  return BANDS_LOADING;
-}
-
-function getBandsFromShow(show) {
-  if (Array.isArray(show?.bands) && show.bands.length) return show.bands.filter(Boolean);
-  const out = [];
-  for (const k in (show || {})) {
-    if (/^band[\s_]?\d{1,2}$/i.test(k)) {
-      const v = String(show[k] || "").trim();
-      if (v) out.push(v);
-    }
-  }
-  return out;
-}
-
-// ================================
-// Album existence check (green/red)
-// ================================
-const BAND_DATE_ALBUM_CACHE = {}; // key: "<folder>|<MMDDYY>" -> true/false
-
-function toMMDDYY(raw) {
-  const parts = (raw || "").trim().split("/");
-  if (parts.length !== 3) return "";
-  let [m, d, y] = parts;
-  m = String(m || "").padStart(2, "0");
-  d = String(d || "").padStart(2, "0");
-  y = String(y || "");
-  if (y.length === 4) y = y.slice(-2);
-  y = y.padStart(2, "0");
-  return `${m}${d}${y}`;
-}
-
-async function fetchFolderAlbums(folderPath, region) {
-  const baseSlug = toSlug(folderPath || "");
-  const res = await fetch(
-    `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(
-      folderPath,
-    )}&region=${encodeURIComponent(region || "")}&count=200&start=1`,
-  );
-  const data = await res.json();
-  const albums =
-    (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
-    [];
-  return albums;
-}
-
-async function bandHasAlbumForCode(bandInfo, mmddyy) {
-  if (!bandInfo || !bandInfo.smug_folder || !mmddyy) return false;
-
-  const folderPath = cleanFolderPath(bandInfo.smug_folder);
-  const cacheKey = `${folderPath}|${mmddyy}`;
-  if (cacheKey in BAND_DATE_ALBUM_CACHE) return BAND_DATE_ALBUM_CACHE[cacheKey];
-
-  try {
-    const albums = await fetchFolderAlbums(folderPath, bandInfo.region);
-    const found = (albums || []).some((alb) => {
-      const name = String(alb?.UrlName || alb?.Name || alb?.Title || "").trim();
-      return name.includes(mmddyy);
-    });
-    BAND_DATE_ALBUM_CACHE[cacheKey] = found;
-    return found;
-  } catch (e) {
-    console.warn("bandHasAlbumForCode failed:", folderPath, mmddyy, e);
-    BAND_DATE_ALBUM_CACHE[cacheKey] = false;
-    return false;
-  }
-}
-
-
-function renderShowDetail({ year, show, containerEl, bandsIndex }) {
+  function renderPosterDetail({ year, show, containerEl }) {
   if (!containerEl) return;
 
   const title = (show?.title || "").trim();
   const date = (show?.prettyDate || "").trim();
   const venueLine = (show?.venueLine || "").trim();
   const posterUrl = (show?.poster_url || "").trim();
-  const bands = getBandsFromShow(show);
 
   const safe = (v) => String(v || "").split('"').join("&quot;");
 
@@ -921,166 +577,238 @@ function renderShowDetail({ year, show, containerEl, bandsIndex }) {
 
       <div class="showsDetailCard">
         ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ""}
-
         <div class="showsDetailMeta">
           <div class="showsDetailTitle">${safe(title)}</div>
           ${date ? `<div class="showsDetailDate">${safe(date)}</div>` : ``}
           ${venueLine ? `<div class="showsDetailVenue">${safe(venueLine)}</div>` : ``}
-
-          <div style="height:10px"></div>
-
-          ${
-            bands.length
-              ? `
-            <div class="showsBandsLabel">Bands</div>
-            <div class="showsBandsGrid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;">
-              ${bands
-                .map((b) => {
-                  const key = normName(b);
-                  const info = (bandsIndex && bandsIndex[key]) ? bandsIndex[key] : null;
-                  const logo = info?.logo_url ? safe(info.logo_url) : "";
-                  const mmddyy = toMMDDYY(show.date || "");
-
-                  return `
-                    <div class="showsBandCard"
-                         data-band="${safe(b)}"
-                         data-mmddyy="${safe(mmddyy)}"
-                         style="background:rgba(15,23,42,0.18);border:2px solid rgba(148,163,184,0.12);border-radius:16px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:${info ? "pointer" : "default"};">
-                      <div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;background:rgba(15,23,42,0.4);">
-                        ${
-                          logo
-                            ? `<img src="${logo}" alt="${safe(b)}" style="max-width:100%;max-height:100%;object-fit:contain;" />`
-                            : `<div style="font-size:28px;font-weight:700;color:#e5e7eb;">${safe(String(b || "").charAt(0).toUpperCase())}</div>`
-                        }
-                      </div>
-                      <div style="font-size:13px;color:#e5e7eb;text-align:center;margin-top:2px;">${safe(b)}</div>
-                    </div>
-                  `;
-                })
-                .join("")}
-            </div>
-          `
-              : `<div class="showsBandsEmpty">No bands listed</div>`
-          }
         </div>
       </div>
     </div>
   `;
 }
 
-// Backwards-compat wrapper (older code called this)
-function renderPosterDetail({ year, show, containerEl, bandsIndex }) {
-  return renderShowDetail({ year, show, containerEl, bandsIndex });
-}
 
-  function renderPostersOnly({ year, shows, containerEl }) {
+
+  // ===== Shows UI (2-col grid + expandable band cards) =====
+  let _bandsIndexPromise = null;
+  let _bandsByName = null; // normalizedName -> bandInfo
+
+  function normName(s) {
+    return String(s || "").trim().toLowerCase();
+  }
+
+  async function ensureBandsIndex() {
+    if (_bandsByName) return _bandsByName;
+    if (_bandsIndexPromise) return _bandsIndexPromise;
+
+    _bandsIndexPromise = fetch(`${API_BASE}/sheet/bands`)
+      .then((r) => r.json())
+      .then((rows) => {
+        const map = new Map();
+        (rows || []).forEach((row) => {
+          const name = row.band || row.name || row.Band || "";
+          const key = normName(name);
+          if (!key) return;
+          map.set(key, {
+            name: name,
+            logo_url: row.logo_url || row.logo || "",
+            smug_folder: row.smug_folder || row.smugFolder || "",
+            region: row.region || "",
+          });
+        });
+        _bandsByName = map;
+        return map;
+      })
+      .catch((e) => {
+        console.warn("Failed to load bands index:", e);
+        _bandsByName = new Map();
+        return _bandsByName;
+      });
+
+    return _bandsIndexPromise;
+  }
+
+  // ===== show-date (MMDDYY) -> album existence check (ported from script.js) =====
+  const BAND_DATE_ALBUM_CACHE = {}; // "<folder>|<MMDDYY>" -> boolean
+
+  function toMMDDYY(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    // Accept M/D/YYYY, MM/DD/YYYY, or YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const [yyyy, mm, dd] = s.split("-");
+      return `${mm}${dd}${yyyy.slice(2)}`;
+    }
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return "";
+    const mm = m[1].padStart(2, "0");
+    const dd = m[2].padStart(2, "0");
+    const yy = (m[3].length === 4 ? m[3].slice(2) : m[3]).padStart(2, "0");
+    return `${mm}${dd}${yy}`;
+  }
+
+  async function listSmugAlbumsForFolder(folderRel, region, count = 200, start = 1) {
+    // Uses your backend's /smug endpoint (same as script.js)
+    const folderPath = String(folderRel || "").trim();
+    if (!folderPath) return [];
+    const url = `${API_BASE}/smug/${encodeURIComponent(folderPath)}?region=${encodeURIComponent(region || "")}&count=${count}&start=${start}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const albums = (data && data.Response && (data.Response.Album || data.Response.Albums)) || [];
+    return albums;
+  }
+
+  async function bandHasAlbumForCode(bandInfo, mmddyy) {
+    try {
+      const folderRel = bandInfo?.smug_folder;
+      const region = bandInfo?.region;
+      if (!folderRel || !mmddyy) return false;
+
+      const cacheKey = `${folderRel}|${mmddyy}`;
+      if (cacheKey in BAND_DATE_ALBUM_CACHE) return BAND_DATE_ALBUM_CACHE[cacheKey];
+
+      const albums = await listSmugAlbumsForFolder(folderRel, region, 200, 1);
+
+      // "Date code" match: look for album title containing mmddyy
+      const found = (albums || []).some((a) => {
+        const title = String(a.Title || a.Name || "").toLowerCase();
+        return title.includes(String(mmddyy).toLowerCase());
+      });
+
+      BAND_DATE_ALBUM_CACHE[cacheKey] = found;
+      return found;
+    } catch (e) {
+      console.warn("bandHasAlbumForCode failed:", e);
+      return false;
+    }
+  }
+
+  function buildVenueText(show) {
+    const venue = String(show.venue || "").trim();
+    const city = String(show.city || "").trim();
+    const state = String(show.state || "").trim();
+    if (venue && city && state) return `${venue} - ${city}, ${state}`;
+    if (venue && city) return `${venue} - ${city}`;
+    if (venue && state) return `${venue} - ${state}`;
+    if (city && state) return `${city}, ${state}`;
+    if (venue) return venue;
+    if (city) return city;
+    if (state) return state;
+    return "";
+  }
+
+  function renderShowsGridForYear({ year, shows, containerEl }) {
     if (!containerEl) return;
 
-    const posters = (shows || []).filter((s) => s);
+    containerEl.innerHTML = "";
 
-    if (!posters.length) {
-      containerEl.innerHTML = `<div class=\"showsWip\">Work in progress</div>`;
-      return;
-    }
+    const grid = document.createElement("div");
+    grid.className = "showsGrid";
+    containerEl.appendChild(grid);
 
-    function formatPrettyDate(raw) {
-      const parts = String(raw || "")
-        .trim()
-        .split("/");
-      if (parts.length !== 3) return String(raw || "").trim();
-      const m = Number(parts[0]) - 1;
-      const d = Number(parts[1]);
-      let y = Number(parts[2]);
-      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y))
-        return String(raw || "").trim();
-      if (y < 100) y += 2000;
+    const mmddyy = toMMDDYY(shows?.[0]?.date) || ""; // not used globally; kept for parity
 
-      const dateObj = new Date(y, m, d);
-      if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
+    shows.forEach((s, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "showTile";
+      tile.setAttribute("data-idx", String(idx));
 
-      const month = dateObj.toLocaleString("en-US", { month: "long" });
-      const day = dateObj.getDate();
-      const year = dateObj.getFullYear();
+      const header = document.createElement("div");
+      header.className = "showTileHeader";
 
-      const suffix =
-        day % 10 === 1 && day !== 11
-          ? "st"
-          : day % 10 === 2 && day !== 12
-            ? "nd"
-            : day % 10 === 3 && day !== 13
-              ? "rd"
-              : "th";
+      const posterWrap = document.createElement("div");
+      posterWrap.className = "showPosterWrap";
 
-      return month + " " + day + suffix + ", " + year;
-    }
+      const poster = document.createElement("img");
+      poster.className = "showPoster";
+      poster.alt = s.title || "Poster";
+      poster.loading = "lazy";
+      poster.src = s.poster_url || "";
+      posterWrap.appendChild(poster);
 
-    containerEl.innerHTML = `
-      <div class=\"showsPosterGrid\" aria-label=\"Show posters for ${year}\">
-        ${posters
-          .map((s, i) => {
-            const title = String(s.title || "").trim();
-            const safeTitle = title.split('"').join("&quot;");
+      const meta = document.createElement("div");
+      meta.className = "showMeta";
 
-            const dateRaw = String(s.date || "").trim();
-            const prettyDate = dateRaw ? formatPrettyDate(dateRaw) : "";
-            const safeDate = prettyDate.split('"').join("&quot;");
+      const title = document.createElement("div");
+      title.className = "showTitle";
+      title.textContent = s.title || "";
 
-            const venue = String(s.venue || "").trim();
-            const city = String(s.city || "").trim();
-            const state = String(s.state || "").trim();
+      const date = document.createElement("div");
+      date.className = "showDate";
+      date.textContent = s.pretty_date || s.date || "";
 
-            const place = [city, state].filter(Boolean).join(", ");
-            const venueLine = [venue, place].filter(Boolean).join(" - ");
-            const safeVenueLine = venueLine.split('"').join("&quot;");
+      const venue = document.createElement("div");
+      venue.className = "showVenue";
+      venue.textContent = buildVenueText(s);
 
-            const bands = Array.isArray(s.bands) ? s.bands : [];
-            const bandsHtml = bands.length
-              ? `<div class=\\"showsBandsLabel\\">Bands</div><ul class=\\"showsBandsList\\">${bands
-                  .map((b) => `<li class=\\"showsBandItem\\">${String(b || "").split('"').join("&quot;")}</li>`)
-                  .join("")}</ul>`
-              : `<div class=\\"showsBandsEmpty\\">No bands listed</div>`;
+      const cam = document.createElement("div");
+      cam.className = "showCamera";
+      cam.textContent = s.camera ? `Camera Used: ${s.camera}` : "";
 
-            return `
-              <div class=\"showsPosterCard showsPosterRow\"
-                role=\"group\"
-                data-idx=\"${i}\"
-                data-year=\"${year}\"
-                data-showid=\"${encodeURIComponent((dateRaw || "") + "|" + title)}\">
+      const actions = document.createElement("div");
+      actions.className = "showActions";
 
-                <div class=\"showsPosterLeft\" style=\"display:flex;flex-direction:column;gap:10px;align-items:flex-start;\">
-                  ${
-                    s.poster_url
-                      ? `<img class=\"showsPosterImg\" src=\"${s.poster_url}\" alt=\"${safeTitle || "Show"}\" loading=\"lazy\" />`
-                      : `<div class=\"showsPosterImg\" style=\"width:150px;height:1px;\"></div><div class=\"showsPosterVenue\" style=\"margin-top:6px;opacity:.6;\">No poster yet</div>`
-                  }
+      const bandsBtn = document.createElement("button");
+      bandsBtn.type = "button";
+      bandsBtn.className = "showBtn bandsToggle";
+      bandsBtn.textContent = "Bands ▾";
 
-                  <div class=\"showsPosterActions\" style=\"display:flex;gap:10px;flex-wrap:wrap;\">
-                    <button type=\"button\" class=\"showsActionBtn\" data-action=\"details\"
-                      style=\"border:1px solid rgba(125,197,255,0.25);background:rgba(15,23,42,0.35);color:rgba(255,255,255,.9);border-radius:9999px;padding:8px 14px;font-size:12px;cursor:pointer;\">
-                      Details
-                    </button>
+      actions.appendChild(bandsBtn);
 
-                    <button type=\"button\" class=\"showsActionBtn\" data-action=\"bands\"
-                      style=\"border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.18);color:rgba(255,255,255,.85);border-radius:9999px;padding:8px 14px;font-size:12px;cursor:pointer;\">
-                      Bands ▾
-                    </button>
-                  </div>
-                </div>
+      meta.appendChild(title);
+      meta.appendChild(date);
+      meta.appendChild(venue);
+      if (s.camera) meta.appendChild(cam);
+      meta.appendChild(actions);
 
-                <div class=\"showsPosterMeta\">
-                  <div class=\"showsPosterTitle\">${safeTitle}</div>
-                  <div class=\"showsPosterSpacer\"></div>
-                  ${safeDate ? `<div class=\"showsPosterDate\">${safeDate}</div>` : ``}
-                  ${safeVenueLine ? `<div class=\"showsPosterVenue\">${safeVenueLine}</div>` : ``}
-                </div>
+      header.appendChild(posterWrap);
+      header.appendChild(meta);
 
-                <div class=\"showsBandsWrap\">${bandsHtml}</div>
-              </div>
-            `;})
-          .join("")}
-      </div>
-    `;
+      const expand = document.createElement("div");
+      expand.className = "showExpand";
+
+      const bandGrid = document.createElement("div");
+      bandGrid.className = "bandGrid";
+      expand.appendChild(bandGrid);
+
+      // Build band cards (logos + name + green/red border)
+      const showMMDDYY = toMMDDYY(s.date);
+      ensureBandsIndex().then((bandsIndex) => {
+        (s.bands || []).forEach((bandName) => {
+          const info = bandsIndex.get(normName(bandName)) || { name: bandName };
+          const card = document.createElement("div");
+          card.className = "bandCard";
+          card.setAttribute("data-band", bandName);
+
+          const img = document.createElement("img");
+          img.className = "bandLogo";
+          img.alt = bandName;
+          img.loading = "lazy";
+          img.src = info.logo_url || "";
+          if (!img.src) img.style.opacity = "0.25";
+
+          const nm = document.createElement("div");
+          nm.className = "bandName";
+          nm.textContent = bandName;
+
+          card.appendChild(img);
+          card.appendChild(nm);
+          bandGrid.appendChild(card);
+
+          // async album check for border coloring
+          bandHasAlbumForCode(info, showMMDDYY).then((has) => {
+            card.classList.toggle("isGood", !!has);
+            card.classList.toggle("isBad", !has);
+          });
+        });
+      });
+
+      tile.appendChild(header);
+      tile.appendChild(expand);
+      grid.appendChild(tile);
+    });
   }
+
 
   function render() {
     ensureShowsStyles();
@@ -1088,251 +816,139 @@ function renderPosterDetail({ year, show, containerEl, bandsIndex }) {
     return `
       <div class=\"showsWrap\">
         <div id=\"showsYearsMount\"></div>
-        <div id=\"showsYearContent\" class=\"showsNote\">Select a year above.</div>
+        <div id="showsYearContent" class="showsNote">Select a year from the list.</div>
       </div>
     `;
   }
 
   function onMount(panelEl) {
-  if (!panelEl) return;
+    if (!panelEl) return;
 
-  const years = [
-    2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
-    2014, 2013, 2012, 2011, 2010, 2009,
-  ];
+    const years = [
+      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
+      2014, 2013, 2012, 2011, 2010, 2009,
+    ];
+	
+	let currentYearShows = [];
+	let currentYearPretty = []; // same shows but with prettyDate + venueLine
 
-  let activeYear = 2025;
 
-  const pillClass = "YearPill";
-  const pillActiveClass = "YearPillActive";
+    let activeYear = 2025;
 
-  const mountEl = panelEl.querySelector("#showsYearsMount");
-  const contentEl = panelEl.querySelector("#showsYearContent");
-  if (!mountEl || !contentEl) return;
+    const pillClass = "YearPill";
+    const pillActiveClass = "YearPillActive";
 
-  function parseHash() {
-    // Supported:
-    //   #shows/2025
-    //   #shows/2025/<showId>
-    const raw = String(window.location.hash || "").replace(/^#/, "");
-    const parts = raw.split("/").filter(Boolean);
-    if (!parts.length) return { view: "year", year: activeYear };
+    const mountEl = panelEl.querySelector("#showsYearsMount");
+    if (!mountEl) return;
+	
+	const contentEl = panelEl.querySelector("#showsYearContent");
+if (!contentEl) return;
 
-    if (parts[0].toLowerCase() !== "shows") return { view: "year", year: activeYear };
+// Clicking a poster toggles a dropdown inside that card (years row stays)
 
-    const year = Number(parts[1] || activeYear);
-    const showId = parts[2] ? decodeURIComponent(parts.slice(2).join("/")) : "";
-    if (showId) return { view: "detail", year, showId };
-    return { view: "year", year };
+contentEl.addEventListener("click", (e) => {
+  const toggle = e.target.closest(".bandsToggle") || e.target.closest(".showTileHeader");
+  if (!toggle) return;
+
+  const tile = e.target.closest(".showTile");
+  if (!tile) return;
+
+  // Close other open tiles (accordion behavior)
+  const openTiles = contentEl.querySelectorAll(".showTile.isOpen");
+  openTiles.forEach((t) => {
+    if (t !== tile) t.classList.remove("isOpen");
+  });
+
+  tile.classList.toggle("isOpen");
+});
+
+
+    async function handleSelectYear(year) {
+  // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
+  const snap = saveScrollSnapshot(mountEl);
+
+  activeYear = year;
+
+  mountYearsPillsOverflow({
+    containerEl: mountEl,
+    years,
+    activeYear,
+    maxVisible: years.length,
+    onSelectYear: handleSelectYear,
+    pillClass,
+    pillActiveClass,
+    moreLabel: "More ▾",
+  });
+
+  // ✅ Restore after SmugMug does its own post-render adjustments
+  setTimeout(() => restoreScrollSnapshot(snap), 0);
+  setTimeout(() => restoreScrollSnapshot(snap), 50);
+
+  const content = panelEl.querySelector("#showsYearContent");
+  if (content) {
+    content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
+
+    const requestId = String(Date.now()) + String(Math.random());
+    content.dataset.req = requestId;
+
+    const all = await ensureShowsLoaded();
+    if (content.dataset.req !== requestId) return;
+
+    const showsForYear = getShowsForYear(year, all);
+	currentYearShows = showsForYear;
+currentYearPretty = (showsForYear || []).map((s) => {
+  const venue = String(s.venue || "").trim();
+  const city = String(s.city || "").trim();
+  const state = String(s.state || "").trim();
+  const place = [city, state].filter(Boolean).join(", ");
+  const venueLine = [venue, place].filter(Boolean).join(" - ");
+
+  return {
+    ...s,
+    venueLine,
+    prettyDate: s.date ? (function formatPrettyDateInline(raw){
+      const parts = String(raw || "").trim().split("/");
+      if (parts.length !== 3) return String(raw || "").trim();
+      const m = Number(parts[0]) - 1;
+      const d = Number(parts[1]);
+      let y = Number(parts[2]);
+      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || "").trim();
+      if (y < 100) y += 2000;
+      const dateObj = new Date(y, m, d);
+      if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
+      const month = dateObj.toLocaleString("en-US", { month: "long" });
+      const day = dateObj.getDate();
+      const year2 = dateObj.getFullYear();
+      const suffix =
+        day % 10 === 1 && day !== 11 ? "st" :
+        day % 10 === 2 && day !== 12 ? "nd" :
+        day % 10 === 3 && day !== 13 ? "rd" : "th";
+      return month + " " + day + suffix + ", " + year2;
+    })(s.date) : "",
+  };
+});
+
+    renderShowsGridForYear({ year, shows: showsForYear, containerEl: content });
+
+    // ✅ Restore again after content swap + layout reflow
+    setTimeout(() => restoreScrollSnapshot(snap), 0);
+    setTimeout(() => restoreScrollSnapshot(snap), 50);
   }
+}
 
-  function setHashYear(year) {
-    window.location.hash = `#shows/${year}`;
-  }
 
-  function setHashDetail(year, showId) {
-    window.location.hash = `#shows/${year}/${encodeURIComponent(showId)}`;
-  }
-
-  function formatPrettyDate(raw) {
-    const parts = String(raw || "").trim().split("/");
-    if (parts.length !== 3) return String(raw || "").trim();
-    const m = Number(parts[0]) - 1;
-    const d = Number(parts[1]);
-    let y = Number(parts[2]);
-    if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || "").trim();
-    if (y < 100) y += 2000;
-
-    const dateObj = new Date(y, m, d);
-    if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
-
-    const month = dateObj.toLocaleString("en-US", { month: "long" });
-    const day = dateObj.getDate();
-    const year2 = dateObj.getFullYear();
-
-    const suffix =
-      day % 10 === 1 && day !== 11 ? "st" :
-      day % 10 === 2 && day !== 12 ? "nd" :
-      day % 10 === 3 && day !== 13 ? "rd" : "th";
-
-    return month + " " + day + suffix + ", " + year2;
-  }
-
-  function enrichShow(s) {
-    const venue = String(s.venue || "").trim();
-    const city = String(s.city || "").trim();
-    const state = String(s.state || "").trim();
-    const place = [city, state].filter(Boolean).join(", ");
-    const venueLine = [venue, place].filter(Boolean).join(" - ");
-    return {
-      ...s,
-      venueLine,
-      prettyDate: s.date ? formatPrettyDate(s.date) : "",
-    };
-  }
-
-  async function renderYear(year) {
-    const snap = saveScrollSnapshot(mountEl);
-    activeYear = year;
 
     mountYearsPillsOverflow({
       containerEl: mountEl,
       years,
       activeYear,
       maxVisible: years.length,
-      onSelectYear: (y) => setHashYear(y),
+      onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
       moreLabel: "More ▾",
     });
-
-    // initial placeholder
-    contentEl.innerHTML = `<div class="showsWip">Loading posters…</div>`;
-
-    const requestId = String(Date.now()) + String(Math.random());
-    contentEl.dataset.req = requestId;
-
-    const all = await ensureShowsLoaded();
-    if (contentEl.dataset.req !== requestId) return;
-
-    const showsForYear = getShowsForYear(year, all)
-      .map(enrichShow)
-      .sort((a, b) => {
-        // newest first
-        const ta = new Date((a.date || "").replace(/^(\d+\/\d+)\/(\d\d)$/, "$1/20$2")).getTime() || 0;
-        const tb = new Date((b.date || "").replace(/^(\d+\/\d+)\/(\d\d)$/, "$1/20$2")).getTime() || 0;
-        return tb - ta;
-      });
-
-    renderPostersOnly({ year, shows: showsForYear, containerEl: contentEl });
-
-    // restore scroll after reflow (SmugMug can shift scroll containers)
-    setTimeout(() => restoreScrollSnapshot(snap), 0);
-    setTimeout(() => restoreScrollSnapshot(snap), 50);
   }
 
-  async function renderDetail(year, showId) {
-    const snap = saveScrollSnapshot(mountEl);
-
-    mountYearsPillsOverflow({
-      containerEl: mountEl,
-      years,
-      activeYear: year,
-      maxVisible: years.length,
-      onSelectYear: (y) => setHashYear(y),
-      pillClass,
-      pillActiveClass,
-      moreLabel: "More ▾",
-    });
-
-    contentEl.innerHTML = `<div class="showsWip">Loading…</div>`;
-
-    const requestId = String(Date.now()) + String(Math.random());
-    contentEl.dataset.req = requestId;
-
-    const [allShows, bandsIndex] = await Promise.all([ensureShowsLoaded(), ensureBandsLoaded()]);
-    if (contentEl.dataset.req !== requestId) return;
-
-    // Find show either within year list or globally
-    const yearShows = getShowsForYear(year, allShows).map(enrichShow);
-    const target = yearShows.find((s) => ((s.date || "") + "|" + (s.title || "")).trim() === showId.trim())
-      || allShows.map(enrichShow).find((s) => ((s.date || "") + "|" + (s.title || "")).trim() === showId.trim());
-
-    if (!target) {
-      contentEl.innerHTML = `<div class="showsWip">Could not find that show. <button type="button" class="showsBackBtn" data-action="back">← Back</button></div>`;
-      setTimeout(() => restoreScrollSnapshot(snap), 0);
-      setTimeout(() => restoreScrollSnapshot(snap), 50);
-      return;
-    }
-
-    renderShowDetail({ year, show: target, containerEl: contentEl, bandsIndex });
-
-    // Paint band borders (green/red) after we render
-    const mmddyy = toMMDDYY(target.date || "");
-    const bandCards = Array.from(contentEl.querySelectorAll(".showsBandCard"));
-    bandCards.forEach((card) => {
-      const name = card.dataset.band || "";
-      const info = bandsIndex[normName(name)];
-      if (!info) return;
-
-      bandHasAlbumForCode(info, mmddyy).then((hasAlbum) => {
-        card.style.border = hasAlbum
-          ? "2px solid rgba(52,211,153,0.95)"
-          : "2px solid rgba(248,113,113,0.95)";
-      });
-    });
-
-    setTimeout(() => restoreScrollSnapshot(snap), 0);
-    setTimeout(() => restoreScrollSnapshot(snap), 50);
-  }
-
-  async function syncFromHash() {
-    const r = parseHash();
-    // If hash points to Shows, update activeYear
-    if (r.year && Number.isFinite(Number(r.year))) activeYear = Number(r.year);
-
-    if (r.view === "detail") {
-      await renderDetail(r.year, r.showId);
-    } else {
-      await renderYear(r.year);
-    }
-  }
-
-  // Click delegation for list view + detail view actions
-  contentEl.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (btn && btn.dataset.action === "back") {
-      setHashYear(activeYear);
-      return;
-    }
-
-    // List view actions
-    const actionBtn = e.target.closest(".showsActionBtn");
-    if (actionBtn) {
-      const card = actionBtn.closest(".showsPosterCard");
-      if (!card) return;
-      const year = Number(card.dataset.year || activeYear);
-      const idx = Number(card.dataset.idx || 0);
-
-      // Toggle bands dropdown
-      if (actionBtn.dataset.action === "bands") {
-        const openCards = contentEl.querySelectorAll(".showsPosterCard.isOpen");
-        openCards.forEach((c) => { if (c !== card) c.classList.remove("isOpen"); });
-        card.classList.toggle("isOpen");
-        return;
-      }
-
-      // Details routing
-      if (actionBtn.dataset.action === "details") {
-        const showId = decodeURIComponent(card.dataset.showid || "");
-        setHashDetail(year, showId);
-        return;
-      }
-    }
-
-    // Band card click (detail view): if your main app provides a hook, use it.
-    const bandCard = e.target.closest(".showsBandCard");
-    if (bandCard) {
-      const bandName = bandCard.dataset.band || "";
-      const idx = BANDS_INDEX || {};
-      const info = idx[normName(bandName)];
-      const hook = window.MusicArchive && (window.MusicArchive.navigateToBand || window.MusicArchive.openBand);
-      if (typeof hook === "function" && info) {
-        try { hook(info); } catch (_) {}
-      }
-    }
-  });
-
-  // Initial render
-  // If user opens directly to Shows without a hash, set it so back/forward works.
-  if (!String(window.location.hash || "").startsWith("#shows/")) {
-    setHashYear(activeYear);
-  } else {
-    syncFromHash();
-  }
-
-  window.addEventListener("hashchange", syncFromHash);
-}
-
-window.MusicArchiveShows = { render, onMount };
+  window.MusicArchiveShows = { render, onMount };
 })();
