@@ -161,6 +161,50 @@ text-align:left;
 
       }
 	  
+/* Bands dropdown inside each poster card */
+.showsBandsWrap{
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transition: max-height .22s ease, opacity .18s ease;
+  margin-top:0;
+  padding-top:0;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+.showsPosterCard.isOpen .showsBandsWrap{
+  max-height:900px; /* big enough for 20 bands */
+  opacity:1;
+  margin-top:10px;
+  padding-top:10px;
+}
+.showsBandsLabel{
+  font-family:'Orbitron', system-ui, sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-size:11px;
+  opacity:.85;
+  margin-bottom:8px;
+}
+.showsBandsList{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.showsBandItem{
+  font-size:12px;
+  letter-spacing:.02em;
+  opacity:.9;
+  line-height:1.35;
+}
+.showsBandsEmpty{
+  font-size:12px;
+  opacity:.65;
+}
+
+
 	  .showsDetail{ width:100%; }
 
 .showsBackBtn{
@@ -647,6 +691,11 @@ function restoreScrollSnapshot(snapshot) {
         ? headerLower.indexOf("show_state")
         : headerLower.indexOf("state");
 
+const bandIdxs = [];
+for (let n = 1; n <= 20; n++) {
+  bandIdxs.push(headerLower.indexOf(`band_${n}`));
+}
+
     const rows = [];
 
     for (const line of lines) {
@@ -659,6 +708,7 @@ function restoreScrollSnapshot(snapshot) {
         venue: venueIdx !== -1 ? (cols[venueIdx] || "").trim() : "",
         city: cityIdx !== -1 ? (cols[cityIdx] || "").trim() : "",
         state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
+        bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || "").trim() : "")).filter(Boolean),
       };
 
       rows.push(row);
@@ -793,6 +843,13 @@ function restoreScrollSnapshot(snapshot) {
             const venueLine = [venue, place].filter(Boolean).join(" - ");
             const safeVenueLine = venueLine.split('"').join("&quot;");
 
+            const bands = Array.isArray(s.bands) ? s.bands : [];
+            const bandsHtml = bands.length
+              ? `<div class=\\"showsBandsLabel\\">Bands</div><ul class=\\"showsBandsList\\">${bands
+                  .map((b) => `<li class=\\"showsBandItem\\">${String(b || "").split('"').join("&quot;")}</li>`)
+                  .join("")}</ul>`
+              : `<div class=\\"showsBandsEmpty\\">No bands listed</div>`;
+
             return `
               <div class=\"showsPosterCard showsPosterRow\"
   role=\"button\"
@@ -815,6 +872,7 @@ function restoreScrollSnapshot(snapshot) {
                   ${safeDate ? `<div class=\"showsPosterDate\">${safeDate}</div>` : ``}
                   ${safeVenueLine ? `<div class=\"showsPosterVenue\">${safeVenueLine}</div>` : ``}
                 </div>
+                <div class=\"showsBandsWrap\">${bandsHtml}</div>
               </div>
             `;
           })
@@ -857,31 +915,32 @@ function restoreScrollSnapshot(snapshot) {
 	const contentEl = panelEl.querySelector("#showsYearContent");
 if (!contentEl) return;
 
-// Clicking a poster wipes ONLY the content area (years row stays)
+// Clicking a poster toggles a dropdown inside that card (years row stays)
 contentEl.addEventListener("click", (e) => {
-  // Back button from detail view
-  const backBtn = e.target.closest('[data-action="back"]');
-  if (backBtn) {
-    renderPostersOnly({
-      year: activeYear,
-      shows: currentYearShows,
-      containerEl: contentEl,
-    });
-    return;
-  }
-
-  // Poster card click
   const card = e.target.closest(".showsPosterCard");
   if (!card) return;
 
-  const idx = Number(card.dataset.idx);
-  if (!Number.isFinite(idx) || !currentYearPretty[idx]) return;
-
-  renderPosterDetail({
-    year: activeYear,
-    show: currentYearPretty[idx],
-    containerEl: contentEl,
+  // Close other open cards (accordion behavior)
+  const openCards = contentEl.querySelectorAll(".showsPosterCard.isOpen");
+  openCards.forEach((c) => {
+    if (c !== card) c.classList.remove("isOpen");
   });
+
+  card.classList.toggle("isOpen");
+});
+
+contentEl.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const card = e.target.closest(".showsPosterCard");
+  if (!card) return;
+  e.preventDefault();
+
+  const openCards = contentEl.querySelectorAll(".showsPosterCard.isOpen");
+  openCards.forEach((c) => {
+    if (c !== card) c.classList.remove("isOpen");
+  });
+
+  card.classList.toggle("isOpen");
 });
 
 
@@ -946,7 +1005,7 @@ currentYearPretty = (showsForYear || []).map((s) => {
         day % 10 === 2 && day !== 12 ? "nd" :
         day % 10 === 3 && day !== 13 ? "rd" : "th";
       return month + " " + day + suffix + ", " + year2;
-    })(s.date) : "",
+    })(s.date) : ""),
   };
 });
 
