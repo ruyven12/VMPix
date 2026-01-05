@@ -908,8 +908,11 @@
 
 
   @media (max-width: 520px){
-    .neonFrameTextInner .hudMainType{
-	  /* Mobile safety: if the HUD title wraps, prevent line collisions */
+  .neonFrameTextInner .hudMainType{
+    letter-spacing: .06em;
+  }
+
+  /* Mobile safety: if the HUD title wraps, prevent line collisions */
   .neonFrameTextInner [data-hud-main-text]{
     line-height: 1.2 !important;
     font-size: 14px !important;
@@ -921,10 +924,8 @@
     line-height: 1.55 !important;
     max-width: 100% !important;
   }
+}
 
-      letter-spacing: .06em;
-    }
-  }
 
   /* =============================
    MOTION REDUCTION
