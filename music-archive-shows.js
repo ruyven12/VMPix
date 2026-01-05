@@ -66,9 +66,25 @@
 
       /* mobile: 1 per row (matches scriptmusic behavior) */
       @media (max-width: 700px){
-		.showsPosterGrid{ grid-template-columns: 1fr; }
-		.showsPosterImg{ width: 160px; }
-	  }
+  .showsPosterGrid{ grid-template-columns: 1fr; }
+
+  /* On small screens, stack poster above text */
+  .showsPosterRow{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .showsPosterMeta{ width:100%; }
+  .showsPosterTitle,
+  .showsPosterDate,
+  .showsPosterVenue{ text-align:center; }
+
+  .showsPosterImg{
+    width:160px;
+    flex:0 0 auto;
+  }
+}
+
 
       .showsPosterCard{
         border-radius:14px;
@@ -77,27 +93,32 @@
         box-shadow:0 10px 26px rgba(0,0,0,.45);
       }
       .showsPosterRow{
-        display:flex;
-        flex-direction:column; /* desktop: stack poster + title */
-        align-items:center;
-        gap:10px;
-        padding:14px;
-        text-align:center;
-      }
+		display:flex;
+		flex-direction:row;          /* <-- linear: poster left, text right */
+		align-items:flex-start;
+		gap:14px;
+		padding:14px;
+		text-align:left;
+	  }
+
       .showsPosterMeta{
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        width:100%;
-      }
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  width:100%;
+  min-width:0;                 /* <-- important for wrapping in flex */
+}
+
 
       .showsPosterImg{
-        width:200px;
-        height:auto;
-        object-fit:cover;
-        display:block;
-        margin:0 auto;
-      }
+  width:120px;                 /* <-- left column size */
+  height:auto;
+  object-fit:cover;
+  display:block;
+  flex:0 0 120px;              /* keeps it from shrinking weirdly */
+  border-radius:10px;
+}
+
       .showsPosterTitle{
         padding:10px 10px 12px;
         font-family:'Orbitron', system-ui, sans-serif;
@@ -109,23 +130,29 @@
 		overflow-wrap: anywhere;
         color:rgba(255,255,255,.88);
         opacity:.95;
-        text-align:center;
+        text-align:left;
+		padding:0 0 6px;
+		overflow-wrap:anywhere;
+word-break:break-word;
+
       }
 
       .showsPosterDate{
         margin-top:-6px;
-        padding:0 10px 8px;
         font-size:11px;
         letter-spacing:.06em;
         opacity:.85;
-        text-align:center;
+        padding:0 0 6px;
+text-align:left;
+
       }
       .showsPosterVenue{
-        padding:0 10px 12px;
         font-size:11px;
         letter-spacing:.04em;
         opacity:.80;
-        text-align:center;
+        padding:0;
+		text-align:left;
+
       }
 
       /* Years pills + overflow dropdown (scoped, non-destructive)
