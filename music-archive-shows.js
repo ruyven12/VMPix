@@ -85,6 +85,11 @@
   }
 }
 
+.showsPosterSpacer{
+  height: 10px; /* "blank line" after the title */
+}
+
+
 
       .showsPosterCard{
         border-radius:14px;
@@ -628,6 +633,7 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
                   : `<div class=\"showsPosterImg\" style=\"width:150px;height:1px;\"></div><div class=\"showsPosterVenue\" style=\"margin-top:6px;opacity:.6;\">No poster yet</div>`}
                 <div class=\"showsPosterMeta\">
                   <div class=\"showsPosterTitle\">${safeTitle}</div>
+				  <div class=\"showsPosterSpacer\"></div>
                   ${safeDate ? `<div class=\"showsPosterDate\">${safeDate}</div>` : ``}
                   ${safeVenueLine ? `<div class=\"showsPosterVenue\">${safeVenueLine}</div>` : ``}
                 </div>
