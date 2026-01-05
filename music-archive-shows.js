@@ -324,6 +324,47 @@ text-align:left;
   return document.scrollingElement || document.documentElement;
 }
 
+function getScrollableAncestors(el) {
+  const out = [];
+  let node = el;
+
+  while (node && node !== document.body) {
+    const style = window.getComputedStyle(node);
+    const oy = style.overflowY;
+    const ox = style.overflowX;
+
+    const canScrollY = (oy === "auto" || oy === "scroll") && node.scrollHeight > node.clientHeight;
+    const canScrollX = (ox === "auto" || ox === "scroll") && node.scrollWidth > node.clientWidth;
+
+    if (canScrollY || canScrollX) out.push(node);
+    node = node.parentElement;
+  }
+
+  const doc = document.scrollingElement || document.documentElement;
+  if (doc) out.push(doc);
+
+  return out;
+}
+
+function saveScrollSnapshot(fromEl) {
+  return getScrollableAncestors(fromEl).map((el) => ({
+    el,
+    top: el.scrollTop,
+    left: el.scrollLeft,
+  }));
+}
+
+function restoreScrollSnapshot(snapshot) {
+  if (!snapshot) return;
+  for (const s of snapshot) {
+    try {
+      s.el.scrollTop = s.top;
+      s.el.scrollLeft = s.left;
+    } catch (_) {}
+  }
+}
+
+
 
   function mountYearsPillsOverflow({
     containerEl,
@@ -711,9 +752,8 @@ text-align:left;
     if (!mountEl) return;
 
     async function handleSelectYear(year) {
-  // ✅ Save current scroll position (so clicking a year doesn't jump to top)
-  const scrollHost = getScrollParent(mountEl) || getScrollParent(panelEl);
-  const savedTop = scrollHost ? scrollHost.scrollTop : 0;
+  // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
+  const snap = saveScrollSnapshot(mountEl);
 
   activeYear = year;
 
@@ -728,11 +768,9 @@ text-align:left;
     moreLabel: "More ▾",
   });
 
-  // ✅ Restore scroll position after the nav re-renders
-  setTimeout(() => {
-  if (scrollHost) scrollHost.scrollTop = savedTop;
-}, 0);
-
+  // ✅ Restore after SmugMug does its own post-render adjustments
+  setTimeout(() => restoreScrollSnapshot(snap), 0);
+  setTimeout(() => restoreScrollSnapshot(snap), 50);
 
   const content = panelEl.querySelector("#showsYearContent");
   if (content) {
@@ -747,13 +785,12 @@ text-align:left;
     const showsForYear = getShowsForYear(year, all);
     renderPostersOnly({ year, shows: showsForYear, containerEl: content });
 
-    // ✅ Restore again after posters render (height changes can cause another jump)
-    setTimeout(() => {
-  if (scrollHost) scrollHost.scrollTop = savedTop;
-}, 0);
-
+    // ✅ Restore again after content swap + layout reflow
+    setTimeout(() => restoreScrollSnapshot(snap), 0);
+    setTimeout(() => restoreScrollSnapshot(snap), 50);
   }
 }
+
 
 
     mountYearsPillsOverflow({
