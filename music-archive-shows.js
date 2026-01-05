@@ -172,7 +172,7 @@ text-align:left;
 		justify-content:center;
 		gap:10px;
 
-  /		* 🔹 important change */
+	  /* important change */
 		flex-wrap:nowrap;
 
 		margin-top: 0px;
@@ -184,19 +184,22 @@ text-align:left;
 	  }
 
       .yearsNav .yearsPills{
-		display:flex;
-		gap:10px;
+  display:flex;
+  gap:10px;
 
-		/* 🔹 this is what makes it swipeable */
-		flex-wrap:nowrap;
-		overflow-x:auto;
-		overflow-y:hidden;
-		-webkit-overflow-scrolling: touch;
-		touch-action: pan-x;
-		scroll-behavior:smooth;
+  flex-wrap:nowrap;
 
-		max-width:100%;
-	  }
+  /* make it a real scroll area */
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scroll-behavior:smooth;
+}
+
 
 
       /* --- Pill look/feel to match your "orange box" vibe ---
