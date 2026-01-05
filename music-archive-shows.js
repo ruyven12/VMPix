@@ -656,16 +656,72 @@ for (let n = 1; n <= 20; n++) {
     return String(s || "").trim().toLowerCase();
   }
 
-  async function ensureBandsIndex() {
+  
+  // ===== CSV helpers (for /sheet/bands when it returns text/plain or text/csv) =====
+  function splitCSVLine(line) {
+    const out = [];
+    let cur = "";
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQ = !inQ;
+        }
+      } else if (ch === "," && !inQ) {
+        out.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+
+  function parseCSV(text) {
+    const norm = (text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const lines = norm.split("\n").filter((l) => l.trim().length);
+    if (!lines.length) return [];
+    const headers = splitCSVLine(lines[0]).map((h) => h.trim());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = splitCSVLine(lines[i]);
+      const row = {};
+      for (let j = 0; j < headers.length; j++) row[headers[j]] = (cols[j] || "").trim();
+      rows.push(row);
+    }
+    return rows;
+  }
+
+async function ensureBandsIndex() {
     if (_bandsByName) return _bandsByName;
     if (_bandsIndexPromise) return _bandsIndexPromise;
 
     _bandsIndexPromise = fetch(`${API_BASE}/sheet/bands`)
       .then(async (r) => {
         const ct = (r.headers.get('content-type') || '').toLowerCase();
-        if (ct.includes('application/json')) return r.json();
         const txt = await r.text();
-        throw new Error(`Expected JSON from /sheet/bands but got ${ct || 'unknown'}: ${txt.slice(0,120)}`);
+
+        // If the backend returns JSON, parse JSON.
+        if (ct.includes('application/json') || /^[\s]*[\[{]/.test(txt)) {
+          try {
+            return JSON.parse(txt);
+          } catch (e) {
+            throw new Error(`Invalid JSON from /sheet/bands: ${String(e && e.message ? e.message : e)}`);
+          }
+        }
+
+        // If the backend returns HTML, treat as an error (prevents weird CSV parsing).
+        if (/^[\s]*</.test(txt)) {
+          throw new Error(`Expected JSON/CSV from /sheet/bands but got HTML (${ct || 'unknown'}).`);
+        }
+
+        // Otherwise assume CSV (text/plain or text/csv) and parse it.
+        return parseCSV(txt);
       })
       .then((rows) => {
         const map = new Map();
