@@ -886,23 +886,42 @@
    RESPONSIVE
    ============================= */
   @media (max-width: 900px){
-    .hud{ height: calc(var(--vh) * 100); }
+  .hud{ height: calc(var(--vh) * 100); }
 
-    html, body{
-      height: calc(var(--vh) * 100);
-      overflow: hidden;
-      overscroll-behavior: none;
-    }
-
-    body{
-      position: fixed;
-      inset: 0;
-      width: 100%;
-    }
+  /* Allow the page to scroll normally on mobile.
+     This prevents text from "colliding" when the mobile browser UI changes height. */
+  html, body{
+    height: auto;
+    min-height: calc(var(--vh) * 100);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
   }
+
+  /* Undo the "viewport lock" */
+  body{
+    position: static;
+    inset: auto;
+    width: 100%;
+  }
+}
+
 
   @media (max-width: 520px){
     .neonFrameTextInner .hudMainType{
+	  /* Mobile safety: if the HUD title wraps, prevent line collisions */
+  .neonFrameTextInner [data-hud-main-text]{
+    line-height: 1.2 !important;
+    font-size: 14px !important;
+  }
+
+  /* Mobile safety: the Music welcome text */
+  #musicContentPanel > div{
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    max-width: 100% !important;
+  }
+
       letter-spacing: .06em;
     }
   }
