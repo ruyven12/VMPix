@@ -29,7 +29,7 @@
         justify-content:flex-start; /* <-- forces top alignment */
 
         /* ===== EDIT TOP GAP HERE ===== */
-        padding-top: 5px; /* <-- space from top border of content window */
+        padding-top: 2px; /* <-- space from top border of content window */
       }
       .showsTitle{
         opacity:.9;
