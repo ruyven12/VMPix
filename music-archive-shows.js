@@ -66,8 +66,10 @@
 
       /* mobile: 1 per row (matches scriptmusic behavior) */
       @media (max-width: 700px){
-        .showsPosterGrid{ grid-template-columns: 1fr; }
-      }
+		.showsPosterGrid{ grid-template-columns: 1fr; }
+		.showsPosterImg{ width: 160px; }
+	  }
+
       .showsPosterCard{
         border-radius:14px;
         overflow:hidden;
@@ -103,6 +105,8 @@
         text-transform:uppercase;
         font-size:12px;
         line-height:1.25;
+		word-break: break-word;
+		overflow-wrap: anywhere;
         color:rgba(255,255,255,.88);
         opacity:.95;
         text-align:center;
@@ -355,24 +359,32 @@
     }
 
     // Click handlers (year selection + More toggle)
-    containerEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
+// Prevent stacking multiple handlers if mountYearsPillsOverflow is called again.
+if (containerEl._yearsClickHandler) {
+  containerEl.removeEventListener('click', containerEl._yearsClickHandler);
+}
 
-      if (btn.dataset.yearsMore === '1') {
-        if (!menu) return;
-        const isOpen = menu.classList.contains('isOpen');
-        isOpen ? closeMenu() : openMenu();
-        return;
-      }
+containerEl._yearsClickHandler = (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
 
-      const yearStr = btn.dataset.year;
-      if (!yearStr) return;
-      const year = Number(yearStr);
+  if (btn.dataset.yearsMore === '1') {
+    if (!menu) return;
+    const isOpen = menu.classList.contains('isOpen');
+    isOpen ? closeMenu() : openMenu();
+    return;
+  }
 
-      closeMenu();
-      if (typeof onSelectYear === 'function') onSelectYear(year);
-    });
+  const yearStr = btn.dataset.year;
+  if (!yearStr) return;
+  const year = Number(yearStr);
+
+  closeMenu();
+  if (typeof onSelectYear === 'function') onSelectYear(year);
+};
+
+containerEl.addEventListener('click', containerEl._yearsClickHandler);
+
 
     // Close menu on outside click + ESC
     const onDocClick = (e) => {
