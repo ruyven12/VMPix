@@ -89,6 +89,7 @@
       .showsPosterCard{
         border-radius:14px;
         overflow:hidden;
+		border:2px solid rgba(0,255,255,.8);
         background:rgba(0,0,0,.18);
         box-shadow:0 10px 26px rgba(0,0,0,.45);
       }
