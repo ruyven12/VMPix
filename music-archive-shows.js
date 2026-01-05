@@ -2,6 +2,39 @@
 (function () {
   "use strict";
 
+  // --- Shows state persistence (so tab switching doesn't reset) ---
+  const SHOWS_STATE_KEY = "musicArchive_shows_state_v1";
+  function loadShowsState() {
+    try {
+      return JSON.parse(sessionStorage.getItem(SHOWS_STATE_KEY) || "{}") || {};
+    } catch (_) {
+      return {};
+    }
+  }
+  function saveShowsState(patch) {
+    try {
+      const cur = loadShowsState();
+      const next = Object.assign({}, cur, patch || {});
+      sessionStorage.setItem(SHOWS_STATE_KEY, JSON.stringify(next));
+      return next;
+    } catch (_) {
+      return null;
+    }
+  }
+  function cssEscape(str){
+    try {
+      return (window.CSS && CSS.escape) ? CSS.escape(String(str)) : String(str).replace(/"/g, '\\\"');
+    } catch (_) {
+      return String(str).replace(/"/g, '\\\"');
+    }
+  }
+  function makeShowId(show) {
+    const d = String(show?.date || "").trim();
+    const t = String(show?.title || "").trim().toLowerCase();
+    return (d + "|" + t).replace(/\s+/g, " ").slice(0, 180);
+  }
+
+
   // Optional: inject shows-only CSS once
   function ensureShowsStyles() {
     if (document.getElementById("musicShowsStyles")) return;
@@ -712,6 +745,7 @@ for (let n = 1; n <= 20; n++) {
       const tile = document.createElement("div");
       tile.className = "showTile";
       tile.setAttribute("data-idx", String(idx));
+      tile.setAttribute("data-show-id", makeShowId(s));
 
       const header = document.createElement("div");
       header.className = "showTileHeader";
@@ -833,7 +867,11 @@ for (let n = 1; n <= 20; n++) {
 	let currentYearPretty = []; // same shows but with prettyDate + venueLine
 
 
-    let activeYear = 2025;
+    const persisted = loadShowsState();
+
+    // If the parent app re-mounts Shows when switching tabs, restore last viewed year
+    let activeYear = Number(persisted.activeYear || 2025);
+    if (!years.includes(activeYear)) activeYear = years[0] || 2025;
 
     const pillClass = "YearPill";
     const pillActiveClass = "YearPillActive";
@@ -860,15 +898,20 @@ contentEl.addEventListener("click", (e) => {
   });
 
   tile.classList.toggle("isOpen");
-});
 
+  // Persist which show (if any) is open for the current year
+  const isOpen = tile.classList.contains("isOpen");
+  const openId = isOpen ? tile.getAttribute("data-show-id") : "";
+  saveShowsState({ openShowId: openId });
+});
 
     async function handleSelectYear(year) {
   // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
   const snap = saveScrollSnapshot(mountEl);
 
   activeYear = year;
-
+  // Persist selected year and clear open tile for new year
+  saveShowsState({ activeYear: year, openShowId: "" });
   mountYearsPillsOverflow({
     containerEl: mountEl,
     years,
@@ -930,6 +973,12 @@ currentYearPretty = (showsForYear || []).map((s) => {
 
     renderShowsGridForYear({ year, shows: showsForYear, containerEl: content });
 
+    // Restore previously-open tile (if any) after re-render
+    const st = loadShowsState();
+    if (st.openShowId) {
+      const toOpen = content.querySelector(`.showTile[data-show-id="${cssEscape(st.openShowId)}"]`);
+      if (toOpen) toOpen.classList.add("isOpen");
+    }
     // ✅ Restore again after content swap + layout reflow
     setTimeout(() => restoreScrollSnapshot(snap), 0);
     setTimeout(() => restoreScrollSnapshot(snap), 50);
@@ -948,6 +997,10 @@ currentYearPretty = (showsForYear || []).map((s) => {
       pillActiveClass,
       moreLabel: "More ▾",
     });
+
+    // Initial render: restore last selected year (prevents reset when returning to Shows tab)
+    handleSelectYear(activeYear);
+
   }
 
   window.MusicArchiveShows = { render, onMount };
