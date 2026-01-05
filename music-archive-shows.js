@@ -160,6 +160,68 @@ text-align:left;
 		text-align:left;
 
       }
+	  
+	  .showsDetail{ width:100%; }
+
+.showsBackBtn{
+  border:2px solid rgba(0,255,255,.8);
+  background:rgba(0,0,0,.18);
+  color:rgba(255,255,255,.9);
+  border-radius:12px;
+  padding:10px 12px;
+  cursor:pointer;
+  font-family:'Orbitron', system-ui, sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-size:12px;
+  margin-bottom:12px;
+}
+
+.showsDetailCard{
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid rgba(0,255,255,.8);
+  background:rgba(0,0,0,.18);
+  box-shadow:0 10px 26px rgba(0,0,0,.45);
+  padding:14px;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+
+.showsDetailImg{
+  width:220px;
+  height:auto;
+  border-radius:10px;
+  flex:0 0 auto;
+}
+
+@media (max-width:700px){
+  .showsDetailCard{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .showsDetailImg{ width:240px; }
+}
+
+.showsDetailTitle{
+  font-family:'Orbitron', system-ui, sans-serif;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size:14px;
+  line-height:1.25;
+  opacity:.95;
+  margin-bottom:8px;
+}
+
+.showsDetailDate,
+.showsDetailVenue{
+  font-size:12px;
+  opacity:.85;
+  margin-top:4px;
+}
+
 
       /* Years pills + overflow dropdown (scoped, non-destructive)
          We DO style the pills here, but only when they live inside .yearsNav,
@@ -643,6 +705,33 @@ function restoreScrollSnapshot(snapshot) {
     if (!Array.isArray(allShows) || !allShows.length) return [];
     return allShows.filter((s) => yearFromShowDate(s.date) === yr);
   }
+  
+  function renderPosterDetail({ year, show, containerEl }) {
+  if (!containerEl) return;
+
+  const title = (show?.title || "").trim();
+  const date = (show?.prettyDate || "").trim();
+  const venueLine = (show?.venueLine || "").trim();
+  const posterUrl = (show?.poster_url || "").trim();
+
+  const safe = (v) => String(v || "").split('"').join("&quot;");
+
+  containerEl.innerHTML = `
+    <div class="showsDetail">
+      <button type="button" class="showsBackBtn" data-action="back">← Back to ${year}</button>
+
+      <div class="showsDetailCard">
+        ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ""}
+        <div class="showsDetailMeta">
+          <div class="showsDetailTitle">${safe(title)}</div>
+          ${date ? `<div class="showsDetailDate">${safe(date)}</div>` : ``}
+          ${venueLine ? `<div class="showsDetailVenue">${safe(venueLine)}</div>` : ``}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 
   function renderPostersOnly({ year, shows, containerEl }) {
     if (!containerEl) return;
@@ -688,7 +777,7 @@ function restoreScrollSnapshot(snapshot) {
     containerEl.innerHTML = `
       <div class=\"showsPosterGrid\" aria-label=\"Show posters for ${year}\">
         ${posters
-          .map((s) => {
+          .map((s, i) => {
             const title = String(s.title || "").trim();
             const safeTitle = title.split('"').join("&quot;");
 
@@ -705,7 +794,16 @@ function restoreScrollSnapshot(snapshot) {
             const safeVenueLine = venueLine.split('"').join("&quot;");
 
             return `
-              <div class=\"showsPosterCard showsPosterRow\">
+              <div class=\"showsPosterCard showsPosterRow\"
+  role=\"button\"
+  tabindex=\"0\"
+  data-idx=\"${i}\"
+  data-year=\"${year}\"
+  data-title=\"${safeTitle}\"
+  data-date=\"${safeDate}\"
+  data-venue=\"${safeVenueLine}\"
+  data-poster-url=\"${s.poster_url ? String(s.poster_url).split('"').join("&quot;") : ""}\">
+
                 ${
                   s.poster_url
                     ? `<img class=\"showsPosterImg\" src=\"${s.poster_url}\" alt=\"${safeTitle || "Show"}\" loading=\"lazy\" />`
@@ -743,6 +841,10 @@ function restoreScrollSnapshot(snapshot) {
       2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
       2014, 2013, 2012, 2011, 2010, 2009,
     ];
+	
+	let currentYearShows = [];
+	let currentYearPretty = []; // same shows but with prettyDate + venueLine
+
 
     let activeYear = 2025;
 
@@ -751,6 +853,37 @@ function restoreScrollSnapshot(snapshot) {
 
     const mountEl = panelEl.querySelector("#showsYearsMount");
     if (!mountEl) return;
+	
+	const contentEl = panelEl.querySelector("#showsYearContent");
+if (!contentEl) return;
+
+// Clicking a poster wipes ONLY the content area (years row stays)
+contentEl.addEventListener("click", (e) => {
+  // Back button from detail view
+  const backBtn = e.target.closest('[data-action="back"]');
+  if (backBtn) {
+    renderPostersOnly({
+      year: activeYear,
+      shows: currentYearShows,
+      containerEl: contentEl,
+    });
+    return;
+  }
+
+  // Poster card click
+  const card = e.target.closest(".showsPosterCard");
+  if (!card) return;
+
+  const idx = Number(card.dataset.idx);
+  if (!Number.isFinite(idx) || !currentYearPretty[idx]) return;
+
+  renderPosterDetail({
+    year: activeYear,
+    show: currentYearPretty[idx],
+    containerEl: contentEl,
+  });
+});
+
 
     async function handleSelectYear(year) {
   // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
@@ -784,6 +917,39 @@ function restoreScrollSnapshot(snapshot) {
     if (content.dataset.req !== requestId) return;
 
     const showsForYear = getShowsForYear(year, all);
+	currentYearShows = showsForYear;
+currentYearPretty = (showsForYear || []).map((s) => {
+  const venue = String(s.venue || "").trim();
+  const city = String(s.city || "").trim();
+  const state = String(s.state || "").trim();
+  const place = [city, state].filter(Boolean).join(", ");
+  const venueLine = [venue, place].filter(Boolean).join(" - ");
+
+  return {
+    ...s,
+    venueLine,
+    prettyDate: s.date ? (function formatPrettyDateInline(raw){
+      const parts = String(raw || "").trim().split("/");
+      if (parts.length !== 3) return String(raw || "").trim();
+      const m = Number(parts[0]) - 1;
+      const d = Number(parts[1]);
+      let y = Number(parts[2]);
+      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || "").trim();
+      if (y < 100) y += 2000;
+      const dateObj = new Date(y, m, d);
+      if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
+      const month = dateObj.toLocaleString("en-US", { month: "long" });
+      const day = dateObj.getDate();
+      const year2 = dateObj.getFullYear();
+      const suffix =
+        day % 10 === 1 && day !== 11 ? "st" :
+        day % 10 === 2 && day !== 12 ? "nd" :
+        day % 10 === 3 && day !== 13 ? "rd" : "th";
+      return month + " " + day + suffix + ", " + year2;
+    })(s.date) : ""),
+  };
+});
+
     renderPostersOnly({ year, shows: showsForYear, containerEl: content });
 
     // ✅ Restore again after content swap + layout reflow
