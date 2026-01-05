@@ -1,12 +1,12 @@
 // music-archive-shows.js
 (function () {
-  'use strict';
+  "use strict";
 
   // Optional: inject shows-only CSS once
   function ensureShowsStyles() {
-    if (document.getElementById('musicShowsStyles')) return;
-    const s = document.createElement('style');
-    s.id = 'musicShowsStyles';
+    if (document.getElementById("musicShowsStyles")) return;
+    const s = document.createElement("style");
+    s.id = "musicShowsStyles";
     s.textContent = `
       /* Shows-only styles live here */
       .showsWrap{
@@ -166,43 +166,38 @@ text-align:left;
          so we don't affect any other YearPill usage elsewhere.
       */
       .yearsNav{
-        /* ===== POSITIONING MODE =====
-           Normal flow inside .showsWrap.
-           Top gap is controlled by .showsWrap padding-top.
-        */
-        position: relative;
-        display:flex;
-        align-items:center;
-        justify-content:center; /* <-- centers pills horizontally */
-        gap:10px;
-        flex-wrap:wrap; /* keep your current multi-row behavior */
+		position: relative;
+		display:flex;
+		align-items:center;
+		justify-content:center;
+		gap:10px;
 
-        /* ===== EDIT POSITIONING HERE =====
-           Top spacing relative to the content panel
-        */
-        margin-top: 0px;        /* <-- top handled by .showsWrap padding-top */
-        margin-bottom: 18px;    /* <-- space below the year bar */
+  /		* 🔹 important change */
+		flex-wrap:nowrap;
 
-        /* ===== EDIT SPACING HERE =====
-           padding: inner spacing of the year selector container
-        */
-        padding: 14px 16px;     /* <-- adjust inner spacing here */
+		margin-top: 0px;
+		margin-bottom: 18px;
+		padding: 14px 16px;
 
-        /* ===== CONTAINER BORDER (TURNED OFF) =====
-           You asked to remove the border around the year pills area.
-           If you ever want it back, restore border/background here.
-        */
-        /* DEBUG: outline years selector container */
-border:2px solid rgba(0,255,255,.8);
-background: transparent;
+		border:2px solid rgba(0,255,255,.8);
+		background: transparent;
+	  }
 
-      }
       .yearsNav .yearsPills{
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        align-items:center;
-      }
+		display:flex;
+		gap:10px;
+
+		/* 🔹 this is what makes it swipeable */
+		flex-wrap:nowrap;
+		overflow-x:auto;
+		overflow-y:hidden;
+		-webkit-overflow-scrolling: touch;
+		touch-action: pan-x;
+		scroll-behavior:smooth;
+
+		max-width:100%;
+	  }
+
 
       /* --- Pill look/feel to match your "orange box" vibe ---
          We keep behavior the same; this is styling only.
@@ -215,6 +210,7 @@ background: transparent;
         color:rgba(255,255,255,.88);
         padding:8px 14px 10px;
         border-radius:10px;
+		flex: 0 0 auto;
         font-family:'Orbitron', system-ui, sans-serif;
         font-size:12px;
         letter-spacing:.10em;
@@ -313,17 +309,20 @@ background: transparent;
 
   function mountYearsPillsOverflow({
     containerEl,
-    years,              // array like [2026, 2025, ...]
-    activeYear,         // number
-    maxVisible = 4,     // how many pills before overflow
-    onSelectYear,       // function(year) {}
-    pillClass = 'YearPill',
-    pillActiveClass = 'YearPillActive',
-    moreLabel = 'More ▾'
+    years, // array like [2026, 2025, ...]
+    activeYear, // number
+    maxVisible = 4, // how many pills before overflow
+    onSelectYear, // function(year) {}
+    pillClass = "YearPill",
+    pillActiveClass = "YearPillActive",
+    moreLabel = "More ▾",
   }) {
     if (!containerEl) return;
 
-    const sorted = [...years].map(Number).filter(Boolean).sort((a, b) => b - a);
+    const sorted = [...years]
+      .map(Number)
+      .filter(Boolean)
+      .sort((a, b) => b - a);
 
     // Split into visible + overflow
     const visible = [];
@@ -345,18 +344,24 @@ background: transparent;
     containerEl.innerHTML = `
       <div class="yearsNav">
         <div class="yearsPills" role="tablist" aria-label="Select a year">
-          ${visible.map(y => `
+          ${visible
+            .map(
+              (y) => `
             <button type="button"
-              class="${pillClass} ${y === activeYear ? pillActiveClass : ''}"
+              class="${pillClass} ${y === activeYear ? pillActiveClass : ""}"
               data-year="${y}"
               role="tab"
-              aria-selected="${y === activeYear ? 'true' : 'false'}">
+              aria-selected="${y === activeYear ? "true" : "false"}">
               ${y}
             </button>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </div>
 
-        ${overflow.length ? `
+        ${
+          overflow.length
+            ? `
           <div class="yearsMore">
             <button type="button"
               class="${pillClass}"
@@ -366,60 +371,65 @@ background: transparent;
               ${moreLabel}
             </button>
             <div class="yearsMenu" role="menu" aria-label="More years">
-              ${overflow.map(y => `
+              ${overflow
+                .map(
+                  (y) => `
                 <button type="button" class="menuItem" role="menuitem" data-year="${y}">
                   ${y}
                 </button>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
     `;
 
-    const yearsNav = containerEl.querySelector('.yearsNav');
+    const yearsNav = containerEl.querySelector(".yearsNav");
     const moreBtn = containerEl.querySelector('[data-years-more="1"]');
-    const menu = containerEl.querySelector('.yearsMenu');
+    const menu = containerEl.querySelector(".yearsMenu");
 
     function closeMenu() {
       if (!menu || !moreBtn) return;
-      menu.classList.remove('isOpen');
-      moreBtn.setAttribute('aria-expanded', 'false');
+      menu.classList.remove("isOpen");
+      moreBtn.setAttribute("aria-expanded", "false");
     }
 
     function openMenu() {
       if (!menu || !moreBtn) return;
-      menu.classList.add('isOpen');
-      moreBtn.setAttribute('aria-expanded', 'true');
+      menu.classList.add("isOpen");
+      moreBtn.setAttribute("aria-expanded", "true");
     }
 
     // Click handlers (year selection + More toggle)
-// Prevent stacking multiple handlers if mountYearsPillsOverflow is called again.
-if (containerEl._yearsClickHandler) {
-  containerEl.removeEventListener('click', containerEl._yearsClickHandler);
-}
+    // Prevent stacking multiple handlers if mountYearsPillsOverflow is called again.
+    if (containerEl._yearsClickHandler) {
+      containerEl.removeEventListener("click", containerEl._yearsClickHandler);
+    }
 
-containerEl._yearsClickHandler = (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
+    containerEl._yearsClickHandler = (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
 
-  if (btn.dataset.yearsMore === '1') {
-    if (!menu) return;
-    const isOpen = menu.classList.contains('isOpen');
-    isOpen ? closeMenu() : openMenu();
-    return;
-  }
+      if (btn.dataset.yearsMore === "1") {
+        if (!menu) return;
+        const isOpen = menu.classList.contains("isOpen");
+        isOpen ? closeMenu() : openMenu();
+        return;
+      }
 
-  const yearStr = btn.dataset.year;
-  if (!yearStr) return;
-  const year = Number(yearStr);
+      const yearStr = btn.dataset.year;
+      if (!yearStr) return;
+      const year = Number(yearStr);
 
-  closeMenu();
-  if (typeof onSelectYear === 'function') onSelectYear(year);
-};
+      closeMenu();
+      if (typeof onSelectYear === "function") onSelectYear(year);
+    };
 
-containerEl.addEventListener('click', containerEl._yearsClickHandler);
-
+    containerEl.addEventListener("click", containerEl._yearsClickHandler);
 
     // Close menu on outside click + ESC
     const onDocClick = (e) => {
@@ -428,15 +438,15 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
     };
 
     const onDocKey = (e) => {
-      if (e.key === 'Escape') closeMenu();
+      if (e.key === "Escape") closeMenu();
     };
 
-    document.addEventListener('click', onDocClick, { capture: true });
-    document.addEventListener('keydown', onDocKey);
+    document.addEventListener("click", onDocClick, { capture: true });
+    document.addEventListener("keydown", onDocKey);
 
     return function cleanup() {
-      document.removeEventListener('click', onDocClick, { capture: true });
-      document.removeEventListener('keydown', onDocKey);
+      document.removeEventListener("click", onDocClick, { capture: true });
+      document.removeEventListener("keydown", onDocKey);
     };
   }
 
@@ -557,7 +567,9 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
   }
 
   function yearFromShowDate(raw) {
-    const parts = String(raw || "").trim().split("/");
+    const parts = String(raw || "")
+      .trim()
+      .split("/");
     if (parts.length !== 3) return null;
     let y = (parts[2] || "").trim();
     if (!y) return null;
@@ -583,56 +595,62 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
     }
 
     function formatPrettyDate(raw) {
-      const parts = String(raw || '').trim().split('/');
-      if (parts.length !== 3) return String(raw || '').trim();
+      const parts = String(raw || "")
+        .trim()
+        .split("/");
+      if (parts.length !== 3) return String(raw || "").trim();
       const m = Number(parts[0]) - 1;
       const d = Number(parts[1]);
       let y = Number(parts[2]);
-      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || '').trim();
+      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y))
+        return String(raw || "").trim();
       if (y < 100) y += 2000;
 
       const dateObj = new Date(y, m, d);
-      if (Number.isNaN(dateObj.getTime())) return String(raw || '').trim();
+      if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
 
-      const month = dateObj.toLocaleString('en-US', { month: 'long' });
+      const month = dateObj.toLocaleString("en-US", { month: "long" });
       const day = dateObj.getDate();
       const year = dateObj.getFullYear();
 
-      const suffix = (day % 10 === 1 && day !== 11)
-        ? 'st'
-        : (day % 10 === 2 && day !== 12)
-          ? 'nd'
-          : (day % 10 === 3 && day !== 13)
-            ? 'rd'
-            : 'th';
+      const suffix =
+        day % 10 === 1 && day !== 11
+          ? "st"
+          : day % 10 === 2 && day !== 12
+            ? "nd"
+            : day % 10 === 3 && day !== 13
+              ? "rd"
+              : "th";
 
-      return month + ' ' + day + suffix + ', ' + year;
+      return month + " " + day + suffix + ", " + year;
     }
 
     containerEl.innerHTML = `
       <div class=\"showsPosterGrid\" aria-label=\"Show posters for ${year}\">
         ${posters
           .map((s) => {
-            const title = String(s.title || '').trim();
-            const safeTitle = title.split('"').join('&quot;');
+            const title = String(s.title || "").trim();
+            const safeTitle = title.split('"').join("&quot;");
 
-            const dateRaw = String(s.date || '').trim();
-            const prettyDate = dateRaw ? formatPrettyDate(dateRaw) : '';
-            const safeDate = prettyDate.split('"').join('&quot;');
+            const dateRaw = String(s.date || "").trim();
+            const prettyDate = dateRaw ? formatPrettyDate(dateRaw) : "";
+            const safeDate = prettyDate.split('"').join("&quot;");
 
-            const venue = String(s.venue || '').trim();
-            const city = String(s.city || '').trim();
-            const state = String(s.state || '').trim();
+            const venue = String(s.venue || "").trim();
+            const city = String(s.city || "").trim();
+            const state = String(s.state || "").trim();
 
-            const place = [city, state].filter(Boolean).join(', ');
-            const venueLine = [venue, place].filter(Boolean).join(' - ');
-            const safeVenueLine = venueLine.split('"').join('&quot;');
+            const place = [city, state].filter(Boolean).join(", ");
+            const venueLine = [venue, place].filter(Boolean).join(" - ");
+            const safeVenueLine = venueLine.split('"').join("&quot;");
 
             return `
               <div class=\"showsPosterCard showsPosterRow\">
-                ${s.poster_url
-                  ? `<img class=\"showsPosterImg\" src=\"${s.poster_url}\" alt=\"${safeTitle || 'Show'}\" loading=\"lazy\" />`
-                  : `<div class=\"showsPosterImg\" style=\"width:150px;height:1px;\"></div><div class=\"showsPosterVenue\" style=\"margin-top:6px;opacity:.6;\">No poster yet</div>`}
+                ${
+                  s.poster_url
+                    ? `<img class=\"showsPosterImg\" src=\"${s.poster_url}\" alt=\"${safeTitle || "Show"}\" loading=\"lazy\" />`
+                    : `<div class=\"showsPosterImg\" style=\"width:150px;height:1px;\"></div><div class=\"showsPosterVenue\" style=\"margin-top:6px;opacity:.6;\">No poster yet</div>`
+                }
                 <div class=\"showsPosterMeta\">
                   <div class=\"showsPosterTitle\">${safeTitle}</div>
 				  <div class=\"showsPosterSpacer\"></div>
@@ -642,7 +660,7 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
               </div>
             `;
           })
-          .join('')}
+          .join("")}
       </div>
     `;
   }
@@ -662,17 +680,16 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
     if (!panelEl) return;
 
     const years = [
-      2026, 2025, 2024, 2023, 2022, 2021, 2020,
-      2019, 2018, 2017,
-      2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009
+      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
+      2014, 2013, 2012, 2011, 2010, 2009,
     ];
 
     let activeYear = 2025;
 
-    const pillClass = 'YearPill';
-    const pillActiveClass = 'YearPillActive';
+    const pillClass = "YearPill";
+    const pillActiveClass = "YearPillActive";
 
-    const mountEl = panelEl.querySelector('#showsYearsMount');
+    const mountEl = panelEl.querySelector("#showsYearsMount");
     if (!mountEl) return;
 
     async function handleSelectYear(year) {
@@ -686,10 +703,10 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
         onSelectYear: handleSelectYear,
         pillClass,
         pillActiveClass,
-        moreLabel: 'More ▾'
+        moreLabel: "More ▾",
       });
 
-      const content = panelEl.querySelector('#showsYearContent');
+      const content = panelEl.querySelector("#showsYearContent");
       if (content) {
         content.innerHTML = `<div class=\"showsWip\">Loading posters…</div>`;
 
@@ -712,7 +729,7 @@ containerEl.addEventListener('click', containerEl._yearsClickHandler);
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
-      moreLabel: 'More ▾'
+      moreLabel: "More ▾",
     });
   }
 
