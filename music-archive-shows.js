@@ -712,7 +712,7 @@ text-align:left;
 
     async function handleSelectYear(year) {
   // ✅ Save current scroll position (so clicking a year doesn't jump to top)
-  const scrollHost = getScrollParent(mountEl);
+  const scrollHost = getScrollParent(mountEl) || getScrollParent(panelEl);
   const savedTop = scrollHost ? scrollHost.scrollTop : 0;
 
   activeYear = year;
@@ -729,9 +729,10 @@ text-align:left;
   });
 
   // ✅ Restore scroll position after the nav re-renders
-  requestAnimationFrame(() => {
-    if (scrollHost) scrollHost.scrollTop = savedTop;
-  });
+  setTimeout(() => {
+  if (scrollHost) scrollHost.scrollTop = savedTop;
+}, 0);
+
 
   const content = panelEl.querySelector("#showsYearContent");
   if (content) {
@@ -747,9 +748,10 @@ text-align:left;
     renderPostersOnly({ year, shows: showsForYear, containerEl: content });
 
     // ✅ Restore again after posters render (height changes can cause another jump)
-    requestAnimationFrame(() => {
-      if (scrollHost) scrollHost.scrollTop = savedTop;
-    });
+    setTimeout(() => {
+  if (scrollHost) scrollHost.scrollTop = savedTop;
+}, 0);
+
   }
 }
 
