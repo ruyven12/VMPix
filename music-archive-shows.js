@@ -712,7 +712,7 @@ text-align:left;
 
     async function handleSelectYear(year) {
   // ✅ Save current scroll position (so clicking a year doesn't jump to top)
-  const scrollHost = getScrollParent(panelEl);
+  const scrollHost = getScrollParent(mountEl);
   const savedTop = scrollHost ? scrollHost.scrollTop : 0;
 
   activeYear = year;
