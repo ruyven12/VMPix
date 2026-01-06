@@ -681,7 +681,7 @@
               '',
               `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.
 			  
-			  `
+			  However, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
             );
             return;
           }
