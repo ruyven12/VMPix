@@ -334,13 +334,12 @@
         background: rgba(239,68,68,0.10);
         border-color: rgba(239,68,68,0.20);
       }
-      }
 
       .bandLogo{
-        width: 28px;
-        height: 28px;
-        object-fit: cover;
-        border-radius: 8px;
+        width: 28px !important;
+        height: 28px !important;
+        object-fit: cover !important;
+        border-radius: 8px !important;
         background: rgba(255,255,255,0.06);
         flex: 0 0 auto;
       }
