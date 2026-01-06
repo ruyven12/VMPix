@@ -334,9 +334,6 @@
         background: rgba(239,68,68,0.10);
         border-color: rgba(239,68,68,0.20);
       }
-
-        70%  { transform: scale(1.00); box-shadow: 0 0 0 8px rgba(255,255,255,0.0); }
-        100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
       }
 
       .bandLogo{
