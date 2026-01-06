@@ -679,7 +679,7 @@
           if (label === 'Origins') {
             wipeSwapContent(
               '',
-              `Origins – Coming Soon`
+              `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.`
             );
             return;
           }
