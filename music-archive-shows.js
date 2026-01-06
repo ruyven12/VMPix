@@ -325,27 +325,16 @@
         text-align:left;
       }
 
-      .statusDot{
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: rgba(148,163,184,0.55);
-        box-shadow: 0 0 0 0 rgba(148,163,184,0.0);
-        flex: 0 0 auto;
+      /* Status tint (replaces pulsing dot) */
+      .bandCard.isGood{
+        background: rgba(34,197,94,0.10);
+        border-color: rgba(34,197,94,0.22);
+      }
+      .bandCard.isBad{
+        background: rgba(239,68,68,0.10);
+        border-color: rgba(239,68,68,0.20);
       }
 
-      /* Dot colors + pulse tied to your existing isGood / isBad logic */
-      .bandCard.isGood .statusDot{
-        background: rgba(34,197,94,0.95);
-        animation: statusPulse 1.25s ease-out infinite;
-      }
-      .bandCard.isBad .statusDot{
-        background: rgba(239,68,68,0.92);
-        animation: statusPulse 1.25s ease-out infinite;
-      }
-
-      @keyframes statusPulse{
-        0%   { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
         70%  { transform: scale(1.00); box-shadow: 0 0 0 8px rgba(255,255,255,0.0); }
         100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
       }
@@ -364,6 +353,8 @@
         color: rgba(255,255,255,0.90);
         line-height: 1.15;
         word-break: break-word;
+        flex: 1 1 auto;
+        text-align: center;
       }
       /* "More" dropdown */
       .YearsMoreWrap{ position: relative; }
@@ -1057,10 +1048,6 @@ header.appendChild(posterWrap);
           card.className = "bandCard";
           card.setAttribute("data-band", bandName);
 
-          // pulsing status dot (color comes from isGood / isBad class)
-          const dot = document.createElement("span");
-          dot.className = "statusDot";
-
           const img = document.createElement("img");
           img.className = "bandLogo";
           img.alt = bandName;
@@ -1072,7 +1059,6 @@ header.appendChild(posterWrap);
           nm.className = "bandName";
           nm.textContent = bandName;
 
-          card.appendChild(dot);
           card.appendChild(img);
           card.appendChild(nm);
           bandGrid.appendChild(card);
