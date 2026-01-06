@@ -29,27 +29,25 @@
 
   function resetPanelScroll() {
     try {
-      // Find the nearest scrollable ancestor (including the panel itself)
-      const start = panelRoot || document.getElementById('musicContentPanel');
-      let el = start;
-      let scroller = null;
+      const panel = panelRoot || document.getElementById('musicContentPanel');
+      const docScroller = document.scrollingElement || document.documentElement;
 
-      while (el && el !== document.body) {
-        const cs = window.getComputedStyle(el);
-        const oy = cs.overflowY;
-        const canScroll = (oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 2;
-        if (canScroll) { scroller = el; break; }
-        el = el.parentElement;
-      }
+      // Always try these in order; this avoids "wrong scroller detected" issues.
+      if (panel) panel.scrollTop = 0;
+      if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
+      if (docScroller) docScroller.scrollTop = 0;
 
-      // Fallback to the document scroller if needed
-      if (!scroller) scroller = document.scrollingElement || document.documentElement;
-
-      // Hard reset (do it twice to defeat any late layout/restore)
-      scroller.scrollTop = 0;
-      window.requestAnimationFrame(() => { scroller.scrollTop = 0; });
-      window.setTimeout(() => { scroller.scrollTop = 0; }, 0);
-      window.setTimeout(() => { scroller.scrollTop = 0; }, 120);
+      // Repeat after layout/animations
+      window.requestAnimationFrame(() => {
+        if (panel) panel.scrollTop = 0;
+        if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
+      });
+      window.setTimeout(() => {
+        if (panel) panel.scrollTop = 0;
+      }, 0);
+      window.setTimeout(() => {
+        if (panel) panel.scrollTop = 0;
+      }, 200);
     } catch (e) {}
   }
 
@@ -723,9 +721,9 @@
 
         CURRENT_REGION = key;
         resetPanelScroll();
-    setTimeout(() => resetPanelScroll(), 450);
         updateLetterGroups(key);
         resultsEl.innerHTML = "";
+        window.setTimeout(() => resetPanelScroll(), 200);
         crumbsEl.textContent = "Select a region first, then the corresponding letter.";
       });
 
@@ -869,6 +867,7 @@
       });
 
     window.requestAnimationFrame(() => resetPanelScroll());
+    window.setTimeout(() => resetPanelScroll(), 200);
 
       resultsEl.appendChild(card);
     });
