@@ -153,24 +153,61 @@
 
   const GREEN_BOX_OVERFLOW_Y = 'auto';
 
-  // ✅ Surgical: switch panel layout depending on the tab
+  // ✅ Switch panel layout depending on the active tab
+  // Default mode keeps the centered "terminal" feel; Shows mode uses normal page flow.
   function setPanelMode(mode) {
     if (!_contentPanelEl) return;
 
     if (mode === 'shows') {
-      // Shows wants a normal page flow (grid/cards, top-aligned)
       _contentPanelEl.style.display = 'block';
       _contentPanelEl.style.alignItems = '';
       _contentPanelEl.style.justifyContent = '';
       _contentPanelEl.style.textAlign = 'left';
     } else {
-      // Default: centered “terminal/welcome” presentation
       _contentPanelEl.style.display = 'flex';
       _contentPanelEl.style.alignItems = GREEN_BOX_ALIGN_ITEMS;
       _contentPanelEl.style.justifyContent = GREEN_BOX_JUSTIFY_CONTENT;
       _contentPanelEl.style.textAlign = GREEN_BOX_TEXT_ALIGN;
     }
   }
+
+  // ✅ Lazy-load Shows module if it isn't present at click time.
+  // IMPORTANT: update SHOWS_SCRIPT_SRC to the real path where wrestling-archive-shows.js is served.
+  const SHOWS_SCRIPT_SRC = '/js/wrestling-archive-shows.js';
+
+  function ensureWrestlingShowsLoaded() {
+    if (window.WrestlingArchiveShows && typeof window.WrestlingArchiveShows.render === 'function') {
+      return Promise.resolve(true);
+    }
+
+    const existing = document.querySelector('script[data-wa-shows="1"]');
+    if (existing) {
+      return new Promise((resolve) => {
+        const start = Date.now();
+        const t = window.setInterval(() => {
+          if (window.WrestlingArchiveShows?.render) {
+            window.clearInterval(t);
+            resolve(true);
+          } else if (Date.now() - start > 2500) {
+            window.clearInterval(t);
+            resolve(false);
+          }
+        }, 50);
+      });
+    }
+
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = SHOWS_SCRIPT_SRC;
+      s.async = true;
+      s.defer = true;
+      s.dataset.waShows = '1';
+      s.onload = () => resolve(!!window.WrestlingArchiveShows?.render);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+
 
   // Ensure neon frame is visible on Wrestling route
   function ensureFrameVisibleForWrestling() {
@@ -568,6 +605,13 @@
             100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
           }
           #wrestlingInfoStrip.ping .scanPing{ animation:hudScanPing 320ms ease-out both; }
+
+          @keyframes hudBorderPulse{
+            0%{ box-shadow:${ORANGE_BOX_GLOW}; }
+            50%{ box-shadow:0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 26px rgba(255,70,110,0.18); }
+            100%{ box-shadow:${ORANGE_BOX_GLOW}; }
+          }
+          #wrestlingInfoStrip.pulse{ animation:hudBorderPulse 240ms ease-out both; }
         `;
         document.head.appendChild(style);
       }
@@ -661,7 +705,7 @@
       }
 
       _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
-        tab.addEventListener('click', () => {
+        tab.addEventListener('click', async () => {
           animateHudTab(tab);
           if (!_contentPanelEl) return;
 
@@ -669,8 +713,20 @@
 
           // Shows uses the expanded green viewport and optional external module
           if (label === 'Shows') {
-            setPanelMode('shows');            // ✅ new
+            setPanelMode('shows');
             setArchiveViewportExpanded(true);
+
+            const loaded = await ensureWrestlingShowsLoaded();
+            if (!loaded) {
+              wipeSwapContent(
+                `<div style="opacity:.75; font-size:14px; line-height:1.6;">
+                   <strong>Shows module not loaded.</strong><br/>
+                   Update <code>SHOWS_SCRIPT_SRC</code> in <code>wrestling-archive.js</code> to the correct path for <code>wrestling-archive-shows.js</code>.
+                 </div>`,
+                ''
+              );
+              return;
+            }
 
             const html =
               window.WrestlingArchiveShows?.render?.() ||
@@ -686,22 +742,25 @@
             return;
           }
 
-          // Everything else: revert to auto sizing + centered mode
+          // Everything else: revert to auto sizing
           setArchiveViewportExpanded(false);
-          setPanelMode('default');            // ✅ new
+          setPanelMode('default');
 
           if (label === 'Origins') {
             wipeSwapContent(
               '',
               `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.
-              
-              However, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
+			  
+			  However, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
             );
             return;
           }
 
           if (label === 'Notes') {
-            wipeSwapContent('', `Notes – Coming Soon`);
+            wipeSwapContent(
+              '',
+              `Notes – Coming Soon`
+            );
             return;
           }
 
@@ -718,7 +777,7 @@
 
       // Default: keep original auto-sizing unless Shows is selected
       setArchiveViewportExpanded(false);
-      setPanelMode('default'); // ✅ ensure baseline mode
+      setPanelMode('default');
     }
   }
 
