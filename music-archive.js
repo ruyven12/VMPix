@@ -101,6 +101,13 @@
       _contentPanelEl.style.overflowX = 'hidden';
       _contentPanelEl.style.webkitOverflowScrolling = 'touch';
       _contentPanelEl.style.overscrollBehavior = 'contain';
+      // IMPORTANT: avoid flex vertical centering in scrollable archives viewport
+      // (prevents top rows from being clipped / unreachable)
+      _contentPanelEl.style.display = 'block';
+      _contentPanelEl.style.alignItems = '';
+      _contentPanelEl.style.justifyContent = '';
+      _contentPanelEl.style.textAlign = '';
+
       sizeContentPanelToHud();
       if (!_onResize) {
         _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
@@ -115,6 +122,12 @@
       _contentPanelEl.style.overflowX = '';
       _contentPanelEl.style.webkitOverflowScrolling = '';
       _contentPanelEl.style.overscrollBehavior = '';
+      // Restore original (non-archives) layout
+      _contentPanelEl.style.display = 'flex';
+      _contentPanelEl.style.alignItems = 'center';
+      _contentPanelEl.style.justifyContent = 'center';
+      _contentPanelEl.style.textAlign = 'center';
+
 
       if (_onResize) {
         window.removeEventListener('resize', _onResize);
