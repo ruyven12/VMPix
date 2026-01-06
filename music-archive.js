@@ -55,7 +55,7 @@
     // ARCHIVES VIEWPORT TUNING
     // Top offset pulls the panel DOWN
     // Bottom offset pulls the panel UP
-    const ARCHIVES_TOP_OFFSET_PX = 115;   // move down from the frame
+    const ARCHIVES_TOP_OFFSET_PX = 50;   // move down from the frame
     const ARCHIVES_BOTTOM_OFFSET_PX = 15; // lift up from the bottom strip
 
     if (!_contentPanelEl) return;
