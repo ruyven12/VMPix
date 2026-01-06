@@ -65,45 +65,91 @@
         padding-top: 8px;
         padding-bottom: 84px; /* room for bottom nav on small screens */
       }
-
-
-      /* Year pills row */
+      /* Year pills row (styled to match the main nav tabs look) */
       #showsYearsMount{
         display:flex;
         position: sticky;
         top: 0;
         z-index: 5;
-        padding: 8px 6px;
+
+        padding: 10px 10px;
+        margin: 10px auto 8px;
+
         backdrop-filter: blur(6px);
-        background: rgba(0,0,0,0.22);
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: rgba(0,0,0,0.18);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
 
         flex-wrap:wrap;
-        gap:8px;
+        gap: 12px;
         justify-content:center;
         align-items:center;
-        margin: 10px auto 6px;
       }
+
       .YearPill{
         cursor:pointer;
-        padding:6px 12px;
-        border-radius:999px;
-        border:1px solid rgba(255,255,255,0.15);
-        background: rgba(255,255,255,0.06);
-        color: rgba(255,255,255,0.92);
-        font-size:12px;
+        appearance:none;
+        border: 0;
+        background: transparent;
+
+        padding: 10px 8px;
+        border-radius: 10px;
+
+        color: rgba(255,255,255,0.58);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
         user-select:none;
         line-height:1;
-        transition: transform .08s ease, background .12s ease, border-color .12s ease;
+
+        position: relative;
+        transition: color .12s ease, transform .08s ease, background .12s ease;
       }
-      .YearPill:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.10); }
+
+      .YearPill:hover{
+        color: rgba(255,255,255,0.82);
+        background: rgba(255,255,255,0.04);
+        transform: translateY(-1px);
+      }
+
+      .YearPill:focus-visible{
+        outline: 2px solid rgba(236,72,153,0.55);
+        outline-offset: 2px;
+      }
+
+      /* underline accent like the nav tabs */
+      .YearPill::after{
+        content:"";
+        position:absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 4px;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(236,72,153,0.9);
+        box-shadow: 0 0 10px rgba(236,72,153,0.35);
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity .12s ease, transform .12s ease;
+      }
+
+      .YearPill:hover::after{
+        opacity: 0.35;
+        transform: translateY(0px);
+      }
+
       .YearPillActive{
-        background: rgba(255,255,255,0.95);
-        color: rgba(0,0,0,0.92);
-        border-color: rgba(255,255,255,0.75);
+        color: rgba(255,255,255,0.92);
+        background: transparent;
+      }
+
+      .YearPillActive::after{
+        opacity: 1;
+        transform: translateY(0px);
+        box-shadow: 0 0 12px rgba(236,72,153,0.55);
       }
 
       /* Year instruction / empty state */
+
       .showsNote{
         text-align:center;
         color: rgba(255,255,255,0.75);
