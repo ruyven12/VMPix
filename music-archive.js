@@ -98,6 +98,9 @@
       // Archives-only vertical positioning
       _contentPanelEl.style.marginTop = '40px';
       _contentPanelEl.style.overflowY = 'auto';
+      _contentPanelEl.style.overflowX = 'hidden';
+      _contentPanelEl.style.webkitOverflowScrolling = 'touch';
+      _contentPanelEl.style.overscrollBehavior = 'contain';
       sizeContentPanelToHud();
       if (!_onResize) {
         _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
@@ -108,7 +111,10 @@
       _contentPanelEl.style.marginTop = '';
       _contentPanelEl.style.height = '';
       _contentPanelEl.style.maxHeight = '';
-      _contentPanelEl.style.overflowY = 'visible';
+      _contentPanelEl.style.overflowY = '';
+      _contentPanelEl.style.overflowX = '';
+      _contentPanelEl.style.webkitOverflowScrolling = '';
+      _contentPanelEl.style.overscrollBehavior = '';
 
       if (_onResize) {
         window.removeEventListener('resize', _onResize);
@@ -436,10 +442,7 @@
 
       // Ensure hudMain has a reliable height context for our “green box” sizing
       hudMain.style.boxSizing = 'border-box';
-      hudMain.style.overflowX = 'hidden';
-      hudMain.style.overflowY = 'auto';
-      hudMain.style.webkitOverflowScrolling = 'touch';
-      hudMain.style.overscrollBehavior = 'contain';
+      hudMain.style.overflow = 'hidden';
 
       if (!_contentPanelEl) {
         _contentPanelEl = document.createElement('div');
@@ -815,7 +818,7 @@ return;
 
 
           // All other tabs: revert to original auto-sizing
-          setArchiveViewportExpanded(false);
+          setArchiveViewportExpanded(true);
 
           if (label === 'Origins') {
             wipeSwapContent(
