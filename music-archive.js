@@ -313,27 +313,6 @@
     _prevOrnHeight = null;
   }
 
-    // Bands-only: hide the top header area + remove extra top gap inside the green panel
-  function setBandsFullBleed(isOn) {
-    // --- A) hide the top neon header wrap (the "space above") ---
-    const wrap = document.querySelector('.neonFrameWrap');
-    if (wrap) {
-      if (wrap.dataset.prevDisplayBands === undefined) {
-        wrap.dataset.prevDisplayBands = wrap.style.display || '';
-      }
-      wrap.style.display = isOn ? 'none' : (wrap.dataset.prevDisplayBands || '');
-    }
-
-    // --- B) pull the green content panel up (kills the extra gap above Bands UI) ---
-    if (_contentPanelEl) {
-      if (_contentPanelEl.dataset.prevMarginTopBands === undefined) {
-        _contentPanelEl.dataset.prevMarginTopBands = _contentPanelEl.style.marginTop || '';
-      }
-      _contentPanelEl.style.marginTop = isOn ? '0px' : (_contentPanelEl.dataset.prevMarginTopBands || '');
-    }
-  }
-
-
   // ------------------------------------------------------------
   // ARCHIVES HEADER UI (Bands / Shows selector)
   // This renders ONLY inside the Archive content panel
@@ -797,7 +776,6 @@ if (label === 'Bands' || label === 'Shows') {
 
  // Bands (external module)
 if (label === 'Bands') {
-  setBandsFullBleed(true);
   const html =
     window.MusicArchiveBands?.render?.() ||
     `<div style="opacity:.7">Bands module not loaded.</div>`;
@@ -815,7 +793,6 @@ if (label === 'Bands') {
 
 
  // Shows (external module)
- setBandsFullBleed(false);
 const html =
   window.MusicArchiveShows?.render?.() ||
   `<div style="opacity:.7">Shows module not loaded.</div>`;
@@ -833,7 +810,6 @@ return;
 
 
           // All other tabs: revert to original auto-sizing
-		  setBandsFullBleed(false);
           setArchiveViewportExpanded(false);
 
           if (label === 'Origins') {
