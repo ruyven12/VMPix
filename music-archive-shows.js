@@ -77,7 +77,7 @@
 
         /* Keep years bar readable: don't let tiles visually scroll behind it */
         backdrop-filter: blur(6px);
-        background: rgba(15,23,42,0.92);
+        background: rgba(0,0,0,0.18)
         border-bottom: 1px solid rgba(255,255,255,0.10);
         box-shadow: 0 10px 24px rgba(0,0,0,0.35);
 
