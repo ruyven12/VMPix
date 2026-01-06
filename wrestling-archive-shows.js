@@ -12,8 +12,7 @@
   'use strict';
 
   // ================== CONFIG ==================
-  const API_BASE = (window.WRESTLING_API_BASE || "https://wrestling-archive.onrender.com").replace(/\/$/, "");
-  // Tip: if you proxy endpoints on the same origin as the page, set window.WRESTLING_API_BASE = location.origin;
+  const API_BASE = "https://wrestling-archive.onrender.com";
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
   // Only show 2021–2025 (your current behavior)
@@ -143,7 +142,7 @@
   // ================== LOAD SHOWS FROM CSV ==================
   async function loadShowsFromCsv() {
     try {
-      const res = await fetch(SHOWS_ENDPOINT, { cache: "no-store", mode: "cors" });
+      const res = await fetch(SHOWS_ENDPOINT, { cache: "no-store" });
       const text = await res.text();
       if (!text.trim()) return [];
 
@@ -177,8 +176,7 @@
       return rows;
     } catch (err) {
       console.error("Error loading shows CSV:", err);
-      // Most common cause when embedded on another domain: CORS blocked by the API host.
-      setCrumbs("Error loading shows data (likely CORS). If this page is on a different domain than the API, enable CORS on the API or proxy it through the same site.");
+      setCrumbs("Error loading shows data.");
       return [];
     }
   }
@@ -520,6 +518,3 @@
     destroy,
   };
 })();
-
-window.__WRESTLING_ARCHIVE_SHOWS_LOADED__ = true;
-//# sourceURL=wrestling-archive-shows.js
