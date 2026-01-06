@@ -153,6 +153,25 @@
 
   const GREEN_BOX_OVERFLOW_Y = 'auto';
 
+  // ✅ Surgical: switch panel layout depending on the tab
+  function setPanelMode(mode) {
+    if (!_contentPanelEl) return;
+
+    if (mode === 'shows') {
+      // Shows wants a normal page flow (grid/cards, top-aligned)
+      _contentPanelEl.style.display = 'block';
+      _contentPanelEl.style.alignItems = '';
+      _contentPanelEl.style.justifyContent = '';
+      _contentPanelEl.style.textAlign = 'left';
+    } else {
+      // Default: centered “terminal/welcome” presentation
+      _contentPanelEl.style.display = 'flex';
+      _contentPanelEl.style.alignItems = GREEN_BOX_ALIGN_ITEMS;
+      _contentPanelEl.style.justifyContent = GREEN_BOX_JUSTIFY_CONTENT;
+      _contentPanelEl.style.textAlign = GREEN_BOX_TEXT_ALIGN;
+    }
+  }
+
   // Ensure neon frame is visible on Wrestling route
   function ensureFrameVisibleForWrestling() {
     const wrap = document.querySelector('.neonFrameWrap');
@@ -549,13 +568,6 @@
             100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
           }
           #wrestlingInfoStrip.ping .scanPing{ animation:hudScanPing 320ms ease-out both; }
-
-          @keyframes hudBorderPulse{
-            0%{ box-shadow:${ORANGE_BOX_GLOW}; }
-            50%{ box-shadow:0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 26px rgba(255,70,110,0.18); }
-            100%{ box-shadow:${ORANGE_BOX_GLOW}; }
-          }
-          #wrestlingInfoStrip.pulse{ animation:hudBorderPulse 240ms ease-out both; }
         `;
         document.head.appendChild(style);
       }
@@ -657,6 +669,7 @@
 
           // Shows uses the expanded green viewport and optional external module
           if (label === 'Shows') {
+            setPanelMode('shows');            // ✅ new
             setArchiveViewportExpanded(true);
 
             const html =
@@ -673,24 +686,22 @@
             return;
           }
 
-          // Everything else: revert to auto sizing
+          // Everything else: revert to auto sizing + centered mode
           setArchiveViewportExpanded(false);
+          setPanelMode('default');            // ✅ new
 
           if (label === 'Origins') {
             wipeSwapContent(
               '',
               `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.
-			  
-			  However, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
+              
+              However, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
             );
             return;
           }
 
           if (label === 'Notes') {
-            wipeSwapContent(
-              '',
-              `Notes – Coming Soon`
-            );
+            wipeSwapContent('', `Notes – Coming Soon`);
             return;
           }
 
@@ -707,6 +718,7 @@
 
       // Default: keep original auto-sizing unless Shows is selected
       setArchiveViewportExpanded(false);
+      setPanelMode('default'); // ✅ ensure baseline mode
     }
   }
 
