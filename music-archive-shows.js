@@ -950,9 +950,7 @@ const meta = document.createElement("div");
       meta.appendChild(date);
       meta.appendChild(venue);
       if (s.camera) meta.appendChild(cam);
-      meta.appendChild(actions);
-
-      header.appendChild(posterWrap);
+header.appendChild(posterWrap);
       header.appendChild(meta);
 
       const expand = document.createElement("div");
