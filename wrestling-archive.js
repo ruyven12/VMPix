@@ -173,7 +173,7 @@
 
   // ✅ Lazy-load Shows module if it isn't present at click time.
   // IMPORTANT: update SHOWS_SCRIPT_SRC to the real path where wrestling-archive-shows.js is served.
-  const SHOWS_SCRIPT_SRC = 'https://wrestling-archive.onrender.com/wrestling-archive-shows.js';
+  const SHOWS_SCRIPT_SRC = '/wrestling-archive-shows.js';
 
   // ✅ Robust loader that avoids <script> MIME-type blocking.
   // It fetches the JS as text and evaluates it, so even if your host serves
