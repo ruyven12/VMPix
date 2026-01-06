@@ -29,8 +29,29 @@
 
   function resetPanelScroll() {
     try {
-      if (panelRoot) panelRoot.scrollTop = 0;
+      // Find the nearest scrollable ancestor (including the panel itself)
+      const start = panelRoot || document.getElementById('musicContentPanel');
+      let el = start;
+      let scroller = null;
+
+      while (el && el !== document.body) {
+        const cs = window.getComputedStyle(el);
+        const oy = cs.overflowY;
+        const canScroll = (oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 2;
+        if (canScroll) { scroller = el; break; }
+        el = el.parentElement;
+      }
+
+      // Fallback to the document scroller if needed
+      if (!scroller) scroller = document.scrollingElement || document.documentElement;
+
+      // Hard reset (do it twice to defeat any late layout/restore)
+      scroller.scrollTop = 0;
+      window.requestAnimationFrame(() => { scroller.scrollTop = 0; });
+      window.setTimeout(() => { scroller.scrollTop = 0; }, 0);
+      window.setTimeout(() => { scroller.scrollTop = 0; }, 120);
     } catch (e) {}
+  }
   }
 
   // ================== STYLES ==================
@@ -703,6 +724,7 @@
 
         CURRENT_REGION = key;
         resetPanelScroll();
+    setTimeout(() => resetPanelScroll(), 450);
         updateLetterGroups(key);
         resultsEl.innerHTML = "";
         crumbsEl.textContent = "Select a region first, then the corresponding letter.";
@@ -846,6 +868,8 @@
       card.addEventListener("click", () => {
         showBandCard(region, letter, bandObj);
       });
+
+    window.requestAnimationFrame(() => resetPanelScroll());
 
       resultsEl.appendChild(card);
     });
