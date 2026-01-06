@@ -266,29 +266,39 @@
       }
       .showBtn:hover{ background: rgba(255,255,255,0.10); }
 
-      /* Expanded area (bands) – animated accordion */
+      /* Expanded area (bands) – smoother animated accordion
+         Notes:
+         - Keep padding on an inner wrapper so we don't animate padding (less jank)
+         - Use a nicer easing curve + slightly longer duration
+      */
       .showExpand{
-        /* Keep it in-flow for animation */
         max-height: 0;
         opacity: 0;
-        transform: translateY(-4px);
+        transform: translate3d(0,-6px,0);
         overflow: hidden;
-
-        padding: 0 14px;
-        padding-bottom: 0;
+        contain: layout paint;
 
         transition:
-          max-height .28s ease,
-          opacity .18s ease,
-          transform .18s ease,
-          padding-bottom .28s ease;
+          max-height .42s cubic-bezier(0.2, 0, 0, 1),
+          opacity .26s cubic-bezier(0.2, 0, 0, 1),
+          transform .26s cubic-bezier(0.2, 0, 0, 1);
         will-change: max-height, opacity, transform;
       }
       .showTile.isOpen .showExpand{
-        max-height: 900px; /* large enough for most band lists */
+        max-height: 1000px; /* large enough for most band lists */
         opacity: 1;
-        transform: translateY(0px);
-        padding-bottom: 14px;
+        transform: translate3d(0,0,0);
+      }
+
+      .showExpandInner{
+        padding: 0 14px 14px;
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .showExpand{
+          transition: none !important;
+          transform: none !important;
+        }
       }
 
 
@@ -1028,9 +1038,15 @@ header.appendChild(posterWrap);
       const expand = document.createElement("div");
       expand.className = "showExpand";
 
+      // Inner wrapper holds padding so the accordion animation stays smooth
+      const expandInner = document.createElement("div");
+      expandInner.className = "showExpandInner";
+
       const bandGrid = document.createElement("div");
       bandGrid.className = "bandGrid";
-      expand.appendChild(bandGrid);
+
+      expandInner.appendChild(bandGrid);
+      expand.appendChild(expandInner);
 
       // Build band cards (logos + name + green/red border)
       const showMMDDYY = toMMDDYY(s.date);
