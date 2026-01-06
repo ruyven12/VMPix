@@ -770,46 +770,42 @@
 
           const label = tab.textContent.trim();
 
-          // Bands + Shows are the driven UI now (use the expanded green viewport)
-if (label === 'Shows') {
-  setArchiveViewportExpanded(true);
+          // Bands (external module) — shrink green panel to content height
+          if (label === 'Bands') {
+            setArchiveViewportExpanded(false);
 
- // Bands (external module)
-if (label === 'Bands') {
-  // Bands should shrink the green panel to content height
-  setArchiveViewportExpanded(false);
-  const html =
-    window.MusicArchiveBands?.render?.() ||
-    `<div style="opacity:.7">Bands module not loaded.</div>`;
+            const html =
+              window.MusicArchiveBands?.render?.() ||
+              `<div style="opacity:.7">Bands module not loaded.</div>`;
 
-  wipeSwapContent(html, '');
+            wipeSwapContent(html, '');
 
-  // Optional post-mount hook (wait for wipe-in)
-  window.setTimeout(() => {
-    const panel = document.getElementById('musicContentPanel');
-    window.MusicArchiveBands?.onMount?.(panel);
-  }, 360);
+            // Optional post-mount hook (wait for wipe-in)
+            window.setTimeout(() => {
+              const panel = document.getElementById('musicContentPanel');
+              window.MusicArchiveBands?.onMount?.(panel);
+            }, 360);
 
-  return;
-}
+            return;
+          }
 
+          // Shows (external module) — expanded viewport
+          if (label === 'Shows') {
+            setArchiveViewportExpanded(true);
 
- // Shows (external module)
-const html =
-  window.MusicArchiveShows?.render?.() ||
-  `<div style="opacity:.7">Shows module not loaded.</div>`;
+            const html =
+              window.MusicArchiveShows?.render?.() ||
+              `<div style="opacity:.7">Shows module not loaded.</div>`;
 
-wipeSwapContent(html, '');
+            wipeSwapContent(html, '');
 
-window.setTimeout(() => {
-  const panel = document.getElementById('musicContentPanel');
-  window.MusicArchiveShows?.onMount?.(panel);
-}, 360);
+            window.setTimeout(() => {
+              const panel = document.getElementById('musicContentPanel');
+              window.MusicArchiveShows?.onMount?.(panel);
+            }, 360);
 
-return;
-
-}
-
+            return;
+          }
 
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
