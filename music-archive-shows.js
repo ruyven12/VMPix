@@ -1125,8 +1125,6 @@ header.appendChild(posterWrap);
       tile._bandsLoaded = false;
       tile.setAttribute("data-band-count", String(getBandCountForShow(s)));
       updateBandsButtonForTile(tile);
-        });
-      });
 
       tile.appendChild(header);
       tile.appendChild(expand);
