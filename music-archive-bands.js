@@ -35,8 +35,9 @@
     s.textContent = `
       .bandsWrap{
         width:100%;
-        max-width:1600px;
-        margin:0 auto;
+        max-width:none;
+        margin:0;
+        padding: clamp(8px, 1.2vw, 16px);
       }
 
       /* top bar inside panel */
@@ -229,7 +230,7 @@
         display:grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap:14px;
-        max-width:1400px;
+        max-width:none;
       }
       .album-card{
         background:rgba(255,255,255,0.04);
@@ -264,7 +265,7 @@
         justify-content:space-between;
         gap:10px;
         width:100%;
-        max-width:1400px;
+        max-width:none;
         margin:0 auto 10px;
         flex-wrap:wrap;
       }
@@ -283,7 +284,7 @@
         display:grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap:10px;
-        max-width:1400px;
+        max-width:none;
         margin:0 auto;
       }
       .smug-photo-box{
@@ -345,15 +346,6 @@
         overflow:hidden;
         white-space:nowrap;
       }
-
-      /* ================== DEBUG OUTLINES ================== */
-      /* Toggle by adding/removing .bands-debug on .bandsWrap */
-      .bandsWrap.bands-debug,
-      .bandsWrap.bands-debug * {
-        outline: 1px solid rgba(0, 255, 255, 0.6) !important;
-        outline-offset: -1px;
-      }
-
     `;
     document.head.appendChild(s);
   }
@@ -364,7 +356,7 @@
 
     // ONLY what's inside #musicContentPanel
     return `
-      <div class="bandsWrap bands-debug" id="bands-root">
+      <div class="bandsWrap" id="bands-root">
         <div class="bandsTop">
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
@@ -765,8 +757,8 @@
     resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
     resultsEl.style.gap = "14px";
     resultsEl.style.width = "100%";
-    resultsEl.style.maxWidth = "1500px";
-    resultsEl.style.margin = "0 auto";
+        resultsEl.style.maxWidth = "none";
+    resultsEl.style.margin = "0";
 
     if (!bandsArr.length) {
       resultsEl.appendChild(document.createTextNode("No bands in this group."));
@@ -1073,6 +1065,11 @@
   async function onMount(panelEl) {
     panelRoot = panelEl;
     if (!panelRoot) return;
+
+    // Ensure the music content panel can scroll on smaller screens
+    panelRoot.style.overflowY = 'auto';
+    panelRoot.style.overflowX = 'hidden';
+    panelRoot.style.webkitOverflowScrolling = 'touch';
 
     // grab refs inside the panel ONLY
     resultsEl = panelRoot.querySelector("#results");
