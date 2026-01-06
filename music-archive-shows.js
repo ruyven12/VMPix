@@ -185,6 +185,24 @@
         flex:0 0 auto;
         width: 110px;
       }
+
+      .showPosterPlaceholder{
+        width:110px;
+        height:160px;
+        border:1px solid rgba(255,255,255,0.35);
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color: rgba(255,255,255,0.55);
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:0.08em;
+      }
+      @media (max-width: 420px){
+        .showPosterPlaceholder{ width:92px; height:134px; }
+      }
+
       .showPoster{
         width:110px;
         height:auto;
@@ -885,14 +903,21 @@ async function ensureBandsIndex() {
       const posterWrap = document.createElement("div");
       posterWrap.className = "showPosterWrap";
 
-      const poster = document.createElement("img");
-      poster.className = "showPoster";
-      poster.alt = s.title || "Poster";
-      poster.loading = "lazy";
-      poster.src = s.poster_url || "";
-      posterWrap.appendChild(poster);
-
-      const meta = document.createElement("div");
+      
+      if (s.poster_url) {
+        const poster = document.createElement("img");
+        poster.className = "showPoster";
+        poster.alt = s.title || "Poster";
+        poster.loading = "lazy";
+        poster.src = s.poster_url;
+        posterWrap.appendChild(poster);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "showPosterPlaceholder";
+        ph.textContent = "N/A";
+        posterWrap.appendChild(ph);
+      }
+const meta = document.createElement("div");
       meta.className = "showMeta";
 
       const title = document.createElement("div");
