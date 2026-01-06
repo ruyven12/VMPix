@@ -342,6 +342,15 @@
         overflow:hidden;
         white-space:nowrap;
       }
+
+      /* ================== DEBUG OUTLINES ================== */
+      /* Toggle by adding/removing .bands-debug on .bandsWrap */
+      .bandsWrap.bands-debug,
+      .bandsWrap.bands-debug * {
+        outline: 1px solid rgba(0, 255, 255, 0.6) !important;
+        outline-offset: -1px;
+      }
+
     `;
     document.head.appendChild(s);
   }
@@ -352,7 +361,7 @@
 
     // ONLY what's inside #musicContentPanel
     return `
-      <div class="bandsWrap" id="bands-root">
+      <div class="bandsWrap bands-debug" id="bands-root">
         <div class="bandsTop">
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
