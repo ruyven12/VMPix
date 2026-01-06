@@ -52,7 +52,6 @@
       window.setTimeout(() => { scroller.scrollTop = 0; }, 120);
     } catch (e) {}
   }
-  }
 
   // ================== STYLES ==================
   function ensureBandsStyles() {
