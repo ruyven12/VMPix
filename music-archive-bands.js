@@ -1066,11 +1066,6 @@
     panelRoot = panelEl;
     if (!panelRoot) return;
 
-    // Ensure the music content panel can scroll on smaller screens
-    panelRoot.style.overflowY = 'auto';
-    panelRoot.style.overflowX = 'hidden';
-    panelRoot.style.webkitOverflowScrolling = 'touch';
-
     // grab refs inside the panel ONLY
     resultsEl = panelRoot.querySelector("#results");
     crumbsEl = panelRoot.querySelector("#crumbs");
