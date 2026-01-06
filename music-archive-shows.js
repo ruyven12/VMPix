@@ -51,15 +51,12 @@
         /* Keep content top-aligned inside the parent panel */
         height:100%;
         min-height:100%;
+        min-height:0; /* allow inner scroller to size correctly */
         align-self:stretch;
 
         display:flex;
         flex-direction:column;
         justify-content:flex-start;
-
-        /* Allow scrolling within the Shows panel without losing the header */
-        overflow-y:auto;
-        overflow-x:hidden;
 
         /* tweak top/bottom spacing */
         padding-top: 8px;
@@ -68,23 +65,28 @@
       /* Year pills row (styled to match the main nav tabs look) */
       #showsYearsMount{
         display:flex;
-        position: sticky;
-        top: 0;
-        z-index: 5;
 
         padding: 10px 10px;
         margin: 10px auto 8px;
 
         /* Keep years bar readable: don't let tiles visually scroll behind it */
         backdrop-filter: blur(6px);
-        background: rgba(0,0,0,0.18)
-        border-bottom: 1px solid rgba(255,255,255,0.10);
-        box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.18);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
 
         flex-wrap:wrap;
         gap: 12px;
         justify-content:center;
         align-items:center;
+      }
+
+      /* Make the content area the scroller so cards never scroll behind the years bar */
+      #showsYearContent{
+        flex: 1 1 auto;
+        min-height: 0; /* critical for flexbox scrolling */
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 84px; /* room for bottom nav on small screens */
       }
 
       .YearPill{
