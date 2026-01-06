@@ -27,6 +27,12 @@
   let regionPillsEl = null;
   let legendEl = null;
 
+  function resetPanelScroll() {
+    try {
+      if (panelRoot) panelRoot.scrollTop = 0;
+    } catch (e) {}
+  }
+
   // ================== STYLES ==================
   function ensureBandsStyles() {
     if (document.getElementById("musicBandsStyles")) return;
@@ -696,6 +702,7 @@
         pill.classList.add("active");
 
         CURRENT_REGION = key;
+        resetPanelScroll();
         updateLetterGroups(key);
         resultsEl.innerHTML = "";
         crumbsEl.textContent = "Select a region first, then the corresponding letter.";
@@ -748,6 +755,7 @@
 
     resultsEl.innerHTML = "";
     crumbsEl.textContent = `${region} → ${letter}`;
+    resetPanelScroll();
 
     const bandsArr = (BANDS[region] && BANDS[region][letter]) || [];
 
@@ -848,6 +856,7 @@
 
     resultsEl.innerHTML = "";
     crumbsEl.textContent = `${region} → ${letter} → ${bandObj?.name || ""}`;
+    resetPanelScroll();
 
     const wrap = document.createElement("div");
     wrap.className = "albumsWrap";
@@ -971,9 +980,8 @@
 
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${info.region} → ${info.letter} → ${info.band?.name || ""} → ${
-      info.album?.Name || "Album"
-    }`;
+    crumbsEl.textContent = `${info.region} → ${info.letter} → ${info.band?.name || ""} → ${info.album?.Name || "Album"}`;
+    resetPanelScroll();
 
     const wrap = document.createElement("div");
     wrap.style.width = "100%";
@@ -1085,6 +1093,7 @@
 
     // default: clear results
     if (resultsEl) resultsEl.innerHTML = "";
+    resetPanelScroll();
     if (legendEl) legendEl.style.display = "";
   }
 
