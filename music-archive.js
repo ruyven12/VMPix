@@ -55,7 +55,7 @@
     // ARCHIVES VIEWPORT TUNING
     // Top offset pulls the panel DOWN
     // Bottom offset pulls the panel UP
-    const ARCHIVES_TOP_OFFSET_PX = 5;   // move down from the frame
+    const ARCHIVES_TOP_OFFSET_PX = 115;   // move down from the frame
     const ARCHIVES_BOTTOM_OFFSET_PX = 15; // lift up from the bottom strip
 
     if (!_contentPanelEl) return;
@@ -771,11 +771,13 @@
           const label = tab.textContent.trim();
 
           // Bands + Shows are the driven UI now (use the expanded green viewport)
-if (label === 'Bands' || label === 'Shows') {
+if (label === 'Shows') {
   setArchiveViewportExpanded(true);
 
  // Bands (external module)
 if (label === 'Bands') {
+  // Bands should shrink the green panel to content height
+  setArchiveViewportExpanded(false);
   const html =
     window.MusicArchiveBands?.render?.() ||
     `<div style="opacity:.7">Bands module not loaded.</div>`;
