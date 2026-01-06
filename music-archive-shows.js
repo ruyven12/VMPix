@@ -834,32 +834,53 @@ async function ensureBandsIndex() {
     return `${mm}${dd}${yy}`;
   }
 
-  async function listSmugAlbumsForFolder(folderRel, region, count = 200, start = 1) {
-    // Uses your backend's /smug endpoint (same as script.js)
-    const folderPath = String(folderRel || "").trim();
-    if (!folderPath) return [];
-    const url = `${API_BASE}/smug/${encodeURIComponent(folderPath)}?region=${encodeURIComponent(region || "")}&count=${count}&start=${start}`;
-    const res = await fetch(url);
+  
+  // ===== SmugMug folder helpers (ported from script.js) =====
+  function cleanFolderPath(s) {
+    return (s || "").replace(/[:]/g, "").trim();
+  }
+
+  const toSlug = (s) =>
+    (s || "")
+      .trim()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9\s-]+/gi, "")
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+
+  // get all albums inside a SmugMug folder using the same backend pattern as script.js
+  async function fetchFolderAlbums(folderPath, region) {
+    const clean = cleanFolderPath(folderPath || "");
+    if (!clean) return [];
+    const baseSlug = toSlug(clean || "");
+    const res = await fetch(
+      `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(
+        clean
+      )}&region=${encodeURIComponent(region || "")}&count=200&start=1`
+    );
     const data = await res.json();
-    const albums = (data && data.Response && (data.Response.Album || data.Response.Albums)) || [];
+    const albums =
+      (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
+      [];
     return albums;
   }
 
+  // show-date (MMDDYY) -> album existence check
+  // key: "<folder>|<MMDDYY>" -> true/false
   async function bandHasAlbumForCode(bandInfo, mmddyy) {
     try {
-      const folderRel = bandInfo?.smug_folder;
-      const region = bandInfo?.region;
-      if (!folderRel || !mmddyy) return false;
+      const folderPath = cleanFolderPath(bandInfo?.smug_folder || "");
+      const region = bandInfo?.region || "";
+      if (!folderPath || !mmddyy) return false;
 
-      const cacheKey = `${folderRel}|${mmddyy}`;
+      const cacheKey = `${folderPath}|${mmddyy}`;
       if (cacheKey in BAND_DATE_ALBUM_CACHE) return BAND_DATE_ALBUM_CACHE[cacheKey];
 
-      const albums = await listSmugAlbumsForFolder(folderRel, region, 200, 1);
+      const albums = await fetchFolderAlbums(folderPath, region);
 
-      // "Date code" match: look for album title containing mmddyy
-      const found = (albums || []).some((a) => {
-        const title = String(a.Title || a.Name || "").toLowerCase();
-        return title.includes(String(mmddyy).toLowerCase());
+      const found = (albums || []).some((alb) => {
+        const name = String(alb?.UrlName || alb?.Name || alb?.Title || "").trim();
+        return name.includes(mmddyy);
       });
 
       BAND_DATE_ALBUM_CACHE[cacheKey] = found;
@@ -869,6 +890,7 @@ async function ensureBandsIndex() {
       return false;
     }
   }
+
 
   function buildVenueText(show) {
     const venue = String(show.venue || "").trim();
