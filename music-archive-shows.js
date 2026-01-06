@@ -90,11 +90,10 @@
         appearance:none;
         border: 0;
         background: transparent;
-
         padding: 10px 8px;
         border-radius: 10px;
-
         color: rgba(255,255,255,0.58);
+		font-family: 'Orbitron', system-ui, sans-serif;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.06em;
