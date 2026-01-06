@@ -266,12 +266,31 @@
       }
       .showBtn:hover{ background: rgba(255,255,255,0.10); }
 
-      /* Expanded area (bands) */
+      /* Expanded area (bands) – animated accordion */
       .showExpand{
-        display:none;
-        padding: 0 14px 14px;
+        /* Keep it in-flow for animation */
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-4px);
+        overflow: hidden;
+
+        padding: 0 14px;
+        padding-bottom: 0;
+
+        transition:
+          max-height .28s ease,
+          opacity .18s ease,
+          transform .18s ease,
+          padding-bottom .28s ease;
+        will-change: max-height, opacity, transform;
       }
-      .showTile.isOpen .showExpand{ display:block; }
+      .showTile.isOpen .showExpand{
+        max-height: 900px; /* large enough for most band lists */
+        opacity: 1;
+        transform: translateY(0px);
+        padding-bottom: 14px;
+      }
+
 
       /* List-style bands (small logos + pulsing status dot) */
       .bandGrid{
