@@ -178,6 +178,27 @@
         border-radius: 14px;
         background: rgba(255,255,255,0.04);
         overflow:hidden;
+
+        /* polish */
+        transition: border-color .22s ease, box-shadow .22s ease, background .22s ease, transform .18s ease;
+        will-change: transform;
+      }
+
+      /* header feels clickable */
+      .showTileHeader{
+        cursor: pointer;
+        transition: background .18s ease, transform .18s ease;
+      }
+      .showTileHeader:hover{
+        background: rgba(255,255,255,0.03);
+        transform: translateY(-1px);
+      }
+
+      /* open state highlight */
+      .showTile.isOpen{
+        border-color: rgba(34,197,94,0.28);
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 0 0 1px rgba(34,197,94,0.10), 0 12px 26px rgba(0,0,0,0.30);
       }
       .showTileHeader{
         display:flex;
@@ -858,6 +879,67 @@ async function ensureBandsIndex() {
     return _bandsIndexPromise;
   }
 
+  // ===== Bands list: render on-demand (only when a show is opened) =====
+  function getBandCountForShow(show){
+    try { return Array.isArray(show?.bands) ? show.bands.length : 0; } catch (_) { return 0; }
+  }
+
+  function updateBandsButtonForTile(tile){
+    if (!tile) return;
+    const btn = tile.querySelector(".bandsToggle");
+    if (!btn) return;
+    const count = Number(tile.getAttribute("data-band-count") || "0");
+    const open = tile.classList.contains("isOpen");
+    btn.textContent = `Bands (${count}) ${open ? "▴" : "▾"}`;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function ensureTileBandsLoaded(tile){
+    if (!tile) return;
+    if (tile._bandsLoaded) return;
+
+    const bandGrid = tile._bandGridEl;
+    const show = tile._showData;
+    const showMMDDYY = tile._showMMDDYY || toMMDDYY(show?.date);
+
+    if (!bandGrid || !show) return;
+
+    tile._bandsLoaded = true;
+    bandGrid.innerHTML = "";
+
+    ensureBandsIndex().then((bandsIndex) => {
+      (show.bands || []).forEach((bandName) => {
+        const info = (bandsIndex && bandsIndex.get) ? (bandsIndex.get(normName(bandName)) || { name: bandName }) : { name: bandName };
+
+        const card = document.createElement("div");
+        card.className = "bandCard";
+        card.setAttribute("data-band", bandName);
+
+        const img = document.createElement("img");
+        img.className = "bandLogo";
+        img.alt = bandName;
+        img.loading = "lazy";
+        img.src = info.logo_url || "";
+        if (!img.src) img.style.opacity = "0.25";
+
+        const nm = document.createElement("div");
+        nm.className = "bandName";
+        nm.textContent = bandName;
+
+        card.appendChild(img);
+        card.appendChild(nm);
+        bandGrid.appendChild(card);
+
+        // async album check -> tint row green/red
+        bandHasAlbumForCode(info, showMMDDYY).then((has) => {
+          card.classList.toggle("isGood", !!has);
+          card.classList.toggle("isBad", !has);
+        });
+      });
+    });
+  }
+
+
   // ===== show-date (MMDDYY) -> album existence check (ported from script.js) =====
   const BAND_DATE_ALBUM_CACHE = {}; // "<folder>|<MMDDYY>" -> boolean
 
@@ -1035,35 +1117,14 @@ header.appendChild(posterWrap);
       expandInner.appendChild(bandGrid);
       expand.appendChild(expandInner);
 
-      // Build band cards (logos + name + green/red border)
+      // Bands render is deferred until the tile is opened (better perf + smoother accordion)
       const showMMDDYY = toMMDDYY(s.date);
-      ensureBandsIndex().then((bandsIndex) => {
-        (s.bands || []).forEach((bandName) => {
-          const info = bandsIndex.get(normName(bandName)) || { name: bandName };
-          const card = document.createElement("div");
-          card.className = "bandCard";
-          card.setAttribute("data-band", bandName);
-
-          const img = document.createElement("img");
-          img.className = "bandLogo";
-          img.alt = bandName;
-          img.loading = "lazy";
-          img.src = info.logo_url || "";
-          if (!img.src) img.style.opacity = "0.25";
-
-          const nm = document.createElement("div");
-          nm.className = "bandName";
-          nm.textContent = bandName;
-
-          card.appendChild(img);
-          card.appendChild(nm);
-          bandGrid.appendChild(card);
-
-          // async album check for border coloring
-          bandHasAlbumForCode(info, showMMDDYY).then((has) => {
-            card.classList.toggle("isGood", !!has);
-            card.classList.toggle("isBad", !has);
-          });
+      tile._bandGridEl = bandGrid;
+      tile._showData = s;
+      tile._showMMDDYY = showMMDDYY;
+      tile._bandsLoaded = false;
+      tile.setAttribute("data-band-count", String(getBandCountForShow(s)));
+      updateBandsButtonForTile(tile);
         });
       });
 
@@ -1124,13 +1185,23 @@ contentEl.addEventListener("click", (e) => {
   // Close other open tiles (accordion behavior)
   const openTiles = contentEl.querySelectorAll(".showTile.isOpen");
   openTiles.forEach((t) => {
-    if (t !== tile) t.classList.remove("isOpen");
+    if (t !== tile) {
+      t.classList.remove("isOpen");
+      updateBandsButtonForTile(t);
+    }
   });
 
   tile.classList.toggle("isOpen");
 
-  // Persist which show (if any) is open for the current year
   const isOpen = tile.classList.contains("isOpen");
+
+  // Load bands + checks only when opened (smoother + less network)
+  if (isOpen) ensureTileBandsLoaded(tile);
+
+  // Update the caret + label
+  updateBandsButtonForTile(tile);
+
+  // Persist which show (if any) is open for the current year
   const openId = isOpen ? tile.getAttribute("data-show-id") : "";
   saveShowsState({ openShowId: openId });
 });
@@ -1207,7 +1278,11 @@ currentYearPretty = (showsForYear || []).map((s) => {
     const st = loadShowsState();
     if (st.openShowId) {
       const toOpen = content.querySelector(`.showTile[data-show-id="${cssEscape(st.openShowId)}"]`);
-      if (toOpen) toOpen.classList.add("isOpen");
+      if (toOpen) {
+        toOpen.classList.add("isOpen");
+        ensureTileBandsLoaded(toOpen);
+        updateBandsButtonForTile(toOpen);
+      }
     }
     // ✅ Restore again after content swap + layout reflow
     setTimeout(() => restoreScrollSnapshot(snap), 0);
