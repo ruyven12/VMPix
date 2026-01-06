@@ -273,42 +273,69 @@
       }
       .showTile.isOpen .showExpand{ display:block; }
 
+      /* List-style bands (small logos + pulsing status dot) */
       .bandGrid{
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
+        display:flex;
+        flex-direction:column;
+        gap: 6px;
       }
 
       .bandCard{
         border-radius: 12px;
-        padding: 10px;
-        border: 2px solid rgba(255,255,255,0.12);
-        background: rgba(0,0,0,0.20);
-        text-align:center;
+        padding: 8px 10px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.16);
+
         display:flex;
-        flex-direction:column;
+        flex-direction:row;
         align-items:center;
         justify-content:flex-start;
-        gap: 8px;
-        min-height: 110px;
+        gap: 10px;
+
+        min-height: 0;
+        text-align:left;
       }
-      .bandCard.isGood{ border-color: rgba(34,197,94,0.70); }
-      .bandCard.isBad{ border-color: rgba(239,68,68,0.65); }
+
+      .statusDot{
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(148,163,184,0.55);
+        box-shadow: 0 0 0 0 rgba(148,163,184,0.0);
+        flex: 0 0 auto;
+      }
+
+      /* Dot colors + pulse tied to your existing isGood / isBad logic */
+      .bandCard.isGood .statusDot{
+        background: rgba(34,197,94,0.95);
+        animation: statusPulse 1.25s ease-out infinite;
+      }
+      .bandCard.isBad .statusDot{
+        background: rgba(239,68,68,0.92);
+        animation: statusPulse 1.25s ease-out infinite;
+      }
+
+      @keyframes statusPulse{
+        0%   { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
+        70%  { transform: scale(1.00); box-shadow: 0 0 0 8px rgba(255,255,255,0.0); }
+        100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
+      }
 
       .bandLogo{
-        width: 74px;
-        height: 74px;
+        width: 28px;
+        height: 28px;
         object-fit: cover;
-        border-radius: 10px;
+        border-radius: 8px;
         background: rgba(255,255,255,0.06);
+        flex: 0 0 auto;
       }
+
       .bandName{
         font-size: 12px;
         color: rgba(255,255,255,0.90);
-        line-height: 1.1;
+        line-height: 1.15;
         word-break: break-word;
       }
-
       /* "More" dropdown */
       .YearsMoreWrap{ position: relative; }
       .YearsMoreBtn{
@@ -995,6 +1022,10 @@ header.appendChild(posterWrap);
           card.className = "bandCard";
           card.setAttribute("data-band", bandName);
 
+          // pulsing status dot (color comes from isGood / isBad class)
+          const dot = document.createElement("span");
+          dot.className = "statusDot";
+
           const img = document.createElement("img");
           img.className = "bandLogo";
           img.alt = bandName;
@@ -1006,6 +1037,7 @@ header.appendChild(posterWrap);
           nm.className = "bandName";
           nm.textContent = bandName;
 
+          card.appendChild(dot);
           card.appendChild(img);
           card.appendChild(nm);
           bandGrid.appendChild(card);
