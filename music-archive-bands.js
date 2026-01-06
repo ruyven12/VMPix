@@ -34,17 +34,38 @@
     s.id = "musicBandsStyles";
     s.textContent = `
       .bandsWrap{
+        /* ---------- Fluid scale tokens (balanced/auto) ---------- */
+        --ui-0: clamp(11px, 0.35vw + 9px, 13px);   /* small text */
+        --ui-1: clamp(12px, 0.45vw + 10px, 15px);  /* normal */
+        --ui-2: clamp(14px, 0.55vw + 11px, 18px);  /* headings */
+        --ui-3: clamp(16px, 0.70vw + 12px, 22px);  /* big headings */
+
+        --gap-1: clamp(6px, 0.7vw, 10px);
+        --gap-2: clamp(10px, 1.0vw, 14px);
+        --gap-3: clamp(14px, 1.2vw, 18px);
+
+        --pad-1: clamp(6px, 0.7vw, 10px);
+        --pad-2: clamp(8px, 0.9vw, 12px);
+        --pad-3: clamp(10px, 1.2vw, 16px);
+
+        --r-1: clamp(10px, 1.0vw, 14px);
+        --r-2: clamp(12px, 1.2vw, 16px);
+        --r-pill: 999px;
+
+        --sidebar: clamp(220px, 24vw, 320px);
+
         width:100%;
         max-width:1600px;
         margin:0 auto;
+        font-size: var(--ui-1);
       }
 
       /* top bar inside panel */
       .bandsTop{
         display:flex;
         flex-direction:column;
-        gap:10px;
-        margin-bottom:10px;
+        gap: var(--gap-1);
+        margin-bottom: var(--gap-1);
       }
 
       /* region pills */
@@ -52,18 +73,23 @@
         display:flex;
         flex-wrap:wrap;
         justify-content:center;
-        gap:8px;
+        gap: var(--gap-1);
       }
       .region-pill{
-        padding:8px 14px;
-        border-radius:999px;
+        padding: var(--pad-1) calc(var(--pad-2) + 2px);
+        border-radius: var(--r-pill);
         cursor:pointer;
         user-select:none;
-        font-size:12px;
+        font-size: var(--ui-0);
         letter-spacing:.04em;
         background:rgba(255,255,255,0.06);
         border:1px solid rgba(255,255,255,0.12);
         color:rgba(226,232,240,0.9);
+        line-height: 1;
+        min-height: clamp(32px, 3.8vh, 40px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
       }
       .region-pill.active{
         background:rgba(255,255,255,0.14);
@@ -75,17 +101,18 @@
         display:flex;
         flex-wrap:wrap;
         justify-content:center;
-        gap:8px;
+        gap: var(--gap-1);
       }
       .letter-pill{
-        padding:6px 12px;
-        border-radius:999px;
+        padding: calc(var(--pad-1) - 2px) var(--pad-2);
+        border-radius: var(--r-pill);
         cursor:pointer;
-        font-size:12px;
+        font-size: var(--ui-0);
         background:rgba(17,24,39,0.35);
         border:1px solid rgba(148,163,184,0.25);
         color:#fff;
         backdrop-filter: blur(6px);
+        min-height: clamp(30px, 3.6vh, 38px);
       }
       .letter-pill.active{
         background:rgba(255,255,255,0.14);
@@ -96,21 +123,24 @@
       #status-legend{
         display:flex;
         justify-content:center;
-        gap:10px;
+        gap: var(--gap-2);
         flex-wrap:wrap;
-        font-size:12px;
+        font-size: var(--ui-0);
         opacity:.9;
       }
       .legend-dot{
-        width:10px;height:10px;border-radius:50%;
-        display:inline-block;margin-right:6px;
+        width: clamp(9px, 0.9vw, 11px);
+        height: clamp(9px, 0.9vw, 11px);
+        border-radius:50%;
+        display:inline-block;
+        margin-right: clamp(6px, 0.8vw, 8px);
       }
 
       /* 2-column layout: tree + results */
       .bandsLayout{
         display:grid;
-        grid-template-columns: 280px 1fr;
-        gap:14px;
+        grid-template-columns: var(--sidebar) 1fr;
+        gap: var(--gap-2);
         align-items:start;
       }
       @media (max-width: 950px){
@@ -122,59 +152,60 @@
         position:sticky;
         top:0;
         align-self:flex-start;
-        max-height:80vh;
+        max-height: min(80vh, 820px);
         overflow:auto;
-        padding:10px;
-        border-radius:14px;
+        padding: var(--pad-2);
+        border-radius: var(--r-2);
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
       }
       .tree-section-title{
-        font-size:12px;
+        font-size: var(--ui-0);
         letter-spacing:.08em;
         text-transform:uppercase;
         opacity:.8;
-        margin:6px 0 8px;
+        margin: 0 0 var(--gap-1);
       }
       .tree-letter{
         display:flex;
         align-items:center;
         justify-content:space-between;
         width:100%;
-        padding:8px 10px;
-        border-radius:12px;
+        padding: var(--pad-1) var(--pad-2);
+        border-radius: var(--r-1);
         cursor:pointer;
         background:rgba(17,24,39,0.30);
         border:1px solid rgba(148,163,184,0.18);
         color:rgba(226,232,240,0.95);
-        font-size:12px;
-        margin-bottom:8px;
+        font-size: var(--ui-0);
+        margin-bottom: var(--gap-1);
+        min-height: clamp(34px, 4.2vh, 42px);
       }
       .tree-letter:hover{
         background:rgba(255,255,255,0.08);
       }
       .tree-count{
         opacity:.7;
-        font-size:11px;
+        font-size: clamp(10px, 0.32vw + 9px, 12px);
       }
 
       /* crumbs */
       #crumbs{
         text-align:center;
-        margin:10px 0 12px;
-        font-size:12px;
+        margin: var(--gap-2) 0 var(--gap-2);
+        font-size: var(--ui-0);
         opacity:.85;
       }
 
       /* results */
       #results{
-        min-height:200px;
+        min-height: clamp(180px, 22vh, 260px);
       }
       .band-card{
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
-        border-radius:16px;
-        padding:12px;
+        border-radius: var(--r-2);
+        padding: var(--pad-2);
         cursor:pointer;
       }
       .band-card:hover{
@@ -183,34 +214,36 @@
       .band-row{
         display:flex;
         align-items:center;
-        gap:10px;
+        gap: var(--gap-1);
       }
       .band-logo{
-        width:54px;height:54px;border-radius:12px;
+        width: clamp(46px, 4.2vw, 58px);
+        height: clamp(46px, 4.2vw, 58px);
+        border-radius: var(--r-1);
         object-fit:cover;
         background:rgba(255,255,255,0.06);
         border:1px solid rgba(255,255,255,0.10);
         flex:0 0 auto;
       }
       .band-name{
-        font-size:15px;
+        font-size: var(--ui-2);
         font-weight:700;
-        line-height:1.1;
+        line-height:1.12;
       }
       .band-meta{
-        margin-top:6px;
-        font-size:12px;
+        margin-top: var(--gap-1);
+        font-size: var(--ui-0);
         opacity:.85;
         display:flex;
         flex-wrap:wrap;
-        gap:10px;
+        gap: var(--gap-1);
       }
       .pill{
-        padding:3px 10px;
-        border-radius:999px;
+        padding: 3px clamp(8px, 1.0vw, 12px);
+        border-radius: var(--r-pill);
         background:rgba(17,24,39,0.35);
         border:1px solid rgba(148,163,184,0.18);
-        font-size:11px;
+        font-size: clamp(10px, 0.32vw + 9px, 12px);
         white-space:nowrap;
       }
 
@@ -219,38 +252,38 @@
         display:flex;
         flex-direction:column;
         align-items:center;
-        gap:10px;
+        gap: var(--gap-2);
       }
       .albumsGrid{
         width:100%;
         display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap:14px;
+        grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+        gap: var(--gap-2);
         max-width:1400px;
       }
       .album-card{
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
-        border-radius:16px;
-        padding:10px;
+        border-radius: var(--r-2);
+        padding: var(--pad-2);
         cursor:pointer;
       }
       .album-thumb{
         width:100%;
         aspect-ratio: 16/10;
         object-fit:cover;
-        border-radius:12px;
+        border-radius: var(--r-1);
         border:1px solid rgba(255,255,255,0.10);
         background:rgba(255,255,255,0.04);
       }
       .album-title{
-        margin-top:8px;
+        margin-top: var(--gap-1);
         font-weight:700;
-        font-size:13px;
+        font-size: var(--ui-1);
       }
       .album-sub{
-        margin-top:4px;
-        font-size:12px;
+        margin-top: 4px;
+        font-size: var(--ui-0);
         opacity:.8;
       }
 
@@ -259,42 +292,43 @@
         display:flex;
         align-items:center;
         justify-content:space-between;
-        gap:10px;
+        gap: var(--gap-2);
         width:100%;
         max-width:1400px;
-        margin:0 auto 10px;
+        margin:0 auto var(--gap-2);
         flex-wrap:wrap;
       }
       .btn{
-        padding:6px 14px;
+        padding: calc(var(--pad-1) - 2px) calc(var(--pad-2) + 2px);
         background:rgba(17,24,39,0.35);
         color:#fff;
         border:1px solid rgba(148,163,184,0.25);
-        border-radius:9999px;
+        border-radius: var(--r-pill);
         cursor:pointer;
-        font-size:12px;
+        font-size: var(--ui-0);
         backdrop-filter:blur(6px);
+        min-height: clamp(34px, 4.2vh, 42px);
       }
       .photosGrid{
         width:100%;
         display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap:10px;
+        grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+        gap: var(--gap-1);
         max-width:1400px;
         margin:0 auto;
       }
       .smug-photo-box{
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
-        border-radius:14px;
-        padding:8px;
+        border-radius: var(--r-1);
+        padding: var(--pad-1);
         cursor:pointer;
       }
       .smug-photo{
         width:100%;
         aspect-ratio: 1/1;
         object-fit:cover;
-        border-radius:10px;
+        border-radius: calc(var(--r-1) - 2px);
         border:1px solid rgba(255,255,255,0.10);
         background:rgba(255,255,255,0.04);
       }
@@ -308,35 +342,35 @@
         align-items:center;
         justify-content:center;
         z-index:999999;
-        padding:18px;
+        padding: var(--pad-3);
       }
       .lightbox img{
         max-width:95vw;
         max-height:86vh;
-        border-radius:14px;
+        border-radius: var(--r-2);
         border:1px solid rgba(255,255,255,0.12);
       }
       .lightbox-controls{
         position:fixed;
-        bottom:16px;
+        bottom: calc(var(--pad-2) + 2px);
         left:50%;
         transform:translateX(-50%);
         display:flex;
-        gap:10px;
+        gap: var(--gap-1);
         flex-wrap:wrap;
         justify-content:center;
       }
       .lightbox-caption{
         position:fixed;
-        top:14px;
+        top: calc(var(--pad-2) + 2px);
         left:50%;
         transform:translateX(-50%);
         color:rgba(255,255,255,0.9);
-        font-size:12px;
+        font-size: var(--ui-0);
         background:rgba(0,0,0,0.45);
         border:1px solid rgba(255,255,255,0.12);
-        padding:6px 10px;
-        border-radius:999px;
+        padding: calc(var(--pad-1) - 2px) var(--pad-2);
+        border-radius: var(--r-pill);
         max-width:92vw;
         text-overflow:ellipsis;
         overflow:hidden;
@@ -361,7 +395,7 @@
 
     // ONLY what's inside #musicContentPanel
     return `
-      <div class="bandsWrap bands-debug" id="bands-root">
+      <div class="bandsWrap" id="bands-root">
         <div class="bandsTop">
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
