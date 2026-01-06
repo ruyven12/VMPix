@@ -86,6 +86,9 @@
     );
 
     _contentPanelEl.style.height = `${avail}px`;
+    _contentPanelEl.style.overflowY = 'auto';
+    _contentPanelEl.style.overflowX = 'hidden';
+    _contentPanelEl.style.overscrollBehavior = 'contain';
     _contentPanelEl.style.maxHeight = `${avail}px`;
   }
 
@@ -434,14 +437,16 @@
 
       // Ensure hudMain has a reliable height context for our “green box” sizing
       hudMain.style.boxSizing = 'border-box';
-      hudMain.style.overflowX = 'hidden';
-      hudMain.style.overflowY = 'auto';
-      hudMain.style.webkitOverflowScrolling = 'touch';
+      hudMain.style.overflow = 'hidden';
 
       if (!_contentPanelEl) {
         _contentPanelEl = document.createElement('div');
         _contentPanelEl.id = 'musicContentPanel';
 
+      _contentPanelEl.style.overflowY = 'auto';
+      _contentPanelEl.style.overflowX = 'hidden';
+      _contentPanelEl.style.webkitOverflowScrolling = 'touch';
+      _contentPanelEl.style.overscrollBehavior = 'contain';
         _contentPanelEl.style.width = '100%';
         _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
         _contentPanelEl.style.margin = `${GREEN_BOX_MARGIN_TOP} auto 0`;
@@ -772,44 +777,42 @@
 
           const label = tab.textContent.trim();
 
-          // Bands + Shows are the driven UI now (use the expanded green viewport)
-if (label === 'Bands' || label === 'Shows') {
-  setArchiveViewportExpanded(true);
+          // Bands (external module) — shrink green panel to content height
+          if (label === 'Bands') {
+            setArchiveViewportExpanded(false);
 
- // Bands (external module)
-if (label === 'Bands') {
-  const html =
-    window.MusicArchiveBands?.render?.() ||
-    `<div style="opacity:.7">Bands module not loaded.</div>`;
+            const html =
+              window.MusicArchiveBands?.render?.() ||
+              `<div style="opacity:.7">Bands module not loaded.</div>`;
 
-  wipeSwapContent(html, '');
+            wipeSwapContent(html, '');
 
-  // Optional post-mount hook (wait for wipe-in)
-  window.setTimeout(() => {
-    const panel = document.getElementById('musicContentPanel');
-    window.MusicArchiveBands?.onMount?.(panel);
-  }, 360);
+            // Optional post-mount hook (wait for wipe-in)
+            window.setTimeout(() => {
+              const panel = document.getElementById('musicContentPanel');
+              window.MusicArchiveBands?.onMount?.(panel);
+            }, 360);
 
-  return;
-}
+            return;
+          }
 
+          // Shows (external module) — expanded viewport
+          if (label === 'Shows') {
+            setArchiveViewportExpanded(true);
 
- // Shows (external module)
-const html =
-  window.MusicArchiveShows?.render?.() ||
-  `<div style="opacity:.7">Shows module not loaded.</div>`;
+            const html =
+              window.MusicArchiveShows?.render?.() ||
+              `<div style="opacity:.7">Shows module not loaded.</div>`;
 
-wipeSwapContent(html, '');
+            wipeSwapContent(html, '');
 
-window.setTimeout(() => {
-  const panel = document.getElementById('musicContentPanel');
-  window.MusicArchiveShows?.onMount?.(panel);
-}, 360);
+            window.setTimeout(() => {
+              const panel = document.getElementById('musicContentPanel');
+              window.MusicArchiveShows?.onMount?.(panel);
+            }, 360);
 
-return;
-
-}
-
+            return;
+          }
 
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
