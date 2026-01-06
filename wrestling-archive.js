@@ -173,39 +173,61 @@
 
   // ✅ Lazy-load Shows module if it isn't present at click time.
   // IMPORTANT: update SHOWS_SCRIPT_SRC to the real path where wrestling-archive-shows.js is served.
-  const SHOWS_SCRIPT_SRC = '/js/wrestling-archive-shows.js';
+  const SHOWS_SCRIPT_SRC = 'https://wrestling-archive.onrender.com/wrestling-archive-shows.js';
+
+  // ✅ Robust loader that avoids <script> MIME-type blocking.
+  // It fetches the JS as text and evaluates it, so even if your host serves
+  // it as text/plain, it can still load.
+  //
+  // NOTE: If your site has a strict CSP that blocks eval, this will fail.
+  let _showsLoadPromise = null;
 
   function ensureWrestlingShowsLoaded() {
     if (window.WrestlingArchiveShows && typeof window.WrestlingArchiveShows.render === 'function') {
       return Promise.resolve(true);
     }
 
-    const existing = document.querySelector('script[data-wa-shows="1"]');
-    if (existing) {
-      return new Promise((resolve) => {
-        const start = Date.now();
-        const t = window.setInterval(() => {
-          if (window.WrestlingArchiveShows?.render) {
-            window.clearInterval(t);
-            resolve(true);
-          } else if (Date.now() - start > 2500) {
-            window.clearInterval(t);
-            resolve(false);
-          }
-        }, 50);
-      });
-    }
+    if (_showsLoadPromise) return _showsLoadPromise;
 
-    return new Promise((resolve) => {
-      const s = document.createElement('script');
-      s.src = SHOWS_SCRIPT_SRC;
-      s.async = true;
-      s.defer = true;
-      s.dataset.waShows = '1';
-      s.onload = () => resolve(!!window.WrestlingArchiveShows?.render);
-      s.onerror = () => resolve(false);
-      document.head.appendChild(s);
-    });
+    _showsLoadPromise = (async () => {
+      try {
+        const res = await fetch(SHOWS_SCRIPT_SRC, { cache: 'no-store' });
+
+        if (!res.ok) {
+          const ct = res.headers.get('content-type') || '';
+          console.error(
+            '[WrestlingArchive] Failed to load Shows module:',
+            SHOWS_SCRIPT_SRC,
+            'status:',
+            res.status,
+            res.statusText,
+            'content-type:',
+            ct
+          );
+          return false;
+        }
+
+        const code = await res.text();
+
+        try {
+          // sourceURL helps debugging in DevTools
+          (0, eval)(`${code}\n//# sourceURL=${SHOWS_SCRIPT_SRC}`);
+        } catch (e) {
+          console.error('[WrestlingArchive] Shows module eval failed:', e);
+          return false;
+        }
+
+        return !!window.WrestlingArchiveShows?.render;
+      } catch (err) {
+        console.error('[WrestlingArchive] Shows module load error:', err);
+        return false;
+      } finally {
+        // allow retries if something went wrong
+        _showsLoadPromise = null;
+      }
+    })();
+
+    return _showsLoadPromise;
   }
 
 
