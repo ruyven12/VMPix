@@ -1,56 +1,41 @@
 
-/* vmpix-nav-text-only.css
-   Text-only premium nav interactions
-   Safe for desktop, mobile, and Messenger webviews
+/* vmpix-hud-borderless.css
+   Removes the decorative HUD border/frame
+   Keeps translucent background + text readable
 */
 
-/* Base nav text cleanup */
-.hudIntroText {
-  background: none !important;
+/* Kill neon frame lines / borders */
+.neonFrame,
+.neonFrame::before,
+.neonFrame::after,
+.neonFrameWrap::before,
+.neonFrameWrap::after {
   border: none !important;
+  outline: none !important;
   box-shadow: none !important;
-  padding: 6px 8px !important;
+  background-image: none !important;
 }
 
-/* Remove any animated frames/sheen elements if present */
-.hudIntroText::before,
-.hudIntroText::after {
-  content: none !important;
+/* If the frame uses SVG or pseudo-elements for lines */
+.neonLine,
+.frameLine,
+.hudFrame,
+.hudFrame * {
+  display: none !important;
 }
 
-/* Text-only hover / focus */
-@media (hover: hover) {
-  .hudIntroText {
-    transition: color 180ms ease, text-shadow 180ms ease, transform 160ms ease;
-  }
-
-  .hudIntroText:hover {
-    color: #ffffff;
-    text-shadow:
-      0 0 6px rgba(120, 200, 255, 0.55),
-      0 0 14px rgba(120, 200, 255, 0.35);
-    transform: translateY(-1px);
-  }
+/* Preserve translucent panel background */
+.neonFrameWrap,
+.hud,
+.panel,
+.glass {
+  background: rgba(20, 10, 12, 0.45) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* Active state (current section) */
-.hudIntroText.is-active {
-  color: #ffffff;
-  text-shadow:
-    0 0 8px rgba(120, 200, 255, 0.75),
-    0 0 18px rgba(120, 200, 255, 0.45);
-}
-
-/* Tap feedback for touch devices */
-html.touch .hudIntroText:active {
-  transform: translateY(0) scale(0.96);
-  text-shadow:
-    0 0 6px rgba(120, 200, 255, 0.6);
-}
-
-/* Mobile spacing sanity */
-@media (max-width: 768px) {
-  .hudIntroText {
-    font-size: clamp(13px, 3.4vw, 15px);
-  }
+/* Optional: soften edges slightly without a hard border */
+.neonFrameWrap,
+.hud {
+  border-radius: 18px;
 }
