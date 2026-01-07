@@ -1402,63 +1402,6 @@
 }
 
 
-
-
-  /* =============================
-     HI-TECH NAV BOOST (pills)
-     - adds pointer-follow "hotspot" glow
-     - adds press pulse + scanline tick
-     ============================= */
-  .hudIntroText{
-    --mx: 50%;
-    --my: 50%;
-    overflow: hidden;
-    transform: translateZ(0);
-    will-change: transform, filter;
-  }
-  /* hotspot glow */
-  .hudIntroText::before{
-    content:"";
-    position:absolute;
-    inset:-1px;
-    border-radius: inherit;
-    pointer-events:none;
-    opacity: 0;
-    background:
-      radial-gradient(120px 80px at var(--mx) var(--my),
-        rgba(255,120,150,0.45),
-        rgba(255,60,80,0.10) 55%,
-        rgba(0,0,0,0.0) 70%);
-    mix-blend-mode: screen;
-    transition: opacity 180ms ease;
-  }
-  .hudIntroText:hover::before{ opacity: 1; }
-
-  /* subtle "magnetic" lift on hover */
-  @media (hover:hover){
-    .hudIntroText:hover{ transform: translateY(-1px) scale(1.01); }
-  }
-
-  /* press pulse */
-  .hudIntroText.is-press{
-    animation: hudPillPress 260ms cubic-bezier(.2,.8,.2,1);
-  }
-  @keyframes hudPillPress{
-    0%{ transform: translateY(0) scale(1); }
-    40%{ transform: translateY(1px) scale(0.985); filter: brightness(1.12); }
-    100%{ transform: translateY(0) scale(1); }
-  }
-
-  /* touch devices: no hover-dependent boosts */
-  html.touch .hudIntroText::before{ display:none; }
-
-  /* reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .hudIntroText,
-    .hudIntroText::before{ transition:none !important; animation:none !important; }
-  }
-
-
 </style>
 
 </head>
@@ -1496,79 +1439,7 @@
             <div class="hudStub hudMain">
   <div class="menuHero" aria-hidden="false">
 <div class="neonFrameWrap" aria-hidden="false">
-    <svg class="neonFrame" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <!-- Softer bloom than the old glow, tuned for "main menu" look -->
-        <filter id="hudBloom" x="-30%" y="-60%" width="160%" height="220%">
-          <feGaussianBlur stdDeviation="6" result="b"/>
-          <feColorMatrix type="matrix" values="
-            1 0 0 0 0
-            0 0.4 0 0 0
-            0 0 0.4 0 0
-            0 0 0 1 0" result="c"/>
-          <feMerge>
-            <feMergeNode in="c"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-
-        <linearGradient id="hudStroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="rgba(255,40,60,0.10)"/>
-          <stop offset="0.20" stop-color="rgba(255,80,110,0.85)"/>
-          <stop offset="0.50" stop-color="rgba(255,130,160,1)"/>
-          <stop offset="0.80" stop-color="rgba(255,80,110,0.85)"/>
-          <stop offset="1" stop-color="rgba(255,40,60,0.10)"/>
-        </linearGradient>
-
-        <linearGradient id="hudInnerStroke" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="rgba(255,110,140,0.55)"/>
-          <stop offset="1" stop-color="rgba(255,40,60,0.15)"/>
-        </linearGradient>
-      </defs>
-
-      <!-- Outer plate -->
-      <path class="framePlate" d="
-        M120 26 H1080
-        L1166 86 V174
-        L1080 234 H120
-        L34 174 V86
-        Z" />
-
-      <!-- Outer stroke -->
-      <path class="frameOuter" d="
-        M120 26 H1080
-        L1166 86 V174
-        L1080 234 H120
-        L34 174 V86
-        Z" filter="url(#hudBloom)" />
-
-      <!-- Inner stroke (inset) -->
-      <path class="frameInner" d="
-        M160 52 H1040
-        L1124 96 V164
-        L1040 208 H160
-        L76 164 V96
-        Z" />
-
-      <!-- Top & bottom hot bars -->
-      <path class="frameTopBar" d="M460 22 H740" filter="url(#hudBloom)"/>
-      <path class="frameBottomBar" d="M520 238 H680" filter="url(#hudBloom)"/>
-
-      <!-- Corner glyphs / ticks -->
-      <path class="frameTicks" d="M146 62 L110 62 M1054 62 L1090 62" />
-      <path class="frameTicks" d="M146 198 L110 198 M1054 198 L1090 198" />
-
-      <!-- Small diagonal corner cuts -->
-      <path class="frameCuts" d="M118 26 L150 58 M1082 26 L1050 58 M118 234 L150 202 M1082 234 L1050 202" />
-
-      <!-- Animated tracer along outer edge -->
-      <path class="frameTrace" d="
-        M120 26 H1080
-        L1166 86 V174
-        L1080 234 H120
-        L34 174 V86
-        Z" filter="url(#hudBloom)" />
-    </svg>
+    
 
     <!-- Ornament overlay: side chevrons + corner ticks (the "extra graphic" around the box) -->
     <svg class="hudOrn" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
