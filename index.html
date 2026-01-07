@@ -1404,9 +1404,12 @@
 
 </style>
 
+  <link rel="stylesheet" href="vmpix-mobile-patch-v2.css?v=2">
+  <script src="vmpix-webview.js?v=2" defer></script>
+
 </head>
 
-<body>
+<body class="vmpix-shell">
 <div id="app">
   <section id="view-home" class="view active">
     <main>
@@ -1442,19 +1445,7 @@
     
 
     <!-- Ornament overlay: side chevrons + corner ticks (the "extra graphic" around the box) -->
-    <svg class="hudOrn" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
-      <path class="ornLine" d="M40 130 H140"/>
-      <path class="ornLine" d="M1060 130 H1160"/>
-
-      <path class="ornChev"  d="M52 86 L120 86 L150 130 L120 174 L52 174 Z"/>
-      <path class="ornChev2" d="M78 102 L122 102 L146 130 L122 158 L78 158 Z"/>
-
-      <path class="ornChev"  d="M1148 86 L1080 86 L1050 130 L1080 174 L1148 174 Z"/>
-      <path class="ornChev2" d="M1122 102 L1078 102 L1054 130 L1078 158 L1122 158 Z"/>
-
-      <path class="ornTick" d="M120 54 H170 M120 206 H170"/>
-      <path class="ornTick" d="M1030 54 H1080 M1030 206 H1080"/>
-    </svg>
+    
 
     <!-- Typed HUD main text, placed INSIDE the frame -->
     <div class="neonFrameText">
@@ -1521,5 +1512,8 @@
   })();
 </script>
 
+
+
+<script src="vmpix-webview.js" defer></script>
 </body>
 </html>
