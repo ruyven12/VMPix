@@ -1,209 +1,56 @@
-/* vmpix-mobile-patch.css
-   Drop-in "guardrails" for Android Chrome + Messenger/FB in-app browsers.
-   Goal: prevent shrinking/boxing, prevent horizontal overflow, and keep panels centered.
 
-   How to use:
-   1) Ensure your <head> includes:
-      <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-   2) Add class "vmpix-shell" to <body> (recommended):
-      <body class="vmpix-shell">
-   3) Include this CSS AFTER your main theme CSS so it can override:
-      <link rel="stylesheet" href="vmpix-mobile-patch.css">
+/* vmpix-nav-text-only.css
+   Text-only premium nav interactions
+   Safe for desktop, mobile, and Messenger webviews
 */
 
-/* ---------- Global sanity ---------- */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  overflow-x: hidden;
+/* Base nav text cleanup */
+.hudIntroText {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 6px 8px !important;
 }
 
-body.vmpix-shell {
-  margin: 0;
-  width: 100%;
-  overflow-x: hidden; /* kills sideways scroll */
+/* Remove any animated frames/sheen elements if present */
+.hudIntroText::before,
+.hudIntroText::after {
+  content: none !important;
 }
 
-/* Make sizing predictable */
-body.vmpix-shell, body.vmpix-shell * {
-  box-sizing: border-box;
+/* Text-only hover / focus */
+@media (hover: hover) {
+  .hudIntroText {
+    transition: color 180ms ease, text-shadow 180ms ease, transform 160ms ease;
+  }
+
+  .hudIntroText:hover {
+    color: #ffffff;
+    text-shadow:
+      0 0 6px rgba(120, 200, 255, 0.55),
+      0 0 14px rgba(120, 200, 255, 0.35);
+    transform: translateY(-1px);
+  }
 }
 
-/* Images/videos never exceed viewport */
-body.vmpix-shell img,
-body.vmpix-shell video,
-body.vmpix-shell canvas,
-body.vmpix-shell svg {
-  max-width: 100%;
-  height: auto;
+/* Active state (current section) */
+.hudIntroText.is-active {
+  color: #ffffff;
+  text-shadow:
+    0 0 8px rgba(120, 200, 255, 0.75),
+    0 0 18px rgba(120, 200, 255, 0.45);
 }
 
-/* ---------- Mobile layout guardrails ---------- */
+/* Tap feedback for touch devices */
+html.touch .hudIntroText:active {
+  transform: translateY(0) scale(0.96);
+  text-shadow:
+    0 0 6px rgba(120, 200, 255, 0.6);
+}
+
+/* Mobile spacing sanity */
 @media (max-width: 768px) {
-  /* Comfortable side padding; safe-area friendly */
-  body.vmpix-shell {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
+  .hudIntroText {
+    font-size: clamp(13px, 3.4vw, 15px);
   }
-
-  /* Common container/wrapper patterns — keep centered and full-width */
-  body.vmpix-shell .container,
-  body.vmpix-shell .wrapper,
-  body.vmpix-shell .content,
-  body.vmpix-shell .page,
-  body.vmpix-shell main,
-  body.vmpix-shell #app,
-  body.vmpix-shell #root {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /* Any “panel/card” boxes should not be narrower than the screen */
-  body.vmpix-shell .panel,
-  body.vmpix-shell .card,
-  body.vmpix-shell .frame,
-  body.vmpix-shell .box {
-    max-width: 100%;
-  }
-
-  /* If you use fixed/absolute centered panels, keep them truly centered */
-  body.vmpix-shell .centered,
-  body.vmpix-shell .modal,
-  body.vmpix-shell .dialog {
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: calc(100vw - 24px);
-  }
-
-  /* Nav "pill" buttons: allow wrap + bigger tap targets */
-  body.vmpix-shell nav,
-  body.vmpix-shell .nav,
-  body.vmpix-shell .menu {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  body.vmpix-shell .nav,
-  body.vmpix-shell .menu,
-  body.vmpix-shell .nav-pills,
-  body.vmpix-shell .top-nav,
-  body.vmpix-shell .button-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  body.vmpix-shell .nav a,
-  body.vmpix-shell .menu a,
-  body.vmpix-shell button,
-  body.vmpix-shell .btn,
-  body.vmpix-shell .pill {
-    min-height: 44px;          /* tap-friendly */
-    padding: 10px 14px;
-  }
-
-  /* Prevent “shrunk” text: make key headings responsive */
-  body.vmpix-shell h1 { font-size: clamp(22px, 5.5vw, 34px); }
-  body.vmpix-shell h2 { font-size: clamp(18px, 4.8vw, 26px); }
-  body.vmpix-shell p, body.vmpix-shell li { font-size: clamp(14px, 3.6vw, 18px); }
-
-  /* If any blocks use huge fixed heights (vh), soften it */
-  body.vmpix-shell [style*="vh"],
-  body.vmpix-shell .vh,
-  body.vmpix-shell .fullheight {
-    min-height: auto !important;
-    height: auto !important;
-  }
-}
-
-/* ---------- Messenger/FB/Instagram in-app browser helpers ----------
-   These browsers sometimes apply odd scaling. We add a class to <html>
-   via vmpix-webview.js: html.webview (and html.messenger if detected).
-*/
-html.webview body.vmpix-shell {
-  /* Encourage natural sizing; avoid any inherited scaling trickery */
-  zoom: 1;
-}
-
-html.messenger body.vmpix-shell {
-  /* Extra padding helps if the webview squeezes width */
-  padding-left: max(14px, env(safe-area-inset-left));
-  padding-right: max(14px, env(safe-area-inset-right));
-}
-
-/* Optional: reduce heavy effects on mobile webviews (performance/stability) */
-@media (max-width: 768px) {
-  html.webview body.vmpix-shell .heavy-blur,
-  html.webview body.vmpix-shell .glass,
-  html.webview body.vmpix-shell .backdrop {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-}
-/* ---------- Project-specific tuning for your HUD layout ---------- */
-@media (max-width: 768px){
-  /* Give the HUD breathing room while still using full width */
-  body.vmpix-shell .hudStage{
-    padding: 0;
-    justify-items: center;
-    align-items: start;
-  }
-
-  /* The HUD should be truly full-width on mobile (no accidental boxing) */
-  body.vmpix-shell .hud{
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 18px;
-  }
-
-  /* Make the pill nav wrap properly (your .hudStub currently acts like a single-line box) */
-  body.vmpix-shell .hudStub{
-    display: flex !important;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 10px !important;
-  }
-
-  body.vmpix-shell .hudIntroText{
-    white-space: nowrap;
-  }
-
-  body.vmpix-shell .hudIntroType{
-    font-size: clamp(12px, 3.4vw, 14px);
-  }
-
-  /* Keep the menu frame content from drifting */
-  body.vmpix-shell .neonFrameWrap,
-  body.vmpix-shell .menuHero{
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-/* ---------- WebView (Messenger/FB/IG) hardening ---------- */
-/* Some in-app browsers mis-handle fixed backgrounds/filters; keep it stable */
-html.webview body.vmpix-shell header{
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-/* FINAL Messenger mobile centering fix */
-@media (max-width: 768px) {
-
-  /* Force the main HUD panel to truly fill the viewport */
-  body.vmpix-shell .hud,
-  body.vmpix-shell .neonFrame,
-  body.vmpix-shell .neonFrameWrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    left: auto !important;
-    right: auto !important;
-    transform: none !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-
 }
