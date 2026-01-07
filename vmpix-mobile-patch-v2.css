@@ -1,41 +1,32 @@
 
-/* vmpix-hud-borderless.css
-   Removes the decorative HUD border/frame
-   Keeps translucent background + text readable
+/* vmpix-remove-hud-border.css
+   Removes the SVG HUD border/frame (the red outline) but keeps the translucent box + text.
+   This targets the actual source of the border: <svg class="neonFrame"> in index.html.
 */
 
-/* Kill neon frame lines / borders */
-.neonFrame,
-.neonFrame::before,
-.neonFrame::after,
-.neonFrameWrap::before,
-.neonFrameWrap::after {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background-image: none !important;
-}
-
-/* If the frame uses SVG or pseudo-elements for lines */
-.neonLine,
-.frameLine,
-.hudFrame,
-.hudFrame * {
+/* Hide the SVG border entirely */
+.neonFrame {
   display: none !important;
 }
 
-/* Preserve translucent panel background */
-.neonFrameWrap,
-.hud,
-.panel,
-.glass {
-  background: rgba(20, 10, 12, 0.45) !important;
+/* Keep the container as the translucent panel */
+.neonFrameWrap {
+  /* Keep your existing translucency; these are safe defaults if none exists */
+  background: rgba(20, 10, 12, 0.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 18px;
 }
 
-/* Optional: soften edges slightly without a hard border */
-.neonFrameWrap,
-.hud {
-  border-radius: 18px;
+/* If you have any extra "corner" / line layers, hide them too */
+.neonFrameWrap .corner,
+.neonFrameWrap .frame,
+.neonFrameWrap .line,
+.neonFrameWrap [class*="corner"],
+.neonFrameWrap [class*="line"] {
+  background: none !important;
+  box-shadow: none !important;
 }
