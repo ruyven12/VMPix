@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Voodoo Media</title>
 
   <style>
@@ -71,6 +71,14 @@
     background-repeat: no-repeat;
     background-attachment: scroll, scroll, scroll, fixed;
 
+
+
+/* Mobile/WebView fix: `background-attachment: fixed` can break layout/scroll in some in-app browsers (Messenger, etc.) */
+@media (max-width: 600px){
+  html, body{
+    background-attachment: scroll, scroll, scroll, scroll !important;
+  }
+}
     color: var(--fg);
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   }
@@ -1552,6 +1560,38 @@
 <script src="about-archive.js"></script>
 <script src="hud-app.js"></script>
 
+
+
+<script>
+  // Mobile/WebView viewport-height fix:
+  // - Keeps the HUD at the *visible* height in Chrome + in-app browsers (Messenger, etc.)
+  // - Updates --vh from visualViewport when available
+  (function () {
+    function setVh() {
+      var vv = window.visualViewport;
+      var h = vv && vv.height ? vv.height : window.innerHeight;
+      // 1% of the visible viewport height (in px)
+      document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+    }
+    setVh();
+
+    // Debounced via rAF to avoid thrash
+    var raf = 0;
+    function onResize() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(setVh);
+    }
+
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('orientationchange', onResize, { passive: true });
+    window.addEventListener('pageshow', onResize, { passive: true });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onResize, { passive: true });
+      window.visualViewport.addEventListener('scroll', onResize, { passive: true });
+    }
+  })();
+</script>
 
 </body>
 </html>
