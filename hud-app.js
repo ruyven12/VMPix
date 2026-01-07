@@ -31,7 +31,40 @@
     el.style.setProperty('--intro-chars', n);
   });
 
-  function pulseFrame(){
+  
+  // =============================
+  // NAV PILL HI-TECH INTERACTION
+  // =============================
+  (function(){
+    const pills = Array.from(document.querySelectorAll('.hudIntroText'));
+    if (!pills.length) return;
+
+    // Pointer-follow glow hotspot (desktop only; harmless on touch)
+    pills.forEach(pill => {
+      pill.addEventListener('pointermove', (e) => {
+        const r = pill.getBoundingClientRect();
+        const x = (e.clientX - r.left);
+        const y = (e.clientY - r.top);
+        pill.style.setProperty('--mx', x + 'px');
+        pill.style.setProperty('--my', y + 'px');
+      }, { passive: true });
+
+      pill.addEventListener('pointerleave', () => {
+        pill.style.removeProperty('--mx');
+        pill.style.removeProperty('--my');
+      }, { passive: true });
+
+      // Quick "press" pulse
+      pill.addEventListener('click', () => {
+        pill.classList.remove('is-press');
+        void pill.offsetWidth;
+        pill.classList.add('is-press');
+        window.setTimeout(() => pill.classList.remove('is-press'), 260);
+      });
+    });
+  })();
+
+function pulseFrame(){
     const wrap = document.querySelector('.neonFrameWrap');
     if (!wrap) return;
 
@@ -39,6 +72,15 @@
     wrap.classList.remove('pulse');
     void wrap.offsetWidth;
     wrap.classList.add('pulse');
+
+    // Whole HUD surge (pairs with CSS in index.html)
+    const hudEl = document.getElementById('hud');
+    if (hudEl){
+      hudEl.classList.remove('hud-surge');
+      void hudEl.offsetWidth;
+      hudEl.classList.add('hud-surge');
+      window.setTimeout(() => hudEl.classList.remove('hud-surge'), 260);
+    }
 
     // pill-only wipe pulse (no layout changes)
     const pills = document.querySelectorAll('.hudIntroText');

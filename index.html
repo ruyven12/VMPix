@@ -1402,14 +1402,68 @@
 }
 
 
-</style>
 
-  <link rel="stylesheet" href="vmpix-mobile-patch-v2.css?v=2">
-  <script src="vmpix-webview.js?v=2" defer></script>
+
+  /* =============================
+     HI-TECH NAV BOOST (pills)
+     - adds pointer-follow "hotspot" glow
+     - adds press pulse + scanline tick
+     ============================= */
+  .hudIntroText{
+    --mx: 50%;
+    --my: 50%;
+    overflow: hidden;
+    transform: translateZ(0);
+    will-change: transform, filter;
+  }
+  /* hotspot glow */
+  .hudIntroText::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    border-radius: inherit;
+    pointer-events:none;
+    opacity: 0;
+    background:
+      radial-gradient(120px 80px at var(--mx) var(--my),
+        rgba(255,120,150,0.45),
+        rgba(255,60,80,0.10) 55%,
+        rgba(0,0,0,0.0) 70%);
+    mix-blend-mode: screen;
+    transition: opacity 180ms ease;
+  }
+  .hudIntroText:hover::before{ opacity: 1; }
+
+  /* subtle "magnetic" lift on hover */
+  @media (hover:hover){
+    .hudIntroText:hover{ transform: translateY(-1px) scale(1.01); }
+  }
+
+  /* press pulse */
+  .hudIntroText.is-press{
+    animation: hudPillPress 260ms cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes hudPillPress{
+    0%{ transform: translateY(0) scale(1); }
+    40%{ transform: translateY(1px) scale(0.985); filter: brightness(1.12); }
+    100%{ transform: translateY(0) scale(1); }
+  }
+
+  /* touch devices: no hover-dependent boosts */
+  html.touch .hudIntroText::before{ display:none; }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .hudIntroText,
+    .hudIntroText::before{ transition:none !important; animation:none !important; }
+  }
+
+
+</style>
 
 </head>
 
-<body class="vmpix-shell">
+<body>
 <div id="app">
   <section id="view-home" class="view active">
     <main>
@@ -1596,8 +1650,5 @@
   })();
 </script>
 
-
-
-<script src="vmpix-webview.js" defer></script>
 </body>
 </html>
