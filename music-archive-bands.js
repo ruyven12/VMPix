@@ -548,70 +548,26 @@
         font-size: 11px;
       }
 
-      /* ===== Albums (Band Detail) - row flow like band list ===== */
-      .bandAlbumsGrid{
-        width:100%;
-        max-width:1200px;
-        margin: 0 auto;
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-      }
-      .albumRowCard{
-        display:flex;
-        align-items:center;
-        gap:12px;
-        padding:10px 12px;
-        border-radius:14px;
-        background:rgba(255,255,255,0.04);
-        border:1px solid rgba(255,255,255,0.10);
-        cursor:pointer;
-        transition: background .14s ease, transform .12s ease, border-color .14s ease;
-      }
-      .albumRowCard:hover{
-        background:rgba(255,255,255,0.06);
-        border-color: rgba(255,255,255,0.14);
-        transform: translateY(-1px);
-      }
-      .albumRowThumb{
-        width:72px;
-        height:96px;
-        border-radius:12px;
-        object-fit:cover;
-        border:1px solid rgba(255,255,255,0.10);
-        background:rgba(255,255,255,0.04);
-        flex:0 0 auto;
-      }
-      @media (max-width: 420px){
-        .albumRowThumb{ width:62px; height:84px; }
-        .albumRowCard{ padding:10px; gap:10px; }
-      }
-      .albumRowMeta{
-        min-width:0;
-        display:flex;
-        flex-direction:column;
-        gap:4px;
-      }
-      .albumRowTitle{
-        font-weight:800;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        font-size:12px;
-        opacity:.95;
-        line-height:1.15;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-      .albumRowSub{
-        font-size:11px;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        opacity:.75;
-        line-height:1.2;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
+      /* ===== Mobile: allow album row text to wrap ===== */
+      @media (max-width: 520px){
+        .albumRowCard{ align-items:flex-start; }
+        .albumRowMeta{ min-width:0; flex:1 1 auto; }
+
+        .albumRowTitle,
+        .albumRowSub{
+          white-space: normal !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+          word-break: break-word;
+        }
+
+        /* Optional: keep title from getting too tall */
+        .albumRowTitle{
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden !important;
+        }
       }
 
 `;
@@ -1219,40 +1175,34 @@
     }
 
     // Show albums (same click behavior as before)
-    
     albums.forEach((alb) => {
       const card = document.createElement("div");
-      card.className = "albumRowCard";
+      card.className = "album-card";
 
       const thumb = document.createElement("img");
-      thumb.className = "albumRowThumb";
+      thumb.className = "album-thumb";
       thumb.loading = "lazy";
-      thumb.alt = alb?.Name || alb?.Title || "Album";
+      thumb.alt = alb?.Name || "Album";
       thumb.src =
+        alb?.HighlightImage?.ThumbnailUrl ||
         alb?.HighlightImage?.SmallUrl ||
         alb?.HighlightImage?.MediumUrl ||
-        alb?.HighlightImage?.ThumbnailUrl ||
+        alb?.ThumbnailUrl ||
         alb?.SmallUrl ||
         alb?.MediumUrl ||
-        alb?.ThumbnailUrl ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='750'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
 
-      const meta = document.createElement("div");
-      meta.className = "albumRowMeta";
-
-      const title = document.createElement("div");
-      title.className = "albumRowTitle";
-      title.textContent = alb?.Name || alb?.Title || "Album";
+      const t = document.createElement("div");
+      t.className = "album-title";
+      t.textContent = alb?.Name || alb?.Title || "Album";
 
       const sub = document.createElement("div");
-      sub.className = "albumRowSub";
+      sub.className = "album-sub";
       sub.textContent = alb?.ImageCount ? `${alb.ImageCount} photos` : "";
 
-      meta.appendChild(title);
-      if (sub.textContent) meta.appendChild(sub);
-
       card.appendChild(thumb);
-      card.appendChild(meta);
+      card.appendChild(t);
+      card.appendChild(sub);
 
       card.addEventListener("click", async () => {
         await showAlbumPhotos({
@@ -1266,6 +1216,7 @@
 
       albumsGrid.appendChild(card);
     });
+
     window.requestAnimationFrame(() => resetPanelScroll());
     window.setTimeout(() => resetPanelScroll(), 200);
   }
