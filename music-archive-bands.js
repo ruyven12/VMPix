@@ -383,7 +383,6 @@
       #results .band-card .band-name{ display:block !important; }
       #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
 
-    `;
       /* ===== Band detail view (modeled after your Video 2 layout) ===== */
       .bandDetailWrap{
         width:100%;
@@ -548,6 +547,8 @@
       .bandAlbumsGrid .album-sub{
         font-size: 11px;
       }
+
+    `;
 
 
     document.head.appendChild(s);
