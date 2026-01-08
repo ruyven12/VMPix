@@ -755,6 +755,7 @@
 
         const idxName = header.indexOf("show_name") !== -1 ? header.indexOf("show_name") : header.indexOf("title");
         const idxDate = header.indexOf("show_date") !== -1 ? header.indexOf("show_date") : header.indexOf("date");
+        const idxUrl = header.indexOf("show_url") !== -1 ? header.indexOf("show_url") : header.indexOf("poster_url");
         const idxVenue = header.indexOf("show_venue");
         const idxCity = header.indexOf("show_city") !== -1 ? header.indexOf("show_city") : header.indexOf("city");
         const idxState = header.indexOf("show_state") !== -1 ? header.indexOf("show_state") : header.indexOf("state");
@@ -765,6 +766,7 @@
           const row = {
             show_name: idxName !== -1 ? (cols[idxName] || "").trim() : "",
             show_date: idxDate !== -1 ? (cols[idxDate] || "").trim() : "",
+            show_url: idxUrl !== -1 ? (cols[idxUrl] || "").trim() : "",
             show_venue: idxVenue !== -1 ? (cols[idxVenue] || "").trim() : "",
             show_city: idxCity !== -1 ? (cols[idxCity] || "").trim() : "",
             show_state: idxState !== -1 ? (cols[idxState] || "").trim() : "",
@@ -1370,7 +1372,9 @@
       meta.appendChild(t1);
       if (t2.textContent) meta.appendChild(t2);
 
-      // Option C: venue line from shows CSV; fallback to album Description
+      // Option C: venue line + poster from Shows CSV (show_url). Fallbacks:
+      // - venue: album Description
+      // - poster: SmugMug highlight thumb
       (async () => {
         try {
           const showsByDate = await ensureShowsIndex();
@@ -1385,6 +1389,13 @@
           }
           if (!best && candidates.length) best = candidates[0];
 
+          // ✅ Poster: prefer show_url from CSV
+          const poster = String(best?.show_url || "").trim();
+          if (poster && /^https?:\/\//i.test(poster)) {
+            thumb.src = poster;
+          }
+
+          // ✅ Venue line: prefer CSV, fallback to album Description
           const fromCsv = best ? buildVenueLine(best) : "";
           const fromDesc = String(alb?.Description || "").trim();
 
