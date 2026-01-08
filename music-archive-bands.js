@@ -201,6 +201,7 @@
         min-height:200px;
       }
       .band-card{
+        /* default (fallback) */
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
         border-radius:16px;
@@ -210,6 +211,30 @@
       .band-card:hover{
         background:rgba(255,255,255,0.06);
       }
+
+      /* ===== Band list card status backgrounds (based on sets_archive vs total_sets) =====
+         - if total_sets and sets_archive are equal (and non-zero) => green
+         - if total_sets > sets_archive => yellow
+         - if either field missing/blank => gray
+
+         Note: these are only used in the band LIST (#results), not the band detail view.
+      */
+      #results .band-card.setsGood{
+        background: rgba(34,197,94,0.14);
+        border-color: rgba(34,197,94,0.28);
+      }
+      #results .band-card.setsPartial{
+        background: rgba(245,158,11,0.14);
+        border-color: rgba(245,158,11,0.28);
+      }
+      #results .band-card.setsNone{
+        background: rgba(148,163,184,0.12);
+        border-color: rgba(148,163,184,0.22);
+      }
+
+      #results .band-card.setsGood:hover{ background: rgba(34,197,94,0.18); }
+      #results .band-card.setsPartial:hover{ background: rgba(245,158,11,0.18); }
+      #results .band-card.setsNone:hover{ background: rgba(148,163,184,0.16); }
       .band-row{
         display:flex;
         align-items:center;
@@ -889,24 +914,6 @@
           sets_archive:
             setsArchiveIdx !== -1 ? (cols[setsArchiveIdx] || "").trim() : "",
 
-          // Member fields (role-specific columns)
-          vox_1: vox1Idx !== -1 ? (cols[vox1Idx] || "").trim() : "",
-          vox_2: vox2Idx !== -1 ? (cols[vox2Idx] || "").trim() : "",
-          vox_3: vox3Idx !== -1 ? (cols[vox3Idx] || "").trim() : "",
-          guitar_1: gtr1Idx !== -1 ? (cols[gtr1Idx] || "").trim() : "",
-          guitar_2: gtr2Idx !== -1 ? (cols[gtr2Idx] || "").trim() : "",
-          guitar_3: gtr3Idx !== -1 ? (cols[gtr3Idx] || "").trim() : "",
-          bass: bassIdx !== -1 ? (cols[bassIdx] || "").trim() : "",
-          drum: drumIdx !== -1 ? (cols[drumIdx] || "").trim() : "",
-          keys: keysIdx !== -1 ? (cols[keysIdx] || "").trim() : "",
-
-          past_1: past1Idx !== -1 ? (cols[past1Idx] || "").trim() : "",
-          past_2: past2Idx !== -1 ? (cols[past2Idx] || "").trim() : "",
-          past_3: past3Idx !== -1 ? (cols[past3Idx] || "").trim() : "",
-          past_4: past4Idx !== -1 ? (cols[past4Idx] || "").trim() : "",
-          past_5: past5Idx !== -1 ? (cols[past5Idx] || "").trim() : "",
-          past_6: past6Idx !== -1 ? (cols[past6Idx] || "").trim() : "",
-
           // Arrays of member display lines (already formatted in sheet like: "Nick Owen (vox, bass)")
           core_members: [
             vox1Idx !== -1 ? (cols[vox1Idx] || "").trim() : "",
@@ -1187,6 +1194,32 @@
     return "#94a3b8";
   }
 
+  // ===== Band list coloring based on sets_archive vs total_sets =====
+  // Rules:
+  //  - if total_sets and sets_archive are equal (and both present) => green
+  //  - if total_sets > sets_archive (and both present) => yellow
+  //  - if either field missing/blank => gray
+  function setsStateClass(bandObj){
+    try {
+      const tRaw = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
+      const aRaw = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
+
+      if (!tRaw || !aRaw) return "setsNone";
+
+      const total = Number(tRaw);
+      const archived = Number(aRaw);
+      if (!Number.isFinite(total) || !Number.isFinite(archived)) return "setsNone";
+
+      if (total === archived) return "setsGood";
+      if (total > archived) return "setsPartial";
+
+      // If archived > total (rare / data mismatch), treat as complete.
+      return "setsGood";
+    } catch (_) {
+      return "setsNone";
+    }
+  }
+
   function showLetter(region, letter) {
     if (!resultsEl) return;
 
@@ -1213,6 +1246,9 @@
     bandsArr.forEach((bandObj) => {
       const card = document.createElement("div");
       card.className = "band-card";
+
+      // background color state (green/yellow/gray) based on sets_archive vs total_sets
+      card.classList.add(setsStateClass(bandObj));
 
       const row = document.createElement("div");
       row.className = "band-row";
