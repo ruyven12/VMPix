@@ -1,5 +1,6 @@
 // music-archive-bands.js
 (function () {
+  // logo+name only v3 + video2 band detail style
   // logo+name only v2
   "use strict";
 
