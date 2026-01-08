@@ -755,7 +755,6 @@
 
         const idxName = header.indexOf("show_name") !== -1 ? header.indexOf("show_name") : header.indexOf("title");
         const idxDate = header.indexOf("show_date") !== -1 ? header.indexOf("show_date") : header.indexOf("date");
-        const idxUrl = header.indexOf("show_url") !== -1 ? header.indexOf("show_url") : header.indexOf("poster_url");
         const idxVenue = header.indexOf("show_venue");
         const idxCity = header.indexOf("show_city") !== -1 ? header.indexOf("show_city") : header.indexOf("city");
         const idxState = header.indexOf("show_state") !== -1 ? header.indexOf("show_state") : header.indexOf("state");
@@ -766,7 +765,6 @@
           const row = {
             show_name: idxName !== -1 ? (cols[idxName] || "").trim() : "",
             show_date: idxDate !== -1 ? (cols[idxDate] || "").trim() : "",
-            show_url: idxUrl !== -1 ? (cols[idxUrl] || "").trim() : "",
             show_venue: idxVenue !== -1 ? (cols[idxVenue] || "").trim() : "",
             show_city: idxCity !== -1 ? (cols[idxCity] || "").trim() : "",
             show_state: idxState !== -1 ? (cols[idxState] || "").trim() : "",
@@ -822,6 +820,25 @@
       const totalSetsIdx = header.indexOf("total_sets");
       const setsArchiveIdx = header.indexOf("sets_archive");
 
+
+      // Members fields (surgical addition)
+      const vox1Idx = header.indexOf("vox_1");
+      const vox2Idx = header.indexOf("vox_2");
+      const vox3Idx = header.indexOf("vox_3");
+      const gtr1Idx = header.indexOf("guitar_1");
+      const gtr2Idx = header.indexOf("guitar_2");
+      const gtr3Idx = header.indexOf("guitar_3");
+      const bassIdx = header.indexOf("bass");
+      const drumIdx = header.indexOf("drum");
+      const keysIdx = header.indexOf("keys");
+
+      const past1Idx = header.indexOf("past_1");
+      const past2Idx = header.indexOf("past_2");
+      const past3Idx = header.indexOf("past_3");
+      const past4Idx = header.indexOf("past_4");
+      const past5Idx = header.indexOf("past_5");
+      const past6Idx = header.indexOf("past_6");
+
       if (bandIdx === -1) return {};
 
       function bucketFor(name) {
@@ -870,6 +887,25 @@
             totalSetsIdx !== -1 ? (cols[totalSetsIdx] || "").trim() : "",
           sets_archive:
             setsArchiveIdx !== -1 ? (cols[setsArchiveIdx] || "").trim() : "",
+        core_members: [
+            vox1Idx !== -1 ? (cols[vox1Idx] || "").trim() : "",
+            vox2Idx !== -1 ? (cols[vox2Idx] || "").trim() : "",
+            vox3Idx !== -1 ? (cols[vox3Idx] || "").trim() : "",
+            gtr1Idx !== -1 ? (cols[gtr1Idx] || "").trim() : "",
+            gtr2Idx !== -1 ? (cols[gtr2Idx] || "").trim() : "",
+            gtr3Idx !== -1 ? (cols[gtr3Idx] || "").trim() : "",
+            bassIdx !== -1 ? (cols[bassIdx] || "").trim() : "",
+            drumIdx !== -1 ? (cols[drumIdx] || "").trim() : "",
+            keysIdx !== -1 ? (cols[keysIdx] || "").trim() : "",
+          ].filter(Boolean).join(", "),
+          other_members: [
+            past1Idx !== -1 ? (cols[past1Idx] || "").trim() : "",
+            past2Idx !== -1 ? (cols[past2Idx] || "").trim() : "",
+            past3Idx !== -1 ? (cols[past3Idx] || "").trim() : "",
+            past4Idx !== -1 ? (cols[past4Idx] || "").trim() : "",
+            past5Idx !== -1 ? (cols[past5Idx] || "").trim() : "",
+            past6Idx !== -1 ? (cols[past6Idx] || "").trim() : "",
+          ].filter(Boolean).join(", "),
         };
 
         if (!built[region]) built[region] = {};
@@ -1270,17 +1306,26 @@
       </div>
     `;
 
-    // Optional boxes (placeholders until you add fields to the Bands sheet)
+    // Members (from Bands sheet columns)
+    const esc = (v) =>
+      String(v || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    const coreMembers = String(bandObj?.core_members || "").trim() || "—";
+    const otherMembers = String(bandObj?.other_members || "").trim() || "—";
+
     const members = document.createElement("div");
     members.className = "bandInfoGrid2";
     members.innerHTML = `
       <div class="bandInfoBox">
         <div class="lbl">CORE MEMBERS</div>
-        <div class="val">—</div>
+        <div class="val">${esc(coreMembers)}</div>
       </div>
       <div class="bandInfoBox">
         <div class="lbl">OTHER MEMBERS</div>
-        <div class="val">—</div>
+        <div class="val">${esc(otherMembers)}</div>
       </div>
     `;
 
@@ -1372,9 +1417,7 @@
       meta.appendChild(t1);
       if (t2.textContent) meta.appendChild(t2);
 
-      // Option C: venue line + poster from Shows CSV (show_url). Fallbacks:
-      // - venue: album Description
-      // - poster: SmugMug highlight thumb
+      // Option C: venue line from shows CSV; fallback to album Description
       (async () => {
         try {
           const showsByDate = await ensureShowsIndex();
@@ -1389,13 +1432,6 @@
           }
           if (!best && candidates.length) best = candidates[0];
 
-          // ✅ Poster: prefer show_url from CSV
-          const poster = String(best?.show_url || "").trim();
-          if (poster && /^https?:\/\//i.test(poster)) {
-            thumb.src = poster;
-          }
-
-          // ✅ Venue line: prefer CSV, fallback to album Description
           const fromCsv = best ? buildVenueLine(best) : "";
           const fromDesc = String(alb?.Description || "").trim();
 
