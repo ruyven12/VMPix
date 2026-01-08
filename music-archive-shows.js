@@ -1,586 +1,626 @@
-// music-archive-bands.js
+// music-archive-shows.js
 (function () {
-  // logo+name only v3 + video2 band detail style
-  // logo+name only v2
   "use strict";
 
-  // ================== CONFIG (matches script.js) ==================
-  const API_BASE = "https://music-archive-3lfa.onrender.com";
-  const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
-
-  // where each region actually lives on SmugMug (kept from your script.js)
-  const REGION_FOLDER_BASE = {
-    Local: "Music/Archives/Bands/Local",
-    Regional: "Music/Archives/Bands/Regional",
-    National: "Music/Archives/Bands/National",
-    International: "Music/Archives/Bands/International",
-  };
-
-  // ================== STATE ==================
-  let BANDS = {};
-  let CURRENT_REGION = "Local";
-
-  // panel-scoped DOM refs
-  let panelRoot = null;
-  let treeEl = null;
-  let resultsEl = null;
-  let crumbsEl = null;
-  let letterGroupsEl = null;
-  let regionPillsEl = null;
-  let legendEl = null;
-
-  function resetPanelScroll() {
+  // --- Shows state persistence (so tab switching doesn't reset) ---
+  const SHOWS_STATE_KEY = "musicArchive_shows_state_v1";
+  function loadShowsState() {
     try {
-      const panel = panelRoot || document.getElementById('musicContentPanel');
-      const docScroller = document.scrollingElement || document.documentElement;
-
-      // Always try these in order; this avoids "wrong scroller detected" issues.
-      if (panel) panel.scrollTop = 0;
-      if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
-      if (docScroller) docScroller.scrollTop = 0;
-
-      // Repeat after layout/animations
-      window.requestAnimationFrame(() => {
-        if (panel) panel.scrollTop = 0;
-        if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
-      });
-      window.setTimeout(() => {
-        if (panel) panel.scrollTop = 0;
-      }, 0);
-      window.setTimeout(() => {
-        if (panel) panel.scrollTop = 0;
-      }, 200);
-    } catch (e) {}
+      return JSON.parse(sessionStorage.getItem(SHOWS_STATE_KEY) || "{}") || {};
+    } catch (_) {
+      return {};
+    }
+  }
+  function saveShowsState(patch) {
+    try {
+      const cur = loadShowsState();
+      const next = Object.assign({}, cur, patch || {});
+      sessionStorage.setItem(SHOWS_STATE_KEY, JSON.stringify(next));
+      return next;
+    } catch (_) {
+      return null;
+    }
+  }
+  function cssEscape(str){
+    try {
+      return (window.CSS && CSS.escape) ? CSS.escape(String(str)) : String(str).replace(/"/g, '\\\"');
+    } catch (_) {
+      return String(str).replace(/"/g, '\\\"');
+    }
+  }
+  function makeShowId(show) {
+    const d = String(show?.date || "").trim();
+    const t = String(show?.title || "").trim().toLowerCase();
+    return (d + "|" + t).replace(/\s+/g, " ").slice(0, 180);
   }
 
-  // ================== STYLES ==================
-  function ensureBandsStyles() {
-    if (document.getElementById("musicBandsStyles")) return;
-    const s = document.createElement("style");
-    s.id = "musicBandsStyles";
-    s.textContent = `
-      .bandsWrap{
-        width:100%;
-        max-width:none;
-        margin:0;
-        padding: clamp(8px, 1.2vw, 16px);
-      }
 
-      /* top bar inside panel */
-      .bandsTop{
+  // Optional: inject shows-only CSS once
+  function ensureShowsStyles() {
+    if (document.getElementById("musicShowsStyles")) return;
+    const s = document.createElement("style");
+    s.id = "musicShowsStyles";
+    s.textContent = `
+      /* Shows-only styles live here */
+      .showsWrap{
+        width:100%;
+        max-width:1100px;
+        margin:0 auto;
+        box-sizing:border-box;
+
+        /* Keep content top-aligned inside the parent panel */
+        height:100%;
+        min-height:100%;
+        min-height:0; /* allow inner scroller to size correctly */
+        align-self:stretch;
+
         display:flex;
         flex-direction:column;
-        gap:10px;
-        margin-bottom:10px;
-      }
+        justify-content:flex-start;
 
-      /* region pills */
-      #region-pills{
+        /* tweak top/bottom spacing */
+        padding-top: 8px;
+        padding-bottom: 84px; /* room for bottom nav on small screens */
+      }
+      /* Year pills row (styled to match the main nav tabs look) */
+      #showsYearsMount{
         display:flex;
-        flex-wrap:wrap;
-        justify-content:center;
-        gap:8px;
-      }
-      .region-pill{
-        padding:8px 14px;
-        border-radius:999px;
-        cursor:pointer;
-        user-select:none;
-        font-size:12px;
-        letter-spacing:.04em;
-        background:rgba(255,255,255,0.06);
-        border:1px solid rgba(255,255,255,0.12);
-        color:rgba(226,232,240,0.9);
-      }
-      .region-pill.active{
-        background:rgba(255,255,255,0.14);
-        border-color:rgba(255,255,255,0.22);
-      }
 
-      /* letter pills */
-      #letter-groups{
-        display:flex;
-        flex-wrap:wrap;
-        justify-content:center;
-        gap:8px;
-      }
-      .letter-pill{
-        padding:6px 12px;
-        border-radius:999px;
-        cursor:pointer;
-        font-size:12px;
-        background:rgba(17,24,39,0.35);
-        border:1px solid rgba(148,163,184,0.25);
-        color:#fff;
+        padding: 10px 10px;
+        margin: 10px auto 8px;
+
+        /* Keep years bar readable: don't let tiles visually scroll behind it */
         backdrop-filter: blur(6px);
-      }
-      .letter-pill.active{
-        background:rgba(255,255,255,0.14);
-        border-color:rgba(255,255,255,0.22);
-      }
+        background: rgba(0,0,0,0.18);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
 
-      /* legend */
-      #status-legend{
-        display:flex;
-        justify-content:center;
-        gap:10px;
         flex-wrap:wrap;
+        gap: 12px;
+        justify-content:center;
+        align-items:center;
+      }
+
+      /* Make the content area the scroller so cards never scroll behind the years bar */
+      #showsYearContent{
+        flex: 1 1 auto;
+        min-height: 0; /* critical for flexbox scrolling */
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 84px; /* room for bottom nav on small screens */
+      }
+
+      .YearPill{
+        cursor:pointer;
+        appearance:none;
+        border: 0;
+        background: transparent;
+        padding: 10px 8px;
+        border-radius: 10px;
+        color: rgba(255,255,255,0.58);
+		font-family: 'Orbitron', system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        user-select:none;
+        line-height:1;
+
+        position: relative;
+        transition: color .12s ease, transform .08s ease, background .12s ease;
+      }
+
+      .YearPill:hover{
+        color: rgba(255,255,255,0.82);
+        background: rgba(255,255,255,0.04);
+        transform: translateY(-1px);
+      }
+
+      .YearPill:focus-visible{
+        outline: 2px solid rgba(236,72,153,0.55);
+        outline-offset: 2px;
+      }
+
+      /* underline accent like the nav tabs */
+      .YearPill::after{
+        content:"";
+        position:absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 4px;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(236,72,153,0.9);
+        box-shadow: 0 0 10px rgba(236,72,153,0.35);
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity .12s ease, transform .12s ease;
+      }
+
+      .YearPill:hover::after{
+        opacity: 0.35;
+        transform: translateY(0px);
+      }
+
+      .YearPillActive{
+        color: rgba(255,255,255,0.92);
+        background: transparent;
+      }
+
+      .YearPillActive::after{
+        opacity: 1;
+        transform: translateY(0px);
+        box-shadow: 0 0 12px rgba(236,72,153,0.55);
+      }
+
+      /* Year instruction / empty state */
+
+      .showsNote{
+        text-align:center;
+        color: rgba(255,255,255,0.75);
         font-size:12px;
-        opacity:.9;
-      }
-      .legend-dot{
-        width:10px;height:10px;border-radius:50%;
-        display:inline-block;margin-right:6px;
+        margin: 4px 0 14px;
       }
 
-      /* 2-column layout: tree + results */
-      /* hide tree sidebar */
-      #tree{ display:none !important; }
-
-      .bandsLayout{
+      /* Shows grid: 2 columns desktop, 1 column mobile */
+      .showsGrid{
+        width:100%;
         display:grid;
-        grid-template-columns: 1fr;
-        gap:14px;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
         align-items:start;
       }
-      @media (max-width: 950px){
-        .bandsLayout{ grid-template-columns: 1fr; }
+      @media (max-width: 860px){
+        .showsGrid{ grid-template-columns: 1fr; }
       }
 
-      /* tree */
-      #tree{
-        position:sticky;
-        top:0;
-        align-self:flex-start;
-        max-height:80vh;
-        overflow:auto;
-        padding:10px;
-        border-radius:14px;
-        background:rgba(255,255,255,0.04);
+      /* Individual show tile */
+      .showTile{
         border:1px solid rgba(255,255,255,0.10);
-      }
-      .tree-section-title{
-        font-size:12px;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        opacity:.8;
-        margin:6px 0 8px;
-      }
-      .tree-letter{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        width:100%;
-        padding:8px 10px;
-        border-radius:12px;
-        cursor:pointer;
-        background:rgba(17,24,39,0.30);
-        border:1px solid rgba(148,163,184,0.18);
-        color:rgba(226,232,240,0.95);
-        font-size:12px;
-        margin-bottom:8px;
-      }
-      .tree-letter:hover{
-        background:rgba(255,255,255,0.08);
-      }
-      .tree-count{
-        opacity:.7;
-        font-size:11px;
-      }
-
-      /* crumbs */
-      #crumbs{
-        text-align:center;
-        margin:10px 0 12px;
-        font-size:12px;
-        opacity:.85;
-      }
-
-      /* results */
-      #results{
-        min-height:200px;
-      }
-      .band-card{
-        background:rgba(255,255,255,0.04);
-        border:1px solid rgba(255,255,255,0.10);
-        border-radius:16px;
-        padding:12px;
-        cursor:pointer;
-      }
-      .band-card:hover{
-        background:rgba(255,255,255,0.06);
-      }
-      .band-row{
-        display:flex;
-        align-items:center;
-        gap:10px;
-      }
-      .band-logo{
-        width:54px;height:54px;border-radius:12px;
-        object-fit:cover;
-        background:rgba(255,255,255,0.06);
-        border:1px solid rgba(255,255,255,0.10);
-        flex:0 0 auto;
-      }
-      .band-name{
-        font-size:15px;
-        font-weight:700;
-        line-height:1.1;
-      }
-      .band-meta{
-        margin-top:6px;
-        font-size:12px;
-        opacity:.85;
-        display:flex;
-        flex-wrap:wrap;
-        gap:10px;
-      }
-      .pill{
-        padding:3px 10px;
-        border-radius:999px;
-        background:rgba(17,24,39,0.35);
-        border:1px solid rgba(148,163,184,0.18);
-        font-size:11px;
-        white-space:nowrap;
-      }
-
-      /* albums */
-      .albumsWrap{
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap:10px;
-      }
-      .albumsGrid{
-        width:100%;
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap:14px;
-        max-width:none;
-      }
-      .album-card{
-        background:rgba(255,255,255,0.04);
-        border:1px solid rgba(255,255,255,0.10);
-        border-radius:16px;
-        padding:10px;
-        cursor:pointer;
-      }
-      .album-thumb{
-        width:100%;
-        aspect-ratio: 16/10;
-        object-fit:cover;
-        border-radius:12px;
-        border:1px solid rgba(255,255,255,0.10);
-        background:rgba(255,255,255,0.04);
-      }
-      .album-title{
-        margin-top:8px;
-        font-weight:700;
-        font-size:13px;
-      }
-      .album-sub{
-        margin-top:4px;
-        font-size:12px;
-        opacity:.8;
-      }
-
-      /* photos */
-      .photosTop{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-        width:100%;
-        max-width:none;
-        margin:0 auto 10px;
-        flex-wrap:wrap;
-      }
-      .btn{
-        padding:6px 14px;
-        background:rgba(17,24,39,0.35);
-        color:#fff;
-        border:1px solid rgba(148,163,184,0.25);
-        border-radius:9999px;
-        cursor:pointer;
-        font-size:12px;
-        backdrop-filter:blur(6px);
-      }
-      .photosGrid{
-        width:100%;
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap:10px;
-        max-width:none;
-        margin:0 auto;
-      }
-      .smug-photo-box{
-        background:rgba(255,255,255,0.04);
-        border:1px solid rgba(255,255,255,0.10);
-        border-radius:14px;
-        padding:8px;
-        cursor:pointer;
-      }
-      .smug-photo{
-        width:100%;
-        aspect-ratio: 1/1;
-        object-fit:cover;
-        border-radius:10px;
-        border:1px solid rgba(255,255,255,0.10);
-        background:rgba(255,255,255,0.04);
-      }
-
-      /* lightbox */
-      .lightbox{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.88);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        z-index:999999;
-        padding:18px;
-      }
-      .lightbox img{
-        max-width:95vw;
-        max-height:86vh;
-        border-radius:14px;
-        border:1px solid rgba(255,255,255,0.12);
-      }
-      .lightbox-controls{
-        position:fixed;
-        bottom:16px;
-        left:50%;
-        transform:translateX(-50%);
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        justify-content:center;
-      }
-      .lightbox-caption{
-        position:fixed;
-        top:14px;
-        left:50%;
-        transform:translateX(-50%);
-        color:rgba(255,255,255,0.9);
-        font-size:12px;
-        background:rgba(0,0,0,0.45);
-        border:1px solid rgba(255,255,255,0.12);
-        padding:6px 10px;
-        border-radius:999px;
-        max-width:92vw;
-        text-overflow:ellipsis;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.04);
         overflow:hidden;
-        white-space:nowrap;
+
+        /* polish */
+        transition: border-color .22s ease, box-shadow .22s ease, background .22s ease, transform .18s ease;
+        will-change: transform;
       }
 
-      /* ===== Surgical: logo + name only in band list cards =====
-         This hides any legacy meta blocks that might still be present due to caching or older markup.
-         Scoped to #results to avoid impacting album/photo views.
-      */
-      #results .band-card *{ display:none !important; }
-      #results .band-card .band-row{ display:flex !important; }
-      #results .band-card .band-logo{ display:block !important; }
-      #results .band-card .band-name{ display:block !important; }
-      #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
+      /* header feels clickable */
+      .showTileHeader{
+        cursor: pointer;
+        transition: background .18s ease, transform .18s ease;
+      }
+      .showTileHeader:hover{
+        background: rgba(255,255,255,0.03);
+        transform: translateY(-1px);
+      }
 
-    `;
-      /* ===== Band detail view (modeled after your Video 2 layout) ===== */
-      .bandDetailWrap{
-        width:100%;
-        max-width:1200px;
-        margin: 0 auto;
+      /* open state highlight */
+      .showTile.isOpen{
+        border-color: rgba(34,197,94,0.28);
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 0 0 1px rgba(34,197,94,0.10), 0 12px 26px rgba(0,0,0,0.30);
+      }
+      .showTileHeader{
         display:flex;
-        flex-direction:column;
-        gap: 16px;
-        padding-top: 6px;
+        gap: 14px;
+        padding: 14px;
+        align-items:flex-start;
+      }
+      .showPosterWrap{
+        flex:0 0 auto;
+        width: 110px;
       }
 
-      .bandDetailTopbar{
+      .showPosterPlaceholder{
+        width:110px;
+        height:160px;
+        border:1px solid rgba(255,255,255,0.35);
+        border-radius:10px;
         display:flex;
-        justify-content:center;
-      }
-
-      .bandDetailHeader{
-        width:100%;
-        display:grid;
-        grid-template-columns: 360px 1fr;
-        gap: 18px;
         align-items:center;
-        border-top: 2px solid rgba(239,68,68,0.28);
-        border-bottom: 2px solid rgba(239,68,68,0.28);
-        padding: 18px 10px;
+        justify-content:center;
+        color: rgba(255,255,255,0.55);
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:0.08em;
       }
-      @media (max-width: 920px){
-        .bandDetailHeader{
-          grid-template-columns: 1fr;
-          justify-items:center;
-          text-align:center;
+      @media (max-width: 420px){
+        .showPosterPlaceholder{ width:92px; height:134px; }
+      }
+
+      .showPoster{
+        width:110px;
+        height:auto;
+        border-radius: 10px;
+        display:block;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      }
+      @media (max-width: 420px){
+        .showTileHeader{ gap: 10px; padding: 12px; }
+        .showPosterWrap{ width: 92px; }
+        .showPoster{ width: 92px; }
+      }
+
+      .showMeta{
+        flex:1 1 auto;
+        min-width:0;
+      }
+      .showTitle{
+        font-weight:700;
+        font-size:14px;
+        color: rgba(255,255,255,0.94);
+        margin: 0 0 4px;
+      }
+      .showDate{
+        font-size:12px;
+        color: rgba(148,163,184,0.95);
+        margin: 0 0 6px;
+      }
+      .showVenue{
+        font-size:12px;
+        color: rgba(255,255,255,0.75);
+        margin: 0 0 8px;
+      }
+      .showCamera{
+        font-size:11px;
+        color: rgba(255,255,255,0.60);
+        font-style: italic;
+        margin: 0 0 0;
+      }
+
+      .showActions{
+        display:flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .showBtn{
+        cursor:pointer;
+        padding:6px 10px;
+        border-radius: 10px;
+        border:1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.88);
+        font-size:12px;
+        line-height: 1;
+        user-select:none;
+      }
+      .showBtn:hover{ background: rgba(255,255,255,0.10); }
+
+      /* Expanded area (bands) – smoother animated accordion
+         Notes:
+         - Keep padding on an inner wrapper so we don't animate padding (less jank)
+         - Use a nicer easing curve + slightly longer duration
+      */
+      .showExpand{
+        max-height: 0;
+        opacity: 0;
+        transform: translate3d(0,-6px,0);
+        overflow: hidden;
+        contain: layout paint;
+
+        transition:
+          max-height .42s cubic-bezier(0.2, 0, 0, 1),
+          opacity .26s cubic-bezier(0.2, 0, 0, 1),
+          transform .26s cubic-bezier(0.2, 0, 0, 1);
+        will-change: max-height, opacity, transform;
+      }
+      .showTile.isOpen .showExpand{
+        max-height: 1000px; /* large enough for most band lists */
+        opacity: 1;
+        transform: translate3d(0,0,0);
+      }
+
+      .showExpandInner{
+        padding: 0 14px 14px;
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .showExpand{
+          transition: none !important;
+          transform: none !important;
         }
       }
 
-      .bandDetailLogo{
-        width: 320px;
-        max-width: 80vw;
-        aspect-ratio: 1/1;
-        object-fit: contain;
-        border-radius: 18px;
-        opacity: 0.95;
-        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.55));
-      }
 
-      .bandDetailCard{
-        width:100%;
+      /* List-style bands (small logos + pulsing status dot) */
+      .bandGrid{
         display:flex;
         flex-direction:column;
-        gap: 12px;
+        gap: 6px;
       }
 
-      .bandDetailNamePill{
-        width:100%;
-        border-radius: 999px;
-        padding: 14px 18px;
-        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+      .bandCard{
+        border-radius: 12px;
+        padding: 8px 10px;
         border: 1px solid rgba(255,255,255,0.10);
-        text-align:center;
-      }
-      .bandDetailNamePill .kicker{
-        font-size: 10px;
-        letter-spacing: .22em;
-        text-transform: uppercase;
-        opacity: .65;
-        margin-bottom: 6px;
-      }
-      .bandDetailNamePill .name{
-        font-size: 22px;
-        font-weight: 800;
-        letter-spacing: .06em;
-      }
+        background: rgba(0,0,0,0.16);
 
-      .bandInfoRow{
-        display:grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-      @media (max-width: 920px){
-        .bandInfoRow{ grid-template-columns: 1fr; }
-      }
-
-      .bandInfoPill{
-        border-radius: 999px;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.10);
         display:flex;
-        flex-direction:column;
-        gap: 4px;
-        min-height: 56px;
-        justify-content:center;
-      }
-      .bandInfoPill .lbl{
-        font-size: 9px;
-        letter-spacing:.18em;
-        text-transform: uppercase;
-        opacity: .55;
-      }
-      .bandInfoPill .val{
-        font-size: 13px;
-        font-weight: 800;
-        opacity: .92;
-      }
-
-      .bandInfoGrid2{
-        display:grid;
-        grid-template-columns: 1fr 1fr;
+        flex-direction:row;
+        align-items:center;
+        justify-content:flex-start;
         gap: 10px;
-      }
-      @media (max-width: 920px){
-        .bandInfoGrid2{ grid-template-columns: 1fr; }
+
+        min-height: 0;
+        text-align:left;
       }
 
-      .bandInfoBox{
-        border-radius: 16px;
-        padding: 12px 14px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        min-height: 54px;
+      /* Status tint (replaces pulsing dot) */
+      .bandCard.isGood{
+        background: rgba(34,197,94,0.10);
+        border-color: rgba(34,197,94,0.22);
       }
-      .bandInfoBox .lbl{
-        font-size: 9px;
-        letter-spacing:.18em;
-        text-transform: uppercase;
-        opacity: .55;
-        margin-bottom: 6px;
-      }
-      .bandInfoBox .val{
-        font-size: 13px;
-        opacity: .80;
+      .bandCard.isBad{
+        background: rgba(239,68,68,0.10);
+        border-color: rgba(239,68,68,0.20);
       }
 
-      .bandAlbumsTitle{
+      .bandLogo{
+        width: 28px !important;
+        height: 28px !important;
+        object-fit: cover !important;
+        border-radius: 8px !important;
+        background: rgba(255,255,255,0.06);
+        flex: 0 0 auto;
+      }
+
+      .bandName{
         font-size: 12px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        opacity: .80;
-        margin-top: 6px;
+        color: rgba(255,255,255,0.90);
+        line-height: 1.15;
+        word-break: break-word;
+        flex: 1 1 auto;
+        text-align: center;
       }
+      /* "More" dropdown */
+      .YearsMoreWrap{ position: relative; }
+      .YearsMoreBtn{
+        cursor:pointer;
+        padding:6px 12px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.92);
+        font-size:12px;
+        user-select:none;
+        line-height:1;
+      }
+      .YearsMoreMenu{
+        position:absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 50;
+        min-width: 170px;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      }
+      .YearsMoreItem{
+        cursor:pointer;
+        padding: 8px 10px;
+        border-radius: 10px;
+        color: rgba(255,255,255,0.86);
+        font-size: 12px;
+      }
+      .YearsMoreItem:hover{ background: rgba(255,255,255,0.08); }
+      .YearsMoreItem.isActive{ background: rgba(255,255,255,0.16); }
+      `;
+document.head.appendChild(s);
+  }
+  
+  function getScrollParent(el) {
+  let node = el;
+  while (node && node !== document.body) {
+    const style = window.getComputedStyle(node);
+    const overflowY = style.overflowY;
+    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  // fallback (SmugMug sometimes uses document scrolling)
+  return document.scrollingElement || document.documentElement;
+}
 
-      .bandAlbumsGrid{
-        width:100%;
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 240px));
-        gap: 16px;
-        justify-content:center;
-        align-items:start;
-      }
+function getScrollableAncestors(el) {
+  const out = [];
+  let node = el;
 
-      /* Make album cards in band detail feel more like poster tiles */
-      .bandAlbumsGrid .album-card{
-        padding: 12px;
-        border-radius: 18px;
-        background: rgba(15,23,42,0.26);
-        border: 1px solid rgba(255,255,255,0.10);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      }
-      .bandAlbumsGrid .album-thumb{
-        border-radius: 14px;
-        aspect-ratio: 2/3;
-      }
-      .bandAlbumsGrid .album-sub{
-        font-size: 11px;
-      }
+  while (node && node !== document.body) {
+    const style = window.getComputedStyle(node);
+    const oy = style.overflowY;
+    const ox = style.overflowX;
 
+    const canScrollY = (oy === "auto" || oy === "scroll") && node.scrollHeight > node.clientHeight;
+    const canScrollX = (ox === "auto" || ox === "scroll") && node.scrollWidth > node.clientWidth;
 
-    document.head.appendChild(s);
+    if (canScrollY || canScrollX) out.push(node);
+    node = node.parentElement;
   }
 
-  // ================== HTML RENDER ==================
-  function render() {
-    ensureBandsStyles();
+  const doc = document.scrollingElement || document.documentElement;
+  if (doc) out.push(doc);
 
-    // ONLY what's inside #musicContentPanel
-    return `
-      <div class="bandsWrap" id="bands-root">
-        <div class="bandsTop">
-          <div id="region-pills"></div>
-          <div id="letter-groups"></div>
-          <div id="status-legend">
-            <span><span class="legend-dot" style="background:#22c55e"></span>Active</span>
-            <span><span class="legend-dot" style="background:#f59e0b"></span>Inactive</span>
-            <span><span class="legend-dot" style="background:#94a3b8"></span>Unknown</span>
-          </div>
+  return out;
+}
+
+function saveScrollSnapshot(fromEl) {
+  return getScrollableAncestors(fromEl).map((el) => ({
+    el,
+    top: el.scrollTop,
+    left: el.scrollLeft,
+  }));
+}
+
+function restoreScrollSnapshot(snapshot) {
+  if (!snapshot) return;
+  for (const s of snapshot) {
+    try {
+      s.el.scrollTop = s.top;
+      s.el.scrollLeft = s.left;
+    } catch (_) {}
+  }
+}
+
+
+
+  function mountYearsPillsOverflow({
+    containerEl,
+    years, // array like [2026, 2025, ...]
+    activeYear, // number
+    maxVisible = 4, // how many pills before overflow
+    onSelectYear, // function(year) {}
+    pillClass = "YearPill",
+    pillActiveClass = "YearPillActive",
+    moreLabel = "More ▾",
+  }) {
+    if (!containerEl) return;
+
+    const sorted = [...years]
+      .map(Number)
+      .filter(Boolean)
+      .sort((a, b) => b - a);
+
+    // Split into visible + overflow
+    const visible = [];
+    const overflow = [];
+    for (const y of sorted) {
+      if (visible.length < maxVisible) visible.push(y);
+      else overflow.push(y);
+    }
+
+    // Ensure activeYear doesn't "disappear" into overflow
+    if (overflow.includes(activeYear)) {
+      const lastVisible = visible[visible.length - 1];
+      visible[visible.length - 1] = activeYear;
+      overflow.splice(overflow.indexOf(activeYear), 1);
+      overflow.push(lastVisible);
+      overflow.sort((a, b) => b - a);
+    }
+
+    containerEl.innerHTML = `
+      <div class="yearsNav">
+        <div class="yearsPills" role="tablist" aria-label="Select a year">
+          ${visible
+            .map(
+              (y) => `
+            <button type="button"
+              class="${pillClass} ${y === activeYear ? pillActiveClass : ""}"
+              data-year="${y}"
+              role="tab"
+              aria-selected="${y === activeYear ? "true" : "false"}">
+              ${y}
+            </button>
+          `,
+            )
+            .join("")}
         </div>
 
-        <div class="bandsLayout">
-          <div>
-            <div id="crumbs">Select a region first, then the corresponding letter.</div>
-            <div id="results"></div>
+        ${
+          overflow.length
+            ? `
+          <div class="yearsMore">
+            <button type="button"
+              class="${pillClass}"
+              data-years-more="1"
+              aria-haspopup="menu"
+              aria-expanded="false">
+              ${moreLabel}
+            </button>
+            <div class="yearsMenu" role="menu" aria-label="More years">
+              ${overflow
+                .map(
+                  (y) => `
+                <button type="button" class="menuItem" role="menuitem" data-year="${y}">
+                  ${y}
+                </button>
+              `,
+                )
+                .join("")}
+            </div>
           </div>
-        </div>
+        `
+            : ""
+        }
       </div>
     `;
+
+    const yearsNav = containerEl.querySelector(".yearsNav");
+    const moreBtn = containerEl.querySelector('[data-years-more="1"]');
+    const menu = containerEl.querySelector(".yearsMenu");
+
+    function closeMenu() {
+      if (!menu || !moreBtn) return;
+      menu.classList.remove("isOpen");
+      moreBtn.setAttribute("aria-expanded", "false");
+    }
+
+    function openMenu() {
+      if (!menu || !moreBtn) return;
+      menu.classList.add("isOpen");
+      moreBtn.setAttribute("aria-expanded", "true");
+    }
+
+    // Click handlers (year selection + More toggle)
+    // Prevent stacking multiple handlers if mountYearsPillsOverflow is called again.
+    if (containerEl._yearsClickHandler) {
+      containerEl.removeEventListener("click", containerEl._yearsClickHandler);
+    }
+
+    containerEl._yearsClickHandler = (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      if (btn.dataset.yearsMore === "1") {
+        if (!menu) return;
+        const isOpen = menu.classList.contains("isOpen");
+        isOpen ? closeMenu() : openMenu();
+        return;
+      }
+
+      const yearStr = btn.dataset.year;
+      if (!yearStr) return;
+      const year = Number(yearStr);
+
+      closeMenu();
+	  try { btn.focus({ preventScroll: true }); } catch (_) {}
+      if (typeof onSelectYear === "function") onSelectYear(year);
+    };
+
+    containerEl.addEventListener("click", containerEl._yearsClickHandler);
+
+    // Close menu on outside click + ESC
+    const onDocClick = (e) => {
+      if (!menu) return;
+      if (!yearsNav || !yearsNav.contains(e.target)) closeMenu();
+    };
+
+    const onDocKey = (e) => {
+      if (e.key === "Escape") closeMenu();
+    };
+
+    document.addEventListener("click", onDocClick, { capture: true });
+    document.addEventListener("keydown", onDocKey);
+
+    return function cleanup() {
+      document.removeEventListener("click", onDocClick, { capture: true });
+      document.removeEventListener("keydown", onDocKey);
+    };
   }
 
-  // ================== CSV LOAD (ported pattern) ==================
+  // ================================
+  // TEST PORT: shows posters only
+  // ================================
+
+  const API_BASE = "https://music-archive-3lfa.onrender.com";
+  const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
+
+  let SHOWS_CACHE = null;
+  let SHOWS_LOADING = null;
+
   function parseCsvLine(line) {
     const out = [];
     let cur = "";
@@ -603,10 +643,324 @@
         cur += ch;
       }
     }
+
     out.push(cur.trim());
     return out;
   }
 
+  async function loadShowsFromCsv() {
+    const res = await fetch(SHOWS_ENDPOINT);
+    const text = await res.text();
+    if (!text || !text.trim()) return [];
+
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+
+    const headerLine = lines.shift();
+    if (!headerLine) return [];
+
+    const header = parseCsvLine(headerLine).map((h) => h.trim());
+    const headerLower = header.map((h) => h.toLowerCase());
+
+    const nameIdx =
+      headerLower.indexOf("show_name") !== -1
+        ? headerLower.indexOf("show_name")
+        : headerLower.indexOf("title");
+
+    const urlIdx =
+      headerLower.indexOf("show_url") !== -1
+        ? headerLower.indexOf("show_url")
+        : headerLower.indexOf("poster_url");
+
+    const dateIdx =
+      headerLower.indexOf("show_date") !== -1
+        ? headerLower.indexOf("show_date")
+        : headerLower.indexOf("date");
+
+    const venueIdx = headerLower.indexOf("show_venue");
+    const cityIdx =
+      headerLower.indexOf("show_city") !== -1
+        ? headerLower.indexOf("show_city")
+        : headerLower.indexOf("city");
+    const stateIdx =
+      headerLower.indexOf("show_state") !== -1
+        ? headerLower.indexOf("show_state")
+        : headerLower.indexOf("state");
+
+const bandIdxs = [];
+for (let n = 1; n <= 20; n++) {
+  bandIdxs.push(headerLower.indexOf(`band_${n}`));
+}
+
+    const rows = [];
+
+    for (const line of lines) {
+      const cols = parseCsvLine(line);
+
+      const row = {
+        title: nameIdx !== -1 ? (cols[nameIdx] || "").trim() : "",
+        poster_url: urlIdx !== -1 ? (cols[urlIdx] || "").trim() : "",
+        date: dateIdx !== -1 ? (cols[dateIdx] || "").trim() : "",
+        venue: venueIdx !== -1 ? (cols[venueIdx] || "").trim() : "",
+        city: cityIdx !== -1 ? (cols[cityIdx] || "").trim() : "",
+        state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
+        bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || "").trim() : "")).filter(Boolean),
+      };
+
+      rows.push(row);
+    }
+
+    return rows;
+  }
+
+  async function ensureShowsLoaded() {
+    if (Array.isArray(SHOWS_CACHE)) return SHOWS_CACHE;
+    if (SHOWS_LOADING) return SHOWS_LOADING;
+
+    SHOWS_LOADING = (async () => {
+      try {
+        const rows = await loadShowsFromCsv();
+        SHOWS_CACHE = rows;
+        return rows;
+      } catch (e) {
+        console.warn("Shows CSV load failed:", e);
+        SHOWS_CACHE = [];
+        return [];
+      } finally {
+        SHOWS_LOADING = null;
+      }
+    })();
+
+    return SHOWS_LOADING;
+  }
+
+  function yearFromShowDate(raw) {
+    const parts = String(raw || "")
+      .trim()
+      .split("/");
+    if (parts.length !== 3) return null;
+    let y = (parts[2] || "").trim();
+    if (!y) return null;
+    if (y.length === 2) y = "20" + y;
+    const n = Number(y);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function getShowsForYear(year, allShows) {
+    const yr = Number(year);
+    if (!Array.isArray(allShows) || !allShows.length) return [];
+    return allShows.filter((s) => yearFromShowDate(s.date) === yr);
+  }
+  
+  function renderPosterDetail({ year, show, containerEl }) {
+  if (!containerEl) return;
+
+  const title = (show?.title || "").trim();
+  const date = (show?.prettyDate || "").trim();
+  const venueLine = (show?.venueLine || "").trim();
+  const posterUrl = (show?.poster_url || "").trim();
+
+  const safe = (v) => String(v || "").split('"').join("&quot;");
+
+  containerEl.innerHTML = `
+    <div class="showsDetail">
+      <button type="button" class="showsBackBtn" data-action="back">← Back to ${year}</button>
+
+      <div class="showsDetailCard">
+        ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ""}
+        <div class="showsDetailMeta">
+          <div class="showsDetailTitle">${safe(title)}</div>
+          ${date ? `<div class="showsDetailDate">${safe(date)}</div>` : ``}
+          ${venueLine ? `<div class="showsDetailVenue">${safe(venueLine)}</div>` : ``}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
+
+  // ===== Shows UI (2-col grid + expandable band cards) =====
+  let _bandsIndexPromise = null;
+  let _bandsByName = null; // normalizedName -> bandInfo
+
+  function normName(s) {
+    return String(s || "").trim().toLowerCase();
+  }
+
+  
+  // ===== CSV helpers (for /sheet/bands when it returns text/plain or text/csv) =====
+  function splitCSVLine(line) {
+    const out = [];
+    let cur = "";
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQ = !inQ;
+        }
+      } else if (ch === "," && !inQ) {
+        out.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+
+  function parseCSV(text) {
+    const norm = (text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const lines = norm.split("\n").filter((l) => l.trim().length);
+    if (!lines.length) return [];
+    const headers = splitCSVLine(lines[0]).map((h) => h.trim());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = splitCSVLine(lines[i]);
+      const row = {};
+      for (let j = 0; j < headers.length; j++) row[headers[j]] = (cols[j] || "").trim();
+      rows.push(row);
+    }
+    return rows;
+  }
+
+async function ensureBandsIndex() {
+    if (_bandsByName) return _bandsByName;
+    if (_bandsIndexPromise) return _bandsIndexPromise;
+
+    _bandsIndexPromise = fetch(`${API_BASE}/sheet/bands`)
+      .then(async (r) => {
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        const txt = await r.text();
+
+        // If the backend returns JSON, parse JSON.
+        if (ct.includes('application/json') || /^[\s]*[\[{]/.test(txt)) {
+          try {
+            return JSON.parse(txt);
+          } catch (e) {
+            throw new Error(`Invalid JSON from /sheet/bands: ${String(e && e.message ? e.message : e)}`);
+          }
+        }
+
+        // If the backend returns HTML, treat as an error (prevents weird CSV parsing).
+        if (/^[\s]*</.test(txt)) {
+          throw new Error(`Expected JSON/CSV from /sheet/bands but got HTML (${ct || 'unknown'}).`);
+        }
+
+        // Otherwise assume CSV (text/plain or text/csv) and parse it.
+        return parseCSV(txt);
+      })
+      .then((rows) => {
+        const map = new Map();
+        (rows || []).forEach((row) => {
+          const name = row.band || row.name || row.Band || "";
+          const key = normName(name);
+          if (!key) return;
+          map.set(key, {
+            name: name,
+            logo_url: row.logo_url || row.logo || "",
+            smug_folder: row.smug_folder || row.smugFolder || "",
+            region: row.region || "",
+          });
+        });
+        _bandsByName = map;
+        return map;
+      })
+      .catch((e) => {
+        console.warn("Failed to load bands index:", e);
+        _bandsByName = new Map();
+        return _bandsByName;
+      });
+
+    return _bandsIndexPromise;
+  }
+
+  // ===== Bands list: render on-demand (only when a show is opened) =====
+  function getBandCountForShow(show){
+    try { return Array.isArray(show?.bands) ? show.bands.length : 0; } catch (_) { return 0; }
+  }
+
+  function updateBandsButtonForTile(tile){
+    if (!tile) return;
+    const btn = tile.querySelector(".bandsToggle");
+    if (!btn) return;
+    const count = Number(tile.getAttribute("data-band-count") || "0");
+    const open = tile.classList.contains("isOpen");
+    btn.textContent = `Bands (${count}) ${open ? "▴" : "▾"}`;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function ensureTileBandsLoaded(tile){
+    if (!tile) return;
+    if (tile._bandsLoaded) return;
+
+    const bandGrid = tile._bandGridEl;
+    const show = tile._showData;
+    const showMMDDYY = tile._showMMDDYY || toMMDDYY(show?.date);
+
+    if (!bandGrid || !show) return;
+
+    tile._bandsLoaded = true;
+    bandGrid.innerHTML = "";
+
+    ensureBandsIndex().then((bandsIndex) => {
+      (show.bands || []).forEach((bandName) => {
+        const info = (bandsIndex && bandsIndex.get) ? (bandsIndex.get(normName(bandName)) || { name: bandName }) : { name: bandName };
+
+        const card = document.createElement("div");
+        card.className = "bandCard";
+        card.setAttribute("data-band", bandName);
+
+        const img = document.createElement("img");
+        img.className = "bandLogo";
+        img.alt = bandName;
+        img.loading = "lazy";
+        img.src = info.logo_url || "";
+        if (!img.src) img.style.opacity = "0.25";
+
+        const nm = document.createElement("div");
+        nm.className = "bandName";
+        nm.textContent = bandName;
+
+        card.appendChild(img);
+        card.appendChild(nm);
+        bandGrid.appendChild(card);
+
+        // async album check -> tint row green/red
+        bandHasAlbumForCode(info, showMMDDYY).then((has) => {
+          card.classList.toggle("isGood", !!has);
+          card.classList.toggle("isBad", !has);
+        });
+      });
+    });
+  }
+
+
+  // ===== show-date (MMDDYY) -> album existence check (ported from script.js) =====
+  const BAND_DATE_ALBUM_CACHE = {}; // "<folder>|<MMDDYY>" -> boolean
+
+  function toMMDDYY(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    // Accept M/D/YYYY, MM/DD/YYYY, or YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const [yyyy, mm, dd] = s.split("-");
+      return `${mm}${dd}${yyyy.slice(2)}`;
+    }
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return "";
+    const mm = m[1].padStart(2, "0");
+    const dd = m[2].padStart(2, "0");
+    const yy = (m[3].length === 4 ? m[3].slice(2) : m[3]).padStart(2, "0");
+    return `${mm}${dd}${yy}`;
+  }
+
+  
+  // ===== SmugMug folder helpers (ported from script.js) =====
   function cleanFolderPath(s) {
     return (s || "").replace(/[:]/g, "").trim();
   }
@@ -619,703 +973,338 @@
       .replace(/\s+/g, "-")
       .toLowerCase();
 
-  async function loadBandsFromCsv() {
-    try {
-      const text = await fetch(CSV_ENDPOINT).then((r) => r.text());
-      if (!text.trim()) return {};
-
-      const lines = text.split(/\r?\n/).filter((l) => l.trim());
-      const headerLine = lines.shift();
-      const header = headerLine.split(",").map((h) => h.trim().toLowerCase());
-
-      const bandIdx = header.indexOf("band");
-      const regionIdx = header.indexOf("region");
-      const letterIdx = header.indexOf("letter");
-      const smugFolderIdx = header.indexOf("smug_folder");
-      const logoIdx = header.indexOf("logo_url");
-
-      const locationIdx = header.indexOf("location");
-      const stateIdx = header.indexOf("state");
-      const countryIdx = header.indexOf("country");
-      const statusIdx = header.indexOf("status");
-      const totalSetsIdx = header.indexOf("total_sets");
-      const setsArchiveIdx = header.indexOf("sets_archive");
-
-      if (bandIdx === -1) return {};
-
-      function bucketFor(name) {
-        if (!name) return "0-C";
-        const c = name.trim().charAt(0).toUpperCase();
-        if ("ABC0123456789".includes(c)) return "0-C";
-        if ("DEFG".includes(c)) return "D-G";
-        if ("HIJK".includes(c)) return "H-K";
-        if ("LMNO".includes(c)) return "L-O";
-        if ("PQRS".includes(c)) return "P-S";
-        return "T-Z";
-      }
-
-      const built = {};
-
-      lines.forEach((line) => {
-        const cols = parseCsvLine(line);
-        const name = (cols[bandIdx] || "").trim();
-        if (!name) return;
-
-        const regionRaw =
-          regionIdx !== -1 && cols[regionIdx] ? cols[regionIdx] : "Local";
-        const region = (regionRaw || "Local").trim() || "Local";
-
-        const letterRaw =
-          letterIdx !== -1 && cols[letterIdx] ? cols[letterIdx] : "";
-        const letter = letterRaw.trim() || bucketFor(name);
-
-        const smugFolder =
-          smugFolderIdx !== -1 && cols[smugFolderIdx]
-            ? cols[smugFolderIdx].trim()
-            : "";
-
-        const logoUrl =
-          logoIdx !== -1 && cols[logoIdx] ? cols[logoIdx].trim() : "";
-
-        const bandData = {
-          name,
-          smug_folder: smugFolder,
-          logo_url: logoUrl,
-          location: locationIdx !== -1 ? (cols[locationIdx] || "").trim() : "",
-          state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
-          country: countryIdx !== -1 ? (cols[countryIdx] || "").trim() : "",
-          status: statusIdx !== -1 ? (cols[statusIdx] || "").trim() : "",
-          total_sets:
-            totalSetsIdx !== -1 ? (cols[totalSetsIdx] || "").trim() : "",
-          sets_archive:
-            setsArchiveIdx !== -1 ? (cols[setsArchiveIdx] || "").trim() : "",
-        };
-
-        if (!built[region]) built[region] = {};
-        if (!built[region][letter]) built[region][letter] = [];
-        built[region][letter].push(bandData);
-      });
-
-      return built;
-    } catch (err) {
-      console.error("Error loading bands CSV:", err);
-      return {};
-    }
-  }
-
-  // ================== SMUGMUG API HELPERS ==================
+  // get all albums inside a SmugMug folder using the same backend pattern as script.js
   async function fetchFolderAlbums(folderPath, region) {
-    const safeFolder = cleanFolderPath(folderPath || "");
-    const baseSlug = toSlug(safeFolder || "");
-    const url = `${API_BASE}/smug/${encodeURIComponent(
-      baseSlug,
-    )}?folder=${encodeURIComponent(safeFolder)}&region=${encodeURIComponent(
-      region || "",
-    )}&count=200&start=1`;
-
-    const res = await fetch(url);
+    const clean = cleanFolderPath(folderPath || "");
+    if (!clean) return [];
+    const baseSlug = toSlug(clean || "");
+    const res = await fetch(
+      `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(
+        clean
+      )}&region=${encodeURIComponent(region || "")}&count=200&start=1`
+    );
     const data = await res.json();
     const albums =
       (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
       [];
-    return Array.isArray(albums) ? albums : [albums];
+    return albums;
   }
 
-  async function fetchAllAlbumImages(albumKey) {
-    const all = [];
-    let start = 1;
-    let more = true;
-
-    while (more) {
-      const res = await fetch(
-        `${API_BASE}/smug/album/${encodeURIComponent(
-          albumKey,
-        )}?count=200&start=${start}`,
-      );
-      const data = await res.json();
-      const resp = (data && data.Response) || {};
-
-      let imgs = [];
-      if (Array.isArray(resp.AlbumImage)) imgs = resp.AlbumImage;
-      else if (resp.AlbumImage) imgs = [resp.AlbumImage];
-      else if (Array.isArray(resp.Images)) imgs = resp.Images;
-      else if (resp.Images) imgs = [resp.Images];
-
-      imgs = (imgs || []).filter(Boolean);
-      all.push(...imgs);
-
-      const pages = resp.Pages || {};
-      const total = Number(pages.Total) || 0;
-      const perPage = Number(pages.Count) || 200;
-      const gotSoFar = start - 1 + imgs.length;
-      if (!total || gotSoFar >= total || imgs.length === 0) {
-        more = false;
-      } else {
-        start += perPage;
-      }
-    }
-
-    return all;
-  }
-
-  // ================== LIGHTBOX (ported pattern) ==================
-  let lightboxEl = null;
-  let lightboxImg = null;
-  let lightboxCaption = null;
-  let currentViewList = [];
-  let lightboxIndex = 0;
-
-  function upgradeSmugToOriginal(url) {
-    if (!url) return "";
-    let out = url.replace(/\/(S|M|L|XL|X2|X3|Th|T)\//gi, "/O/");
-    out = out.replace(/-(S|M|L|XL|X2|X3|Th|T)\./gi, "-O.");
-    return out;
-  }
-
-  function bestFullUrl(img) {
-    const candidates = [
-      img.OriginalUrl,
-      img.OriginalImageUrl,
-      img.OriginalSizeUrl,
-      img.ArchivedSizeUrl,
-      img.ImageUrl,
-      img.X3LargeUrl,
-      img.X2LargeUrl,
-      img.LargeUrl,
-      img.Url,
-      img.MediumUrl,
-      img.SmallUrl,
-      img.ThumbnailUrl,
-    ].filter(Boolean);
-
-    if (!candidates.length) return "";
-    const first = candidates[0];
-
-    if (
-      candidates.length === 1 &&
-      /photos\.smugmug\.com\/.+\/(S|M|L|XL|X2|X3|Th|T)\//i.test(first)
-    ) {
-      return upgradeSmugToOriginal(first);
-    }
-    return first;
-  }
-
-  function ensureLightbox() {
-    if (lightboxEl) return;
-
-    lightboxEl = document.createElement("div");
-    lightboxEl.className = "lightbox";
-
-    lightboxImg = document.createElement("img");
-    lightboxCaption = document.createElement("div");
-    lightboxCaption.className = "lightbox-caption";
-
-    const controls = document.createElement("div");
-    controls.className = "lightbox-controls";
-
-    const prevBtn = document.createElement("button");
-    prevBtn.className = "btn";
-    prevBtn.textContent = "← Prev";
-    prevBtn.onclick = () => showAt(lightboxIndex - 1);
-
-    const nextBtn = document.createElement("button");
-    nextBtn.className = "btn";
-    nextBtn.textContent = "Next →";
-    nextBtn.onclick = () => showAt(lightboxIndex + 1);
-
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "btn";
-    closeBtn.textContent = "Close ✕";
-    closeBtn.onclick = () => destroyLightbox();
-
-    controls.appendChild(prevBtn);
-    controls.appendChild(nextBtn);
-    controls.appendChild(closeBtn);
-
-    lightboxEl.appendChild(lightboxImg);
-    document.body.appendChild(lightboxEl);
-    document.body.appendChild(controls);
-    document.body.appendChild(lightboxCaption);
-
-    lightboxEl.addEventListener("click", (e) => {
-      if (e.target === lightboxEl) destroyLightbox();
-    });
-
-    // stash controls + caption so we can remove them together
-    lightboxEl._controls = controls;
-    lightboxEl._caption = lightboxCaption;
-  }
-
-  function destroyLightbox() {
-    if (!lightboxEl) return;
-    const c = lightboxEl._controls;
-    const cap = lightboxEl._caption;
-
-    if (c && c.parentNode) c.parentNode.removeChild(c);
-    if (cap && cap.parentNode) cap.parentNode.removeChild(cap);
-    if (lightboxEl && lightboxEl.parentNode) lightboxEl.parentNode.removeChild(lightboxEl);
-
-    lightboxEl = null;
-    lightboxImg = null;
-    lightboxCaption = null;
-  }
-
-  function showAt(idx) {
-    if (!currentViewList.length || !lightboxImg || !lightboxCaption) return;
-    if (idx < 0) idx = currentViewList.length - 1;
-    if (idx >= currentViewList.length) idx = 0;
-    lightboxIndex = idx;
-
-    const img = currentViewList[idx];
-    if (!img) return;
-    lightboxImg.src = bestFullUrl(img);
-    lightboxCaption.textContent =
-      img.FileName || `${idx + 1} / ${currentViewList.length}`;
-  }
-
-  function openLightbox(list, idx) {
-    currentViewList = Array.isArray(list) ? list : [];
-    ensureLightbox();
-    showAt(idx);
-  }
-
-  // ================== UI BUILDERS ==================
-  function initRegionPills() {
-    if (!regionPillsEl) return;
-    regionPillsEl.innerHTML = "";
-
-    const regions = ["Local", "Regional", "National", "International"];
-
-    regions.forEach((key) => {
-      const pill = document.createElement("div");
-      pill.className = "region-pill";
-      pill.textContent = key;
-      pill.dataset.regionKey = key;
-
-      pill.addEventListener("click", () => {
-        regionPillsEl
-          .querySelectorAll(".region-pill")
-          .forEach((p) => p.classList.remove("active"));
-        pill.classList.add("active");
-
-        CURRENT_REGION = key;
-        resetPanelScroll();
-        updateLetterGroups(key);
-        resultsEl.innerHTML = "";
-        window.setTimeout(() => resetPanelScroll(), 200);
-        crumbsEl.textContent = "Select a region first, then the corresponding letter.";
-      });
-
-      regionPillsEl.appendChild(pill);
-    });
-
-    // default active
-    const def = regionPillsEl.querySelector(`.region-pill[data-region-key="${CURRENT_REGION}"]`);
-    if (def) def.classList.add("active");
-  }
-
-  function updateLetterGroups(regionKey) {
-    if (!letterGroupsEl) return;
-    letterGroupsEl.innerHTML = "";
-
-    if (!BANDS || !BANDS[regionKey]) return;
-
-    const letters = Object.keys(BANDS[regionKey]).sort();
-    letters.forEach((letter) => {
-      const btn = document.createElement("button");
-      btn.className = "letter-pill";
-      btn.textContent = letter;
-
-      btn.addEventListener("click", () => {
-        letterGroupsEl
-          .querySelectorAll(".letter-pill")
-          .forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        showLetter(regionKey, letter);
-      });
-
-      letterGroupsEl.appendChild(btn);
-    });
-  }
-
-  function buildTree() { /* sidebar removed */ }
-
-  function statusToColor(status) {
-    const s = String(status || "").trim().toLowerCase();
-    if (!s) return "#94a3b8"; // unknown
-    if (s.includes("active")) return "#22c55e";
-    if (s.includes("inactive")) return "#f59e0b";
-    return "#94a3b8";
-  }
-
-  function showLetter(region, letter) {
-    if (!resultsEl) return;
-
-    resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${region} → ${letter}`;
-    resetPanelScroll();
-
-    const bandsArr = (BANDS[region] && BANDS[region][letter]) || [];
-
-    // card grid layout (matches your script.js behavior pattern)
-    resultsEl.style.display = "grid";
-    resultsEl.style.justifyContent = "center";
-    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
-    resultsEl.style.gap = "14px";
-    resultsEl.style.width = "100%";
-        resultsEl.style.maxWidth = "none";
-    resultsEl.style.margin = "0";
-
-    if (!bandsArr.length) {
-      resultsEl.appendChild(document.createTextNode("No bands in this group."));
-      return;
-    }
-
-    bandsArr.forEach((bandObj) => {
-      const card = document.createElement("div");
-      card.className = "band-card";
-
-      const row = document.createElement("div");
-      row.className = "band-row";
-
-      const img = document.createElement("img");
-      img.className = "band-logo";
-      img.alt = bandObj.name || "Band";
-      img.loading = "lazy";
-      img.src =
-        bandObj.logo_url ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
-
-      const right = document.createElement("div");
-      right.style.display = "flex";
-      right.style.flexDirection = "column";
-      right.style.gap = "2px";
-
-      const name = document.createElement("div");
-      name.className = "band-name";
-      name.textContent = bandObj.name || "";right.appendChild(name);
-      row.appendChild(img);
-      row.appendChild(right);
-      card.appendChild(row);
-
-      card.addEventListener("click", () => {
-        showBandCard(region, letter, bandObj);
-      });
-
-    window.requestAnimationFrame(() => resetPanelScroll());
-    window.setTimeout(() => resetPanelScroll(), 200);
-
-      resultsEl.appendChild(card);
-    });
-  }
-
-  async function showBandCard(region, letter, bandObj) {
-    if (!resultsEl) return;
-
-    resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${region} → ${letter} → ${bandObj?.name || ""}`;
-    resetPanelScroll();
-
-    const wrap = document.createElement("div");
-    wrap.className = "bandDetailWrap";
-
-    // Top bar (back button centered like your reference UI)
-    const topbar = document.createElement("div");
-    topbar.className = "bandDetailTopbar";
-
-    const backBtn = document.createElement("button");
-    backBtn.className = "btn";
-    backBtn.textContent = "← Back to bands";
-    backBtn.addEventListener("click", () => {
-      // return to letter view
-      CURRENT_REGION = region;
-      initRegionPills();
-      updateLetterGroups(region);
-
-      // highlight correct letter pill
-      if (letterGroupsEl) {
-        const pills = Array.from(letterGroupsEl.querySelectorAll(".letter-pill"));
-        pills.forEach((p) => p.classList.toggle("active", p.textContent.trim() === letter));
-      }
-
-      showLetter(region, letter);
-    });
-
-    topbar.appendChild(backBtn);
-    wrap.appendChild(topbar);
-
-    // Header block (logo left + info right)
-    const header = document.createElement("div");
-    header.className = "bandDetailHeader";
-
-    const logo = document.createElement("img");
-    logo.className = "bandDetailLogo";
-    logo.alt = bandObj?.name || "Band";
-    logo.loading = "lazy";
-    logo.src = bandObj?.logo_url || "";
-    if (!logo.src) logo.style.opacity = "0.20";
-
-    const card = document.createElement("div");
-    card.className = "bandDetailCard";
-
-    const namePill = document.createElement("div");
-    namePill.className = "bandDetailNamePill";
-    namePill.innerHTML = `
-      <div class="kicker">BAND:</div>
-      <div class="name">${(bandObj?.name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
-    `;
-
-    const locParts = [bandObj?.location, bandObj?.state, bandObj?.country].filter(Boolean);
-    const loc = locParts.join(", ") || "—";
-
-    const status = String(bandObj?.status || "").trim() || "Unknown";
-    const total = Number(bandObj?.total_sets) || 0;
-    const archived = Number(bandObj?.sets_archive) || 0;
-
-    const infoRow = document.createElement("div");
-    infoRow.className = "bandInfoRow";
-    infoRow.innerHTML = `
-      <div class="bandInfoPill">
-        <div class="lbl">HOME LOCATION/REGION</div>
-        <div class="val">${loc}</div>
-      </div>
-      <div class="bandInfoPill">
-        <div class="lbl">STATUS</div>
-        <div class="val">${status}</div>
-      </div>
-      <div class="bandInfoPill">
-        <div class="lbl">SETS (ARCHIVE / TOTAL)</div>
-        <div class="val">${archived} / ${total}</div>
-      </div>
-    `;
-
-    // Optional boxes (placeholders until you add fields to the Bands sheet)
-    const members = document.createElement("div");
-    members.className = "bandInfoGrid2";
-    members.innerHTML = `
-      <div class="bandInfoBox">
-        <div class="lbl">CORE MEMBERS</div>
-        <div class="val">—</div>
-      </div>
-      <div class="bandInfoBox">
-        <div class="lbl">OTHER MEMBERS</div>
-        <div class="val">—</div>
-      </div>
-    `;
-
-    card.appendChild(namePill);
-    card.appendChild(infoRow);
-    card.appendChild(members);
-
-    header.appendChild(logo);
-    header.appendChild(card);
-    wrap.appendChild(header);
-
-    // Albums title + grid
-    const albumsTitle = document.createElement("div");
-    albumsTitle.className = "bandAlbumsTitle";
-    albumsTitle.textContent = "Current Albums in Archive:";
-    wrap.appendChild(albumsTitle);
-
-    const albumsGrid = document.createElement("div");
-    albumsGrid.className = "bandAlbumsGrid";
-    wrap.appendChild(albumsGrid);
-
-    resultsEl.appendChild(wrap);
-
-    const folderPath = cleanFolderPath(bandObj?.smug_folder || "");
-    if (!folderPath) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "No SmugMug folder set for this band in the Bands sheet.";
-      albumsGrid.appendChild(msg);
-      return;
-    }
-
-    let albums = [];
+  // show-date (MMDDYY) -> album existence check
+  // key: "<folder>|<MMDDYY>" -> true/false
+  async function bandHasAlbumForCode(bandInfo, mmddyy) {
     try {
-      albums = await fetchFolderAlbums(folderPath, region);
-    } catch (e) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "Could not load albums for this band.";
-      albumsGrid.appendChild(msg);
-      return;
-    }
+      const folderPath = cleanFolderPath(bandInfo?.smug_folder || "");
+      const region = bandInfo?.region || "";
+      if (!folderPath || !mmddyy) return false;
 
-    if (!albums.length) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "No albums found in that band folder.";
-      albumsGrid.appendChild(msg);
-      return;
-    }
+      const cacheKey = `${folderPath}|${mmddyy}`;
+      if (cacheKey in BAND_DATE_ALBUM_CACHE) return BAND_DATE_ALBUM_CACHE[cacheKey];
 
-    // Show albums (same click behavior as before)
-    albums.forEach((alb) => {
-      const card = document.createElement("div");
-      card.className = "album-card";
+      const albums = await fetchFolderAlbums(folderPath, region);
 
-      const thumb = document.createElement("img");
-      thumb.className = "album-thumb";
-      thumb.loading = "lazy";
-      thumb.alt = alb?.Name || "Album";
-      thumb.src =
-        alb?.HighlightImage?.ThumbnailUrl ||
-        alb?.HighlightImage?.SmallUrl ||
-        alb?.HighlightImage?.MediumUrl ||
-        alb?.ThumbnailUrl ||
-        alb?.SmallUrl ||
-        alb?.MediumUrl ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='750'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
-
-      const t = document.createElement("div");
-      t.className = "album-title";
-      t.textContent = alb?.Name || alb?.Title || "Album";
-
-      const sub = document.createElement("div");
-      sub.className = "album-sub";
-      sub.textContent = alb?.ImageCount ? `${alb.ImageCount} photos` : "";
-
-      card.appendChild(thumb);
-      card.appendChild(t);
-      card.appendChild(sub);
-
-      card.addEventListener("click", async () => {
-        await showAlbumPhotos({
-          region,
-          letter,
-          band: bandObj,
-          album: alb,
-          folderPath,
-        });
+      const found = (albums || []).some((alb) => {
+        const name = String(alb?.UrlName || alb?.Name || alb?.Title || "").trim();
+        return name.includes(mmddyy);
       });
 
-      albumsGrid.appendChild(card);
-    });
-
-    window.requestAnimationFrame(() => resetPanelScroll());
-    window.setTimeout(() => resetPanelScroll(), 200);
+      BAND_DATE_ALBUM_CACHE[cacheKey] = found;
+      return found;
+    } catch (e) {
+      console.warn("bandHasAlbumForCode failed:", e);
+      return false;
+    }
   }
 
-  async function showAlbumPhotos(info) {
-    resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${info.region} → ${info.letter} → ${info.band?.name || ""} → ${info.album?.Name || "Album"}`;
-    resetPanelScroll();
 
-    const wrap = document.createElement("div");
-    wrap.style.width = "100%";
+  function buildVenueText(show) {
+    const venue = String(show.venue || "").trim();
+    const city = String(show.city || "").trim();
+    const state = String(show.state || "").trim();
+    if (venue && city && state) return `${venue} - ${city}, ${state}`;
+    if (venue && city) return `${venue} - ${city}`;
+    if (venue && state) return `${venue} - ${state}`;
+    if (city && state) return `${city}, ${state}`;
+    if (venue) return venue;
+    if (city) return city;
+    if (state) return state;
+    return "";
+  }
 
-    const top = document.createElement("div");
-    top.className = "photosTop";
+  function renderShowsGridForYear({ year, shows, containerEl }) {
+    if (!containerEl) return;
 
-    const backBtn = document.createElement("button");
-    backBtn.className = "btn";
-    backBtn.textContent = "← Back to albums";
-    backBtn.addEventListener("click", () => {
-      showBandCard(info.region, info.letter, info.band);
-    });
-
-    const title = document.createElement("div");
-    title.style.fontSize = "13px";
-    title.style.fontWeight = "800";
-    title.style.opacity = "0.95";
-    title.textContent = info.album?.Name || "Album";
-
-    top.appendChild(backBtn);
-    top.appendChild(title);
+    containerEl.innerHTML = "";
 
     const grid = document.createElement("div");
-    grid.className = "photosGrid";
+    grid.className = "showsGrid";
+    containerEl.appendChild(grid);
 
-    wrap.appendChild(top);
-    wrap.appendChild(grid);
-    resultsEl.appendChild(wrap);
+    const mmddyy = toMMDDYY(shows?.[0]?.date) || ""; // not used globally; kept for parity
 
-    const albumKey = info.album?.AlbumKey || info.album?.Key;
-    if (!albumKey) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "Album key missing; can’t load photos.";
-      grid.appendChild(msg);
-      return;
-    }
+    shows.forEach((s, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "showTile";
+      tile.setAttribute("data-idx", String(idx));
+      tile.setAttribute("data-show-id", makeShowId(s));
 
-    let imgs = [];
-    try {
-      imgs = await fetchAllAlbumImages(albumKey);
-    } catch (e) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "Could not load album photos.";
-      grid.appendChild(msg);
-      return;
-    }
+      const header = document.createElement("div");
+      header.className = "showTileHeader";
 
-    if (!imgs.length) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "No photos found in this album.";
-      grid.appendChild(msg);
-      return;
-    }
+      const posterWrap = document.createElement("div");
+      posterWrap.className = "showPosterWrap";
 
-    imgs.forEach((img, idx) => {
-      const box = document.createElement("div");
-      box.className = "smug-photo-box";
-      box.dataset.index = String(idx);
+      
+      if (s.poster_url) {
+        const poster = document.createElement("img");
+        poster.className = "showPoster";
+        poster.alt = s.title || "Poster";
+        poster.loading = "lazy";
+        poster.src = s.poster_url;
+        posterWrap.appendChild(poster);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "showPosterPlaceholder";
+        ph.textContent = "N/A";
+        posterWrap.appendChild(ph);
+      }
+const meta = document.createElement("div");
+      meta.className = "showMeta";
 
-      const im = document.createElement("img");
-      im.className = "smug-photo";
-      im.loading = "lazy";
-      im.alt = img?.FileName || `Photo ${idx + 1}`;
+      const title = document.createElement("div");
+      title.className = "showTitle";
+      title.textContent = s.title || "";
 
-      // pick a thumbnail-ish url if present
-      im.src =
-        img?.ThumbnailUrl ||
-        img?.SmallUrl ||
-        img?.MediumUrl ||
-        img?.LargeUrl ||
-        img?.Url ||
-        bestFullUrl(img);
+      const date = document.createElement("div");
+      date.className = "showDate";
+      date.textContent = s.pretty_date || s.date || "";
 
-      box.appendChild(im);
+      const venue = document.createElement("div");
+      venue.className = "showVenue";
+      venue.textContent = buildVenueText(s);
 
-      box.addEventListener("click", () => {
-        openLightbox(imgs, idx);
-      });
+      const cam = document.createElement("div");
+      cam.className = "showCamera";
+      cam.textContent = s.camera ? `Camera Used: ${s.camera}` : "";
 
-      grid.appendChild(box);
+      const actions = document.createElement("div");
+      actions.className = "showActions";
+
+      const bandsBtn = document.createElement("button");
+      bandsBtn.type = "button";
+      bandsBtn.className = "showBtn bandsToggle";
+      bandsBtn.textContent = "Bands ▾";
+
+      actions.appendChild(bandsBtn);
+
+      meta.appendChild(title);
+      meta.appendChild(date);
+      meta.appendChild(venue);
+      if (s.camera) meta.appendChild(cam);
+header.appendChild(posterWrap);
+      header.appendChild(meta);
+
+      const expand = document.createElement("div");
+      expand.className = "showExpand";
+
+      // Inner wrapper holds padding so the accordion animation stays smooth
+      const expandInner = document.createElement("div");
+      expandInner.className = "showExpandInner";
+
+      const bandGrid = document.createElement("div");
+      bandGrid.className = "bandGrid";
+
+      expandInner.appendChild(bandGrid);
+      expand.appendChild(expandInner);
+
+      // Bands render is deferred until the tile is opened (better perf + smoother accordion)
+      const showMMDDYY = toMMDDYY(s.date);
+      tile._bandGridEl = bandGrid;
+      tile._showData = s;
+      tile._showMMDDYY = showMMDDYY;
+      tile._bandsLoaded = false;
+      tile.setAttribute("data-band-count", String(getBandCountForShow(s)));
+      updateBandsButtonForTile(tile);
+
+      tile.appendChild(header);
+      tile.appendChild(expand);
+      grid.appendChild(tile);
     });
   }
 
-  // ================== MOUNT ==================
-  async function onMount(panelEl) {
-    panelRoot = panelEl;
-    if (!panelRoot) return;
 
-    // grab refs inside the panel ONLY
-    resultsEl = panelRoot.querySelector("#results");
-    crumbsEl = panelRoot.querySelector("#crumbs");
-    letterGroupsEl = panelRoot.querySelector("#letter-groups");
-    regionPillsEl = panelRoot.querySelector("#region-pills");
-    legendEl = panelRoot.querySelector("#status-legend");
+  function render() {
+    ensureShowsStyles();
 
-    // load data + init UI
-    BANDS = await loadBandsFromCsv();
-
-    initRegionPills();
-    updateLetterGroups(CURRENT_REGION);
-
-    if (crumbsEl) {
-      crumbsEl.textContent = "Select a region first, then the corresponding letter.";
-    }
-
-    // default: clear results
-    if (resultsEl) resultsEl.innerHTML = "";
-    resetPanelScroll();
-    if (legendEl) legendEl.style.display = "";
+    return `
+      <div class=\"showsWrap\">
+        <div id=\"showsYearsMount\"></div>
+        <div id="showsYearContent" class="showsNote">Select a year from the list.</div>
+      </div>
+    `;
   }
 
-  window.MusicArchiveBands = { render, onMount };
+  function onMount(panelEl) {
+    if (!panelEl) return;
+
+    const years = [
+      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
+      2014, 2013, 2012, 2011, 2010, 2009,
+    ];
+	
+	let currentYearShows = [];
+	let currentYearPretty = []; // same shows but with prettyDate + venueLine
+
+
+    const persisted = loadShowsState();
+
+    // If the parent app re-mounts Shows when switching tabs, restore last viewed year
+    let activeYear = Number(persisted.activeYear || 2025);
+    if (!years.includes(activeYear)) activeYear = years[0] || 2025;
+
+    const pillClass = "YearPill";
+    const pillActiveClass = "YearPillActive";
+
+    const mountEl = panelEl.querySelector("#showsYearsMount");
+    if (!mountEl) return;
+	
+	const contentEl = panelEl.querySelector("#showsYearContent");
+if (!contentEl) return;
+
+// Clicking a poster toggles a dropdown inside that card (years row stays)
+
+contentEl.addEventListener("click", (e) => {
+  const toggle = e.target.closest(".bandsToggle") || e.target.closest(".showTileHeader");
+  if (!toggle) return;
+
+  const tile = e.target.closest(".showTile");
+  if (!tile) return;
+
+  // Close other open tiles (accordion behavior)
+  const openTiles = contentEl.querySelectorAll(".showTile.isOpen");
+  openTiles.forEach((t) => {
+    if (t !== tile) {
+      t.classList.remove("isOpen");
+      updateBandsButtonForTile(t);
+    }
+  });
+
+  tile.classList.toggle("isOpen");
+
+  const isOpen = tile.classList.contains("isOpen");
+
+  // Load bands + checks only when opened (smoother + less network)
+  if (isOpen) ensureTileBandsLoaded(tile);
+
+  // Update the caret + label
+  updateBandsButtonForTile(tile);
+
+  // Persist which show (if any) is open for the current year
+  const openId = isOpen ? tile.getAttribute("data-show-id") : "";
+  saveShowsState({ openShowId: openId });
+});
+
+    async function handleSelectYear(year) {
+  // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
+  const snap = saveScrollSnapshot(mountEl);
+
+  activeYear = year;
+  // Persist selected year and clear open tile for new year
+  saveShowsState({ activeYear: year, openShowId: "" });
+  mountYearsPillsOverflow({
+    containerEl: mountEl,
+    years,
+    activeYear,
+    maxVisible: years.length,
+    onSelectYear: handleSelectYear,
+    pillClass,
+    pillActiveClass,
+    moreLabel: "More ▾",
+  });
+
+  // ✅ Restore after SmugMug does its own post-render adjustments
+  setTimeout(() => restoreScrollSnapshot(snap), 0);
+  setTimeout(() => restoreScrollSnapshot(snap), 50);
+
+  const content = panelEl.querySelector("#showsYearContent");
+  if (content) {
+    content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
+
+    const requestId = String(Date.now()) + String(Math.random());
+    content.dataset.req = requestId;
+
+    const all = await ensureShowsLoaded();
+    if (content.dataset.req !== requestId) return;
+
+    const showsForYear = getShowsForYear(year, all);
+	currentYearShows = showsForYear;
+currentYearPretty = (showsForYear || []).map((s) => {
+  const venue = String(s.venue || "").trim();
+  const city = String(s.city || "").trim();
+  const state = String(s.state || "").trim();
+  const place = [city, state].filter(Boolean).join(", ");
+  const venueLine = [venue, place].filter(Boolean).join(" - ");
+
+  return {
+    ...s,
+    venueLine,
+    prettyDate: s.date ? (function formatPrettyDateInline(raw){
+      const parts = String(raw || "").trim().split("/");
+      if (parts.length !== 3) return String(raw || "").trim();
+      const m = Number(parts[0]) - 1;
+      const d = Number(parts[1]);
+      let y = Number(parts[2]);
+      if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) return String(raw || "").trim();
+      if (y < 100) y += 2000;
+      const dateObj = new Date(y, m, d);
+      if (Number.isNaN(dateObj.getTime())) return String(raw || "").trim();
+      const month = dateObj.toLocaleString("en-US", { month: "long" });
+      const day = dateObj.getDate();
+      const year2 = dateObj.getFullYear();
+      const suffix =
+        day % 10 === 1 && day !== 11 ? "st" :
+        day % 10 === 2 && day !== 12 ? "nd" :
+        day % 10 === 3 && day !== 13 ? "rd" : "th";
+      return month + " " + day + suffix + ", " + year2;
+    })(s.date) : "",
+  };
+});
+
+    renderShowsGridForYear({ year, shows: showsForYear, containerEl: content });
+
+    // Restore previously-open tile (if any) after re-render
+    const st = loadShowsState();
+    if (st.openShowId) {
+      const toOpen = content.querySelector(`.showTile[data-show-id="${cssEscape(st.openShowId)}"]`);
+      if (toOpen) {
+        toOpen.classList.add("isOpen");
+        ensureTileBandsLoaded(toOpen);
+        updateBandsButtonForTile(toOpen);
+      }
+    }
+    // ✅ Restore again after content swap + layout reflow
+    setTimeout(() => restoreScrollSnapshot(snap), 0);
+    setTimeout(() => restoreScrollSnapshot(snap), 50);
+  }
+}
+
+
+
+    mountYearsPillsOverflow({
+      containerEl: mountEl,
+      years,
+      activeYear,
+      maxVisible: years.length,
+      onSelectYear: handleSelectYear,
+      pillClass,
+      pillActiveClass,
+      moreLabel: "More ▾",
+    });
+
+    // Initial render: restore last selected year (prevents reset when returning to Shows tab)
+    handleSelectYear(activeYear);
+
+  }
+
+  window.MusicArchiveShows = { render, onMount };
 })();
