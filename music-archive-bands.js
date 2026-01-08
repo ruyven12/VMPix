@@ -1368,16 +1368,43 @@
       return joinLines(grouped.length ? grouped : arr);
     };
 
-    const members = document.createElement("div");
+    
+    // Build member lines from role-specific columns.
+    // If the sheet stores only the name (no "(role)" suffix), we add it here.
+    // If the value already includes parentheses, we keep it as-is.
+    const withRole = (val, role) => {
+      const s = String(val || "").trim();
+      if (!s) return "";
+      return /\([^)]*\)/.test(s) ? s : `${s} (${role})`;
+    };
+
+    const coreLinesFromRoles = [
+      withRole(bandObj?.vox_1, "vox"),
+      withRole(bandObj?.vox_2, "vox"),
+      withRole(bandObj?.vox_3, "vox"),
+      withRole(bandObj?.guitar_1, "gtr"),
+      withRole(bandObj?.guitar_2, "gtr"),
+      withRole(bandObj?.guitar_3, "gtr"),
+      withRole(bandObj?.bass, "bass"),
+      withRole(bandObj?.drum, "drums"),
+      withRole(bandObj?.keys, "keys"),
+    ].filter(Boolean);
+
+    const otherLinesFromPast = [
+      bandObj?.past_1, bandObj?.past_2, bandObj?.past_3,
+      bandObj?.past_4, bandObj?.past_5, bandObj?.past_6
+    ].map((v) => String(v || "").trim()).filter(Boolean);
+
+const members = document.createElement("div");
     members.className = "bandInfoGrid2";
     members.innerHTML = `
       <div class="bandInfoBox">
         <div class="lbl">CORE MEMBERS</div>
-        <div class="val">${joinCoreLines(bandObj?.core_members)}</div>
+        <div class="val">${joinCoreLines(coreLinesFromRoles)}</div>
       </div>
       <div class="bandInfoBox">
         <div class="lbl">OTHER MEMBERS</div>
-        <div class="val">${joinLines(bandObj?.other_members)}</div>
+        <div class="val">${joinLines(otherLinesFromPast)}</div>
       </div>
     `;
 
