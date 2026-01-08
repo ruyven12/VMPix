@@ -570,6 +570,23 @@
         }
       }
 
+      /* ===== Center band detail buttons / pills ===== */
+      .bandDetailHeader,
+      .bandInfoRow{
+        justify-content: center !important;
+        text-align: center;
+      }
+
+      .bandInfoRow{
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .bandInfoRow > *{
+        margin-left: auto;
+        margin-right: auto;
+      }
+
 `;
 
 
