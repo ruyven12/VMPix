@@ -1,5 +1,6 @@
 // music-archive-bands.js
 (function () {
+  // logo+name only v2
   "use strict";
 
   // ================== CONFIG (matches script.js) ==================
@@ -370,6 +371,17 @@
         overflow:hidden;
         white-space:nowrap;
       }
+
+      /* ===== Surgical: logo + name only in band list cards =====
+         This hides any legacy meta blocks that might still be present due to caching or older markup.
+         Scoped to #results to avoid impacting album/photo views.
+      */
+      #results .band-card *{ display:none !important; }
+      #results .band-card .band-row{ display:flex !important; }
+      #results .band-card .band-logo{ display:block !important; }
+      #results .band-card .band-name{ display:block !important; }
+      #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
+
     `;
     document.head.appendChild(s);
   }
