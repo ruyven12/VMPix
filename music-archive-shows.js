@@ -383,6 +383,172 @@
       #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
 
     `;
+      /* ===== Band detail view (modeled after your Video 2 layout) ===== */
+      .bandDetailWrap{
+        width:100%;
+        max-width:1200px;
+        margin: 0 auto;
+        display:flex;
+        flex-direction:column;
+        gap: 16px;
+        padding-top: 6px;
+      }
+
+      .bandDetailTopbar{
+        display:flex;
+        justify-content:center;
+      }
+
+      .bandDetailHeader{
+        width:100%;
+        display:grid;
+        grid-template-columns: 360px 1fr;
+        gap: 18px;
+        align-items:center;
+        border-top: 2px solid rgba(239,68,68,0.28);
+        border-bottom: 2px solid rgba(239,68,68,0.28);
+        padding: 18px 10px;
+      }
+      @media (max-width: 920px){
+        .bandDetailHeader{
+          grid-template-columns: 1fr;
+          justify-items:center;
+          text-align:center;
+        }
+      }
+
+      .bandDetailLogo{
+        width: 320px;
+        max-width: 80vw;
+        aspect-ratio: 1/1;
+        object-fit: contain;
+        border-radius: 18px;
+        opacity: 0.95;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.55));
+      }
+
+      .bandDetailCard{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        gap: 12px;
+      }
+
+      .bandDetailNamePill{
+        width:100%;
+        border-radius: 999px;
+        padding: 14px 18px;
+        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+        border: 1px solid rgba(255,255,255,0.10);
+        text-align:center;
+      }
+      .bandDetailNamePill .kicker{
+        font-size: 10px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        opacity: .65;
+        margin-bottom: 6px;
+      }
+      .bandDetailNamePill .name{
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: .06em;
+      }
+
+      .bandInfoRow{
+        display:grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      @media (max-width: 920px){
+        .bandInfoRow{ grid-template-columns: 1fr; }
+      }
+
+      .bandInfoPill{
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        display:flex;
+        flex-direction:column;
+        gap: 4px;
+        min-height: 56px;
+        justify-content:center;
+      }
+      .bandInfoPill .lbl{
+        font-size: 9px;
+        letter-spacing:.18em;
+        text-transform: uppercase;
+        opacity: .55;
+      }
+      .bandInfoPill .val{
+        font-size: 13px;
+        font-weight: 800;
+        opacity: .92;
+      }
+
+      .bandInfoGrid2{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      @media (max-width: 920px){
+        .bandInfoGrid2{ grid-template-columns: 1fr; }
+      }
+
+      .bandInfoBox{
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        min-height: 54px;
+      }
+      .bandInfoBox .lbl{
+        font-size: 9px;
+        letter-spacing:.18em;
+        text-transform: uppercase;
+        opacity: .55;
+        margin-bottom: 6px;
+      }
+      .bandInfoBox .val{
+        font-size: 13px;
+        opacity: .80;
+      }
+
+      .bandAlbumsTitle{
+        font-size: 12px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        opacity: .80;
+        margin-top: 6px;
+      }
+
+      .bandAlbumsGrid{
+        width:100%;
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 240px));
+        gap: 16px;
+        justify-content:center;
+        align-items:start;
+      }
+
+      /* Make album cards in band detail feel more like poster tiles */
+      .bandAlbumsGrid .album-card{
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(15,23,42,0.26);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+      }
+      .bandAlbumsGrid .album-thumb{
+        border-radius: 14px;
+        aspect-ratio: 2/3;
+      }
+      .bandAlbumsGrid .album-sub{
+        font-size: 11px;
+      }
+
+
     document.head.appendChild(s);
   }
 
@@ -850,24 +1016,17 @@
     resetPanelScroll();
 
     const wrap = document.createElement("div");
-    wrap.className = "albumsWrap";
+    wrap.className = "bandDetailWrap";
 
-    const top = document.createElement("div");
-    top.style.width = "100%";
-    top.style.maxWidth = "1400px";
-    top.style.margin = "0 auto";
-    top.style.display = "flex";
-    top.style.justifyContent = "space-between";
-    top.style.alignItems = "center";
-    top.style.gap = "10px";
-    top.style.flexWrap = "wrap";
+    // Top bar (back button centered like your reference UI)
+    const topbar = document.createElement("div");
+    topbar.className = "bandDetailTopbar";
 
     const backBtn = document.createElement("button");
     backBtn.className = "btn";
     backBtn.textContent = "← Back to bands";
     backBtn.addEventListener("click", () => {
       // return to letter view
-      // sync region + letter pills
       CURRENT_REGION = region;
       initRegionPills();
       updateLetterGroups(region);
@@ -881,18 +1040,84 @@
       showLetter(region, letter);
     });
 
-    const title = document.createElement("div");
-    title.style.fontSize = "14px";
-    title.style.fontWeight = "800";
-    title.style.opacity = "0.95";
-    title.textContent = bandObj?.name || "Band";
+    topbar.appendChild(backBtn);
+    wrap.appendChild(topbar);
 
-    top.appendChild(backBtn);
-    top.appendChild(title);
-    wrap.appendChild(top);
+    // Header block (logo left + info right)
+    const header = document.createElement("div");
+    header.className = "bandDetailHeader";
+
+    const logo = document.createElement("img");
+    logo.className = "bandDetailLogo";
+    logo.alt = bandObj?.name || "Band";
+    logo.loading = "lazy";
+    logo.src = bandObj?.logo_url || "";
+    if (!logo.src) logo.style.opacity = "0.20";
+
+    const card = document.createElement("div");
+    card.className = "bandDetailCard";
+
+    const namePill = document.createElement("div");
+    namePill.className = "bandDetailNamePill";
+    namePill.innerHTML = `
+      <div class="kicker">BAND:</div>
+      <div class="name">${(bandObj?.name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+    `;
+
+    const locParts = [bandObj?.location, bandObj?.state, bandObj?.country].filter(Boolean);
+    const loc = locParts.join(", ") || "—";
+
+    const status = String(bandObj?.status || "").trim() || "Unknown";
+    const total = Number(bandObj?.total_sets) || 0;
+    const archived = Number(bandObj?.sets_archive) || 0;
+
+    const infoRow = document.createElement("div");
+    infoRow.className = "bandInfoRow";
+    infoRow.innerHTML = `
+      <div class="bandInfoPill">
+        <div class="lbl">HOME LOCATION/REGION</div>
+        <div class="val">${loc}</div>
+      </div>
+      <div class="bandInfoPill">
+        <div class="lbl">STATUS</div>
+        <div class="val">${status}</div>
+      </div>
+      <div class="bandInfoPill">
+        <div class="lbl">SETS (ARCHIVE / TOTAL)</div>
+        <div class="val">${archived} / ${total}</div>
+      </div>
+    `;
+
+    // Optional boxes (placeholders until you add fields to the Bands sheet)
+    const members = document.createElement("div");
+    members.className = "bandInfoGrid2";
+    members.innerHTML = `
+      <div class="bandInfoBox">
+        <div class="lbl">CORE MEMBERS</div>
+        <div class="val">—</div>
+      </div>
+      <div class="bandInfoBox">
+        <div class="lbl">OTHER MEMBERS</div>
+        <div class="val">—</div>
+      </div>
+    `;
+
+    card.appendChild(namePill);
+    card.appendChild(infoRow);
+    card.appendChild(members);
+
+    header.appendChild(logo);
+    header.appendChild(card);
+    wrap.appendChild(header);
+
+    // Albums title + grid
+    const albumsTitle = document.createElement("div");
+    albumsTitle.className = "bandAlbumsTitle";
+    albumsTitle.textContent = "Current Albums in Archive:";
+    wrap.appendChild(albumsTitle);
 
     const albumsGrid = document.createElement("div");
-    albumsGrid.className = "albumsGrid";
+    albumsGrid.className = "bandAlbumsGrid";
     wrap.appendChild(albumsGrid);
 
     resultsEl.appendChild(wrap);
@@ -925,7 +1150,7 @@
       return;
     }
 
-    // show albums
+    // Show albums (same click behavior as before)
     albums.forEach((alb) => {
       const card = document.createElement("div");
       card.className = "album-card";
@@ -967,6 +1192,9 @@
 
       albumsGrid.appendChild(card);
     });
+
+    window.requestAnimationFrame(() => resetPanelScroll());
+    window.setTimeout(() => resetPanelScroll(), 200);
   }
 
   async function showAlbumPhotos(info) {
