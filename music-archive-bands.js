@@ -549,6 +549,75 @@
         gap:12px !important;
       }
 
+
+      /* ===== Album row cards (match your centered poster + text layout) ===== */
+      .albumRowCard{
+        width:100%;
+        max-width: 980px;
+        margin: 0 auto;
+        display:flex;
+        gap: 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 12px 26px rgba(0,0,0,0.30);
+        cursor:pointer;
+
+        /* center the whole “poster + text” block */
+        justify-content:center;
+        align-items:center;
+      }
+      .albumRowCard:hover{
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.16);
+      }
+
+      .albumRowThumb{
+        width: 140px;
+        height: auto;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+        flex: 0 0 auto;
+      }
+
+      .albumRowMeta{
+        flex: 0 1 auto;
+        min-width: 0;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        text-align:center;
+        gap: 6px;
+      }
+
+      .albumRowTitle{
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        line-height: 1.15;
+        opacity: .96;
+      }
+      .albumRowSub{
+        font-size: 12px;
+        opacity: .82;
+        line-height: 1.2;
+      }
+
+      @media (max-width: 520px){
+        .albumRowCard{
+          flex-direction: column;
+          gap: 12px;
+          padding: 12px;
+        }
+        .albumRowThumb{ width: 110px; }
+        .albumRowMeta{ width: 100%; }
+      }
+
 `;
 
 
