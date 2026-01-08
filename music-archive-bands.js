@@ -755,6 +755,7 @@
 
         const idxName = header.indexOf("show_name") !== -1 ? header.indexOf("show_name") : header.indexOf("title");
         const idxDate = header.indexOf("show_date") !== -1 ? header.indexOf("show_date") : header.indexOf("date");
+        const idxUrl = header.indexOf("show_url") !== -1 ? header.indexOf("show_url") : header.indexOf("poster_url");
         const idxVenue = header.indexOf("show_venue");
         const idxCity = header.indexOf("show_city") !== -1 ? header.indexOf("show_city") : header.indexOf("city");
         const idxState = header.indexOf("show_state") !== -1 ? header.indexOf("show_state") : header.indexOf("state");
@@ -765,6 +766,7 @@
           const row = {
             show_name: idxName !== -1 ? (cols[idxName] || "").trim() : "",
             show_date: idxDate !== -1 ? (cols[idxDate] || "").trim() : "",
+            show_url: idxUrl !== -1 ? (cols[idxUrl] || "").trim() : "",
             show_venue: idxVenue !== -1 ? (cols[idxVenue] || "").trim() : "",
             show_city: idxCity !== -1 ? (cols[idxCity] || "").trim() : "",
             show_state: idxState !== -1 ? (cols[idxState] || "").trim() : "",
@@ -820,8 +822,7 @@
       const totalSetsIdx = header.indexOf("total_sets");
       const setsArchiveIdx = header.indexOf("sets_archive");
 
-
-      // Members fields (surgical addition)
+      // Members (new fields)
       const vox1Idx = header.indexOf("vox_1");
       const vox2Idx = header.indexOf("vox_2");
       const vox3Idx = header.indexOf("vox_3");
@@ -887,7 +888,9 @@
             totalSetsIdx !== -1 ? (cols[totalSetsIdx] || "").trim() : "",
           sets_archive:
             setsArchiveIdx !== -1 ? (cols[setsArchiveIdx] || "").trim() : "",
-        core_members: [
+
+          // Arrays of member display lines (already formatted in sheet like: "Nick Owen (vox, bass)")
+          core_members: [
             vox1Idx !== -1 ? (cols[vox1Idx] || "").trim() : "",
             vox2Idx !== -1 ? (cols[vox2Idx] || "").trim() : "",
             vox3Idx !== -1 ? (cols[vox3Idx] || "").trim() : "",
@@ -897,7 +900,8 @@
             bassIdx !== -1 ? (cols[bassIdx] || "").trim() : "",
             drumIdx !== -1 ? (cols[drumIdx] || "").trim() : "",
             keysIdx !== -1 ? (cols[keysIdx] || "").trim() : "",
-          ].filter(Boolean).join(", "),
+          ].filter(Boolean),
+
           other_members: [
             past1Idx !== -1 ? (cols[past1Idx] || "").trim() : "",
             past2Idx !== -1 ? (cols[past2Idx] || "").trim() : "",
@@ -905,7 +909,7 @@
             past4Idx !== -1 ? (cols[past4Idx] || "").trim() : "",
             past5Idx !== -1 ? (cols[past5Idx] || "").trim() : "",
             past6Idx !== -1 ? (cols[past6Idx] || "").trim() : "",
-          ].filter(Boolean).join(", "),
+          ].filter(Boolean),
         };
 
         if (!built[region]) built[region] = {};
@@ -1306,26 +1310,24 @@
       </div>
     `;
 
-    // Members (from Bands sheet columns)
-    const esc = (v) =>
-      String(v || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-
-    const coreMembers = String(bandObj?.core_members || "").trim() || "—";
-    const otherMembers = String(bandObj?.other_members || "").trim() || "—";
+    // Members (render one-per-line, like: "Nick Owen (vox, bass)")
+    const esc = (v) => String(v || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const joinLines = (arr) => {
+      const lines = (Array.isArray(arr) ? arr : []).map((s) => String(s || "").trim()).filter(Boolean);
+      if (!lines.length) return "—";
+      return lines.map((s) => esc(s)).join("<br>");
+    };
 
     const members = document.createElement("div");
     members.className = "bandInfoGrid2";
     members.innerHTML = `
       <div class="bandInfoBox">
         <div class="lbl">CORE MEMBERS</div>
-        <div class="val">${esc(coreMembers)}</div>
+        <div class="val">${joinLines(bandObj?.core_members)}</div>
       </div>
       <div class="bandInfoBox">
         <div class="lbl">OTHER MEMBERS</div>
-        <div class="val">${esc(otherMembers)}</div>
+        <div class="val">${joinLines(bandObj?.other_members)}</div>
       </div>
     `;
 
@@ -1417,7 +1419,9 @@
       meta.appendChild(t1);
       if (t2.textContent) meta.appendChild(t2);
 
-      // Option C: venue line from shows CSV; fallback to album Description
+      // Option C: venue line + poster from Shows CSV (show_url). Fallbacks:
+      // - venue: album Description
+      // - poster: SmugMug highlight thumb
       (async () => {
         try {
           const showsByDate = await ensureShowsIndex();
@@ -1432,6 +1436,13 @@
           }
           if (!best && candidates.length) best = candidates[0];
 
+          // ✅ Poster: prefer show_url from CSV
+          const poster = String(best?.show_url || "").trim();
+          if (poster && /^https?:\/\//i.test(poster)) {
+            thumb.src = poster;
+          }
+
+          // ✅ Venue line: prefer CSV, fallback to album Description
           const fromCsv = best ? buildVenueLine(best) : "";
           const fromDesc = String(alb?.Description || "").trim();
 
