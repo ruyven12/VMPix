@@ -251,13 +251,7 @@
         align-items:center;
         gap:10px;
       }
-      .albumsGrid{
-        width:100%;
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap:14px;
-        max-width:none;
-      }
+      
       .album-card{
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
@@ -548,43 +542,11 @@
         font-size: 11px;
       }
 
-      /* ===== Mobile: allow album row text to wrap ===== */
-      @media (max-width: 520px){
-        .albumRowCard{ align-items:flex-start; }
-        .albumRowMeta{ min-width:0; flex:1 1 auto; }
-
-        .albumRowTitle,
-        .albumRowSub{
-          white-space: normal !important;
-          overflow: visible !important;
-          text-overflow: clip !important;
-          word-break: break-word;
-        }
-
-        /* Optional: keep title from getting too tall */
-        .albumRowTitle{
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden !important;
-        }
-      }
-
-      /* ===== Center band detail buttons / pills ===== */
-      .bandDetailHeader,
-      .bandInfoRow{
-        justify-content: center !important;
-        text-align: center;
-      }
-
-      .bandInfoRow{
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .bandInfoRow > *{
-        margin-left: auto;
-        margin-right: auto;
+      /* ===== Force album rows (single-column, stacked) ===== */
+      .bandAlbumsGrid{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:12px !important;
       }
 
 `;
@@ -658,6 +620,114 @@
       .replace(/[^a-z0-9\s-]+/gi, "")
       .replace(/\s+/g, "-")
       .toLowerCase();
+
+
+  // ================== SHOWS INDEX (Option C) ==================
+  // Albums: show_name + show_date from album name; venue line from /sheet/shows CSV (fallback to album Description)
+  const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
+  let _showsIndexPromise = null;
+  let _showsByDate = null; // mmddyy -> [showRow,...]
+
+  function normStr(s){
+    return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function toMMDDYY(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const [yyyy, mm, dd] = s.split("-");
+      return `${mm}${dd}${yyyy.slice(2)}`;
+    }
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return "";
+    const mm = m[1].padStart(2, "0");
+    const dd = m[2].padStart(2, "0");
+    const yy = (m[3].length === 4 ? m[3].slice(2) : m[3]).padStart(2, "0");
+    return `${mm}${dd}${yy}`;
+  }
+
+  function parseAlbumNameToShowBits(name){
+    const raw = String(name || "").trim();
+    const m = raw.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*[-–—]\s*(.+)$/);
+    if (m) {
+      const dateStr = m[1].trim();
+      const showName = m[2].trim();
+      return { show_date: dateStr, show_name: showName, mmddyy: toMMDDYY(dateStr) };
+    }
+    return { show_date: "", show_name: raw, mmddyy: "" };
+  }
+
+  function buildVenueLine(row){
+    const venue = String(row?.show_venue || row?.venue || "").trim();
+    const city  = String(row?.show_city  || row?.city  || "").trim();
+    const state = String(row?.show_state || row?.state || "").trim();
+
+    if (venue && city && state) return `${venue} - ${city}, ${state}`;
+    if (venue && city) return `${venue} - ${city}`;
+    if (city && state) return `${city}, ${state}`;
+    if (venue) return venue;
+    return "";
+  }
+
+  async function ensureShowsIndex(){
+    if (_showsByDate) return _showsByDate;
+    if (_showsIndexPromise) return _showsIndexPromise;
+
+    _showsIndexPromise = fetch(SHOWS_ENDPOINT, { cache: "no-store" })
+      .then((r) => r.text())
+      .then((txt) => {
+        if (!txt || !txt.trim()) return [];
+        const lines = txt.split(/\r?\n/).filter((l) => l.trim());
+        const headerLine = lines.shift();
+        if (!headerLine) return [];
+
+        const header = parseCsvLine(headerLine).map((h) => h.trim().toLowerCase());
+
+        const idxName = header.indexOf("show_name") !== -1 ? header.indexOf("show_name") : header.indexOf("title");
+        const idxDate = header.indexOf("show_date") !== -1 ? header.indexOf("show_date") : header.indexOf("date");
+        const idxVenue = header.indexOf("show_venue");
+        const idxCity = header.indexOf("show_city") !== -1 ? header.indexOf("show_city") : header.indexOf("city");
+        const idxState = header.indexOf("show_state") !== -1 ? header.indexOf("show_state") : header.indexOf("state");
+
+        const rows = [];
+        for (const line of lines) {
+          const cols = parseCsvLine(line);
+          const row = {
+            show_name: idxName !== -1 ? (cols[idxName] || "").trim() : "",
+            show_date: idxDate !== -1 ? (cols[idxDate] || "").trim() : "",
+            show_venue: idxVenue !== -1 ? (cols[idxVenue] || "").trim() : "",
+            show_city: idxCity !== -1 ? (cols[idxCity] || "").trim() : "",
+            show_state: idxState !== -1 ? (cols[idxState] || "").trim() : "",
+          };
+          row.mmddyy = toMMDDYY(row.show_date);
+          rows.push(row);
+        }
+        return rows;
+      })
+      .then((rows) => {
+        const map = new Map();
+        (rows || []).forEach((row) => {
+          const key = row.mmddyy || "";
+          if (!key) return;
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(row);
+        });
+        _showsByDate = map;
+        return map;
+      })
+      .catch((e) => {
+        console.warn("Shows index load failed:", e);
+        _showsByDate = new Map();
+        return _showsByDate;
+      })
+      .finally(() => {
+        _showsIndexPromise = null;
+      });
+
+    return _showsIndexPromise;
+  }
+
 
   async function loadBandsFromCsv() {
     try {
@@ -1191,35 +1261,80 @@
       return;
     }
 
-    // Show albums (same click behavior as before)
+    // Show albums (row cards)
     albums.forEach((alb) => {
       const card = document.createElement("div");
-      card.className = "album-card";
+      card.className = "albumRowCard";
 
       const thumb = document.createElement("img");
-      thumb.className = "album-thumb";
+      thumb.className = "albumRowThumb";
       thumb.loading = "lazy";
-      thumb.alt = alb?.Name || "Album";
+      thumb.alt = alb?.Name || alb?.Title || "Show";
       thumb.src =
-        alb?.HighlightImage?.ThumbnailUrl ||
         alb?.HighlightImage?.SmallUrl ||
         alb?.HighlightImage?.MediumUrl ||
-        alb?.ThumbnailUrl ||
+        alb?.HighlightImage?.ThumbnailUrl ||
         alb?.SmallUrl ||
         alb?.MediumUrl ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='750'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
+        alb?.ThumbnailUrl ||
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
 
-      const t = document.createElement("div");
-      t.className = "album-title";
-      t.textContent = alb?.Name || alb?.Title || "Album";
+      const meta = document.createElement("div");
+      meta.className = "albumRowMeta";
 
-      const sub = document.createElement("div");
-      sub.className = "album-sub";
-      sub.textContent = alb?.ImageCount ? `${alb.ImageCount} photos` : "";
+      const bits = parseAlbumNameToShowBits(alb?.Name || alb?.Title || "");
+      const showNameLine = bits.show_name || (alb?.Name || alb?.Title || "Show");
+      const showDateLine = bits.show_date || "";
+
+      const t1 = document.createElement("div");
+      t1.className = "albumRowTitle";
+      t1.textContent = showNameLine;
+
+      const t2 = document.createElement("div");
+      t2.className = "albumRowSub";
+      t2.textContent = showDateLine;
+
+      const t3 = document.createElement("div");
+      t3.className = "albumRowSub";
+      t3.textContent = ""; // filled async
+
+      meta.appendChild(t1);
+      if (t2.textContent) meta.appendChild(t2);
+
+      // Option C: venue line from shows CSV; fallback to album Description
+      (async () => {
+        try {
+          const showsByDate = await ensureShowsIndex();
+          const candidates = bits.mmddyy ? (showsByDate.get(bits.mmddyy) || []) : [];
+          const want = normStr(showNameLine);
+
+          let best = null;
+          for (const r of candidates) {
+            const nm = normStr(r.show_name);
+            if (!nm) continue;
+            if (want.includes(nm) || nm.includes(want)) { best = r; break; }
+          }
+          if (!best && candidates.length) best = candidates[0];
+
+          const fromCsv = best ? buildVenueLine(best) : "";
+          const fromDesc = String(alb?.Description || "").trim();
+
+          const line = fromCsv || fromDesc || "";
+          if (line) {
+            t3.textContent = line;
+            meta.appendChild(t3);
+          }
+        } catch (_) {
+          const fromDesc = String(alb?.Description || "").trim();
+          if (fromDesc) {
+            t3.textContent = fromDesc;
+            meta.appendChild(t3);
+          }
+        }
+      })();
 
       card.appendChild(thumb);
-      card.appendChild(t);
-      card.appendChild(sub);
+      card.appendChild(meta);
 
       card.addEventListener("click", async () => {
         await showAlbumPhotos({
@@ -1233,8 +1348,7 @@
 
       albumsGrid.appendChild(card);
     });
-
-    window.requestAnimationFrame(() => resetPanelScroll());
+window.requestAnimationFrame(() => resetPanelScroll());
     window.setTimeout(() => resetPanelScroll(), 200);
   }
 
