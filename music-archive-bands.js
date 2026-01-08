@@ -1312,10 +1312,60 @@
 
     // Members (render one-per-line, like: "Nick Owen (vox, bass)")
     const esc = (v) => String(v || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
     const joinLines = (arr) => {
       const lines = (Array.isArray(arr) ? arr : []).map((s) => String(s || "").trim()).filter(Boolean);
       if (!lines.length) return "—";
       return lines.map((s) => esc(s)).join("<br>");
+    };
+
+    // Group duplicate names in CORE MEMBERS:
+    //  - Input lines may look like "Nick Owen (vox)" and "Nick Owen (bass)"
+    //  - Output becomes "Nick Owen (vox, bass)"
+    function groupCoreMembers(lines) {
+      const raw = (Array.isArray(lines) ? lines : [])
+        .map((s) => String(s || "").trim())
+        .filter(Boolean);
+
+      if (!raw.length) return [];
+
+      const order = [];
+      const map = new Map(); // key -> { name, roles:Set }
+
+      raw.forEach((line) => {
+        let name = line;
+        let roles = [];
+
+        const m = line.match(/^(.+?)\s*\((.+)\)\s*$/);
+        if (m) {
+          name = (m[1] || "").trim();
+          roles = String(m[2] || "")
+            .split(",")
+            .map((r) => r.trim())
+            .filter(Boolean);
+        } else {
+          name = String(line || "").trim();
+        }
+
+        const key = name.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { name, roles: new Set() });
+          order.push(key);
+        }
+        const entry = map.get(key);
+        roles.forEach((r) => entry.roles.add(r));
+      });
+
+      return order.map((key) => {
+        const entry = map.get(key);
+        const roles = Array.from(entry.roles || []);
+        return roles.length ? `${entry.name} (${roles.join(", ")})` : entry.name;
+      });
+    }
+
+    const joinCoreLines = (arr) => {
+      const grouped = groupCoreMembers(arr);
+      return joinLines(grouped.length ? grouped : arr);
     };
 
     const members = document.createElement("div");
@@ -1323,7 +1373,7 @@
     members.innerHTML = `
       <div class="bandInfoBox">
         <div class="lbl">CORE MEMBERS</div>
-        <div class="val">${joinLines(bandObj?.core_members)}</div>
+        <div class="val">${joinCoreLines(bandObj?.core_members)}</div>
       </div>
       <div class="bandInfoBox">
         <div class="lbl">OTHER MEMBERS</div>
