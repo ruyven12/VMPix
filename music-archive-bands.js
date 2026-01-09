@@ -667,6 +667,12 @@
         50%{ transform: translateY(-2px) scale(1.25); opacity:1; }
       }
 
+      /* ===== Typography override: disable forced uppercase (Orbitron) ===== */
+      .bandsWrap,
+      .bandsWrap *{
+        text-transform: none !important;
+      }
+
 `;
 
 
@@ -684,9 +690,9 @@
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
           <div id="status-legend">
-            <span><span class="legend-dot" style="background:#22c55e"></span>Active</span>
-            <span><span class="legend-dot" style="background:#f59e0b"></span>Inactive</span>
-            <span><span class="legend-dot" style="background:#94a3b8"></span>Unknown</span>
+            <span><span class="legend-dot" style="background:#22c55e"></span>Fully Upgraded</span>
+            <span><span class="legend-dot" style="background:#f59e0b"></span>In Progress</span>
+            <span><span class="legend-dot" style="background:#94a3b8"></span>Have Not Worked Yet</span>
           </div>
         </div>
 
