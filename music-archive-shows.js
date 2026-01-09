@@ -973,6 +973,59 @@ async function ensureBandsIndex() {
       .replace(/\s+/g, "-")
       .toLowerCase();
 
+// ===== Concurrency limiter (prevents request stampede) =====
+function pLimit(max) {
+  let active = 0;
+  const queue = [];
+
+  const next = () => {
+    if (active >= max || !queue.length) return;
+    active++;
+
+    const { fn, resolve, reject } = queue.shift();
+    Promise.resolve()
+      .then(fn)
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        next();
+      });
+  };
+
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
+}
+
+// Allow only N folder album requests at once
+const limitNet = pLimit(4); // 3–4 is ideal
+
+
+// ===== Folder album list cache (huge perf win) =====
+// Cache albums per folder+region so we don't refetch the same 200 albums for every date check.
+const FOLDER_ALBUMS_CACHE = new Map(); // key -> { albums, ts }
+const FOLDER_ALBUMS_TTL_MS = 1000 * 60 * 30; // 30 min
+
+async function fetchFolderAlbumsCached(folderPath, region) {
+  const clean = cleanFolderPath(folderPath || "");
+  if (!clean) return [];
+
+  const key = `${region || ""}||${clean}`;
+  const now = Date.now();
+
+  const hit = FOLDER_ALBUMS_CACHE.get(key);
+  if (hit && hit.albums && (now - (hit.ts || 0)) < FOLDER_ALBUMS_TTL_MS) {
+    return hit.albums;
+  }
+
+  const albums = await fetchFolderAlbums(clean, region);
+  FOLDER_ALBUMS_CACHE.set(key, { albums, ts: now });
+  return albums;
+}
+
+
   // get all albums inside a SmugMug folder using the same backend pattern as script.js
   async function fetchFolderAlbums(folderPath, region) {
     const clean = cleanFolderPath(folderPath || "");
@@ -1001,7 +1054,7 @@ async function ensureBandsIndex() {
       const cacheKey = `${folderPath}|${mmddyy}`;
       if (cacheKey in BAND_DATE_ALBUM_CACHE) return BAND_DATE_ALBUM_CACHE[cacheKey];
 
-      const albums = await fetchFolderAlbums(folderPath, region);
+      const albums = await fetchFolderAlbumsCached(folderPath, region);
 
       const found = (albums || []).some((alb) => {
         const name = String(alb?.UrlName || alb?.Name || alb?.Title || "").trim();
