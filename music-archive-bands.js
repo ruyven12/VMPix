@@ -74,52 +74,65 @@
         margin-bottom:10px;
       }
 
-      /* region pills */
+      /* region pills (match top action tabs style) */
       #region-pills{
         display:flex;
         flex-wrap:wrap;
         justify-content:center;
-        gap:8px;
+        gap:18px;
+        padding: 2px 0 6px;
+        border-bottom: 1px solid rgba(239,68,68,0.22);
       }
       .region-pill{
-        padding:8px 14px;
-        border-radius:999px;
+        padding:6px 2px;
         cursor:pointer;
         user-select:none;
         font-size:12px;
-        letter-spacing:.04em;
-        background:rgba(255,255,255,0.06);
-        border:1px solid rgba(255,255,255,0.12);
-        color:rgba(226,232,240,0.9);
+        letter-spacing:.10em;
+        background:transparent;
+        border:none;
+        color:rgba(226,232,240,0.75);
+        border-bottom: 2px solid transparent;
+        transition: color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+      }
+      .region-pill:hover{
+        color:rgba(226,232,240,0.92);
+        border-bottom-color: rgba(239,68,68,0.35);
       }
       .region-pill.active{
-        background:rgba(255,255,255,0.14);
-        border-color:rgba(255,255,255,0.22);
+        color:rgba(226,232,240,0.98);
+        border-bottom-color: rgba(239,68,68,0.90);
       }
 
-      /* letter pills */
+/* letter pills (match top action tabs style) */
       #letter-groups{
         display:flex;
         flex-wrap:wrap;
         justify-content:center;
-        gap:8px;
+        gap:16px;
+        padding: 6px 0 6px;
       }
       .letter-pill{
-        padding:6px 12px;
-        border-radius:999px;
+        padding:6px 2px;
         cursor:pointer;
         font-size:12px;
-        background:rgba(17,24,39,0.35);
-        border:1px solid rgba(148,163,184,0.25);
-        color:#fff;
-        backdrop-filter: blur(6px);
+        letter-spacing:.10em;
+        background:transparent;
+        border:none;
+        color:rgba(226,232,240,0.72);
+        border-bottom: 2px solid transparent;
+        transition: color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+      }
+      .letter-pill:hover{
+        color:rgba(226,232,240,0.92);
+        border-bottom-color: rgba(239,68,68,0.28);
       }
       .letter-pill.active{
-        background:rgba(255,255,255,0.14);
-        border-color:rgba(255,255,255,0.22);
+        color:rgba(226,232,240,0.98);
+        border-bottom-color: rgba(239,68,68,0.85);
       }
 
-      /* legend */
+/* legend */
       #status-legend{
         display:flex;
         justify-content:center;
