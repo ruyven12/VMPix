@@ -403,7 +403,18 @@
         padding-top: 6px;
       }
 
-      .bandDetailTopbar{
+      
+      /* ===== Band detail enter transition (pairs with shared-logo zoom) ===== */
+      .bandDetailWrap.entering{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(8px);
+      }
+      .bandDetailWrap{
+        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+      }
+
+.bandDetailTopbar{
         display:flex;
         justify-content:center;
       }
@@ -1239,6 +1250,113 @@
   }
 
   // ================== UI BUILDERS ==================
+
+  // ================== SHARED-ELEMENT TRANSITION ==================
+  // Option A: "logo zoom" from the clicked band card into the detail header logo.
+  async function animateBandOpen(region, letter, bandObj, fromImgEl) {
+    try {
+      if (!fromImgEl) {
+        // fallback
+        showBandCard(region, letter, bandObj);
+        return;
+      }
+
+      const startRect = fromImgEl.getBoundingClientRect();
+      if (!startRect || !startRect.width || !startRect.height) {
+        showBandCard(region, letter, bandObj);
+        return;
+      }
+
+      // Clone the logo image and animate it as a fixed overlay
+      const clone = fromImgEl.cloneNode(true);
+      const startStyle = window.getComputedStyle(fromImgEl);
+
+      clone.style.position = "fixed";
+      clone.style.left = `${startRect.left}px`;
+      clone.style.top = `${startRect.top}px`;
+      clone.style.width = `${startRect.width}px`;
+      clone.style.height = `${startRect.height}px`;
+      clone.style.margin = "0";
+      clone.style.zIndex = "999999";
+      clone.style.pointerEvents = "none";
+      clone.style.transformOrigin = "top left";
+      clone.style.borderRadius = startStyle.borderRadius || "12px";
+      clone.style.boxShadow = "0 18px 40px rgba(0,0,0,0.45)";
+      clone.style.willChange = "transform";
+
+      // Soft dim behind the transition
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.inset = "0";
+      overlay.style.background = "rgba(0,0,0,0.30)";
+      overlay.style.opacity = "0";
+      overlay.style.transition = "opacity 180ms ease";
+      overlay.style.zIndex = "999998";
+      overlay.style.pointerEvents = "none";
+
+      document.body.appendChild(overlay);
+      document.body.appendChild(clone);
+      window.requestAnimationFrame(() => (overlay.style.opacity = "1"));
+
+      // Render destination view ASAP (don’t await album loading)
+      showBandCard(region, letter, bandObj);
+
+      // Wait for destination logo to exist
+      let destLogo = null;
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => window.requestAnimationFrame(r));
+        destLogo = (panelRoot || document).querySelector(".bandDetailLogo");
+        if (destLogo) break;
+      }
+
+      if (!destLogo) {
+        // fallback cleanup
+        overlay.remove();
+        clone.remove();
+        return;
+      }
+
+      // Fade/slide the detail view in
+      const wrap = (panelRoot || document).querySelector(".bandDetailWrap");
+      if (wrap) {
+        wrap.classList.add("entering");
+        window.requestAnimationFrame(() => wrap.classList.remove("entering"));
+      }
+
+      // Hide the real logo until the clone arrives
+      const destRect = destLogo.getBoundingClientRect();
+      const destStyle = window.getComputedStyle(destLogo);
+      destLogo.style.opacity = "0";
+
+      const dx = destRect.left - startRect.left;
+      const dy = destRect.top - startRect.top;
+      const sx = destRect.width / startRect.width;
+      const sy = destRect.height / startRect.height;
+
+      const anim = clone.animate(
+        [
+          { transform: "translate(0px, 0px) scale(1, 1)", borderRadius: startStyle.borderRadius || "12px" },
+          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, borderRadius: destStyle.borderRadius || "18px" },
+        ],
+        { duration: 420, easing: "cubic-bezier(0.2, 0.85, 0.2, 1)", fill: "forwards" }
+      );
+
+      await anim.finished.catch(() => {});
+
+      // Reveal the real logo and cleanup
+      destLogo.style.opacity = "";
+      overlay.style.opacity = "0";
+      window.setTimeout(() => {
+        try { overlay.remove(); } catch (_) {}
+      }, 200);
+
+      try { clone.remove(); } catch (_) {}
+    } catch (e) {
+      // If anything goes wrong, just open normally
+      try { showBandCard(region, letter, bandObj); } catch (_) {}
+    }
+  }
+
   function initRegionPills() {
     if (!regionPillsEl) return;
     regionPillsEl.innerHTML = "";
@@ -1387,8 +1505,8 @@
       card.appendChild(row);
 
       card.addEventListener("click", () => {
-        // Yield to paint for snappier feel
-        window.requestAnimationFrame(() => showBandCard(region, letter, bandObj));
+        // Shared-element transition (logo zoom)
+        window.requestAnimationFrame(() => animateBandOpen(region, letter, bandObj, img));
       });
 
     window.requestAnimationFrame(() => resetPanelScroll());
