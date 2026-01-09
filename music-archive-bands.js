@@ -1357,6 +1357,127 @@
     }
   }
 
+
+  // Reverse transition: "logo zoom back" from detail header into the band card logo in the list.
+  async function animateBandClose(region, letter, bandObj) {
+    try {
+      const fromLogo = (panelRoot || document).querySelector(".bandDetailLogo");
+      if (!fromLogo) {
+        showLetter(region, letter);
+        return;
+      }
+
+      const startRect = fromLogo.getBoundingClientRect();
+      if (!startRect || !startRect.width || !startRect.height) {
+        showLetter(region, letter);
+        return;
+      }
+
+      // Clone the big logo as a fixed overlay
+      const clone = fromLogo.cloneNode(true);
+      const startStyle = window.getComputedStyle(fromLogo);
+
+      clone.style.position = "fixed";
+      clone.style.left = `${startRect.left}px`;
+      clone.style.top = `${startRect.top}px`;
+      clone.style.width = `${startRect.width}px`;
+      clone.style.height = `${startRect.height}px`;
+      clone.style.margin = "0";
+      clone.style.zIndex = "999999";
+      clone.style.pointerEvents = "none";
+      clone.style.transformOrigin = "top left";
+      clone.style.borderRadius = startStyle.borderRadius || "18px";
+      clone.style.boxShadow = "0 18px 40px rgba(0,0,0,0.45)";
+      clone.style.willChange = "transform";
+
+      // Soft dim behind the transition
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.inset = "0";
+      overlay.style.background = "rgba(0,0,0,0.30)";
+      overlay.style.opacity = "1";
+      overlay.style.transition = "opacity 180ms ease";
+      overlay.style.zIndex = "999998";
+      overlay.style.pointerEvents = "none";
+
+      document.body.appendChild(overlay);
+      document.body.appendChild(clone);
+
+      // Render the destination (band list) first, but keep it hidden until the logo lands
+      showLetter(region, letter);
+
+      // Hide list while we animate
+      try {
+        if (resultsEl) {
+          resultsEl.style.opacity = "0";
+          resultsEl.style.transition = "opacity 180ms ease";
+        }
+      } catch (_) {}
+
+      // Find the matching band card logo in the list
+      let targetImg = null;
+      for (let i = 0; i < 45; i++) {
+        await new Promise((r) => window.requestAnimationFrame(r));
+        const cards = (panelRoot || document).querySelectorAll("#results .band-card");
+        if (cards && cards.length) {
+          for (const c of cards) {
+            const nm = c.querySelector(".band-name");
+            const txt = (nm ? nm.textContent : "").trim();
+            if (txt && txt.toLowerCase() === String(bandObj?.name || "").trim().toLowerCase()) {
+              targetImg = c.querySelector("img.band-logo");
+              break;
+            }
+          }
+        }
+        if (targetImg) break;
+      }
+
+      if (!targetImg) {
+        // fallback: just fade in list and cleanup
+        if (resultsEl) resultsEl.style.opacity = "1";
+        overlay.style.opacity = "0";
+        window.setTimeout(() => { try { overlay.remove(); } catch(_){} }, 200);
+        try { clone.remove(); } catch(_) {}
+        return;
+      }
+
+      const endRect = targetImg.getBoundingClientRect();
+      const endStyle = window.getComputedStyle(targetImg);
+
+      // Hide the real target logo until the clone arrives
+      targetImg.style.opacity = "0";
+
+      const dx = endRect.left - startRect.left;
+      const dy = endRect.top - startRect.top;
+      const sx = endRect.width / startRect.width;
+      const sy = endRect.height / startRect.height;
+
+      const anim = clone.animate(
+        [
+          { transform: "translate(0px, 0px) scale(1, 1)", borderRadius: startStyle.borderRadius || "18px" },
+          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, borderRadius: endStyle.borderRadius || "12px" },
+        ],
+        { duration: 380, easing: "cubic-bezier(0.2, 0.85, 0.2, 1)", fill: "forwards" }
+      );
+
+      await anim.finished.catch(() => {});
+
+      // Reveal list + real logo, cleanup
+      targetImg.style.opacity = "";
+      if (resultsEl) resultsEl.style.opacity = "1";
+
+      overlay.style.opacity = "0";
+      window.setTimeout(() => {
+        try { overlay.remove(); } catch (_) {}
+      }, 200);
+
+      try { clone.remove(); } catch (_) {}
+    } catch (e) {
+      try { showLetter(region, letter); } catch (_) {}
+    }
+  }
+
+
   function initRegionPills() {
     if (!regionPillsEl) return;
     regionPillsEl.innerHTML = "";
@@ -1534,7 +1655,7 @@
     backBtn.className = "btn";
     backBtn.textContent = "← Back to bands";
     backBtn.addEventListener("click", () => {
-      // return to letter view
+      // return to letter view (with reverse shared-element transition)
       CURRENT_REGION = region;
       initRegionPills();
       updateLetterGroups(region);
@@ -1545,7 +1666,8 @@
         pills.forEach((p) => p.classList.toggle("active", p.textContent.trim() === letter));
       }
 
-      showLetter(region, letter);
+      // Reverse logo-zoom back into the band card
+      window.requestAnimationFrame(() => animateBandClose(region, letter, bandObj));
     });
 
     topbar.appendChild(backBtn);
