@@ -714,6 +714,79 @@
       .toLowerCase();
 
 
+  // ================== PERF HELPERS ==================
+  // Goal: faster first reveal (don't block UI) + fewer repeat network calls.
+
+  // ---- Concurrency limiter (prevents request stampede) ----
+  function pLimit(max) {
+    let active = 0;
+    const queue = [];
+    const next = () => {
+      if (active >= max || !queue.length) return;
+      active++;
+      const { fn, resolve, reject } = queue.shift();
+      Promise.resolve()
+        .then(fn)
+        .then(resolve, reject)
+        .finally(() => { active--; next(); });
+    };
+    return (fn) => new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
+  }
+
+  // Smooth-first: keep this low so the panel stays responsive (esp. mobile/webviews)
+  const limitNet = pLimit(2);
+
+  // ---- Session cache (Bands CSV) ----
+  const BANDS_CSV_CACHE_KEY = "vm_music_bands_csv_v1";
+  const BANDS_CSV_TTL_MS = 1000 * 60 * 30; // 30 minutes
+
+  async function fetchTextWithSessionCache(url, ttlMs, key) {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.text && (Date.now() - (parsed.ts || 0)) < ttlMs) {
+          return String(parsed.text || "");
+        }
+      }
+    } catch (_) {}
+
+    const text = await fetch(url, { cache: "no-store" }).then((r) => r.text());
+
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
+    } catch (_) {}
+
+    return text;
+  }
+
+  // ---- Folder albums cache (per region + folder) ----
+  const FOLDER_ALBUMS_CACHE = new Map(); // key -> { ts, albums }
+  const FOLDER_ALBUMS_TTL_MS = 1000 * 60 * 30; // 30 minutes
+
+  async function fetchFolderAlbumsCached(folderPath, region) {
+    const safeFolder = cleanFolderPath(folderPath || "");
+    if (!safeFolder) return [];
+
+    const key = `${region || ""}||${safeFolder}`;
+    const hit = FOLDER_ALBUMS_CACHE.get(key);
+    const now = Date.now();
+
+    if (hit && hit.albums && (now - (hit.ts || 0)) < FOLDER_ALBUMS_TTL_MS) {
+      return hit.albums;
+    }
+
+    // limit heavy network calls
+    const albums = await limitNet(() => fetchFolderAlbums(safeFolder, region));
+    FOLDER_ALBUMS_CACHE.set(key, { ts: now, albums });
+    return albums;
+  }
+
+
+
   // ================== SHOWS INDEX (Option C) ==================
   // Albums: show_name + show_date from album name; venue line from /sheet/shows CSV (fallback to album Description)
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
@@ -825,12 +898,12 @@
 
   async function loadBandsFromCsv() {
     try {
-      const text = await fetch(CSV_ENDPOINT).then((r) => r.text());
+      const text = await fetchTextWithSessionCache(CSV_ENDPOINT, BANDS_CSV_TTL_MS, BANDS_CSV_CACHE_KEY);
       if (!text.trim()) return {};
 
       const lines = text.split(/\r?\n/).filter((l) => l.trim());
       const headerLine = lines.shift();
-      const header = headerLine.split(",").map((h) => h.trim().toLowerCase());
+      const header = parseCsvLine(headerLine).map((h) => h.trim().toLowerCase());
 
       const bandIdx = header.indexOf("band");
       const regionIdx = header.indexOf("region");
@@ -1290,7 +1363,8 @@
       card.appendChild(row);
 
       card.addEventListener("click", () => {
-        showBandCard(region, letter, bandObj);
+        // Yield to paint for snappier feel
+        window.requestAnimationFrame(() => showBandCard(region, letter, bandObj));
       });
 
     window.requestAnimationFrame(() => resetPanelScroll());
@@ -1507,20 +1581,30 @@ const members = document.createElement("div");
       return;
     }
 
+    // Fast first reveal: show UI immediately, then load albums async.
+    const loading = document.createElement("div");
+    loading.style.opacity = "0.85";
+    loading.style.textAlign = "center";
+    loading.style.padding = "10px 0";
+    loading.textContent = "Loading albums…";
+    albumsGrid.appendChild(loading);
+
     let albums = [];
     try {
-      albums = await fetchFolderAlbums(folderPath, region);
+      albums = await fetchFolderAlbumsCached(folderPath, region);
     } catch (e) {
-      const msg = document.createElement("div");
-      msg.style.opacity = "0.85";
-      msg.textContent = "Could not load albums for this band.";
-      albumsGrid.appendChild(msg);
+      loading.textContent = "Could not load albums for this band.";
       return;
     }
+
+    // Clear loading indicator
+    if (loading && loading.parentNode) loading.parentNode.removeChild(loading);
 
     if (!albums.length) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
+      msg.style.textAlign = "center";
+      msg.style.padding = "10px 0";
       msg.textContent = "No albums found in that band folder.";
       albumsGrid.appendChild(msg);
       return;
