@@ -641,6 +641,32 @@
         .albumRowMeta{ width: 100%; }
       }
 
+      /* ===== Initial load: hide crumbs until data is ready ===== */
+      .bandsWrap.is-loading #crumbs{ display:none !important; }
+      .bandsLoading{
+        width:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding: 18px 0 6px;
+        opacity:.85;
+        font-size:12px;
+        letter-spacing:.12em;
+        text-transform: uppercase;
+      }
+      .bandsLoading .dot{
+        display:inline-block;
+        width:8px; height:8px;
+        border-radius:999px;
+        background: rgba(226,232,240,0.75);
+        margin-left:10px;
+        animation: bandsDot 800ms ease-in-out infinite;
+      }
+      @keyframes bandsDot{
+        0%,100%{ transform: translateY(0) scale(1); opacity:.55; }
+        50%{ transform: translateY(-2px) scale(1.25); opacity:1; }
+      }
+
 `;
 
 
@@ -653,7 +679,7 @@
 
     // ONLY what's inside #musicContentPanel
     return `
-      <div class="bandsWrap" id="bands-root">
+      <div class="bandsWrap is-loading" id="bands-root">
         <div class="bandsTop">
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
@@ -666,7 +692,8 @@
 
         <div class="bandsLayout">
           <div>
-            <div id="crumbs">Select a region first, then the corresponding letter.</div>
+            <div class="bandsLoading" id="bands-loading">Loading bands<span class="dot"></span></div>
+            <div id="crumbs"></div>
             <div id="results"></div>
           </div>
         </div>
@@ -1818,6 +1845,14 @@ window.requestAnimationFrame(() => resetPanelScroll());
 
     initRegionPills();
     updateLetterGroups(CURRENT_REGION);
+
+    // End initial loading state (show crumbs only after data is ready)
+    try {
+      const root = panelRoot.querySelector("#bands-root");
+      const loader = panelRoot.querySelector("#bands-loading");
+      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      if (root) root.classList.remove("is-loading");
+    } catch (_) {}
 
     if (crumbsEl) {
       crumbsEl.textContent = "Select a region first, then the corresponding letter.";
