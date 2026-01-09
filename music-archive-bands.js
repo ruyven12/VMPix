@@ -188,14 +188,6 @@
         font-size:11px;
       }
 
-      /* crumbs */
-      #crumbs{
-        text-align:center;
-        margin:10px 0 12px;
-        font-size:12px;
-        opacity:.85;
-      }
-
       /* results */
       #results{
         min-height:200px;
@@ -699,7 +691,6 @@
         <div class="bandsLayout">
           <div>
             <div class="bandsLoading" id="bands-loading">Loading bands<span class="dot"></span></div>
-            <div id="crumbs"></div>
             <div id="results"></div>
           </div>
         </div>
@@ -1271,7 +1262,7 @@
         updateLetterGroups(key);
         resultsEl.innerHTML = "";
         window.setTimeout(() => resetPanelScroll(), 200);
-        crumbsEl.textContent = "Select a region first, then the corresponding letter.";
+        // crumbs removed
       });
 
       regionPillsEl.appendChild(pill);
@@ -1346,7 +1337,7 @@
     if (!resultsEl) return;
 
     resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${region} → ${letter}`;
+    // crumbs removed
     resetPanelScroll();
 
     const bandsArr = (BANDS[region] && BANDS[region][letter]) || [];
@@ -1411,7 +1402,7 @@
     if (!resultsEl) return;
 
     resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${region} → ${letter} → ${bandObj?.name || ""}`;
+    // crumbs removed
     resetPanelScroll();
 
     const wrap = document.createElement("div");
@@ -1745,7 +1736,7 @@ window.requestAnimationFrame(() => resetPanelScroll());
 
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
-    crumbsEl.textContent = `${info.region} → ${info.letter} → ${info.band?.name || ""} → ${info.album?.Name || "Album"}`;
+    // crumbs removed
     resetPanelScroll();
 
     const wrap = document.createElement("div");
@@ -1841,7 +1832,7 @@ window.requestAnimationFrame(() => resetPanelScroll());
 
     // grab refs inside the panel ONLY
     resultsEl = panelRoot.querySelector("#results");
-    crumbsEl = panelRoot.querySelector("#crumbs");
+    crumbsEl = null; // breadcrumbs removed
     letterGroupsEl = panelRoot.querySelector("#letter-groups");
     regionPillsEl = panelRoot.querySelector("#region-pills");
     legendEl = panelRoot.querySelector("#status-legend");
@@ -1861,7 +1852,7 @@ window.requestAnimationFrame(() => resetPanelScroll());
     } catch (_) {}
 
     if (crumbsEl) {
-      crumbsEl.textContent = "Select a region first, then the corresponding letter.";
+      // crumbs removed
     }
 
     // default: clear results
