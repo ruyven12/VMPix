@@ -63,6 +63,40 @@
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+      /* ===== Album photos view: center Back-to-albums + hide legend ===== */
+      .inAlbumPhotos #status-legend{ display:none !important; }
+
+      .inAlbumPhotos .photosTop{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 0;
+        margin-top: 6px;
+      }
+
+      .backToAlbumsBtn{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        text-transform: none !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 2px solid rgba(239,68,68,0.30) !important;
+        border-radius: 0 !important;
+        padding: 6px 2px !important;
+        cursor: pointer;
+        font-size: 12px;
+        letter-spacing: .10em;
+        color: rgba(226,232,240,0.92);
+        transition: color 160ms ease, border-color 160ms ease, opacity 160ms ease, transform 120ms ease;
+      }
+      .backToAlbumsBtn:hover{
+        color: rgba(226,232,240,0.98);
+        border-bottom-color: rgba(239,68,68,0.90) !important;
+        transform: translateX(-2px);
+      }
+      .backToAlbumsBtn:active{
+        transform: translateX(-1px) translateY(1px);
+      }
+
 /* ===== Back to Bands (line-style) typography: Orbitron, no forced uppercase ===== */
 .backToBandsBtn{
   font-family: "Orbitron", system-ui, sans-serif !important;
@@ -2545,6 +2579,7 @@ const members = document.createElement("div");
   }
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
+    try { document.body.classList.add("inAlbumPhotos"); } catch(_) {}
     // crumbs removed
     resetPanelScroll();
 
@@ -2555,10 +2590,10 @@ const members = document.createElement("div");
     top.className = "photosTop";
 
     const backBtn = document.createElement("button");
-    backBtn.className = "btn backToBandsBtn";
-    const letterLabel = (info.letter || "").trim();
-    backBtn.textContent = `← Back to ${letterLabel ? (letterLabel + " ") : ""}Bands`;
+    backBtn.className = "btn backToAlbumsBtn";
+    backBtn.textContent = "← Back to albums";
     backBtn.addEventListener("click", () => {
+      try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
       showBandCard(info.region, info.letter, info.band);
     });
 
