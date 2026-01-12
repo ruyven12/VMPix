@@ -90,15 +90,6 @@ function pulseFrame(){
     pills.forEach(p => p.classList.add('isPulse'));
     window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
   }
-
-    // pill-only wipe pulse (no layout changes)
-    const pills = document.querySelectorAll('.hudIntroText');
-    pills.forEach(p => p.classList.remove('isPulse'));
-    void document.body.offsetWidth;
-    pills.forEach(p => p.classList.add('isPulse'));
-    window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
-  }
-
   // HUD MAIN: terminal typing (paragraph mode)
   function typeHudMainText(newText, el){
     const t = el || document.querySelector('[data-hud-main-text]');
