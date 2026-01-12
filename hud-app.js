@@ -154,9 +154,7 @@ function pulseFrame(){
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
     if (!m) return;
-    // Ensure the Home/About/Wrestling text always has a visible shell
-    // (some CSS expects the main text node to carry the boot-in class)
-    m.innerHTML = '<span class="hudMainLoad" data-hud-main-text></span>';
+    m.innerHTML = '<span data-hud-main-text></span>';
   }
 
   // Module adapters (optional external files)
@@ -175,11 +173,8 @@ function pulseFrame(){
         renderTypedShell(m);
       },
       onEnter(){
-        // rAF ensures the node is in the DOM + painted before typing begins
-        window.requestAnimationFrame(() => {
-          const el = document.querySelector('[data-hud-main-text]');
-          typeHudMainText(ROUTE_COPY.home, el);
-        });
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.home, el);
       }
     },
 
@@ -258,18 +253,98 @@ function pulseFrame(){
     }
   };
 
+  
   let currentRoute = null;
 
-  function navigate(route){
+  // =============================
+  // Route Transitions (smooth out → swap → in)
+  // =============================
+  let _isRouting = false;
+  let _queuedRoute = null;
+
+  function prefersReducedMotion(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function ensureRouteTransitionStyles(){
+    if (document.getElementById('hudRouteTransitionStyles')) return;
+    const s = document.createElement('style');
+    s.id = 'hudRouteTransitionStyles';
+    s.textContent = `
+      /* Disable rapid re-clicks during route transitions */
+      body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
+
+      /* Mild blur for transitioning content (visual only) */
+      #hudMainMount.is-leaving, #hudMainMount.is-entering{
+        will-change: opacity, transform, filter;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function lockHudMainHeight(lock){
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (!hudMain) return () => {};
+    if (!lock) return () => {};
+
+    const h = hudMain.getBoundingClientRect().height || hudMain.offsetHeight || 0;
+    const prev = {
+      height: hudMain.style.height || '',
+      minHeight: hudMain.style.minHeight || '',
+      overflow: hudMain.style.overflow || ''
+    };
+    if (h > 0){
+      hudMain.style.height = h + 'px';
+      hudMain.style.minHeight = h + 'px';
+      hudMain.style.overflow = 'hidden';
+    }
+    return () => {
+      hudMain.style.height = prev.height;
+      hudMain.style.minHeight = prev.minHeight;
+      hudMain.style.overflow = prev.overflow;
+    };
+  }
+
+  async function transitionTo(route){
     const next = modules[route] ? route : 'home';
 
     // Clicking current tab: don't re-render (keeps your "no refresh" feel)
-    if (next === currentRoute){
+    if (next === currentRoute) {
       setActiveTopNav(next);
       return;
     }
 
-    // Leave hook
+    // If already routing, queue the latest request
+    if (_isRouting){
+      _queuedRoute = next;
+      return;
+    }
+
+    _isRouting = true;
+    ensureRouteTransitionStyles();
+    document.body.classList.add('is-routing');
+
+    const m = mount();
+    const reduce = prefersReducedMotion();
+
+    // Height lock prevents the frame from "breathing" mid-swap
+    const unlock = lockHudMainHeight(!reduce);
+
+    // OUT animation
+    try{
+      if (m && !reduce){
+        m.classList.add('is-leaving');
+        await m.animate(
+          [
+            { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
+            { opacity: 0, transform: 'translateY(8px) scale(0.995)', filter: 'blur(6px)' }
+          ],
+          { duration: 170, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+        ).finished.catch(() => {});
+      }
+    }catch(_){}
+
+    // Leave hook (after OUT)
     if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
       try { modules[currentRoute].onLeave(); } catch(e) {}
     }
@@ -281,12 +356,79 @@ function pulseFrame(){
     setActiveTopNav(next);
     stopAllTyping();
 
-    // Render + enter
+    // SWAP DOM
     modules[next].render();
     currentRoute = next;
-    modules[next].onEnter && modules[next].onEnter();
 
-    pulseFrame();
+    // Let layout settle before IN
+    await new Promise(r => window.requestAnimationFrame(r));
+    await new Promise(r => window.requestAnimationFrame(r));
+
+    // IN animation + defer heavy onEnter until after first paint
+    try{
+      if (m && !reduce){
+        m.classList.remove('is-leaving');
+        m.classList.add('is-entering');
+        m.style.opacity = '0';
+        m.style.transform = 'translateY(-6px) scale(0.995)';
+        m.style.filter = 'blur(6px)';
+
+        // Kick IN on next frame
+        await new Promise(r => window.requestAnimationFrame(r));
+
+        const inAnim = m.animate(
+          [
+            { opacity: 0, transform: 'translateY(-6px) scale(0.995)', filter: 'blur(6px)' },
+            { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' }
+          ],
+          { duration: 230, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+        );
+
+        // Start enter work after IN begins (smooth-first)
+        window.requestAnimationFrame(() => {
+          try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+        });
+
+        pulseFrame();
+
+        await inAnim.finished.catch(() => {});
+      } else {
+        // Reduced motion: do it immediately
+        try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+        pulseFrame();
+      }
+    }catch(_){
+      try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+      pulseFrame();
+    }
+
+    // Cleanup
+    try{
+      if (m){
+        m.classList.remove('is-entering','is-leaving');
+        m.style.opacity = '';
+        m.style.transform = '';
+        m.style.filter = '';
+      }
+    }catch(_){}
+
+    unlock();
+    document.body.classList.remove('is-routing');
+    _isRouting = false;
+
+    // If something was queued during the transition, go there next.
+    if (_queuedRoute && _queuedRoute !== currentRoute){
+      const q = _queuedRoute;
+      _queuedRoute = null;
+      transitionTo(q);
+    } else {
+      _queuedRoute = null;
+    }
+  }
+
+  function navigate(route){
+    // Keep external API the same; run transition wrapper.
+    transitionTo(route);
   }
 
   window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
@@ -295,7 +437,6 @@ function pulseFrame(){
     if (!location.hash) location.hash = '#/home';
     navigate(routeKeyFromHash());
   })();
-
   // =============================
   // MAIN MENU ATMOSPHERE: Embers canvas (copied exactly from your HUD)
   // =============================
