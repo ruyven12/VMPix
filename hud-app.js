@@ -258,8 +258,13 @@ function pulseFrame(){
 
 
 // =============================
-// Route Transitions (full HUD fade out → blackout hold → swap → fade in)
-// Goal: hide micro "flinches" by fully hiding the HUD during the swap + initial data paint.
+// Route Transitions (FULL HUD diagonal wipe)
+// - Wipe OUT: top-left → bottom-right
+// - Hold (masked swap): 250ms (tunable)
+// - Wipe IN: bottom-left → top-right
+// Also adds:
+//   - subtle chromatic edge on the wipe
+//   - ember brightness sync during wipe
 // =============================
 let _isRouting = false;
 let _queuedRoute = null;
@@ -269,47 +274,170 @@ function prefersReducedMotion(){
 }
 
 // Tunables
-const ROUTE_OUT_MS  = 200;   // fade out duration
-const ROUTE_HOLD_MS = 500;   // fully hidden blackout hold (masks data/layout flinches)
-const ROUTE_IN_MS   = 240;   // fade in duration
+const WIPE_OUT_MS  = 250;
+const WIPE_HOLD_MS = 250;
+const WIPE_IN_MS   = 250;
 
 const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
 
 function ensureRouteTransitionStyles(){
   if (document.getElementById('hudRouteTransitionStyles')) return;
+
   const s = document.createElement('style');
   s.id = 'hudRouteTransitionStyles';
   s.textContent = `
     /* Disable rapid re-clicks during route transitions */
     body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
 
-    /* Full-screen blackout layer for swaps */
-    #hudRouteBlackout{
+    /* Full-screen wipe layer */
+    #hudRouteWipe{
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.92);
-      opacity:0;
       pointer-events:none;
-      transition: opacity 160ms ease;
       z-index: 999997;
-    }
-    body.is-routing #hudRouteBlackout{ opacity:1; }
 
-    /* Optional: keep HUD from intercepting clicks while hidden */
+      /* Base mask */
+      background:
+        /* Chromatic edge band (moves via --wipePos) */
+        linear-gradient(135deg,
+          rgba(0,0,0,0) calc(var(--wipePos, 0%) - 10%),
+          rgba(255,  0, 90, 0.28) calc(var(--wipePos, 0%) - 2.2%),
+          rgba(  0,255,255,0.22) calc(var(--wipePos, 0%) + 0.0%),
+          rgba(0,0,0,0) calc(var(--wipePos, 0%) + 10%)
+        ),
+        rgba(0,0,0,0.94);
+
+      filter: saturate(1.35) contrast(1.02);
+      will-change: clip-path, background;
+      opacity: 1;
+    }
+
+    /* While routing, keep HUD from intercepting clicks */
     body.is-routing #hud{ pointer-events:none; }
 
+    /* Ember sync target (canvas) — brightness driven by --emberBoost */
+    #hudEmbers{
+      will-change: filter;
+      filter: brightness(calc(1 + var(--emberBoost, 0))) saturate(calc(1 + (var(--emberBoost, 0) * 0.55)));
+      transition: filter 120ms linear;
+    }
+
     @media (prefers-reduced-motion: reduce){
-      #hudRouteBlackout{ transition:none !important; }
+      #hudRouteWipe{ display:none !important; }
+      #hudEmbers{ transition:none !important; }
     }
   `;
   document.head.appendChild(s);
 }
 
-function ensureBlackout(){
-  if (document.getElementById('hudRouteBlackout')) return;
+function ensureWipeLayer(){
+  if (document.getElementById('hudRouteWipe')) return;
   const d = document.createElement('div');
-  d.id = 'hudRouteBlackout';
+  d.id = 'hudRouteWipe';
+  // start hidden (no coverage)
+  d.style.clipPath = 'polygon(0 0, 0 0, 0 0, 0 0)';
   document.body.appendChild(d);
+}
+
+// Diagonal coverage polygon from top-left → bottom-right.
+// pCover: 0..1 (0 = none, 1 = full)
+function polyTLBR(pCover){
+  const t = Math.max(0, Math.min(1, pCover)) * 200; // 0..200
+  if (t <= 100){
+    const x = t;
+    const y = t;
+    // triangle from TL
+    return `polygon(0% 0%, ${x}% 0%, 0% ${y}%, 0% 0%)`;
+  }
+  const yR = t - 100; // 0..100
+  const xB = t - 100; // 0..100
+  // pentagon that fills most of screen, leaving a triangle near BR
+  return `polygon(0% 0%, 100% 0%, 100% ${yR}%, ${xB}% 100%, 0% 100%)`;
+}
+
+// Mirror TLBR polygon vertically to get bottom-left → top-right behavior.
+function polyBLTR(pCover){
+  // Convert the TLBR polygon points by flipping Y: y -> (100 - y)
+  // We do this by generating the TLBR polygon as points and mapping.
+  const t = Math.max(0, Math.min(1, pCover)) * 200;
+
+  let pts;
+  if (t <= 100){
+    const x = t;
+    const y = t;
+    pts = [
+      [0, 0],
+      [x, 0],
+      [0, y],
+      [0, 0],
+    ];
+  } else {
+    const yR = t - 100;
+    const xB = t - 100;
+    pts = [
+      [0, 0],
+      [100, 0],
+      [100, yR],
+      [xB, 100],
+      [0, 100],
+    ];
+  }
+
+  const mapped = pts.map(([x,y]) => [x, (100 - y)]);
+  return `polygon(${mapped.map(([x,y]) => `${x}% ${y}%`).join(', ')})`;
+}
+
+// rAF-driven wipe so we can:
+// - keep the wipe edge crisp
+// - move the chromatic edge band with --wipePos
+// - sync ember brightness with the moving edge
+function animateWipe({ direction, durationMs, fromCover, toCover }){
+  const wipe = document.getElementById('hudRouteWipe');
+  if (!wipe) return Promise.resolve();
+
+  const ease = (p) => {
+    // slightly punchy but smooth
+    return 1 - Math.pow(1 - p, 3);
+  };
+
+  const setState = (pCover) => {
+    const cover = Math.max(0, Math.min(1, pCover));
+
+    // Edge position for gradient band: 0..100 along the same diagonal axis
+    // (We extend to 110% so the band can fully exit.)
+    const pos = (cover * 110).toFixed(2) + '%';
+    wipe.style.setProperty('--wipePos', pos);
+
+    // Ember brightness sync: peak near mid coverage
+    const boost = 0.38 * Math.sin(Math.PI * cover); // 0..~0.38..0
+    document.documentElement.style.setProperty('--emberBoost', boost.toFixed(4));
+
+    // Clip-path
+    wipe.style.clipPath = (direction === 'tlbr') ? polyTLBR(cover) : polyBLTR(cover);
+  };
+
+  // Initialize
+  setState(fromCover);
+
+  return new Promise((resolve) => {
+    const t0 = performance.now();
+    const tick = (now) => {
+      const raw = (now - t0) / Math.max(1, durationMs);
+      const p = Math.max(0, Math.min(1, raw));
+      const e = ease(p);
+      const cover = fromCover + (toCover - fromCover) * e;
+
+      setState(cover);
+
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        setState(toCover);
+        resolve();
+      }
+    };
+    requestAnimationFrame(tick);
+  });
 }
 
 function lockHudMainHeight(lock){
@@ -348,45 +476,33 @@ async function transitionTo(route){
     return;
   }
 
+  const reduce = prefersReducedMotion();
+
   _isRouting = true;
   ensureRouteTransitionStyles();
-  ensureBlackout();
+  ensureWipeLayer();
   document.body.classList.add('is-routing');
 
-  const reduce = prefersReducedMotion();
   const hudEl = document.getElementById('hud');
-  const m = mount();
+  const wipe = document.getElementById('hudRouteWipe');
 
-  // Height lock helps keep the page from "breathing" on some browsers while the HUD is hidden.
+  // Height lock keeps the box stable while hidden
   const unlock = lockHudMainHeight(!reduce);
 
-  // --- Phase A: FULL HUD fade out ---
-  try{
-    if (hudEl && !reduce){
-      // Ensure we start visible
-      hudEl.style.opacity = '';
-      hudEl.style.transform = '';
-      hudEl.style.filter = '';
-      await hudEl.animate(
-        [
-          { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
-          { opacity: 0, transform: 'translateY(6px) scale(0.995)', filter: 'blur(10px)' }
-        ],
-        { duration: ROUTE_OUT_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
-      ).finished.catch(() => {});
-      // Hard-set to keep it fully hidden during the hold/swap
-      hudEl.style.opacity = '0';
-      hudEl.style.transform = 'translateY(6px) scale(0.995)';
-      hudEl.style.filter = 'blur(10px)';
-    }
-  }catch(_){}
+  // Ensure wipe visible during transitions
+  if (wipe) wipe.style.display = 'block';
 
-  // --- Phase B: blackout hold (nothing visible; masks micro-flinches) ---
+  // --- Phase A: Wipe OUT (top-left → bottom-right) ---
   if (!reduce){
-    await sleep(ROUTE_HOLD_MS);
+    await animateWipe({ direction:'tlbr', durationMs: WIPE_OUT_MS, fromCover: 0, toCover: 1 });
   }
 
-  // Leave hook (after fade-out, while hidden)
+  // --- Phase B: Hold fully covered (masked swap) ---
+  if (!reduce){
+    await sleep(WIPE_HOLD_MS);
+  }
+
+  // Leave hook (while covered)
   if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
     try { modules[currentRoute].onLeave(); } catch(e) {}
   }
@@ -398,67 +514,36 @@ async function transitionTo(route){
   setActiveTopNav(next);
   stopAllTyping();
 
-  // --- Swap DOM while HUD is hidden ---
+  // Swap DOM while fully covered
   modules[next].render();
   currentRoute = next;
 
-  // Let layout settle (and let modules inject their skeletons) while still hidden
+  // Let layout settle while covered
   await new Promise(r => window.requestAnimationFrame(r));
   await new Promise(r => window.requestAnimationFrame(r));
 
-  // Start enter work just before fade-in (still hidden) so any first paints happen under blackout
+  // Fire onEnter under cover to hide first paints
   if (!reduce){
     try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
   }
 
-  // --- Phase C: FULL HUD fade in ---
-  try{
-    if (hudEl && !reduce){
-      // Kick to known hidden state
-      hudEl.style.opacity = '0';
-      hudEl.style.transform = 'translateY(-6px) scale(0.995)';
-      hudEl.style.filter = 'blur(10px)';
-
-      // Fade in
-      const inAnim = hudEl.animate(
-        [
-          { opacity: 0, transform: 'translateY(-6px) scale(0.995)', filter: 'blur(10px)' },
-          { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' }
-        ],
-        { duration: ROUTE_IN_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
-      );
-
-      pulseFrame();
-      await inAnim.finished.catch(() => {});
-    } else {
-      // Reduced motion: do it immediately (no blackout hold)
-      try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
-      pulseFrame();
-    }
-  }catch(_){
+  // --- Phase C: Wipe IN (bottom-left → top-right) ---
+  if (!reduce){
+    await animateWipe({ direction:'bltr', durationMs: WIPE_IN_MS, fromCover: 1, toCover: 0 });
+    pulseFrame();
+  } else {
+    // Reduced motion: instant swap + normal pulse
     try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
     pulseFrame();
   }
 
-  // Cleanup (restore inline styles)
-  try{
-    if (hudEl){
-      hudEl.style.opacity = '';
-      hudEl.style.transform = '';
-      hudEl.style.filter = '';
-    }
-    if (m){
-      // just in case any prior state set styles here
-      m.style.opacity = '';
-      m.style.transform = '';
-      m.style.filter = '';
-      m.style.pointerEvents = '';
-    }
-  }catch(_){}
-
+  // Cleanup
   unlock();
   document.body.classList.remove('is-routing');
   _isRouting = false;
+
+  // Reset ember boost
+  try { document.documentElement.style.setProperty('--emberBoost', '0'); } catch(_){}
 
   // If something was queued during the transition, go there next.
   if (_queuedRoute && _queuedRoute !== currentRoute){
@@ -471,9 +556,9 @@ async function transitionTo(route){
 }
 
 function navigate(route){
-  // Keep external API the same; run transition wrapper.
   transitionTo(route);
 }
+
 
   window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
 
