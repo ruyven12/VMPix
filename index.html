@@ -414,6 +414,15 @@
     text-align: center;
   }
 
+  /* =============================
+   HUD MAIN TEXT SAFETY
+   Ensures Home text is visible even if a route module momentarily clears the mount
+   ============================= */
+  #hudMainMount{ width:100%; }
+  .neonFrameTextInner{ min-height: 56px; }
+  [data-hud-main-text]{ opacity: 1 !important; }
+
+
   .hudMain{
     padding-left: 10px;
     padding-right: 10px;
