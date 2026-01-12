@@ -10,7 +10,7 @@
 
   // Loading message shown while the Bands CSV is being fetched.
   // Edit this string to whatever you want displayed.
-  const BANDS_LOADING_TEXT = "Loading bands";
+  const BANDS_LOADING_TEXT = "Loading the machine, takes about 30 seconds to load up.";
 
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
