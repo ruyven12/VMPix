@@ -274,6 +274,18 @@ function pulseFrame(){
       /* Disable rapid re-clicks during route transitions */
       body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
 
+      /* Global dim overlay used during route swaps (adds a clear fade-out cue) */
+      #hudRouteDim{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.35);
+        opacity:0;
+        pointer-events:none;
+        transition: opacity 170ms ease;
+        z-index: 999997;
+      }
+      body.is-routing #hudRouteDim{ opacity:1; }
+
       /* Mild blur for transitioning content (visual only) */
       #hudMainMount.is-leaving, #hudMainMount.is-entering{
         will-change: opacity, transform, filter;
@@ -305,6 +317,14 @@ function pulseFrame(){
     };
   }
 
+  function ensureDimOverlay(){
+    if (document.getElementById('hudRouteDim')) return;
+    const d = document.createElement('div');
+    d.id = 'hudRouteDim';
+    // Must be in DOM for the CSS fade to work.
+    document.body.appendChild(d);
+  }
+
   async function transitionTo(route){
     const next = modules[route] ? route : 'home';
 
@@ -322,6 +342,7 @@ function pulseFrame(){
 
     _isRouting = true;
     ensureRouteTransitionStyles();
+    ensureDimOverlay();
     document.body.classList.add('is-routing');
 
     const m = mount();
@@ -333,13 +354,17 @@ function pulseFrame(){
     // OUT animation
     try{
       if (m && !reduce){
+        // Ensure we start from a visible state before fading out (prevents "no fade-out" feel)
+        m.style.opacity = '';
+        m.style.transform = '';
+        m.style.filter = '';
         m.classList.add('is-leaving');
         await m.animate(
           [
             { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
             { opacity: 0, transform: 'translateY(8px) scale(0.995)', filter: 'blur(6px)' }
           ],
-          { duration: 170, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+          { duration: 230, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
         ).finished.catch(() => {});
       }
     }catch(_){}
