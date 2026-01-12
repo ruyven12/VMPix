@@ -63,6 +63,19 @@
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+/* Back button: feel like navigation (Option 3) */
+.backToBandsBtn{
+  transition: transform 140ms ease, background 160ms ease, border-color 160ms ease;
+}
+.backToBandsBtn:hover{
+  transform: translateX(-2px);
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.45);
+}
+.backToBandsBtn:active{
+  transform: translateX(-1px) translateY(1px);
+}
+
       .bandsWrap{
         width:100%;
         max-width:none;
@@ -719,22 +732,7 @@
 `;
 
 
-    
-/* Back button: feel like navigation (Option 3) */
-.backToBandsBtn{
-  transition: transform 140ms ease, background 160ms ease, border-color 160ms ease;
-}
-.backToBandsBtn:hover{
-  transform: translateX(-2px);
-  background: rgba(239,68,68,0.10);
-  border-color: rgba(239,68,68,0.45);
-}
-.backToBandsBtn:active{
-  transform: translateX(-1px) translateY(1px);
-}
-
-
-document.head.appendChild(s);
+    document.head.appendChild(s);
   }
 
   // ================== HTML RENDER ==================
