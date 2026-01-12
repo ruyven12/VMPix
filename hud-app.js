@@ -266,6 +266,11 @@ function pulseFrame(){
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
+  const ROUTE_HOLD_MS = 500; // sit on dim screen to hide micro-flinches
+  const ROUTE_OUT_MS  = 230;
+  const ROUTE_IN_MS   = 230;
+  const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
+
   function ensureRouteTransitionStyles(){
     if (document.getElementById('hudRouteTransitionStyles')) return;
     const s = document.createElement('style');
@@ -358,18 +363,32 @@ function pulseFrame(){
         m.style.opacity = '';
         m.style.transform = '';
         m.style.filter = '';
+        m.style.pointerEvents = '';
         m.classList.add('is-leaving');
         await m.animate(
           [
             { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
             { opacity: 0, transform: 'translateY(8px) scale(0.995)', filter: 'blur(6px)' }
           ],
-          { duration: 230, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+          { duration: ROUTE_OUT_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
         ).finished.catch(() => {});
       }
     }catch(_){}
 
-    // Leave hook (after OUT)
+    
+    // Hold on the dimmed screen briefly to mask any micro reflow / data "flinches"
+    // that can occur when the next route renders or begins fetching.
+    if (m && !reduce){
+      try{
+        m.style.opacity = '0';
+        m.style.transform = 'translateY(8px) scale(0.995)';
+        m.style.filter = 'blur(8px)';
+        m.style.pointerEvents = 'none';
+      }catch(_){}
+      await sleep(ROUTE_HOLD_MS);
+    }
+
+// Leave hook (after OUT)
     if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
       try { modules[currentRoute].onLeave(); } catch(e) {}
     }
@@ -406,7 +425,7 @@ function pulseFrame(){
             { opacity: 0, transform: 'translateY(-6px) scale(0.995)', filter: 'blur(6px)' },
             { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' }
           ],
-          { duration: 230, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+          { duration: ROUTE_IN_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
         );
 
         // Start enter work after IN begins (smooth-first)
