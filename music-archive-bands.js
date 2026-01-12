@@ -1922,7 +1922,150 @@ const members = document.createElement("div");
 
     async function __loadBandAlbums() {
       const folderPath = cleanFolderPath(bandObj?.smug_folder || "");
+      if (!folderPath) {
+        const msg = document.createElement("div");
+        msg.style.opacity = "0.85";
+        msg.textContent = "No SmugMug folder set for this band in the Bands sheet.";
+        albumsGrid.appendChild(msg);
+        return;
+      }
 
+      // Fast first reveal: show UI immediately, then load albums async.
+      const loading = document.createElement("div");
+      loading.style.opacity = "0.85";
+      loading.style.textAlign = "center";
+      loading.style.padding = "10px 0";
+      loading.textContent = "Loading albums…";
+      albumsGrid.appendChild(loading);
+
+      let albums = [];
+      try {
+        albums = await fetchFolderAlbumsCached(folderPath, region);
+      } catch (e) {
+        loading.textContent = "Could not load albums for this band.";
+        return;
+      }
+
+      // Clear loading indicator
+      if (loading && loading.parentNode) loading.parentNode.removeChild(loading);
+
+      if (!albums.length) {
+        const msg = document.createElement("div");
+        msg.style.opacity = "0.85";
+        msg.style.textAlign = "center";
+        msg.style.padding = "10px 0";
+        msg.textContent = "No albums found in that band folder.";
+        albumsGrid.appendChild(msg);
+        return;
+      }
+
+      // Show albums (row cards)
+      albums.forEach((alb) => {
+        const card = document.createElement("div");
+        card.className = "albumRowCard";
+
+        const thumb = document.createElement("img");
+        thumb.className = "albumRowThumb";
+        thumb.loading = "lazy";
+        thumb.alt = alb?.Name || alb?.Title || "Show";
+        thumb.src =
+          alb?.HighlightImage?.SmallUrl ||
+          alb?.HighlightImage?.MediumUrl ||
+          alb?.HighlightImage?.ThumbnailUrl ||
+          alb?.SmallUrl ||
+          alb?.MediumUrl ||
+          alb?.ThumbnailUrl ||
+          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
+
+        const meta = document.createElement("div");
+        meta.className = "albumRowMeta";
+
+        const bits = parseAlbumNameToShowBits(alb?.Name || alb?.Title || "");
+        const showNameLine = bits.show_name || (alb?.Name || alb?.Title || "Show");
+        const showDateLine = bits.show_date || "";
+
+        const t1 = document.createElement("div");
+        t1.className = "albumRowTitle";
+        t1.textContent = showNameLine;
+
+        const t2 = document.createElement("div");
+        t2.className = "albumRowSub";
+        t2.textContent = showDateLine;
+
+        const t3 = document.createElement("div");
+        t3.className = "albumRowSub";
+        t3.textContent = ""; // filled async
+
+        meta.appendChild(t1);
+        if (t2.textContent) meta.appendChild(t2);
+
+        (async () => {
+          try {
+            const showsByDate = await ensureShowsIndex();
+            const candidates = bits.mmddyy ? (showsByDate.get(bits.mmddyy) || []) : [];
+            const want = normStr(showNameLine);
+
+            let best = null;
+            for (const r of candidates) {
+              const nm = normStr(r.show_name);
+              if (!nm) continue;
+              if (want.includes(nm) || nm.includes(want)) { best = r; break; }
+            }
+            if (!best && candidates.length) best = candidates[0];
+
+            const poster = String(best?.show_url || "").trim();
+            if (poster && /^https?:\/\//i.test(poster)) {
+              thumb.src = poster;
+            }
+
+            const fromCsv = best ? buildVenueLine(best) : "";
+            const fromDesc = String(alb?.Description || "").trim();
+
+            const line = fromCsv || fromDesc || "";
+            if (line) {
+              t3.textContent = line;
+              meta.appendChild(t3);
+            }
+          } catch (_) {
+            const fromDesc = String(alb?.Description || "").trim();
+            if (fromDesc) {
+              t3.textContent = fromDesc;
+              meta.appendChild(t3);
+            }
+          }
+        })();
+
+        card.appendChild(thumb);
+        card.appendChild(meta);
+
+        card.addEventListener("click", async () => {
+          await showAlbumPhotos({
+            region,
+            letter,
+            band: bandObj,
+            album: alb,
+            folderPath,
+          });
+        });
+
+        albumsGrid.appendChild(card);
+      });
+      window.requestAnimationFrame(() => resetPanelScroll());
+      window.setTimeout(() => resetPanelScroll(), 200);
+    }
+
+    // Defer heavy loading until the logo zoom finishes (prevents "blink")
+    if (opts && opts.deferContent) {
+      // expose a one-shot release hook for the animator
+      wrap._releaseContent = () => {
+        try { wrap.classList.remove("loading-content"); } catch(_) {}
+        try { __loadBandAlbums(); } catch(_) {}
+      };
+    } else {
+      __loadBandAlbums();
+    }
+
+  }
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
     // crumbs removed
