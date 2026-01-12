@@ -2208,7 +2208,7 @@ color: rgba(226,232,240,0.92);
     topbar.className = "bandDetailTopbar";
 
     const backBtn = document.createElement("button");
-    backBtn.className = "btn";
+    backBtn.className = "btn backToBandsBtn";
     const letterLabel = (letter || "").trim();
     backBtn.textContent = `← Back to ${letterLabel ? (letterLabel + " ") : ""}Bands`;
     backBtn.classList.add("backToBandsBtn");
@@ -2555,8 +2555,9 @@ const members = document.createElement("div");
     top.className = "photosTop";
 
     const backBtn = document.createElement("button");
-    backBtn.className = "btn";
-    backBtn.textContent = "← Back to albums";
+    backBtn.className = "btn backToBandsBtn";
+    const letterLabel = (info.letter || "").trim();
+    backBtn.textContent = `← Back to ${letterLabel ? (letterLabel + " ") : ""}Bands`;
     backBtn.addEventListener("click", () => {
       showBandCard(info.region, info.letter, info.band);
     });
