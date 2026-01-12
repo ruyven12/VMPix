@@ -258,15 +258,12 @@ function pulseFrame(){
 
 
 // =============================
-// Route Transitions (FULL HUD diagonal wipe)
-// Goal:
-// - The wipe layer sits ABOVE everything.
-// - DOM swap happens ONLY while the screen is fully covered (black).
-// - Wipe OUT: top-left → bottom-right (cover moves in from TL to center)
-// - Wipe IN: bottom-left → top-right (cover moves out toward TR)
-// Upgrades:
-//   - chromatic edge stripe riding the wipe boundary
-//   - ember brightness sync during the wipe
+// Route Transitions (DIM → WIPE → LOAD)
+// Goal (per your latest notes):
+//  1) Click → screen dims fully to black (everything hidden)
+//  2) As soon as dim completes, run a diagonal wipe ON TOP of the blackout (slower)
+//  3) DOM swap happens while fully black (no peeking / no flinches)
+//  4) As soon as wipe completes, fade back in immediately (no extra hold)
 // =============================
 let _isRouting = false;
 let _queuedRoute = null;
@@ -275,12 +272,11 @@ function prefersReducedMotion(){
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
-// Tunables
-const WIPE_OUT_MS  = 250;
-const WIPE_IN_MS   = 250;
-
-// Small settle time UNDER FULL COVER before revealing (helps “micro flinches”)
-const SWAP_SETTLE_RAFS = 2;
+// Tunables (requested)
+const DIM_OUT_MS  = 180;  // dim-to-black
+const WIPE_MS     = 500;  // wipe speed (about half-speed vs your prior 250ms)
+const DIM_IN_MS   = 180;  // fade back in
+const SWAP_SETTLE_RAFS = 2; // settle frames while fully black
 
 function ensureRouteTransitionStyles(){
   if (document.getElementById('hudRouteTransitionStyles')) return;
@@ -288,56 +284,43 @@ function ensureRouteTransitionStyles(){
   const s = document.createElement('style');
   s.id = 'hudRouteTransitionStyles';
   s.textContent = `
-    /* Disable rapid re-clicks during route transitions */
     body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
+    body.is-routing #hud{ pointer-events:none; }
 
-    /* Full-screen wipe layer (top-most) */
-    #hudRouteWipe{
+    /* Full-screen blackout layer (always above everything) */
+    #hudRouteDim{
       position:fixed;
       inset:0;
+      background: rgba(0,0,0,0.96);
+      opacity:0;
       pointer-events:none;
-      z-index: 2147483000; /* absurdly high to guarantee above everything */
-      opacity:1;
-    }
-
-    /* The moving cover is a big rotated square so the edge is a perfect diagonal */
-    #hudRouteWipeCover{
-      position:absolute;
-      left:50%;
-      top:50%;
-      width:220vmax;
-      height:220vmax;
-      transform: translate3d(-9999px,-9999px,0) rotate(45deg); /* JS sets real */
-      background: rgba(0,0,0,0.94);
-      will-change: transform;
+      z-index: 2147483000;
+      will-change: opacity;
       backface-visibility: hidden;
-      transform-style: preserve-3d;
+      transform: translateZ(0);
     }
 
-    /* Chromatic edge stripe rides the leading edge */
-    #hudRouteWipeEdge{
+    /* Diagonal wipe edge (rides on top of the blackout) */
+    #hudRouteDim .wipeEdge{
       position:absolute;
       left:50%;
       top:50%;
-      width:26vmax;
-      height:240vmax;
+      width: 34vmax;
+      height: 240vmax;
       transform: translate3d(-9999px,-9999px,0) rotate(45deg);
+      opacity: 0.92;
       will-change: transform, opacity, filter;
-      opacity: 0.95;
       background: linear-gradient(90deg,
         rgba(0,0,0,0) 0%,
-        rgba(255,  0, 90, 0.35) 42%,
-        rgba(  0,255,255,0.28) 58%,
+        rgba(255,  0, 90, 0.38) 42%,
+        rgba(  0,255,255,0.30) 58%,
         rgba(0,0,0,0) 100%
       );
-      filter: blur(0.4px) saturate(1.35);
+      filter: blur(0.45px) saturate(1.35);
       mix-blend-mode: screen;
       backface-visibility: hidden;
       transform-style: preserve-3d;
     }
-
-    /* While routing, keep HUD from intercepting clicks */
-    body.is-routing #hud{ pointer-events:none; }
 
     /* Ember sync target (canvas) — brightness driven by --emberBoost */
     #hudEmbers{
@@ -347,27 +330,23 @@ function ensureRouteTransitionStyles(){
     }
 
     @media (prefers-reduced-motion: reduce){
-      #hudRouteWipe{ display:none !important; }
+      #hudRouteDim{ display:none !important; }
       #hudEmbers{ transition:none !important; }
     }
   `;
   document.head.appendChild(s);
 }
 
-function ensureWipeLayer(){
-  if (document.getElementById('hudRouteWipe')) return;
-  const wrap = document.createElement('div');
-  wrap.id = 'hudRouteWipe';
-
-  const cover = document.createElement('div');
-  cover.id = 'hudRouteWipeCover';
+function ensureDimLayer(){
+  if (document.getElementById('hudRouteDim')) return;
+  const d = document.createElement('div');
+  d.id = 'hudRouteDim';
 
   const edge = document.createElement('div');
-  edge.id = 'hudRouteWipeEdge';
+  edge.className = 'wipeEdge';
 
-  wrap.appendChild(cover);
-  wrap.appendChild(edge);
-  document.body.appendChild(wrap);
+  d.appendChild(edge);
+  document.body.appendChild(d);
 }
 
 function lockHudMainHeight(lock){
@@ -391,14 +370,16 @@ function lockHudMainHeight(lock){
   };
 }
 
-// rAF progress driver so we can sync embers perfectly.
+const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
+
+// rAF progress driver so we can sync embers + edge position smoothly.
 function driveProgress(durationMs, onProgress){
   return new Promise((resolve) => {
     const t0 = performance.now();
     const tick = (now) => {
       const p = Math.max(0, Math.min(1, (now - t0) / Math.max(1, durationMs)));
-      // Smooth ease (fast but not snappy)
-      const e = 1 - Math.pow(1 - p, 3);
+      // easeInOutCubic-ish
+      const e = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
       try { onProgress(e, p); } catch(_){}
       if (p < 1) requestAnimationFrame(tick);
       else resolve();
@@ -407,59 +388,65 @@ function driveProgress(durationMs, onProgress){
   });
 }
 
-// Moves the cover/edge from one point to another in screen-space.
-async function runWipe(direction, durationMs){
-  const cover = document.getElementById('hudRouteWipeCover');
-  const edge  = document.getElementById('hudRouteWipeEdge');
-  if (!cover || !edge) return;
+async function fadeDim(toOpacity, ms){
+  const dim = document.getElementById('hudRouteDim');
+  if (!dim) return;
+  const from = parseFloat(getComputedStyle(dim).opacity || '0') || 0;
+  if (ms <= 0 || from === toOpacity){
+    dim.style.opacity = String(toOpacity);
+    return;
+  }
+  try{
+    const anim = dim.animate(
+      [{ opacity: from }, { opacity: toOpacity }],
+      { duration: ms, easing: 'linear', fill: 'forwards' }
+    );
+    await anim.finished.catch(() => {});
+  }catch(_){
+    dim.style.opacity = String(toOpacity);
+    await sleep(ms);
+  }
+}
 
-  // viewport-scaled travel distance
+async function runDiagonalWipe(ms){
+  const dim = document.getElementById('hudRouteDim');
+  const edge = dim ? dim.querySelector('.wipeEdge') : null;
+  if (!edge) return;
+
+  // Travel distance so the stripe fully sweeps the screen
   const w = window.innerWidth || 1;
   const h = window.innerHeight || 1;
-  const d = Math.max(w, h) * 1.25;
+  const d = Math.max(w, h) * 1.35;
 
-  // Positions:
-  const P = {
-    center: [0, 0],
-    tl: [-d, -d],
-    tr: [ d, -d]
-  };
+  // Start TL-ish, end BR-ish relative to center
+  const sx = -d, sy = -d;
+  const ex =  d, ey =  d;
 
-  // OUT: tl -> center (covering)
-  // IN : center -> tr (revealing from bottom-left)
-  const [sx, sy] = (direction === 'out') ? P.tl : P.center;
-  const [ex, ey] = (direction === 'out') ? P.center : P.tr;
+  // Initialize offscreen to avoid a 1-frame pop
+  edge.style.transform = `translate3d(${sx}px, ${sy}px, 0) rotate(45deg)`;
 
-  // Edge rides the leading boundary (offset in X)
-  const edgeOffset = Math.max(w, h) * 0.35;
-
-  // Initialize transforms (avoid a one-frame "teleport")
-  cover.style.transform = `translate3d(${sx}px, ${sy}px, 0) rotate(45deg)`;
-  edge.style.transform  = `translate3d(${sx + edgeOffset}px, ${sy}px, 0) rotate(45deg)`;
-
-  await driveProgress(durationMs, (eased) => {
+  await driveProgress(ms, (eased) => {
     const x = sx + (ex - sx) * eased;
     const y = sy + (ey - sy) * eased;
-
-    cover.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(45deg)`;
-    edge.style.transform  = `translate3d(${x + edgeOffset}px, ${y}px, 0) rotate(45deg)`;
+    edge.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(45deg)`;
 
     // Ember sync (peak mid-wipe)
     const boost = 0.42 * Math.sin(Math.PI * eased);
     document.documentElement.style.setProperty('--emberBoost', boost.toFixed(4));
   });
+
+  // Park edge out of view after wipe
+  edge.style.transform = `translate3d(${ex + d}px, ${ey + d}px, 0) rotate(45deg)`;
 }
 
 async function transitionTo(route){
   const next = modules[route] ? route : 'home';
 
-  // Clicking current tab: don't re-render
   if (next === currentRoute){
     setActiveTopNav(next);
     return;
   }
 
-  // If already routing, queue the latest request
   if (_isRouting){
     _queuedRoute = next;
     return;
@@ -469,58 +456,53 @@ async function transitionTo(route){
 
   _isRouting = true;
   ensureRouteTransitionStyles();
-  ensureWipeLayer();
+  ensureDimLayer();
   document.body.classList.add('is-routing');
 
-  const wipeWrap = document.getElementById('hudRouteWipe');
-  if (wipeWrap) wipeWrap.style.display = 'block';
+  const dim = document.getElementById('hudRouteDim');
+  if (dim) dim.style.display = 'block';
 
-  // Height lock keeps the box stable while covered
   const unlock = lockHudMainHeight(!reduce);
 
-  // --- Phase A: Wipe OUT ---
+  // 1) DIM TO BLACK (everything hidden under this layer)
   if (!reduce){
-    await runWipe('out', WIPE_OUT_MS);
+    await fadeDim(1, DIM_OUT_MS);
   }
 
-  // Leave hook (while fully covered)
+  // 2) SWAP while fully black (no peeks)
   if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
     try { modules[currentRoute].onLeave(); } catch(e) {}
   }
 
-  // Route class on <body> (for visual state) - unchanged
   document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
   document.body.classList.add(`route-${next}`);
 
   setActiveTopNav(next);
   stopAllTyping();
 
-  // Swap DOM while fully covered
   modules[next].render();
   currentRoute = next;
 
-  // Let layout/data kick off UNDER COVER
+  // Let layout settle UNDER BLACK
   for (let i=0; i<SWAP_SETTLE_RAFS; i++){
     await new Promise(r => window.requestAnimationFrame(r));
   }
 
-  // Fire onEnter under cover
+  // Fire onEnter under black so first paints happen hidden
+  try { modules[next].onEnter && modules[next].onEnter(); } catch(_){}
+
+  // One more settle frame
+  await new Promise(r => window.requestAnimationFrame(r));
+
+  // 3) DIAGONAL WIPE (on top of blackout) — slower
   if (!reduce){
-    try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+    await runDiagonalWipe(WIPE_MS);
   }
 
-  // One more frame after onEnter before reveal
+  // 4) Fade back in immediately after wipe (no extra hold)
+  pulseFrame();
   if (!reduce){
-    await new Promise(r => window.requestAnimationFrame(r));
-  }
-
-  // --- Phase B: Wipe IN ---
-  if (!reduce){
-    await runWipe('in', WIPE_IN_MS);
-    pulseFrame();
-  } else {
-    try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
-    pulseFrame();
+    await fadeDim(0, DIM_IN_MS);
   }
 
   // Cleanup
@@ -528,10 +510,8 @@ async function transitionTo(route){
   document.body.classList.remove('is-routing');
   _isRouting = false;
 
-  // Reset ember boost
   try { document.documentElement.style.setProperty('--emberBoost', '0'); } catch(_){}
 
-  // Queue handling
   if (_queuedRoute && _queuedRoute !== currentRoute){
     const q = _queuedRoute;
     _queuedRoute = null;
@@ -545,7 +525,7 @@ function navigate(route){
   transitionTo(route);
 }
 
-window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
+  window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
 
   (function(){
     if (!location.hash) location.hash = '#/home';
