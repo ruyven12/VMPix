@@ -256,224 +256,224 @@ function pulseFrame(){
   
   let currentRoute = null;
 
-  // =============================
-  // Route Transitions (smooth out → swap → in)
-  // =============================
-  let _isRouting = false;
-  let _queuedRoute = null;
 
-  function prefersReducedMotion(){
-    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+// =============================
+// Route Transitions (full HUD fade out → blackout hold → swap → fade in)
+// Goal: hide micro "flinches" by fully hiding the HUD during the swap + initial data paint.
+// =============================
+let _isRouting = false;
+let _queuedRoute = null;
+
+function prefersReducedMotion(){
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// Tunables
+const ROUTE_OUT_MS  = 200;   // fade out duration
+const ROUTE_HOLD_MS = 500;   // fully hidden blackout hold (masks data/layout flinches)
+const ROUTE_IN_MS   = 240;   // fade in duration
+
+const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
+
+function ensureRouteTransitionStyles(){
+  if (document.getElementById('hudRouteTransitionStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'hudRouteTransitionStyles';
+  s.textContent = `
+    /* Disable rapid re-clicks during route transitions */
+    body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
+
+    /* Full-screen blackout layer for swaps */
+    #hudRouteBlackout{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.92);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 160ms ease;
+      z-index: 999997;
+    }
+    body.is-routing #hudRouteBlackout{ opacity:1; }
+
+    /* Optional: keep HUD from intercepting clicks while hidden */
+    body.is-routing #hud{ pointer-events:none; }
+
+    @media (prefers-reduced-motion: reduce){
+      #hudRouteBlackout{ transition:none !important; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+function ensureBlackout(){
+  if (document.getElementById('hudRouteBlackout')) return;
+  const d = document.createElement('div');
+  d.id = 'hudRouteBlackout';
+  document.body.appendChild(d);
+}
+
+function lockHudMainHeight(lock){
+  const hudMain = document.querySelector('.hudStub.hudMain');
+  if (!hudMain || !lock) return () => {};
+  const h = hudMain.getBoundingClientRect().height || hudMain.offsetHeight || 0;
+  const prev = {
+    height: hudMain.style.height || '',
+    minHeight: hudMain.style.minHeight || '',
+    overflow: hudMain.style.overflow || ''
+  };
+  if (h > 0){
+    hudMain.style.height = h + 'px';
+    hudMain.style.minHeight = h + 'px';
+    hudMain.style.overflow = 'hidden';
   }
+  return () => {
+    hudMain.style.height = prev.height;
+    hudMain.style.minHeight = prev.minHeight;
+    hudMain.style.overflow = prev.overflow;
+  };
+}
 
-  const ROUTE_HOLD_MS = 500; // sit on dim screen to hide micro-flinches
-  const ROUTE_OUT_MS  = 230;
-  const ROUTE_IN_MS   = 230;
-  const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
+async function transitionTo(route){
+  const next = modules[route] ? route : 'home';
 
-  function ensureRouteTransitionStyles(){
-    if (document.getElementById('hudRouteTransitionStyles')) return;
-    const s = document.createElement('style');
-    s.id = 'hudRouteTransitionStyles';
-    s.textContent = `
-      /* Disable rapid re-clicks during route transitions */
-      body.is-routing .hudStub [data-nav]{ pointer-events:none !important; }
-
-      /* Global dim overlay used during route swaps (adds a clear fade-out cue) */
-      #hudRouteDim{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.35);
-        opacity:0;
-        pointer-events:none;
-        transition: opacity 170ms ease;
-        z-index: 999997;
-      }
-      body.is-routing #hudRouteDim{ opacity:1; }
-
-      /* Mild blur for transitioning content (visual only) */
-      #hudMainMount.is-leaving, #hudMainMount.is-entering{
-        will-change: opacity, transform, filter;
-      }
-    `;
-    document.head.appendChild(s);
-  }
-
-  function lockHudMainHeight(lock){
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (!hudMain) return () => {};
-    if (!lock) return () => {};
-
-    const h = hudMain.getBoundingClientRect().height || hudMain.offsetHeight || 0;
-    const prev = {
-      height: hudMain.style.height || '',
-      minHeight: hudMain.style.minHeight || '',
-      overflow: hudMain.style.overflow || ''
-    };
-    if (h > 0){
-      hudMain.style.height = h + 'px';
-      hudMain.style.minHeight = h + 'px';
-      hudMain.style.overflow = 'hidden';
-    }
-    return () => {
-      hudMain.style.height = prev.height;
-      hudMain.style.minHeight = prev.minHeight;
-      hudMain.style.overflow = prev.overflow;
-    };
-  }
-
-  function ensureDimOverlay(){
-    if (document.getElementById('hudRouteDim')) return;
-    const d = document.createElement('div');
-    d.id = 'hudRouteDim';
-    // Must be in DOM for the CSS fade to work.
-    document.body.appendChild(d);
-  }
-
-  async function transitionTo(route){
-    const next = modules[route] ? route : 'home';
-
-    // Clicking current tab: don't re-render (keeps your "no refresh" feel)
-    if (next === currentRoute) {
-      setActiveTopNav(next);
-      return;
-    }
-
-    // If already routing, queue the latest request
-    if (_isRouting){
-      _queuedRoute = next;
-      return;
-    }
-
-    _isRouting = true;
-    ensureRouteTransitionStyles();
-    ensureDimOverlay();
-    document.body.classList.add('is-routing');
-
-    const m = mount();
-    const reduce = prefersReducedMotion();
-
-    // Height lock prevents the frame from "breathing" mid-swap
-    const unlock = lockHudMainHeight(!reduce);
-
-    // OUT animation
-    try{
-      if (m && !reduce){
-        // Ensure we start from a visible state before fading out (prevents "no fade-out" feel)
-        m.style.opacity = '';
-        m.style.transform = '';
-        m.style.filter = '';
-        m.style.pointerEvents = '';
-        m.classList.add('is-leaving');
-        await m.animate(
-          [
-            { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
-            { opacity: 0, transform: 'translateY(8px) scale(0.995)', filter: 'blur(6px)' }
-          ],
-          { duration: ROUTE_OUT_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
-        ).finished.catch(() => {});
-      }
-    }catch(_){}
-
-    
-    // Hold on the dimmed screen briefly to mask any micro reflow / data "flinches"
-    // that can occur when the next route renders or begins fetching.
-    if (m && !reduce){
-      try{
-        m.style.opacity = '0';
-        m.style.transform = 'translateY(8px) scale(0.995)';
-        m.style.filter = 'blur(8px)';
-        m.style.pointerEvents = 'none';
-      }catch(_){}
-      await sleep(ROUTE_HOLD_MS);
-    }
-
-// Leave hook (after OUT)
-    if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
-      try { modules[currentRoute].onLeave(); } catch(e) {}
-    }
-
-    // Route class on <body> (for visual state) - unchanged
-    document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
-    document.body.classList.add(`route-${next}`);
-
+  // Clicking current tab: don't re-render (keeps your "no refresh" feel)
+  if (next === currentRoute){
     setActiveTopNav(next);
-    stopAllTyping();
+    return;
+  }
 
-    // SWAP DOM
-    modules[next].render();
-    currentRoute = next;
+  // If already routing, queue the latest request
+  if (_isRouting){
+    _queuedRoute = next;
+    return;
+  }
 
-    // Let layout settle before IN
-    await new Promise(r => window.requestAnimationFrame(r));
-    await new Promise(r => window.requestAnimationFrame(r));
+  _isRouting = true;
+  ensureRouteTransitionStyles();
+  ensureBlackout();
+  document.body.classList.add('is-routing');
 
-    // IN animation + defer heavy onEnter until after first paint
-    try{
-      if (m && !reduce){
-        m.classList.remove('is-leaving');
-        m.classList.add('is-entering');
-        m.style.opacity = '0';
-        m.style.transform = 'translateY(-6px) scale(0.995)';
-        m.style.filter = 'blur(6px)';
+  const reduce = prefersReducedMotion();
+  const hudEl = document.getElementById('hud');
+  const m = mount();
 
-        // Kick IN on next frame
-        await new Promise(r => window.requestAnimationFrame(r));
+  // Height lock helps keep the page from "breathing" on some browsers while the HUD is hidden.
+  const unlock = lockHudMainHeight(!reduce);
 
-        const inAnim = m.animate(
-          [
-            { opacity: 0, transform: 'translateY(-6px) scale(0.995)', filter: 'blur(6px)' },
-            { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' }
-          ],
-          { duration: ROUTE_IN_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
-        );
+  // --- Phase A: FULL HUD fade out ---
+  try{
+    if (hudEl && !reduce){
+      // Ensure we start visible
+      hudEl.style.opacity = '';
+      hudEl.style.transform = '';
+      hudEl.style.filter = '';
+      await hudEl.animate(
+        [
+          { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' },
+          { opacity: 0, transform: 'translateY(6px) scale(0.995)', filter: 'blur(10px)' }
+        ],
+        { duration: ROUTE_OUT_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+      ).finished.catch(() => {});
+      // Hard-set to keep it fully hidden during the hold/swap
+      hudEl.style.opacity = '0';
+      hudEl.style.transform = 'translateY(6px) scale(0.995)';
+      hudEl.style.filter = 'blur(10px)';
+    }
+  }catch(_){}
 
-        // Start enter work after IN begins (smooth-first)
-        window.requestAnimationFrame(() => {
-          try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
-        });
+  // --- Phase B: blackout hold (nothing visible; masks micro-flinches) ---
+  if (!reduce){
+    await sleep(ROUTE_HOLD_MS);
+  }
 
-        pulseFrame();
+  // Leave hook (after fade-out, while hidden)
+  if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
+    try { modules[currentRoute].onLeave(); } catch(e) {}
+  }
 
-        await inAnim.finished.catch(() => {});
-      } else {
-        // Reduced motion: do it immediately
-        try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
-        pulseFrame();
-      }
-    }catch(_){
+  // Route class on <body> (for visual state) - unchanged
+  document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
+  document.body.classList.add(`route-${next}`);
+
+  setActiveTopNav(next);
+  stopAllTyping();
+
+  // --- Swap DOM while HUD is hidden ---
+  modules[next].render();
+  currentRoute = next;
+
+  // Let layout settle (and let modules inject their skeletons) while still hidden
+  await new Promise(r => window.requestAnimationFrame(r));
+  await new Promise(r => window.requestAnimationFrame(r));
+
+  // Start enter work just before fade-in (still hidden) so any first paints happen under blackout
+  if (!reduce){
+    try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+  }
+
+  // --- Phase C: FULL HUD fade in ---
+  try{
+    if (hudEl && !reduce){
+      // Kick to known hidden state
+      hudEl.style.opacity = '0';
+      hudEl.style.transform = 'translateY(-6px) scale(0.995)';
+      hudEl.style.filter = 'blur(10px)';
+
+      // Fade in
+      const inAnim = hudEl.animate(
+        [
+          { opacity: 0, transform: 'translateY(-6px) scale(0.995)', filter: 'blur(10px)' },
+          { opacity: 1, transform: 'translateY(0px) scale(1)', filter: 'blur(0px)' }
+        ],
+        { duration: ROUTE_IN_MS, easing: 'cubic-bezier(.2,.9,.2,1)', fill: 'forwards' }
+      );
+
+      pulseFrame();
+      await inAnim.finished.catch(() => {});
+    } else {
+      // Reduced motion: do it immediately (no blackout hold)
       try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
       pulseFrame();
     }
+  }catch(_){
+    try { modules[next].onEnter && modules[next].onEnter(); } catch(_) {}
+    pulseFrame();
+  }
 
-    // Cleanup
-    try{
-      if (m){
-        m.classList.remove('is-entering','is-leaving');
-        m.style.opacity = '';
-        m.style.transform = '';
-        m.style.filter = '';
-      }
-    }catch(_){}
-
-    unlock();
-    document.body.classList.remove('is-routing');
-    _isRouting = false;
-
-    // If something was queued during the transition, go there next.
-    if (_queuedRoute && _queuedRoute !== currentRoute){
-      const q = _queuedRoute;
-      _queuedRoute = null;
-      transitionTo(q);
-    } else {
-      _queuedRoute = null;
+  // Cleanup (restore inline styles)
+  try{
+    if (hudEl){
+      hudEl.style.opacity = '';
+      hudEl.style.transform = '';
+      hudEl.style.filter = '';
     }
-  }
+    if (m){
+      // just in case any prior state set styles here
+      m.style.opacity = '';
+      m.style.transform = '';
+      m.style.filter = '';
+      m.style.pointerEvents = '';
+    }
+  }catch(_){}
 
-  function navigate(route){
-    // Keep external API the same; run transition wrapper.
-    transitionTo(route);
+  unlock();
+  document.body.classList.remove('is-routing');
+  _isRouting = false;
+
+  // If something was queued during the transition, go there next.
+  if (_queuedRoute && _queuedRoute !== currentRoute){
+    const q = _queuedRoute;
+    _queuedRoute = null;
+    transitionTo(q);
+  } else {
+    _queuedRoute = null;
   }
+}
+
+function navigate(route){
+  // Keep external API the same; run transition wrapper.
+  transitionTo(route);
+}
 
   window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
 
