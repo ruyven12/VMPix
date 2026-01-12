@@ -2255,7 +2255,7 @@ color: rgba(226,232,240,0.92);
     backBtn.textContent = `← Back to ${letterLabel ? (letterLabel + " ") : ""}Bands`;
     backBtn.classList.add("backToBandsBtn");
     backBtn.addEventListener("click", () => {
-      try { document.body.classList.remove(\"inBandDetail\"); } catch(_) {}
+      try { document.body.classList.remove("inBandDetail"); } catch(_) {}
       // return to letter view (with reverse shared-element transition)
       CURRENT_REGION = region;
       initRegionPills();
