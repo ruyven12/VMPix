@@ -63,6 +63,12 @@
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+/* ===== Back to Bands (line-style) typography: Orbitron, no forced uppercase ===== */
+.backToBandsBtn{
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  text-transform: none !important;
+}
+
 /* Back to Bands button: match "line tab" UI (Orbitron, no forced uppercase) */
 .backToBandsBtn{
   background: transparent !important;
