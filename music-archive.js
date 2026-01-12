@@ -42,6 +42,13 @@
   let _prevMenuPaddingTop = null;
   let _prevFrameHeight = null;
   let _prevOrnHeight = null;
+  // Title band (frame) fill removal restore (Music route only)
+  let _prevFrameBg = null;
+  let _prevFrameShadow = null;
+  let _prevFrameFilter = null;
+  let _prevOrnBg = null;
+  let _prevOrnShadow = null;
+  let _prevOrnFilter = null;
 
   // content sizing (Music route only)
   let _onResize = null;
@@ -323,10 +330,30 @@
     if (frame) {
       _prevFrameHeight = frame.style.height || '';
       frame.style.height = MUSIC_FRAME_HEIGHT;
+
+      // Music-only: remove the title-band translucent fill while keeping the frame border
+      if (_prevFrameBg === null) _prevFrameBg = frame.style.background || '';
+      if (_prevFrameShadow === null) _prevFrameShadow = frame.style.boxShadow || '';
+      if (_prevFrameFilter === null) _prevFrameFilter = frame.style.backdropFilter || '';
+
+      frame.style.background = 'transparent';
+      frame.style.boxShadow = 'none';
+      frame.style.backdropFilter = 'none';
+      frame.style.webkitBackdropFilter = 'none';
     }
     if (orn) {
       _prevOrnHeight = orn.style.height || '';
       orn.style.height = MUSIC_FRAME_HEIGHT;
+
+      // Music-only: if the ornament layer is contributing any tint/glass, neutralize it
+      if (_prevOrnBg === null) _prevOrnBg = orn.style.background || '';
+      if (_prevOrnShadow === null) _prevOrnShadow = orn.style.boxShadow || '';
+      if (_prevOrnFilter === null) _prevOrnFilter = orn.style.backdropFilter || '';
+
+      orn.style.background = 'transparent';
+      orn.style.boxShadow = 'none';
+      orn.style.backdropFilter = 'none';
+      orn.style.webkitBackdropFilter = 'none';
     }
   }
 
@@ -334,11 +361,31 @@
     const frame = document.querySelector('.neonFrame');
     const orn = document.querySelector('.hudOrn');
 
-    if (frame) frame.style.height = _prevFrameHeight || '';
-    if (orn) orn.style.height = _prevOrnHeight || '';
+    if (frame) {
+      frame.style.height = _prevFrameHeight || '';
+      frame.style.background = _prevFrameBg || '';
+      frame.style.boxShadow = _prevFrameShadow || '';
+      frame.style.backdropFilter = _prevFrameFilter || '';
+      frame.style.webkitBackdropFilter = _prevFrameFilter || '';
+    }
+    if (orn) {
+      orn.style.height = _prevOrnHeight || '';
+      orn.style.background = _prevOrnBg || '';
+      orn.style.boxShadow = _prevOrnShadow || '';
+      orn.style.backdropFilter = _prevOrnFilter || '';
+      orn.style.webkitBackdropFilter = _prevOrnFilter || '';
+    }
 
     _prevFrameHeight = null;
     _prevOrnHeight = null;
+
+    _prevFrameBg = null;
+    _prevFrameShadow = null;
+    _prevFrameFilter = null;
+
+    _prevOrnBg = null;
+    _prevOrnShadow = null;
+    _prevOrnFilter = null;
   }
 
   // ------------------------------------------------------------
