@@ -133,6 +133,22 @@ color: rgba(226,232,240,0.92);
         font-size: 12px;
         padding: 6px 0 2px;
       }
+
+      /* Center the "People in this album" bubble content */
+      .albumKeywordBox{
+        text-align: center;
+      }
+      .albumKeywordChips{
+        justify-content: center;
+      }
+      .albumKeywordTitle{
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .10em;
+        margin-bottom: 8px;
+        opacity: .90;
+      }
 .backToBandsBtn:hover{
   color: rgba(226,232,240,0.98);
   border-bottom-color: rgba(239,68,68,0.90) !important;
@@ -2552,9 +2568,7 @@ const members = document.createElement("div");
     title.textContent = info.album?.Name || "Album";
 
     top.appendChild(backBtn);
-    top.appendChild(title);
-
-    const grid = document.createElement("div");
+const grid = document.createElement("div");
     grid.className = "photosGrid";
 
     wrap.appendChild(top);
@@ -2562,12 +2576,16 @@ const members = document.createElement("div");
     // ===== Album keywords (from SmugMug album metadata) =====
     const keywordBox = document.createElement("div");
     keywordBox.className = "albumKeywordBox";
+    const kwTitle = document.createElement("div");
+    kwTitle.className = "albumKeywordTitle";
+    kwTitle.textContent = (info.album?.Name || info.album?.Title || "").trim() || "Album";
     const kwLabel = document.createElement("div");
     kwLabel.className = "albumKeywordLabel";
     kwLabel.textContent = "People in this album:";
     const kwChips = document.createElement("div");
     kwChips.className = "albumKeywordChips";
 
+    keywordBox.appendChild(kwTitle);
     keywordBox.appendChild(kwLabel);
     keywordBox.appendChild(kwChips);
     wrap.appendChild(keywordBox);
