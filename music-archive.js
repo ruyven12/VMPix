@@ -240,6 +240,8 @@
 
     wrap.style.background = 'transparent';
     wrap.style.boxShadow = 'none';
+    wrap.style.backdropFilter = 'none';
+    wrap.style.webkitBackdropFilter = 'none';
 
     // Music-only positioning
     if (_prevWrapTransform === null) {
