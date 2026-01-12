@@ -274,8 +274,9 @@ function prefersReducedMotion(){
 }
 
 // Tunables
+// NOTE: The wipe itself is the masking. Keep HOLD at 0 to avoid a perceived delay.
 const WIPE_OUT_MS  = 250;
-const WIPE_HOLD_MS = 250;
+const WIPE_HOLD_MS = 0;
 const WIPE_IN_MS   = 250;
 
 const sleep = (ms) => new Promise(r => window.setTimeout(r, ms));
@@ -497,8 +498,8 @@ async function transitionTo(route){
     await animateWipe({ direction:'tlbr', durationMs: WIPE_OUT_MS, fromCover: 0, toCover: 1 });
   }
 
-  // --- Phase B: Hold fully covered (masked swap) ---
-  if (!reduce){
+  // --- Phase B: Optional hold while fully covered (keep at 0 for no delay) ---
+  if (!reduce && WIPE_HOLD_MS > 0){
     await sleep(WIPE_HOLD_MS);
   }
 
