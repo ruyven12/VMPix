@@ -154,7 +154,9 @@ function pulseFrame(){
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
     if (!m) return;
-    m.innerHTML = '<span data-hud-main-text></span>';
+    // Ensure the Home/About/Wrestling text always has a visible shell
+    // (some CSS expects the main text node to carry the boot-in class)
+    m.innerHTML = '<span class="hudMainLoad" data-hud-main-text></span>';
   }
 
   // Module adapters (optional external files)
@@ -173,8 +175,11 @@ function pulseFrame(){
         renderTypedShell(m);
       },
       onEnter(){
-        const el = document.querySelector('[data-hud-main-text]');
-        typeHudMainText(ROUTE_COPY.home, el);
+        // rAF ensures the node is in the DOM + painted before typing begins
+        window.requestAnimationFrame(() => {
+          const el = document.querySelector('[data-hud-main-text]');
+          typeHudMainText(ROUTE_COPY.home, el);
+        });
       }
     },
 
