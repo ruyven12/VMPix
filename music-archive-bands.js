@@ -2166,6 +2166,7 @@ color: rgba(226,232,240,0.92);
 
   function showLetter(region, letter) {
     if (!resultsEl) return;
+    try { document.body.classList.remove("inBandDetail"); } catch(_) {}
 
     resultsEl.innerHTML = "";
     // crumbs removed
@@ -2233,6 +2234,8 @@ color: rgba(226,232,240,0.92);
     opts = opts || {};
 
     if (!resultsEl) return;
+    try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
+    try { document.body.classList.add("inBandDetail"); } catch(_) {}
 
     resultsEl.innerHTML = "";
     // crumbs removed
@@ -2252,6 +2255,7 @@ color: rgba(226,232,240,0.92);
     backBtn.textContent = `← Back to ${letterLabel ? (letterLabel + " ") : ""}Bands`;
     backBtn.classList.add("backToBandsBtn");
     backBtn.addEventListener("click", () => {
+      try { document.body.classList.remove(\"inBandDetail\"); } catch(_) {}
       // return to letter view (with reverse shared-element transition)
       CURRENT_REGION = region;
       initRegionPills();
@@ -2584,6 +2588,7 @@ const members = document.createElement("div");
   }
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
+    try { document.body.classList.remove("inBandDetail"); } catch(_) {}
     try { document.body.classList.add("inAlbumPhotos"); } catch(_) {}
     // crumbs removed
     resetPanelScroll();
