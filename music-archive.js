@@ -211,6 +211,11 @@
   // Optional: make it scroll if content is tall
   const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll'
 
+  // 👉 MUSIC LANDING PANELS (green/orange translucent boxes)
+  // Set false to hide/remove the two translucent boxes on the Music route landing view.
+  // (Tabs + content panel remain in code for later re-enable.)
+  const SHOW_MUSIC_PANELS = false;
+
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
     const wrap = document.querySelector('.neonFrameWrap');
@@ -445,6 +450,50 @@
     </span>`;
 
     const hudMain = document.querySelector('.hudStub.hudMain');
+    if (!hudMain) return;
+
+    // If you don't want the translucent panels on the Music landing view, skip creating them.
+    if (!SHOW_MUSIC_PANELS){
+      // Remove any previously-created panels (if toggled during dev)
+      if (_orangeBoxEl && _orangeBoxEl.parentNode) _orangeBoxEl.parentNode.removeChild(_orangeBoxEl);
+      _orangeBoxEl = null;
+
+      if (_contentPanelEl && _contentPanelEl.parentNode) _contentPanelEl.parentNode.removeChild(_contentPanelEl);
+      _contentPanelEl = null;
+
+      // Restore a simple padding for the Music route (no reserved strip space)
+      if (_prevHudMainPadding === null) _prevHudMainPadding = hudMain.style.padding || '';
+      hudMain.style.position = 'relative';
+      hudMain.style.padding = '18px 18px';
+      hudMain.style.boxSizing = 'border-box';
+      hudMain.style.overflow = 'hidden';
+
+      // Simple landing copy (no boxes)
+      // Simple landing copy (no boxes)
+      const existingCopy = document.getElementById('musicLandingCopy');
+      if (existingCopy && existingCopy.parentNode) existingCopy.parentNode.removeChild(existingCopy);
+
+      const copy = document.createElement('div');
+      copy.id = 'musicLandingCopy';
+      copy.style.width = '100%';
+      copy.style.display = 'flex';
+      copy.style.alignItems = 'center';
+      copy.style.justifyContent = 'center';
+      copy.style.textAlign = 'center';
+      copy.style.padding = '26px 0';
+
+      copy.innerHTML = `
+        <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
+          <strong>Welcome to the Music section for this page.</strong><br><br>
+          Please make your selection above.
+        </div>
+      `;
+
+      hudMain.appendChild(copy);
+      return;
+    }
+
+    // Panels enabled
     if (hudMain && !_orangeBoxEl) {
       if (_prevHudMainPadding === null) {
         _prevHudMainPadding = hudMain.style.padding || '';
@@ -922,6 +971,9 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
       _contentPanelEl.parentNode.removeChild(_contentPanelEl);
     }
     _contentPanelEl = null;
+
+    const landingCopy = document.getElementById('musicLandingCopy');
+    if (landingCopy && landingCopy.parentNode) landingCopy.parentNode.removeChild(landingCopy);
 
     const hudMain = document.querySelector('.hudStub.hudMain');
     if (hudMain) {
