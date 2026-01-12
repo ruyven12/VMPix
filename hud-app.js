@@ -66,12 +66,13 @@
 
 function pulseFrame(){
     const wrap = document.querySelector('.neonFrameWrap');
-    if (!wrap) return;
 
-    // frame pulse (existing)
-    wrap.classList.remove('pulse');
-    void wrap.offsetWidth;
-    wrap.classList.add('pulse');
+    // If the neon frame exists (older layout), pulse it. Otherwise skip safely.
+    if (wrap){
+      wrap.classList.remove('pulse');
+      void wrap.offsetWidth;
+      wrap.classList.add('pulse');
+    }
 
     // Whole HUD surge (pairs with CSS in index.html)
     const hudEl = document.getElementById('hud');
@@ -81,6 +82,14 @@ function pulseFrame(){
       hudEl.classList.add('hud-surge');
       window.setTimeout(() => hudEl.classList.remove('hud-surge'), 260);
     }
+
+    // pill-only wipe pulse (no layout changes)
+    const pills = document.querySelectorAll('.hudIntroText');
+    pills.forEach(p => p.classList.remove('isPulse'));
+    void document.body.offsetWidth;
+    pills.forEach(p => p.classList.add('isPulse'));
+    window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
+  }
 
     // pill-only wipe pulse (no layout changes)
     const pills = document.querySelectorAll('.hudIntroText');
