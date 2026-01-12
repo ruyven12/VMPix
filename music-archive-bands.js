@@ -68,6 +68,9 @@
       .inBandDetail #status-legend{ display:none !important; }
 
       /* ===== Album photos view: center Back-to-albums + hide legend ===== */
+
+      .inAlbumPhotos #letter-groups{ display:none !important; }
+
       .inAlbumPhotos #status-legend{ display:none !important; }
 
       .inAlbumPhotos .photosTop{
