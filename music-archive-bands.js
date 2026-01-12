@@ -83,6 +83,55 @@
   text-transform: none !important;
   transition: color 160ms ease, border-color 160ms ease, opacity 160ms ease, transform 120ms ease;
 }
+
+      /* ===== Album keywords box (People in this album) ===== */
+      .albumKeywordBox{
+        margin-top: 10px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(148,163,184,0.22);
+        background: radial-gradient(circle at top, rgba(15,23,42,0.85), rgba(15,23,42,0.55));
+        box-shadow: 0 10px 25px rgba(0,0,0,0.28);
+        backdrop-filter: blur(8px);
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .albumKeywordLabel{
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 11px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: rgba(226,232,240,0.75);
+        margin-bottom: 8px;
+      }
+      .albumKeywordChips{
+        display:flex;
+        flex-wrap:wrap;
+        gap: 8px;
+        align-items:center;
+      }
+      .albumKeywordChip{
+        display:inline-flex;
+        align-items:center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.28);
+        background: rgba(15,23,42,0.72);
+        color: rgba(226,232,240,0.92);
+        font-size: 12px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .albumKeywordChip:hover{
+        border-color: rgba(239,68,68,0.45);
+      }
+      .albumKeywordEmpty{
+        color: rgba(226,232,240,0.65);
+        font-size: 12px;
+        padding: 6px 0 2px;
+      }
 .backToBandsBtn:hover{
   color: rgba(226,232,240,0.98);
   border-bottom-color: rgba(239,68,68,0.90) !important;
@@ -1415,6 +1464,51 @@
     return all;
   }
 
+
+  async function fetchAlbumKeywords(albumKey) {
+    if (!albumKey) return [];
+    try {
+      const metaRes = await fetch(
+        `${API_BASE}/smug/album-meta/${encodeURIComponent(albumKey)}`,
+      );
+      const metaJson = await metaRes.json();
+      const album = metaJson && metaJson.Response && metaJson.Response.Album;
+      if (!album) return [];
+
+      let ak = [];
+      if (Array.isArray(album.KeywordArray) && album.KeywordArray.length) {
+        ak = album.KeywordArray.map((k) => {
+          if (!k) return "";
+          if (typeof k === "string") return k;
+          if (typeof k === "object" && typeof k.Name === "string") return k.Name;
+          if (typeof k === "object" && typeof k.value === "string") return k.value;
+          return "";
+        }).filter(Boolean);
+      } else if (typeof album.Keywords === "string" && album.Keywords.trim()) {
+        ak = album.Keywords.split(/[,;]+/).map((k) => k.trim()).filter(Boolean);
+      }
+
+      // normalize + dedupe (case-insensitive)
+      const norm = ak
+        .map((k) => String(k || "").trim())
+        .filter(Boolean);
+
+      const seen = new Set();
+      const out = [];
+      for (const k of norm) {
+        const key = k.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(k);
+      }
+      return out;
+    } catch (err) {
+      console.warn("fetchAlbumKeywords failed", albumKey, err);
+      return [];
+    }
+  }
+
+
   // ================== LIGHTBOX (ported pattern) ==================
   let lightboxEl = null;
   let lightboxImg = null;
@@ -2460,6 +2554,49 @@ const members = document.createElement("div");
     grid.className = "photosGrid";
 
     wrap.appendChild(top);
+
+    // ===== Album keywords (from SmugMug album metadata) =====
+    const keywordBox = document.createElement("div");
+    keywordBox.className = "albumKeywordBox";
+    const kwLabel = document.createElement("div");
+    kwLabel.className = "albumKeywordLabel";
+    kwLabel.textContent = "People in this album:";
+    const kwChips = document.createElement("div");
+    kwChips.className = "albumKeywordChips";
+
+    keywordBox.appendChild(kwLabel);
+    keywordBox.appendChild(kwChips);
+    wrap.appendChild(keywordBox);
+
+    function prettyKeyword(s) {
+      const t = String(s || "").trim();
+      if (!t) return "";
+      return t
+        .split(/\s+/)
+        .map((p) => p ? (p.charAt(0).toUpperCase() + p.slice(1)) : "")
+        .join(" ");
+    }
+
+    async function renderAlbumKeywords() {
+      kwChips.innerHTML = "";
+      const kws = await fetchAlbumKeywords(info.albumKey || info.album?.AlbumKey || info.album?.Key || "");
+      const list = (kws || []).filter(Boolean);
+
+      if (!list.length) {
+        const none = document.createElement("div");
+        none.className = "albumKeywordEmpty";
+        none.textContent = "No keywords found on this album.";
+        kwChips.appendChild(none);
+        return;
+      }
+
+      list.forEach((kw) => {
+        const chip = document.createElement("span");
+        chip.className = "albumKeywordChip";
+        chip.textContent = prettyKeyword(kw);
+        kwChips.appendChild(chip);
+      });
+    }
     wrap.appendChild(grid);
     resultsEl.appendChild(wrap);
 
