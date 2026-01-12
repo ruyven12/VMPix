@@ -90,8 +90,9 @@
         padding: 12px 14px;
         border-radius: 18px;
         border: 1px solid rgba(148,163,184,0.22);
-        background: radial-gradient(circle at top, rgba(15,23,42,0.85), rgba(15,23,42,0.55));
-        box-shadow: 0 10px 25px rgba(0,0,0,0.28);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+box-shadow: 0 10px 25px rgba(0,0,0,0.28);
         backdrop-filter: blur(8px);
         max-width: 1100px;
         margin-left: auto;
@@ -118,8 +119,8 @@
         padding: 6px 10px;
         border-radius: 999px;
         border: 1px solid rgba(148,163,184,0.28);
-        background: rgba(15,23,42,0.72);
-        color: rgba(226,232,240,0.92);
+        background: rgba(17,24,39,0.35);
+color: rgba(226,232,240,0.92);
         font-size: 12px;
         line-height: 1;
         white-space: nowrap;
@@ -1501,6 +1502,9 @@
         seen.add(key);
         out.push(k);
       }
+      if (!out.length) {
+        console.warn("No album keywords returned for", albumKey, { hasKeywordArray: !!album.KeywordArray, hasKeywordsString: !!album.Keywords });
+      }
       return out;
     } catch (err) {
       console.warn("fetchAlbumKeywords failed", albumKey, err);
@@ -2579,7 +2583,7 @@ const members = document.createElement("div");
 
     async function renderAlbumKeywords() {
       kwChips.innerHTML = "";
-      const kws = await fetchAlbumKeywords(info.albumKey || info.album?.AlbumKey || info.album?.Key || "");
+      const kws = await fetchAlbumKeywords(albumKey || info.albumKey || info.album?.AlbumKey || info.album?.Key || "");
       const list = (kws || []).filter(Boolean);
 
       if (!list.length) {
@@ -2608,6 +2612,9 @@ const members = document.createElement("div");
       grid.appendChild(msg);
       return;
     }
+
+    // Populate the album keyword chips now that we have albumKey
+    renderAlbumKeywords();
 
     let imgs = [];
     try {
