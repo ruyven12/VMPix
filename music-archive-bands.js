@@ -63,6 +63,10 @@
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+      /* ===== Band detail view: hide letter groupings + status legend ===== */
+      .inBandDetail #letter-groups{ display:none !important; }
+      .inBandDetail #status-legend{ display:none !important; }
+
       /* ===== Album photos view: center Back-to-albums + hide legend ===== */
       .inAlbumPhotos #status-legend{ display:none !important; }
 
@@ -1071,6 +1075,7 @@ color: rgba(226,232,240,0.92);
 
   // ================== HTML RENDER ==================
   function render() {
+    try { document.body.classList.remove("inBandDetail"); } catch(_) {}
     ensureBandsStyles();
 
     // ONLY what's inside #musicContentPanel
