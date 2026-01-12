@@ -386,6 +386,20 @@
   /* =============================
    HUD MAIN
    ============================= */
+  /* =============================
+   HUD MAIN (PLAIN) – neon frame removed
+   ============================= */
+  .hudMainPlain{
+    width: 100%;
+    max-width: min(760px, 92%);
+    margin: 0 auto;
+    min-height: 72px;
+    display: grid;
+    place-items: center;
+    padding: 18px 20px;
+    text-align: center;
+  }
+
   .hudMain{
     border: 1px solid rgba(255,60,60,.32);
     background: rgba(0,0,0,.18);
@@ -1451,23 +1465,11 @@
 </div>
 
             <div class="hudStub hudMain">
-  <div class="menuHero" aria-hidden="false">
-<div class="neonFrameWrap" aria-hidden="false">
-    
-
-    <!-- Ornament overlay: side chevrons + corner ticks (the "extra graphic" around the box) -->
-    
-
-    <!-- Typed HUD main text, placed INSIDE the frame -->
-    <div class="neonFrameText">
-      <div class="neonFrameTextInner">
-        <div class="hudMainType"><div class="hudMainTextBox">
-<div id="hudMainMount"></div>
-</div></div>
-      </div>
-    </div>
+  <!-- HUD MAIN (PLAIN) : neon frame removed globally -->
+  <div class="hudMainPlain">
+    <div id="hudMainMount"></div>
   </div>
-  </div>
+</div>
 </div>
 </div>
         </div>
