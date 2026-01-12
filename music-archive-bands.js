@@ -8,6 +8,10 @@
   const API_BASE = "https://music-archive-3lfa.onrender.com";
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
+  // Loading message shown while the Bands CSV is being fetched.
+  // Edit this string to whatever you want displayed.
+  const BANDS_LOADING_TEXT = "Loading bands";
+
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
     Local: "Music/Archives/Bands/Local",
@@ -657,8 +661,9 @@
         .albumRowMeta{ width: 100%; }
       }
 
-      /* ===== Initial load: hide crumbs until data is ready ===== */
+      /* ===== Initial load: hide crumbs + legend until data is ready ===== */
       .bandsWrap.is-loading #crumbs{ display:none !important; }
+      .bandsWrap.is-loading #status-legend{ display:none !important; }
       .bandsLoading{
         width:100%;
         display:flex;
@@ -736,7 +741,7 @@
 
         <div class="bandsLayout">
           <div>
-            <div class="bandsLoading" id="bands-loading">Loading bands<span class="dot"></span></div>
+            <div class="bandsLoading" id="bands-loading">${BANDS_LOADING_TEXT}<span class="dot"></span></div>
             <div id="results"></div>
           </div>
         </div>
