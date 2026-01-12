@@ -221,7 +221,7 @@
   // 👉 MUSIC LANDING PANELS (green/orange translucent boxes)
   // Set false to hide/remove the two translucent boxes on the Music route landing view.
   // (Tabs + content panel remain in code for later re-enable.)
-  const SHOW_MUSIC_PANELS = false;
+  const SHOW_MUSIC_PANELS = true;
 
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
