@@ -32,6 +32,9 @@
   let letterGroupsEl = null;
   let regionPillsEl = null;
   let legendEl = null;
+  // remember the most recent band context so back-navigation always has something to restore
+  let LAST_BAND_CTX = null;
+
 
   function resetPanelScroll() {
     try {
@@ -1956,12 +1959,14 @@ color: rgba(226,232,240,0.92);
         // jump to that album's photo view (same flow)
         overlay.style.display = "none";
         await showAlbumPhotos({
-          region: r.region || (ctx && ctx.region) || "",
-          letter: r.letter || (ctx && ctx.letter) || "",
-          band: { band: r.bandName, smug_folder: r.folderPath, region: r.region, letter: r.letter },
+          // When jumping from the modal, keep the *current* band context for navigation
+          region: (ctx && ctx.region) || r.region || "",
+          letter: (ctx && ctx.letter) || r.letter || "",
+          band: (ctx && ctx.band) || (LAST_BAND_CTX && LAST_BAND_CTX.band) || null,
           album: r.album,
           folderPath: r.folderPath,
           allAlbums: null,
+          _returnCtx: ctx || LAST_BAND_CTX || null,
         });
       });
 
@@ -2684,6 +2689,9 @@ async function downloadZipFromServer(items, suggestedName){
   async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
 
+    // Keep a safe return context for Back buttons / modal jumps
+    try { LAST_BAND_CTX = { region, letter, band: bandObj }; } catch(_) {}
+
     if (!resultsEl) return;
     try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
     try { document.body.classList.add("inBandDetail"); } catch(_) {}
@@ -3057,7 +3065,14 @@ const members = document.createElement("div");
     backBtn.addEventListener("click", () => {
       try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
       try { document.body.classList.remove("inSelectMode"); } catch(_) {}
-      showBandCard(info.region, info.letter, info.band);
+
+      // Prefer explicit return context (modal jumps), otherwise fall back to last known band context
+      const ret = (info && info._returnCtx) || LAST_BAND_CTX || { region: info.region, letter: info.letter, band: info.band };
+      const r = (ret && ret.region) || info.region || (LAST_BAND_CTX && LAST_BAND_CTX.region) || "";
+      const l = (ret && ret.letter) || info.letter || (LAST_BAND_CTX && LAST_BAND_CTX.letter) || "";
+      const b = (ret && ret.band) || info.band || (LAST_BAND_CTX && LAST_BAND_CTX.band) || null;
+
+      showBandCard(r, l, b);
     });
 
     const title = document.createElement("div");
