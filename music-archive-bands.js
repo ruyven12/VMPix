@@ -3211,6 +3211,18 @@ const members = document.createElement("div");
         try { wrap.classList.remove("loading-content"); } catch(_) {}
         try { __loadBandAlbums(); } catch(_) {}
       };
+
+      // Failsafe: some webviews can hang on the shared-element animation and never
+      // call `_releaseContent()`, leaving the screen looking blank (content gated).
+      // If that happens, auto-release shortly after.
+      window.setTimeout(() => {
+        try {
+          if (wrap && wrap.classList.contains("loading-content") && typeof wrap._releaseContent === "function") {
+            wrap._releaseContent();
+            delete wrap._releaseContent;
+          }
+        } catch (_) {}
+      }, 900);
     } else {
       __loadBandAlbums();
     }
