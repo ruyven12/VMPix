@@ -267,7 +267,7 @@ color: rgba(226,232,240,0.92);
     max-height: min(520px, 80vh);
     overflow: auto;
     border-radius: 14px;
-    background: rgba(55, 0, 0, 0.92);
+    background: rgba(55, 0, 0, 0.50);
     border: 1px solid rgba(255,255,255,0.10);
     box-shadow: 0 18px 60px rgba(0,0,0,0.55);
     padding: 14px 14px 12px;
@@ -324,6 +324,7 @@ color: rgba(226,232,240,0.92);
     display:flex;
     flex-direction:column;
     gap: 8px;
+    align-items: center;
   }
   .alsoModalItem{
     display:flex;
@@ -334,6 +335,8 @@ color: rgba(226,232,240,0.92);
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(0,0,0,0.12);
     cursor: pointer;
+    width: min(560px, 100%);
+    text-align: center;
   }
   .alsoModalItem:hover{
     border-color: rgba(255,255,255,0.16);
