@@ -149,12 +149,14 @@
       /* ===== Band detail view: hide letter groupings + status legend ===== */
       .inBandDetail #letter-groups{ display:none !important; }
       .inBandDetail #status-legend{ display:none !important; }
+      .inBandDetail #region-pills{ display:none !important; }
 
       /* ===== Album photos view: center Back-to-albums + hide legend ===== */
 
       .inAlbumPhotos #letter-groups{ display:none !important; }
 
       .inAlbumPhotos #status-legend{ display:none !important; }
+      .inAlbumPhotos #region-pills{ display:none !important; }
 
       .inAlbumPhotos .photosTop{
         display:flex;
