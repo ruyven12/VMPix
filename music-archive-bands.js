@@ -1687,6 +1687,8 @@ color: rgba(226,232,240,0.92);
 
         const bandData = {
           name,
+          region,
+          letter,
           smug_folder: smugFolder,
           logo_url: logoUrl,
           location: locationIdx !== -1 ? (cols[locationIdx] || "").trim() : "",
@@ -1967,9 +1969,19 @@ color: rgba(226,232,240,0.92);
 
     // Search each candidate band folder's albums and match on album keywords
     for (const b of candidates) {
-      const folderPath = b.smug_folder || "";
-      const region = b.region || "";
+      let folderPath = (b && b.smug_folder) ? String(b.smug_folder).trim() : "";
+      // Strict: if smug_folder isn't set, we cannot search that band.
       if (!folderPath) continue;
+      let region = (b && b.region) ? String(b.region).trim() : "";
+      // If region is missing (older cached data), infer from smug_folder path; otherwise fall back to the current context.
+      if (!region) {
+        const fp = String(folderPath);
+        if (/\/Local\//i.test(fp)) region = "Local";
+        else if (/\/Regional\//i.test(fp)) region = "Regional";
+        else if (/\/National\//i.test(fp)) region = "National";
+        else if (/\/International\//i.test(fp)) region = "International";
+        else if (ctx && ctx.region) region = String(ctx.region).trim();
+      }
 
       let albums = [];
       try {
@@ -3211,18 +3223,6 @@ const members = document.createElement("div");
         try { wrap.classList.remove("loading-content"); } catch(_) {}
         try { __loadBandAlbums(); } catch(_) {}
       };
-
-      // Failsafe: some webviews can hang on the shared-element animation and never
-      // call `_releaseContent()`, leaving the screen looking blank (content gated).
-      // If that happens, auto-release shortly after.
-      window.setTimeout(() => {
-        try {
-          if (wrap && wrap.classList.contains("loading-content") && typeof wrap._releaseContent === "function") {
-            wrap._releaseContent();
-            delete wrap._releaseContent;
-          }
-        } catch (_) {}
-      }, 900);
     } else {
       __loadBandAlbums();
     }
