@@ -549,7 +549,8 @@
         e.stopPropagation();
         showShowDetail(r, year);
       });
-
+      card.appendChild(posterBox);
+      card.appendChild(right);
 
       resultsEl.appendChild(card);
     });
