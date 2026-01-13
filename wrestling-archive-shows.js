@@ -55,6 +55,7 @@
 
   // ================== MOUNT ==================
   async function onMount(panelEl) {
+    ensureShowsStyles();
     _panel = panelEl || document.getElementById("wrestlingContentPanel") || document.body;
     _root = _panel.querySelector("#waShowsRoot");
 
@@ -111,6 +112,212 @@
     resultsEl.innerHTML = "";
     resultsEl.style.display = "block";
   }
+
+
+  // ================== PANEL SCROLL HELPERS ==================
+  function resetPanelScroll() {
+    try {
+      const panel = _panel || document.getElementById("wrestlingContentPanel");
+      const docScroller = document.scrollingElement || document.documentElement;
+      if (panel) panel.scrollTop = 0;
+      if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
+      if (docScroller) docScroller.scrollTop = 0;
+      requestAnimationFrame(() => {
+        if (panel) panel.scrollTop = 0;
+        if (panel && panel.parentElement) panel.parentElement.scrollTop = 0;
+      });
+    } catch (_) {}
+  }
+
+  // Remember last list context so "Back" restores the same year view cleanly.
+  let LAST_LIST_CTX = { year: null };
+
+  // ================== STYLES (SCOPED TO THIS MODULE) ==================
+  function ensureShowsStyles() {
+    if (document.getElementById("waShowsStyles")) return;
+    const s = document.createElement("style");
+    s.id = "waShowsStyles";
+    s.textContent = `
+      /* Scoped: Wrestling Shows detail view */
+      #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
+
+      .waDetailWrap{
+        width:100%;
+        max-width:1200px;
+        margin: 0 auto;
+        display:flex;
+        flex-direction:column;
+        gap: 16px;
+        padding: 6px 8px 14px;
+      }
+      .waDetailTopbar{
+        display:flex;
+        justify-content:center;
+        margin-top: 2px;
+      }
+      .waBackBtn{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        text-transform: none !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 2px solid rgba(200,0,0,0.30) !important;
+        border-radius: 0 !important;
+        padding: 6px 2px !important;
+        cursor: pointer;
+        font-size: 12px;
+        letter-spacing: .10em;
+        color: rgba(226,232,240,0.92);
+        transition: color 160ms ease, border-color 160ms ease, transform 120ms ease;
+      }
+      .waBackBtn:hover{
+        border-bottom-color: rgba(200,0,0,0.90) !important;
+        transform: translateX(-2px);
+      }
+      .waBackBtn:active{ transform: translateX(-1px) translateY(1px); }
+
+      .waDetailHeader{
+        width:100%;
+        display:grid;
+        grid-template-columns: 360px 1fr;
+        gap: 18px;
+        align-items:center;
+        border-top: 2px solid rgba(200,0,0,0.22);
+        border-bottom: 2px solid rgba(200,0,0,0.22);
+        padding: 18px 10px;
+      }
+      @media (max-width: 920px){
+        .waDetailHeader{ grid-template-columns: 1fr; justify-items:center; text-align:center; }
+      }
+      .waDetailPoster{
+        width: 320px;
+        max-width: 80vw;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(0,0,0,0.35);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+      }
+      .waDetailCard{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        gap: 12px;
+      }
+      .waDetailNamePill{
+        width:100%;
+        border-radius: 999px;
+        padding: 14px 18px;
+        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+        border: 1px solid rgba(255,255,255,0.10);
+        text-align:center;
+      }
+      .waDetailNamePill .kicker{
+        font-size: 10px;
+        letter-spacing: .22em;
+        opacity: .65;
+        margin-bottom: 6px;
+      }
+      .waDetailNamePill .name{
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: .06em;
+      }
+      .waInfoRow{
+        display:grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      @media (max-width: 920px){
+        .waInfoRow{ grid-template-columns: 1fr; }
+      }
+      .waInfoPill{
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        display:flex;
+        flex-direction:column;
+        gap: 4px;
+        min-height: 56px;
+        justify-content:center;
+      }
+      .waInfoPill .lbl{
+        font-size: 9px;
+        letter-spacing:.18em;
+        opacity: .55;
+      }
+      .waInfoPill .val{
+        font-size: 13px;
+        font-weight: 800;
+        opacity: .92;
+      }
+
+      .waMatchesTitle{
+        font-size: 12px;
+        letter-spacing: .18em;
+        opacity: .80;
+        margin: 2px 0 0;
+        text-align:center;
+      }
+      .waMatchesWrap{
+        width:100%;
+        max-width: 980px;
+        margin: 0 auto;
+        display:flex;
+        flex-direction:column;
+        gap: 10px;
+        padding: 4px 0 0;
+      }
+      .waMatchBox{
+        display:flex;
+        flex-direction:column;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(15, 23, 42, 0.22);
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      }
+      .waMatchBox:hover{
+        background: rgba(30, 41, 59, 0.35);
+        border-color: rgba(255,255,255,0.14);
+        transform: translateY(-1px);
+      }
+      .waMatchHead{
+        font-weight: 900;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      .waMatchBody{
+        font-size: 13px;
+        opacity: 0.9;
+      }
+      .waBadge{
+        display:inline-flex;
+        align-items:center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        margin-bottom: 6px;
+        width: fit-content;
+      }
+      .waBadgeChamp{
+        background: rgba(250, 204, 21, 0.18);
+        border: 1px solid rgba(250, 204, 21, 0.35);
+        color: rgba(250, 204, 21, 0.95);
+      }
+      .waBadgeSeg{
+        background: rgba(56, 189, 248, 0.10);
+        border: 1px solid rgba(56, 189, 248, 0.22);
+        color: rgba(185, 230, 255, 0.92);
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
 
   // ================== CSV PARSER ==================
   function parseCsvLine(line) {
@@ -244,7 +451,7 @@
     return `${monthName} ${day}${suffix}, ${year}`;
   }
 
-  function renderShowsCards(rows) {
+  function renderShowsCards(rows, year) {
     clearResults();
     const resultsEl = getResultsEl();
     if (!resultsEl) return;
@@ -336,147 +543,224 @@
         dateEl.style.fontSize = "12px";
         right.appendChild(dateEl);
       }
-
-      // expandable details
-      const details = document.createElement("div");
-      details.style.gridColumn = "1 / -1";
-      details.style.maxHeight = "0px";
-      details.style.overflow = "hidden";
-      details.style.transition = "max-height 0.3s ease";
-
-      function buildPartsWrap(row) {
-        const wrap = document.createElement("div");
-        wrap.style.display = "flex";
-        wrap.style.flexDirection = "column";
-        wrap.style.gap = "8px";
-        wrap.style.padding = "10px 0";
-
-        let any = false;
-
-        for (let i = 1; i <= 10; i++) {
-          const type = (row[`part_${i}_type`] || "").trim();
-          const stip = (row[`part_${i}_stip`] || "").trim();
-          const partTitle = (row[`part_${i}_title`] || "").trim();
-          const people = (row[`part_${i}_people`] || "").trim();
-
-          if (!type && !stip && !partTitle && !people) continue;
-          any = true;
-
-          const box = document.createElement("div");
-          box.style.display = "flex";
-          box.style.flexDirection = "column";
-          box.style.padding = "10px 14px";
-          box.style.borderRadius = "10px";
-          box.style.border = "1px solid rgba(255,255,255,0.08)";
-          box.style.background = "rgba(15, 23, 42, 0.22)";
-          box.style.transition = "background 0.15s ease";
-
-          box.addEventListener("mouseenter", () => {
-            box.style.background = "rgba(30, 41, 59, 0.35)";
-          });
-          box.addEventListener("mouseleave", () => {
-            box.style.background = "rgba(15, 23, 42, 0.22)";
-          });
-
-          const head = document.createElement("div");
-          head.style.fontWeight = "800";
-          head.style.fontSize = "14px";
-          head.style.marginBottom = "4px";
-
-          let headerLabel = "";
-          if (partTitle) headerLabel = `${partTitle} Match`;
-          else if (stip) headerLabel = `${stip} Match`;
-          else headerLabel = type;
-
-          const typeNorm = (type || "").toLowerCase();
-
-          if (typeNorm.includes("championship")) {
-            box.style.border = "1px solid rgba(250, 204, 21, 0.45)";
-            box.style.background = "rgba(250, 204, 21, 0.08)";
-
-            const badge = document.createElement("span");
-            badge.style.display = "inline-flex";
-            badge.style.alignItems = "center";
-            badge.style.gap = "6px";
-            badge.style.fontSize = "10px";
-            badge.style.fontWeight = "900";
-            badge.style.letterSpacing = "0.08em";
-            badge.style.padding = "3px 8px";
-            badge.style.borderRadius = "999px";
-            badge.style.marginBottom = "6px";
-            badge.style.width = "fit-content";
-            badge.style.background = "rgba(250, 204, 21, 0.18)";
-            badge.style.border = "1px solid rgba(250, 204, 21, 0.35)";
-            badge.style.color = "rgba(250, 204, 21, 0.95)";
-
-            const icon = document.createElement("span");
-            icon.textContent = "🏆";
-            icon.style.fontSize = "12px";
-
-            const label = document.createElement("span");
-            label.textContent = "CHAMPIONSHIP";
-
-            badge.appendChild(icon);
-            badge.appendChild(label);
-            box.appendChild(badge);
-
-            head.style.fontWeight = "900";
-          }
-
-          if (typeNorm === "promo" || typeNorm === "segment") {
-            box.style.border = "1px solid rgba(56, 189, 248, 0.22)";
-            box.style.background = "rgba(56, 189, 248, 0.06)";
-          }
-
-          head.textContent = headerLabel;
-          box.appendChild(head);
-
-          if (people) {
-            const body = document.createElement("div");
-            body.textContent = people;
-            body.style.fontSize = "13px";
-            body.style.opacity = "0.9";
-            box.appendChild(body);
-          }
-
-          wrap.appendChild(box);
-        }
-
-        if (!any) {
-          const none = document.createElement("div");
-          none.textContent = "No match info yet.";
-          none.style.opacity = "0.8";
-          wrap.appendChild(none);
-        }
-
-        return wrap;
-      }
-
-      posterBox.addEventListener("click", () => {
-        const open = details.classList.toggle("open");
-        if (!open) {
-          details.style.maxHeight = "0px";
-          return;
-        }
-
-        details.innerHTML = "";
-        const wrap = buildPartsWrap(r);
-        details.appendChild(wrap);
-
-        requestAnimationFrame(() => {
-          details.style.maxHeight = wrap.offsetHeight + 32 + "px";
-        });
+      // Poster click → open a "show detail" view (Band-style routing)
+      posterBox.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showShowDetail(r, year);
       });
 
-      card.appendChild(posterBox);
-      card.appendChild(right);
-      card.appendChild(details);
 
       resultsEl.appendChild(card);
     });
   }
 
-  function renderYearBubbles(years) {
+  
+
+  // ================== SHOW DETAIL (Band-style routing) ==================
+  function showShowDetail(row, year) {
+    if (!row) return;
+    ensureShowsStyles();
+
+    // Save list context for Back
+    LAST_LIST_CTX = { year: (year != null ? Number(year) : null) };
+
+    const resultsEl = getResultsEl();
+    const yearRow = getYearGroupsEl();
+    const crumbsEl = getCrumbsEl();
+    if (!resultsEl) return;
+
+    // Hide year pills while in detail (keeps focus like Bands)
+    try { if (yearRow) yearRow.style.display = "none"; } catch (_) {}
+    try { if (crumbsEl) crumbsEl.style.display = "none"; } catch (_) {}
+
+    // Build detail view
+    resultsEl.style.display = "block";
+    resultsEl.innerHTML = "";
+
+    const title = String((row.show_name || row.title || "").trim() || "(Untitled show)");
+    const rawDate = String((row.show_date || row.date || "").trim() || "");
+    const prettyDate = rawDate ? formatPrettyDate(rawDate) : "—";
+    const company = String((row.company || "").trim() || "—");
+
+    // Venue-ish (best-effort: supports venue/city/state columns if present)
+    const venue = String((row.show_venue || row.venue || "").trim() || "");
+    const city = String((row.show_city || row.city || "").trim() || "");
+    const state = String((row.show_state || row.state || "").trim() || "");
+    const venueLine = [venue, (city && state ? `${city}, ${state}` : (city || state))].filter(Boolean).join(" — ") || "—";
+
+    const posterUrlRaw = String((row.show_poster || row.poster_url || "").trim() || "");
+    const posterUrl = posterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrlRaw)}` : "";
+
+    const wrap = document.createElement("div");
+    wrap.className = "waDetailWrap";
+
+    const topbar = document.createElement("div");
+    topbar.className = "waDetailTopbar";
+
+    const backBtn = document.createElement("button");
+    backBtn.className = "waBackBtn";
+    backBtn.type = "button";
+    backBtn.textContent = "← Back to shows";
+    backBtn.addEventListener("click", () => {
+      // Restore list view for the year we came from
+      try { if (yearRow) yearRow.style.display = ""; } catch (_) {}
+      try { if (crumbsEl) crumbsEl.style.display = ""; } catch (_) {}
+
+      const y = (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null;
+      if (y != null) {
+        setCrumbs(`Shows for ${y}`);
+        const rows = getShowsForYear(y);
+        renderShowsCards(rows, y);
+
+        // Re-activate the year pill visually
+        try {
+          const btns = yearRow ? Array.from(yearRow.querySelectorAll(".letter-pill")) : [];
+          btns.forEach((b) => b.classList.toggle("active", String(b.textContent || "").trim() === String(y)));
+        } catch (_) {}
+      } else {
+        // If we somehow don't know the year, just clear results
+        clearResults();
+      }
+      resetPanelScroll();
+    });
+
+    topbar.appendChild(backBtn);
+    wrap.appendChild(topbar);
+
+    const header = document.createElement("div");
+    header.className = "waDetailHeader";
+
+    const poster = document.createElement("img");
+    poster.className = "waDetailPoster";
+    poster.alt = title;
+    poster.loading = "lazy";
+    if (posterUrl) poster.src = posterUrl;
+
+    // If no poster, use a neutral SVG placeholder to keep layout stable
+    if (!posterUrl) {
+      poster.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='100%25' height='100%25' fill='rgba(0,0,0,0.35)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='rgba(255,255,255,0.55)' font-size='20'%3ENo%20poster%3C/text%3E%3C/svg%3E";
+    }
+
+    const card = document.createElement("div");
+    card.className = "waDetailCard";
+
+    const namePill = document.createElement("div");
+    namePill.className = "waDetailNamePill";
+    namePill.innerHTML = `
+      <div class="kicker">SHOW:</div>
+      <div class="name">${escapeHtml(title)}</div>
+    `;
+
+    const infoRow = document.createElement("div");
+    infoRow.className = "waInfoRow";
+    infoRow.innerHTML = `
+      <div class="waInfoPill">
+        <div class="lbl">COMPANY</div>
+        <div class="val">${escapeHtml(company)}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">DATE</div>
+        <div class="val">${escapeHtml(prettyDate)}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">VENUE</div>
+        <div class="val">${escapeHtml(venueLine)}</div>
+      </div>
+    `;
+
+    card.appendChild(namePill);
+    card.appendChild(infoRow);
+
+    header.appendChild(poster);
+    header.appendChild(card);
+    wrap.appendChild(header);
+
+    const matchesTitle = document.createElement("div");
+    matchesTitle.className = "waMatchesTitle";
+    matchesTitle.textContent = "Matches / Segments:";
+    wrap.appendChild(matchesTitle);
+
+    const matchesWrap = document.createElement("div");
+    matchesWrap.className = "waMatchesWrap";
+    wrap.appendChild(matchesWrap);
+
+    renderMatchesInto(matchesWrap, row);
+
+    resultsEl.appendChild(wrap);
+    resetPanelScroll();
+  }
+
+  function renderMatchesInto(containerEl, row) {
+    if (!containerEl) return;
+
+    let any = false;
+
+    for (let i = 1; i <= 10; i++) {
+      const type = String((row[`part_${i}_type`] || "").trim());
+      const stip = String((row[`part_${i}_stip`] || "").trim());
+      const partTitle = String((row[`part_${i}_title`] || "").trim());
+      const people = String((row[`part_${i}_people`] || "").trim());
+
+      if (!type && !stip && !partTitle && !people) continue;
+      any = true;
+
+      const box = document.createElement("div");
+      box.className = "waMatchBox";
+
+      const typeNorm = type.toLowerCase();
+
+      // Badges
+      if (typeNorm.includes("championship")) {
+        const badge = document.createElement("div");
+        badge.className = "waBadge waBadgeChamp";
+        badge.innerHTML = `<span style="font-size:12px">🏆</span><span>CHAMPIONSHIP</span>`;
+        box.appendChild(badge);
+      } else if (typeNorm === "promo" || typeNorm === "segment") {
+        const badge = document.createElement("div");
+        badge.className = "waBadge waBadgeSeg";
+        badge.innerHTML = `<span style="font-size:12px">🎤</span><span>${escapeHtml(typeNorm.toUpperCase())}</span>`;
+        box.appendChild(badge);
+      }
+
+      const head = document.createElement("div");
+      head.className = "waMatchHead";
+
+      let headerLabel = "";
+      if (partTitle) headerLabel = `${partTitle} Match`;
+      else if (stip) headerLabel = `${stip} Match`;
+      else headerLabel = type || "Match";
+
+      head.textContent = headerLabel;
+      box.appendChild(head);
+
+      if (people) {
+        const body = document.createElement("div");
+        body.className = "waMatchBody";
+        body.textContent = people;
+        box.appendChild(body);
+      }
+
+      containerEl.appendChild(box);
+    }
+
+    if (!any) {
+      const none = document.createElement("div");
+      none.textContent = "No match info yet.";
+      none.style.opacity = "0.8";
+      none.style.textAlign = "center";
+      none.style.padding = "10px 0";
+      containerEl.appendChild(none);
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+function renderYearBubbles(years) {
     const row = getYearGroupsEl();
     if (!row) return;
 
@@ -504,7 +788,7 @@
 
         setCrumbs(`Shows for ${year}`);
         const rows = getShowsForYear(year);
-        renderShowsCards(rows);
+        renderShowsCards(rows, year);
       });
 
       row.appendChild(btn);
