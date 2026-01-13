@@ -76,6 +76,8 @@
         flex-wrap:wrap;
       }
       .selectBtn{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        text-transform: none !important;
         background: rgba(17,24,39,0.35);
         border: 1px solid rgba(148,163,184,0.25);
         border-radius: 999px;
@@ -93,6 +95,8 @@
         border-color: rgba(239,68,68,0.55);
       }
       .selectHint{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        text-transform: none !important;
         font-size: 11px;
         letter-spacing: .10em;
         opacity: .72;
