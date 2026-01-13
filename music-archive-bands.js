@@ -94,6 +94,11 @@
       .selectBtn.primary{
         border-color: rgba(239,68,68,0.55);
       }
+
+      .buyPhotosBtn{
+        min-width: 160px;
+        justify-content: center;
+      }
       .selectHint{
         font-family: "Orbitron", system-ui, sans-serif !important;
         text-transform: none !important;
@@ -157,7 +162,8 @@
         display:flex;
         align-items:center;
         justify-content:center;
-        gap: 0;
+        gap: 12px;
+        flex-wrap: wrap;
         margin-top: 6px;
       }
 
@@ -2716,6 +2722,7 @@ const members = document.createElement("div");
             letter,
             band: bandObj,
             album: alb,
+            nodeKey: (alb && (alb.NodeKey || alb.nodeKey)) || "",
             folderPath,
           });
         });
@@ -2767,6 +2774,19 @@ const members = document.createElement("div");
     title.textContent = info.album?.Name || "Album";
 
     top.appendChild(backBtn);
+
+    // ===== Buy Photos (SmugMug Shop) =====
+    // NodeKey comes from the album object (passed in when the album card is clicked).
+    const nodeKey = info?.nodeKey || info?.album?.NodeKey || info?.album?.nodeKey || "";
+    if (nodeKey) {
+      const buyLink = document.createElement("a");
+      buyLink.className = "selectBtn buyPhotosBtn";
+      buyLink.textContent = "Buy Photos";
+      buyLink.href = `https://vmpix.smugmug.com/shop?nodeKey=${encodeURIComponent(nodeKey)}`;
+      buyLink.target = "_blank";
+      buyLink.rel = "noopener";
+      top.appendChild(buyLink);
+    }
 const grid = document.createElement("div");
     grid.className = "photosGrid";
 
