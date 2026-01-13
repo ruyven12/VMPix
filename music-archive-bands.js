@@ -1587,7 +1587,28 @@ color: rgba(226,232,240,0.92);
 
         const idxName = header.indexOf("show_name") !== -1 ? header.indexOf("show_name") : header.indexOf("title");
         const idxDate = header.indexOf("show_date") !== -1 ? header.indexOf("show_date") : header.indexOf("date");
-        const idxUrl = header.indexOf("show_url") !== -1 ? header.indexOf("show_url") : header.indexOf("poster_url");
+        // Poster URL column name varies in the sheet; be flexible.
+        let idxUrl = -1;
+        const urlCandidates = [
+          "show_url",
+          "poster_url",
+          "show url",
+          "poster url",
+          "show poster url",
+          "poster",
+          "url",
+        ];
+        for (const key of urlCandidates) {
+          const i = header.indexOf(key);
+          if (i !== -1) { idxUrl = i; break; }
+        }
+        // As a last resort, grab the first column that looks like a poster/image url field.
+        if (idxUrl === -1) {
+          idxUrl = header.findIndex((h) => {
+            const s = String(h || "").toLowerCase();
+            return s.includes("url") && (s.includes("poster") || s.includes("show") || s.includes("image"));
+          });
+        }
         const idxVenue = header.indexOf("show_venue");
         const idxCity = header.indexOf("show_city") !== -1 ? header.indexOf("show_city") : header.indexOf("city");
         const idxState = header.indexOf("show_state") !== -1 ? header.indexOf("show_state") : header.indexOf("state");
@@ -2059,6 +2080,10 @@ color: rgba(226,232,240,0.92);
 
     const results = await _runAlsoAppearsSearch(personName, ctx).catch(() => []);
 
+    // Poster lookup: use Shows CSV (date -> show_url) so we can reliably display the poster image
+    // even when the SmugMug album highlight image is missing.
+    const showsByDate = await ensureShowsIndex().catch(() => new Map());
+
     if (!results.length) {
       if (metaEl) metaEl.textContent = "";
       bodyEl.textContent = "No other albums found for this name.";
@@ -2122,14 +2147,51 @@ color: rgba(226,232,240,0.92);
         const datePart = r.__dateStr ? _eh(r.__dateStr) : "—";
         const titlePart = _eh(r.__restTitle || r.title);
 
-        const posterUrl =
-          r?.album?.HighlightImage?.ThumbnailUrl ||
-          r?.album?.HighlightImage?.SmallUrl ||
-          r?.album?.HighlightImage?.MediumUrl ||
-          r?.album?.ThumbnailUrl ||
-          r?.album?.SmallUrl ||
-          r?.album?.MediumUrl ||
-          "";
+        // Prefer poster image from Shows CSV (match by date, then best-effort by show title).
+        // Fallback to SmugMug album highlight/thumbnail URLs.
+        let posterUrl = "";
+        try {
+          const mmddyy = r.__dateStr ? toMMDDYY(r.__dateStr) : "";
+          const list = (mmddyy && showsByDate && showsByDate.get(mmddyy)) ? (showsByDate.get(mmddyy) || []) : [];
+          const wantTitle = normStr(r.__restTitle || r.title || "");
+
+          // Pick the best matching show row for this date.
+          let best = null;
+          if (list && list.length) {
+            // 1) exact-ish title match
+            best = list.find((row) => {
+              const have = normStr(row && row.show_name);
+              return have && wantTitle && (have === wantTitle);
+            }) || null;
+
+            // 2) substring match either direction
+            if (!best && wantTitle) {
+              best = list.find((row) => {
+                const have = normStr(row && row.show_name);
+                return have && (have.includes(wantTitle) || wantTitle.includes(have));
+              }) || null;
+            }
+
+            // 3) first row with a show_url
+            if (!best) {
+              best = list.find((row) => String(row?.show_url || "").trim()) || null;
+            }
+          }
+
+          const fromShows = best ? String(best.show_url || "").trim() : "";
+          if (fromShows) posterUrl = fromShows;
+        } catch (_) {}
+
+        if (!posterUrl) {
+          posterUrl =
+            r?.album?.HighlightImage?.ThumbnailUrl ||
+            r?.album?.HighlightImage?.SmallUrl ||
+            r?.album?.HighlightImage?.MediumUrl ||
+            r?.album?.ThumbnailUrl ||
+            r?.album?.SmallUrl ||
+            r?.album?.MediumUrl ||
+            "";
+        }
         const posterHtml = posterUrl
           ? `<img class="alsoModalPosterIcon" src="${_eh(posterUrl)}" alt="" loading="lazy">`
           : `<div class="alsoModalPosterFallback" aria-hidden="true"></div>`;
