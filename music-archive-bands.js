@@ -255,6 +255,7 @@ color: rgba(226,232,240,0.92);
         border-color: rgba(239,68,68,0.45);
       }
 
+  
   /* ===== Also Appears modal (Option A+) ===== */
   .alsoModalOverlay{
     position: fixed;
@@ -268,49 +269,61 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModal{
     font-family: "Orbitron", system-ui, sans-serif;
-    width: min(720px, 96vw);
-    max-height: min(520px, 80vh);
+    width: min(760px, 96vw);
+    max-height: min(560px, 84vh);
     overflow: auto;
-    border-radius: 14px;
+    border-radius: 16px;
     background: rgba(55, 0, 0, 0.50);
     border: 1px solid rgba(255,255,255,0.10);
     box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-    padding: 14px 14px 12px;
     backdrop-filter: blur(10px);
+    padding: 0; /* header/body provide their own padding; enables sticky header */
   }
+
+  /* Sticky header */
   .alsoModalHeader{
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap: 10px;
-    margin-bottom: 10px;
     text-align: center;
-    padding: 0 72px 0 72px; /* space for Close button */
+    padding: 12px 14px 10px;
+    background: rgba(55, 0, 0, 0.72);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
   }
-  .alsoModalHeader > div{
-    flex: 1;
-    min-width: 0;
-    text-align: center;
+  .alsoModalHeaderInner{
+    width: 100%;
+    max-width: 640px;
+    padding: 0 64px; /* space for Close button */
+  }
+  .alsoModalName{
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    text-transform: none !important;
   }
   .alsoModalTitle{
     font-family: "Orbitron", system-ui, sans-serif;
     font-size: 12px;
     letter-spacing: 0.12em;
     opacity: 0.85;
-    text-transform: none;
-    margin-bottom: 6px;
+    text-transform: none !important;
+    margin-bottom: 8px;
   }
-  .alsoModalName{
-    font-family: "Orbitron", system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.2;
+  .alsoModalMeta{
+    font-size: 11px;
+    letter-spacing: .10em;
+    opacity: .78;
   }
   .alsoModalClose{
     position: absolute;
-    right: 0;
-    top: 0;
+    right: 14px;
+    top: 12px;
     border: 1px solid rgba(255,255,255,0.20);
     background: rgba(0,0,0,0.18);
     color: rgba(255,255,255,0.92);
@@ -319,44 +332,109 @@ color: rgba(226,232,240,0.92);
     cursor: pointer;
     font-size: 12px;
   }
+  .alsoModalClose:hover{
+    border-color: rgba(239,68,68,0.55);
+  }
+
   .alsoModalBody{
-    margin-top: 6px;
+    padding: 10px 14px 0;
     font-size: 12px;
     opacity: 0.92;
+    text-align: center;
   }
   .alsoModalList{
-    margin-top: 10px;
+    padding: 10px 14px 14px;
     display:flex;
     flex-direction:column;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
   }
-  .alsoModalItem{
+
+  .alsoModalGroup{
+    width: min(640px, 100%);
     display:flex;
     flex-direction:column;
-    gap: 2px;
-    padding: 10px 10px;
+    gap: 10px;
+  }
+  .alsoModalGroupHdr{
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .14em;
+    opacity: .80;
+    padding: 8px 10px;
     border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(0,0,0,0.12);
+    background: rgba(0,0,0,0.10);
+  }
+
+  .alsoModalItem{
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.10);
     cursor: pointer;
-    width: min(560px, 100%);
     text-align: center;
+    overflow: hidden;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
   }
   .alsoModalItem:hover{
     border-color: rgba(255,255,255,0.16);
     background: rgba(255,255,255,0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.28);
   }
-  .alsoModalItemTop{
-    font-weight: 700;
+  .alsoModalItem:active{
+    transform: translateY(0px);
+  }
+  .alsoModalItemRow{
+    display:grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    align-items:center;
+  }
+  .alsoModalItemDate{
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: .06em;
+    opacity: .92;
+    padding: 6px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.18);
+  }
+  .alsoModalItemMain{
+    min-width: 0;
+    display:flex;
+    flex-direction:column;
+    gap: 4px;
+    align-items:center;
+  }
+  .alsoModalItemTitle{
+    font-weight: 800;
     font-size: 13px;
     opacity: 0.96;
+    line-height: 1.2;
   }
   .alsoModalItemSub{
     font-size: 11px;
     opacity: 0.78;
   }
-      .albumKeywordEmpty{
+
+  @media (max-width: 520px){
+    .alsoModalHeaderInner{ padding: 0 56px; }
+    .alsoModalItemRow{
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .alsoModalItemDate{
+      width: fit-content;
+      margin: 0 auto;
+    }
+  }
+
+  .albumKeywordEmpty{
         color: rgba(226,232,240,0.65);
         font-size: 12px;
         padding: 6px 0 2px;
@@ -1850,9 +1928,10 @@ color: rgba(226,232,240,0.92);
     overlay.innerHTML = `
       <div class="alsoModal" role="dialog" aria-modal="true">
         <div class="alsoModalHeader">
-          <div>
+          <div class="alsoModalHeaderInner">
             <div class="alsoModalName" id="alsoModalName">—</div>
             <div class="alsoModalTitle">Also appears in these albums:</div>
+            <div class="alsoModalMeta" id="alsoModalMeta"></div>
           </div>
           <button class="alsoModalClose" id="alsoModalClose">Close</button>
         </div>
@@ -1933,10 +2012,12 @@ color: rgba(226,232,240,0.92);
   async function openAlsoAppearsModal(personName, ctx) {
     const overlay = _ensureAlsoModal();
     const nameEl = overlay.querySelector("#alsoModalName");
+    const metaEl = overlay.querySelector("#alsoModalMeta");
     const bodyEl = overlay.querySelector("#alsoModalBody");
     const listEl = overlay.querySelector("#alsoModalList");
 
     nameEl.textContent = personName;
+    if (metaEl) metaEl.textContent = "";
     bodyEl.textContent = "Searching albums…";
     listEl.innerHTML = "";
     overlay.style.display = "flex";
@@ -1944,38 +2025,107 @@ color: rgba(226,232,240,0.92);
     const results = await _runAlsoAppearsSearch(personName, ctx).catch(() => []);
 
     if (!results.length) {
+      if (metaEl) metaEl.textContent = "";
       bodyEl.textContent = "No other albums found for this name.";
       return;
     }
-    bodyEl.textContent = "";
+
+    // Sort by date (if present at start of title), newest first
+    const parseDateNum = (s) => {
+      const m = String(s || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (!m) return 0;
+      let mm = parseInt(m[1], 10) || 0;
+      let dd = parseInt(m[2], 10) || 0;
+      let yy = parseInt(m[3], 10) || 0;
+      if (yy < 100) yy += 2000; // assume 20xx
+      // yyyymmdd numeric for sorting
+      return (yy * 10000) + (mm * 100) + dd;
+    };
+    const splitTitle = (t) => {
+      const s = String(t || "").trim();
+      const m = s.match(/^\s*(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(.+)$/);
+      if (m) return { date: m[1], rest: (m[2] || "").trim() };
+      return { date: "", rest: s };
+    };
 
     results.forEach((r) => {
-      const item = document.createElement("div");
-      item.className = "alsoModalItem";
-      item.innerHTML = `
-        <div class="alsoModalItemTop">${_eh(r.title)}</div>
-        <div class="alsoModalItemSub">${_eh(r.bandName)}</div>
-      `;
+      const parts = splitTitle(r.title);
+      r.__dateNum = parts.date ? parseDateNum(parts.date) : 0;
+      r.__dateStr = parts.date || "";
+      r.__restTitle = parts.rest || String(r.title || "").trim();
+    });
+    results.sort((a, b) => (b.__dateNum - a.__dateNum) || String(a.__restTitle).localeCompare(String(b.__restTitle)));
 
-      item.addEventListener("click", async () => {
-        // jump to that album's photo view (same flow)
-        overlay.style.display = "none";
-        await showAlbumPhotos({
-          // When jumping from the modal, keep the *current* band context for navigation
-          region: (ctx && ctx.region) || r.region || "",
-          letter: (ctx && ctx.letter) || r.letter || "",
-          band: (ctx && ctx.band) || (LAST_BAND_CTX && LAST_BAND_CTX.band) || null,
-          album: r.album,
-          folderPath: r.folderPath,
-          allAlbums: null,
-          _returnCtx: ctx || LAST_BAND_CTX || null,
+    if (metaEl) {
+      metaEl.textContent = `${results.length} album${results.length === 1 ? "" : "s"} found`;
+    }
+    bodyEl.textContent = "";
+
+    // Group by band name (keeps the list cleaner when many entries are the same band)
+    const groups = new Map();
+    results.forEach((r) => {
+      const key = String(r.bandName || "Band").trim() || "Band";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    });
+
+    groups.forEach((items, bandName) => {
+      const group = document.createElement("div");
+      group.className = "alsoModalGroup";
+
+      const hdr = document.createElement("div");
+      hdr.className = "alsoModalGroupHdr";
+      hdr.textContent = bandName;
+      group.appendChild(hdr);
+
+      items.forEach((r) => {
+        const item = document.createElement("div");
+        item.className = "alsoModalItem";
+        item.setAttribute("role", "button");
+        item.setAttribute("tabindex", "0");
+
+        const datePart = r.__dateStr ? _eh(r.__dateStr) : "—";
+        const titlePart = _eh(r.__restTitle || r.title);
+
+        item.innerHTML = `
+          <div class="alsoModalItemRow">
+            <div class="alsoModalItemDate">${datePart}</div>
+            <div class="alsoModalItemMain">
+              <div class="alsoModalItemTitle">${titlePart}</div>
+              <div class="alsoModalItemSub">${_eh(r.region || "")}</div>
+            </div>
+          </div>
+        `;
+
+        const go = async () => {
+          // jump to that album's photo view (same flow)
+          overlay.style.display = "none";
+          await showAlbumPhotos({
+            // When jumping from the modal, keep the *current* band context for navigation
+            region: (ctx && ctx.region) || r.region || "",
+            letter: (ctx && ctx.letter) || r.letter || "",
+            band: (ctx && ctx.band) || (LAST_BAND_CTX && LAST_BAND_CTX.band) || null,
+            album: r.album,
+            folderPath: r.folderPath,
+            allAlbums: null,
+            _returnCtx: ctx || LAST_BAND_CTX || null,
+          });
+        };
+
+        item.addEventListener("click", go);
+        item.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            go();
+          }
         });
+
+        group.appendChild(item);
       });
 
-      listEl.appendChild(item);
+      listEl.appendChild(group);
     });
   }
-
 async function downloadZipFromServer(items, suggestedName){
     // items: [{ url, filename }]
     const name = (suggestedName || "photos").replace(/[^a-z0-9-_]+/gi, "-").slice(0, 80) || "photos";
