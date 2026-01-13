@@ -2549,6 +2549,8 @@ async function downloadZipFromServer(items, suggestedName){
         CURRENT_REGION = key;
         resetPanelScroll();
         updateLetterGroups(key);
+        // Ensure we always land on the first tab when switching regions
+        selectDefaultLetter(key, "0-C");
         resultsEl.innerHTML = "";
         window.setTimeout(() => resetPanelScroll(), 200);
         // crumbs removed
@@ -2585,6 +2587,24 @@ async function downloadZipFromServer(items, suggestedName){
       letterGroupsEl.appendChild(btn);
     });
   }
+
+  // ===== Surgical: when switching regions, default to the first letter tab (prefer "0-C") =====
+  function selectDefaultLetter(regionKey, preferred) {
+    try {
+      if (!letterGroupsEl) return;
+      const want = String(preferred || "0-C").trim();
+      const btns = Array.from(letterGroupsEl.querySelectorAll(".letter-pill"));
+      if (!btns.length) return;
+
+      let target = btns.find((b) => String(b.textContent || "").trim() === want) || btns[0];
+      btns.forEach((b) => b.classList.remove("active"));
+      target.classList.add("active");
+
+      // Render the list for this region+letter
+      showLetter(regionKey, String(target.textContent || "").trim());
+    } catch (_) {}
+  }
+
 
   function buildTree() { /* sidebar removed */ }
 
