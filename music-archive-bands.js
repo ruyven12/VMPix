@@ -2899,14 +2899,13 @@ const grid = document.createElement("div");
       }
     });
 
-    toolbar.appendChild(selectToggle);
-
     const buyBtn = document.createElement("a");
     buyBtn.className = "selectBtn";
     buyBtn.textContent = "Buy Photos";
     buyBtn.href = "#"; // TODO: replace with SmugMug buy link
     buyBtn.target = "_blank";
     toolbar.appendChild(buyBtn);
+    toolbar.appendChild(selectToggle);
     toolbar.appendChild(dlZipBtn);
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(hint);
