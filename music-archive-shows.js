@@ -42,8 +42,8 @@
     s.id = "musicShowsStyles";
     s.textContent = `
 /* ===== Typography fix: Orbitron without forced uppercase (Shows only) ===== */
-.musicShowsWrap,
-.musicShowsWrap *{
+.showsWrap,
+.showsWrap *{
   font-family: "Orbitron", system-ui, sans-serif;
   text-transform: none !important;
 }
