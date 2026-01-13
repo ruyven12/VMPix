@@ -2800,7 +2800,7 @@ const grid = document.createElement("div");
     const selectToggle = document.createElement("button");
     selectToggle.className = "selectBtn";
     selectToggle.type = "button";
-    selectToggle.textContent = "Select photos";
+    selectToggle.textContent = "Select Photos to Download";
 
     const dlZipBtn = document.createElement("button");
     dlZipBtn.className = "selectBtn primary";
@@ -2839,7 +2839,7 @@ const grid = document.createElement("div");
       selectMode = !selectMode;
       if (!selectMode) selected.clear();
       statusLine.textContent = "";
-      selectToggle.textContent = selectMode ? "Done selecting" : "Select photos";
+      selectToggle.textContent = selectMode ? "Done selecting" : "Select Photos to Download";
       updateSelectUI();
       try {
         const tiles = grid.querySelectorAll(".smug-photo-box");
@@ -2900,6 +2900,13 @@ const grid = document.createElement("div");
     });
 
     toolbar.appendChild(selectToggle);
+
+    const buyBtn = document.createElement("a");
+    buyBtn.className = "selectBtn";
+    buyBtn.textContent = "Buy Photos";
+    buyBtn.href = "#"; // TODO: replace with SmugMug buy link
+    buyBtn.target = "_blank";
+    toolbar.appendChild(buyBtn);
     toolbar.appendChild(dlZipBtn);
     toolbar.appendChild(clearBtn);
     toolbar.appendChild(hint);
