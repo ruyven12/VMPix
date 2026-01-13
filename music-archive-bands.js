@@ -404,6 +404,29 @@ color: rgba(226,232,240,0.92);
     border: 1px solid rgba(255,255,255,0.10);
     background: rgba(0,0,0,0.18);
   }
+  /* tiny poster icon in the left pill (keeps row height stable) */
+  .alsoModalItemDate{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height: 0;
+  }
+  .alsoModalPosterIcon{
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    object-fit: cover;
+    display:block;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.28);
+  }
+  .alsoModalPosterFallback{
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
   .alsoModalItemMain{
     min-width: 0;
     display:flex;
@@ -2099,12 +2122,24 @@ color: rgba(226,232,240,0.92);
         const datePart = r.__dateStr ? _eh(r.__dateStr) : "—";
         const titlePart = _eh(r.__restTitle || r.title);
 
+        const posterUrl =
+          r?.album?.HighlightImage?.ThumbnailUrl ||
+          r?.album?.HighlightImage?.SmallUrl ||
+          r?.album?.HighlightImage?.MediumUrl ||
+          r?.album?.ThumbnailUrl ||
+          r?.album?.SmallUrl ||
+          r?.album?.MediumUrl ||
+          "";
+        const posterHtml = posterUrl
+          ? `<img class="alsoModalPosterIcon" src="${_eh(posterUrl)}" alt="" loading="lazy">`
+          : `<div class="alsoModalPosterFallback" aria-hidden="true"></div>`;
+
         item.innerHTML = `
           <div class="alsoModalItemRow">
-            <div class="alsoModalItemDate">${datePart}</div>
+            <div class="alsoModalItemDate">${posterHtml}</div>
             <div class="alsoModalItemMain">
               <div class="alsoModalItemTitle">${titlePart}</div>
-              <div class="alsoModalItemSub">${_eh(r.region || "")}</div>
+              <div class="alsoModalItemSub">${datePart}</div>
             </div>
           </div>
         `;
