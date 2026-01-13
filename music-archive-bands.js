@@ -94,11 +94,6 @@
       .selectBtn.primary{
         border-color: rgba(239,68,68,0.55);
       }
-
-      .buyPhotosBtn{
-        min-width: 160px;
-        justify-content: center;
-      }
       .selectHint{
         font-family: "Orbitron", system-ui, sans-serif !important;
         text-transform: none !important;
@@ -162,8 +157,7 @@
         display:flex;
         align-items:center;
         justify-content:center;
-        gap: 12px;
-        flex-wrap: wrap;
+        gap: 0;
         margin-top: 6px;
       }
 
@@ -275,6 +269,113 @@ color: rgba(226,232,240,0.92);
         letter-spacing: .10em;
         margin-bottom: 8px;
         opacity: .90;
+      }
+
+      /* ===== Keyword "also appears" popup ===== */
+      .kwModalBackdrop{
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.58);
+        display:none;
+        align-items:center;
+        justify-content:center;
+        z-index: 999998;
+        padding: 18px;
+      }
+      .kwModalBackdrop.open{ display:flex; }
+
+      .kwModal{
+        width: min(720px, 96vw);
+        max-height: min(70vh, 520px);
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(15,23,42,0.92);
+        box-shadow: 0 22px 70px rgba(0,0,0,0.55);
+        backdrop-filter: blur(10px);
+        display:flex;
+        flex-direction:column;
+      }
+      .kwModalHeader{
+        padding: 14px 14px 10px;
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.10);
+      }
+      .kwModalHeader .t1{
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 11px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        opacity: .72;
+        margin-bottom: 6px;
+      }
+      .kwModalHeader .t2{
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: .04em;
+        opacity: .95;
+        line-height: 1.2;
+      }
+      .kwModalClose{
+        border: 1px solid rgba(148,163,184,0.22);
+        background: rgba(17,24,39,0.35);
+        color: rgba(226,232,240,0.92);
+        border-radius: 999px;
+        padding: 6px 10px;
+        cursor:pointer;
+        font-size: 12px;
+        flex: 0 0 auto;
+      }
+      .kwModalClose:hover{ border-color: rgba(239,68,68,0.45); }
+
+      .kwModalBody{
+        padding: 12px 14px 14px;
+        overflow:auto;
+      }
+      .kwModalHint{
+        font-size: 12px;
+        opacity: .75;
+        margin-bottom: 10px;
+      }
+      .kwAlbumList{
+        display:flex;
+        flex-direction:column;
+        gap: 10px;
+      }
+      .kwAlbumRow{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        cursor:pointer;
+      }
+      .kwAlbumRow:hover{
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(239,68,68,0.26);
+      }
+      .kwAlbumRow .name{
+        font-size: 13px;
+        font-weight: 800;
+        opacity: .92;
+        line-height: 1.2;
+      }
+      .kwAlbumRow .sub{
+        font-size: 11px;
+        opacity: .68;
+        margin-top: 3px;
+      }
+      .kwAlbumRow .go{
+        font-size: 11px;
+        letter-spacing: .10em;
+        opacity: .70;
+        white-space:nowrap;
       }
 .backToBandsBtn:hover{
   color: rgba(226,232,240,0.98);
@@ -1651,6 +1752,196 @@ color: rgba(226,232,240,0.92);
         ak = album.Keywords.split(/[,;]+/).map((k) => k.trim()).filter(Boolean);
       }
 
+
+  // ================== "Also appears in these albums" (Option A) ==================
+  // Cache album keywords so we don't re-fetch for every click
+  const _albumKeywordsCache = new Map(); // albumKeyLower -> Set(lowerKeywords)
+  const _alsoAppearsCache = new Map(); // cacheKey -> matched album objects array
+
+  function _normKey(s){ return String(s || "").trim().toLowerCase(); }
+
+  async function _getAlbumKeywordSet(albumKey){
+    const k = _normKey(albumKey);
+    if (!k) return new Set();
+    if (_albumKeywordsCache.has(k)) return _albumKeywordsCache.get(k);
+    const kws = await fetchAlbumKeywords(albumKey);
+    const set = new Set((kws || []).map((x) => _normKey(x)).filter(Boolean));
+    _albumKeywordsCache.set(k, set);
+    return set;
+  }
+
+  function _ensureAlsoAppearsModal(){
+    let backdrop = document.getElementById("kwAlsoAppearsBackdrop");
+    if (backdrop) return backdrop;
+
+    backdrop = document.createElement("div");
+    backdrop.id = "kwAlsoAppearsBackdrop";
+    backdrop.className = "kwModalBackdrop";
+
+    const modal = document.createElement("div");
+    modal.className = "kwModal";
+
+    const header = document.createElement("div");
+    header.className = "kwModalHeader";
+
+    const left = document.createElement("div");
+    const t1 = document.createElement("div");
+    t1.className = "t1";
+    t1.textContent = "Also appears in these albums:";
+    const t2 = document.createElement("div");
+    t2.className = "t2";
+    t2.textContent = "";
+    left.appendChild(t1);
+    left.appendChild(t2);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "kwModalClose";
+    closeBtn.textContent = "Close";
+
+    header.appendChild(left);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement("div");
+    body.className = "kwModalBody";
+    const hint = document.createElement("div");
+    hint.className = "kwModalHint";
+    hint.textContent = "";
+    const list = document.createElement("div");
+    list.className = "kwAlbumList";
+
+    body.appendChild(hint);
+    body.appendChild(list);
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+    backdrop.appendChild(modal);
+
+    // references
+    backdrop._t2 = t2;
+    backdrop._hint = hint;
+    backdrop._list = list;
+
+    function close(){
+      backdrop.classList.remove("open");
+      // keep scroll enabled
+      try { document.documentElement.style.overflow = ""; } catch(_) {}
+    }
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) close();
+    });
+
+    // escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && backdrop.classList.contains("open")) close();
+    });
+
+    document.body.appendChild(backdrop);
+    return backdrop;
+  }
+
+  function _openAlsoAppearsModal(keywordDisplay, opts){
+    const backdrop = _ensureAlsoAppearsModal();
+    const kwText = String(keywordDisplay || "").trim();
+    try { backdrop._t2.textContent = kwText || ""; } catch(_) {}
+    try { backdrop._hint.textContent = "Loading…"; } catch(_) {}
+    try { backdrop._list.innerHTML = ""; } catch(_) {}
+
+    backdrop.classList.add("open");
+    try { document.documentElement.style.overflow = "hidden"; } catch(_) {}
+
+    // async populate (do not await to keep UI snappy)
+    (async () => {
+      const keyword = _normKey(keywordDisplay);
+      const ctx = opts && typeof opts === "object" ? opts : {};
+      const allAlbums = Array.isArray(ctx.allAlbums) ? ctx.allAlbums : [];
+      const currentKey = _normKey(ctx.currentAlbumKey);
+
+      if (!keyword || !allAlbums.length) {
+        try { backdrop._hint.textContent = "No other albums available to search."; } catch(_) {}
+        return;
+      }
+
+      const cacheKey = `${_normKey(ctx.bandName)}::${keyword}`;
+      if (_alsoAppearsCache.has(cacheKey)) {
+        const cached = _alsoAppearsCache.get(cacheKey) || [];
+        _renderAlsoAppearsList(backdrop, cached, ctx);
+        return;
+      }
+
+      const matches = [];
+      for (const alb of allAlbums) {
+        const k = _normKey(alb?.AlbumKey || alb?.Key);
+        if (!k || (currentKey && k === currentKey)) continue;
+        const set = await _getAlbumKeywordSet(k);
+        if (set.has(keyword)) matches.push(alb);
+      }
+
+      _alsoAppearsCache.set(cacheKey, matches);
+      _renderAlsoAppearsList(backdrop, matches, ctx);
+    })().catch((err) => {
+      console.warn("also-appears lookup failed", err);
+      try { backdrop._hint.textContent = "Couldn’t load matches for this name."; } catch(_) {}
+    });
+  }
+
+  function _renderAlsoAppearsList(backdrop, matches, ctx){
+    const listEl = backdrop._list;
+    try { listEl.innerHTML = ""; } catch(_) {}
+
+    if (!matches || !matches.length) {
+      try { backdrop._hint.textContent = "No other albums found for this name."; } catch(_) {}
+      return;
+    }
+    try { backdrop._hint.textContent = "Click an album to open it."; } catch(_) {}
+
+    matches.forEach((alb) => {
+      const row = document.createElement("div");
+      row.className = "kwAlbumRow";
+
+      const left = document.createElement("div");
+      const nm = document.createElement("div");
+      nm.className = "name";
+      nm.textContent = String(alb?.Name || alb?.Title || "Album").trim() || "Album";
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      const when = String(alb?.Date || alb?.DateTime || alb?.LastUpdated || "").trim();
+      sub.textContent = when ? when : "";
+      left.appendChild(nm);
+      if (sub.textContent) left.appendChild(sub);
+
+      const go = document.createElement("div");
+      go.className = "go";
+      go.textContent = "Open →";
+
+      row.appendChild(left);
+      row.appendChild(go);
+
+      row.addEventListener("click", async () => {
+        // close modal first
+        backdrop.classList.remove("open");
+        try { document.documentElement.style.overflow = ""; } catch(_) {}
+        // open album inside the same flow
+        try {
+          await showAlbumPhotos({
+            region: ctx.region,
+            letter: ctx.letter,
+            band: ctx.bandObj,
+            album: alb,
+            nodeKey: (alb && (alb.NodeID || alb.NodeId || alb.NodeKey || alb.nodeKey)) || "",
+            folderPath: ctx.folderPath,
+            allAlbums: ctx.allAlbums,
+          });
+        } catch (e) {
+          console.warn("Failed to open album from also-appears modal", e);
+        }
+      });
+
+      listEl.appendChild(row);
+    });
+  }
+
       // normalize + dedupe (case-insensitive)
       const norm = ak
         .map((k) => String(k || "").trim())
@@ -2722,7 +3013,6 @@ const members = document.createElement("div");
             letter,
             band: bandObj,
             album: alb,
-            nodeKey: (alb && (alb.NodeID || alb.NodeId || alb.NodeKey || alb.nodeKey)) || "",
             folderPath,
           });
         });
@@ -2774,19 +3064,6 @@ const members = document.createElement("div");
     title.textContent = info.album?.Name || "Album";
 
     top.appendChild(backBtn);
-
-    // ===== Buy Photos (SmugMug Shop) =====
-    // NodeKey comes from the album object (passed in when the album card is clicked).
-    const nodeKey = info?.nodeKey || info?.album?.NodeID || info?.album?.NodeId || info?.album?.NodeKey || info?.album?.nodeKey || "";
-    if (nodeKey) {
-      const buyLink = document.createElement("a");
-      buyLink.className = "selectBtn buyPhotosBtn";
-      buyLink.textContent = "Buy Photos";
-      buyLink.href = `https://vmpix.smugmug.com/shop?nodeKey=${encodeURIComponent(nodeKey)}`;
-      buyLink.target = "_blank";
-      buyLink.rel = "noopener";
-      top.appendChild(buyLink);
-    }
 const grid = document.createElement("div");
     grid.className = "photosGrid";
 
@@ -2920,24 +3197,10 @@ const grid = document.createElement("div");
     });
 
     const buyBtn = document.createElement("a");
-    buyBtn.className = "selectBtn buyPhotosBtn";
+    buyBtn.className = "selectBtn";
     buyBtn.textContent = "Buy Photos";
+    buyBtn.href = "#"; // TODO: replace with SmugMug buy link
     buyBtn.target = "_blank";
-
-    // Wire to SmugMug Shop for THIS album.
-    // SmugMug uses a "nodeKey" (aka NodeID/NodeKey) for shop entry.
-    const shopNodeKey =
-      (info && (info.nodeKey || info.album?.NodeID || info.album?.NodeId || info.album?.NodeKey || info.album?.nodeKey)) || "";
-
-    if (shopNodeKey) {
-      buyBtn.href = `https://vmpix.smugmug.com/shop?nodeKey=${encodeURIComponent(shopNodeKey)}`;
-    } else {
-      // No nodeKey available → keep it inert/hidden rather than a broken "#"
-      buyBtn.href = "javascript:void(0)";
-      buyBtn.style.opacity = "0.55";
-      buyBtn.style.pointerEvents = "none";
-      buyBtn.title = "Shop link unavailable for this album.";
-    }
     toolbar.appendChild(buyBtn);
     toolbar.appendChild(selectToggle);
     toolbar.appendChild(dlZipBtn);
