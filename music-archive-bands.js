@@ -1753,6 +1753,33 @@ color: rgba(226,232,240,0.92);
       }
 
 
+  // normalize + dedupe (case-insensitive)
+      const norm = ak
+        .map((k) => String(k || "").trim())
+        .filter(Boolean);
+
+      const seen = new Set();
+      const out = [];
+      for (const k of norm) {
+        const key = k.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(k);
+      }
+      if (!out.length) {
+        console.warn("No album keywords returned for", albumKey, { hasKeywordArray: !!album.KeywordArray, hasKeywordsString: !!album.Keywords });
+      }
+      return out;
+    } catch (err) {
+      console.warn("fetchAlbumKeywords failed", albumKey, err);
+      return [];
+    }
+  }
+
+
+  
+  
+
   // ================== "Also appears in these albums" (Option A) ==================
   // Cache album keywords so we don't re-fetch for every click
   const _albumKeywordsCache = new Map(); // albumKeyLower -> Set(lowerKeywords)
@@ -1942,32 +1969,7 @@ color: rgba(226,232,240,0.92);
     });
   }
 
-      // normalize + dedupe (case-insensitive)
-      const norm = ak
-        .map((k) => String(k || "").trim())
-        .filter(Boolean);
-
-      const seen = new Set();
-      const out = [];
-      for (const k of norm) {
-        const key = k.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(k);
-      }
-      if (!out.length) {
-        console.warn("No album keywords returned for", albumKey, { hasKeywordArray: !!album.KeywordArray, hasKeywordsString: !!album.Keywords });
-      }
-      return out;
-    } catch (err) {
-      console.warn("fetchAlbumKeywords failed", albumKey, err);
-      return [];
-    }
-  }
-
-
-  
-  async function downloadZipFromServer(items, suggestedName){
+async function downloadZipFromServer(items, suggestedName){
     // items: [{ url, filename }]
     const name = (suggestedName || "photos").replace(/[^a-z0-9-_]+/gi, "-").slice(0, 80) || "photos";
     const endpoint = `${API_BASE}/zip`;
@@ -3013,7 +3015,9 @@ const members = document.createElement("div");
             letter,
             band: bandObj,
             album: alb,
+            nodeKey: (alb && (alb.NodeID || alb.NodeId || alb.NodeKey || alb.nodeKey)) || "",
             folderPath,
+            allAlbums: albums,
           });
         });
 
@@ -3232,11 +3236,30 @@ const grid = document.createElement("div");
       }
 
       list.forEach((kw) => {
-        const chip = document.createElement("span");
-        chip.className = "albumKeywordChip";
-        chip.textContent = prettyKeyword(kw);
-        kwChips.appendChild(chip);
-      });
+          const chip = document.createElement("span");
+          chip.className = "albumKeywordChip";
+          chip.textContent = prettyKeyword(kw);
+          chip.style.cursor = "pointer";
+          chip.title = "Click to see other albums for this name";
+          chip.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              _openAlsoAppearsModal(kw, {
+                bandName: info?.band?.name || info?.band?.Name || "",
+                region: info.region,
+                letter: info.letter,
+                bandObj: info.band,
+                folderPath: info.folderPath,
+                allAlbums: Array.isArray(info.allAlbums) ? info.allAlbums : [],
+                currentAlbumKey: albumKey,
+              });
+            } catch (err) {
+              console.warn("also-appears modal failed to open", err);
+            }
+          });
+          kwChips.appendChild(chip);
+        });
     }
     wrap.appendChild(grid);
     resultsEl.appendChild(wrap);
