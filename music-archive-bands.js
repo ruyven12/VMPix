@@ -63,6 +63,82 @@
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+
+      /* ===== Multi-select + ZIP download (album photos) ===== */
+      .selectToolbar{
+        width: 100%;
+        max-width: 1100px;
+        margin: 10px auto 0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 10px;
+        flex-wrap:wrap;
+      }
+      .selectBtn{
+        background: rgba(17,24,39,0.35);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 999px;
+        padding: 7px 14px;
+        cursor:pointer;
+        font-size: 12px;
+        color: rgba(226,232,240,0.92);
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+      }
+      .selectBtn:hover{ border-color: rgba(239,68,68,0.45); }
+      .selectBtn.primary{
+        border-color: rgba(239,68,68,0.55);
+      }
+      .selectHint{
+        font-size: 11px;
+        letter-spacing: .10em;
+        opacity: .72;
+        text-align:center;
+      }
+      .smug-photo-box.selected{
+        border-color: rgba(239,68,68,0.70);
+        box-shadow: 0 0 0 2px rgba(239,68,68,0.22), 0 14px 28px rgba(0,0,0,0.35);
+      }
+      .selectCheck{
+        position:absolute;
+        top:10px;
+        right:10px;
+        z-index:3;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size: 12px;
+        font-weight: 900;
+        background: rgba(0,0,0,0.55);
+        border: 1px solid rgba(255,255,255,0.16);
+        color: rgba(226,232,240,0.92);
+        backdrop-filter: blur(6px);
+        pointer-events:none;
+        opacity: 0;
+        transform: scale(0.92);
+        transition: opacity 140ms ease, transform 140ms ease, background 140ms ease, border-color 140ms ease;
+      }
+      .inSelectMode .smug-photo-box .selectCheck{ opacity: .92; transform: scale(1); }
+      .smug-photo-box.selected .selectCheck{
+        background: rgba(239,68,68,0.72);
+        border-color: rgba(239,68,68,0.85);
+      }
+      .zipStatus{
+        width:100%;
+        max-width:1100px;
+        margin: 8px auto 0;
+        text-align:center;
+        font-size: 12px;
+        opacity: .80;
+      }
+
+
       /* ===== Band detail view: hide letter groupings + status legend ===== */
       .inBandDetail #letter-groups{ display:none !important; }
       .inBandDetail #status-legend{ display:none !important; }
@@ -1589,6 +1665,32 @@ color: rgba(226,232,240,0.92);
   }
 
 
+  
+  async function downloadZipFromServer(items, suggestedName){
+    // items: [{ url, filename }]
+    const name = (suggestedName || "photos").replace(/[^a-z0-9-_]+/gi, "-").slice(0, 80) || "photos";
+    const endpoint = `${API_BASE}/zip`;
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items })
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`ZIP endpoint failed: ${res.status} ${t}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+
   // ================== LIGHTBOX (ported pattern) ==================
   let lightboxEl = null;
   let lightboxImg = null;
@@ -2650,6 +2752,7 @@ const members = document.createElement("div");
     backBtn.textContent = "← Back to albums";
     backBtn.addEventListener("click", () => {
       try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
+      try { document.body.classList.remove("inSelectMode"); } catch(_) {}
       showBandCard(info.region, info.letter, info.band);
     });
 
@@ -2681,6 +2784,123 @@ const grid = document.createElement("div");
     keywordBox.appendChild(kwLabel);
     keywordBox.appendChild(kwChips);
     wrap.appendChild(keywordBox);
+
+
+    // ===== Multi-select toolbar (Select mode + Download ZIP) =====
+    let selectMode = false;
+    const selected = new Set(); // stores indices as strings
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "selectToolbar";
+
+    const selectToggle = document.createElement("button");
+    selectToggle.className = "selectBtn";
+    selectToggle.type = "button";
+    selectToggle.textContent = "Select photos";
+
+    const dlZipBtn = document.createElement("button");
+    dlZipBtn.className = "selectBtn primary";
+    dlZipBtn.type = "button";
+    dlZipBtn.textContent = "Download ZIP (0)";
+    dlZipBtn.style.display = "none";
+
+    const clearBtn = document.createElement("button");
+    clearBtn.className = "selectBtn";
+    clearBtn.type = "button";
+    clearBtn.textContent = "Clear";
+    clearBtn.style.display = "none";
+
+    const hint = document.createElement("div");
+    hint.className = "selectHint";
+    hint.textContent = "Tip: In Select mode, click thumbnails to add/remove.";
+
+    const statusLine = document.createElement("div");
+    statusLine.className = "zipStatus";
+    statusLine.textContent = "";
+
+    function updateSelectUI(){
+      const n = selected.size;
+      dlZipBtn.textContent = `Download ZIP (${n})`;
+      dlZipBtn.style.display = selectMode ? "inline-flex" : "none";
+      clearBtn.style.display = (selectMode && n) ? "inline-flex" : "none";
+      hint.style.display = selectMode ? "block" : "none";
+
+      try {
+        if (selectMode) document.body.classList.add("inSelectMode");
+        else document.body.classList.remove("inSelectMode");
+      } catch(_) {}
+    }
+
+    selectToggle.addEventListener("click", () => {
+      selectMode = !selectMode;
+      if (!selectMode) selected.clear();
+      statusLine.textContent = "";
+      selectToggle.textContent = selectMode ? "Done selecting" : "Select photos";
+      updateSelectUI();
+      try {
+        const tiles = grid.querySelectorAll(".smug-photo-box");
+        tiles.forEach((t) => {
+          const k = t.dataset.index || "";
+          t.classList.toggle("selected", selectMode && selected.has(k));
+        });
+      } catch(_) {}
+    });
+
+    clearBtn.addEventListener("click", () => {
+      selected.clear();
+      statusLine.textContent = "";
+      updateSelectUI();
+      try {
+        const tiles = grid.querySelectorAll(".smug-photo-box.selected");
+        tiles.forEach((t) => t.classList.remove("selected"));
+      } catch(_) {}
+    });
+
+    dlZipBtn.addEventListener("click", async () => {
+      const n = selected.size;
+      if (!n) return;
+
+      const items = [];
+      const idxs = Array.from(selected).map((s) => Number(s)).filter((x) => Number.isFinite(x)).sort((a,b)=>a-b);
+      idxs.forEach((i) => {
+        const it = imgs[i];
+        if (!it) return;
+        const url = bestFullUrl(it);
+        if (!url) return;
+        const filename = String(it?.FileName || `photo-${i+1}.jpg`).trim() || `photo-${i+1}.jpg`;
+        items.push({ url, filename });
+      });
+
+      if (!items.length) {
+        statusLine.textContent = "No downloadable URLs found for the selected photos.";
+        return;
+      }
+
+      dlZipBtn.disabled = true;
+      clearBtn.disabled = true;
+      selectToggle.disabled = true;
+      statusLine.textContent = `Preparing ZIP for ${items.length} photo(s)…`;
+
+      try {
+        const albumName = (info?.album?.Name || info?.album?.Title || "album").trim();
+        await downloadZipFromServer(items, albumName);
+        statusLine.textContent = `ZIP download started (${items.length} photo(s)).`;
+      } catch (e) {
+        console.warn(e);
+        statusLine.textContent = "ZIP download failed. (This requires a server /zip endpoint.)";
+      } finally {
+        dlZipBtn.disabled = false;
+        clearBtn.disabled = false;
+        selectToggle.disabled = false;
+      }
+    });
+
+    toolbar.appendChild(selectToggle);
+    toolbar.appendChild(dlZipBtn);
+    toolbar.appendChild(clearBtn);
+    toolbar.appendChild(hint);
+    wrap.appendChild(toolbar);
+    wrap.appendChild(statusLine);
 
     function prettyKeyword(s) {
       const t = String(s || "").trim();
@@ -2755,6 +2975,12 @@ const grid = document.createElement("div");
       badge.textContent = `#${idx + 1}`;
       box.appendChild(badge);
 
+      // selection check (visible in Select mode)
+      const chk = document.createElement("div");
+      chk.className = "selectCheck";
+      chk.textContent = "✓";
+      box.appendChild(chk);
+
       // hover meta (filename + hint)
       const meta = document.createElement("div");
       meta.className = "photoHoverMeta";
@@ -2786,10 +3012,19 @@ const grid = document.createElement("div");
       box.appendChild(im);
 
       box.addEventListener("click", () => {
-        openLightbox(imgs, idx, info && info._lightboxContext ? info._lightboxContext : { band: (info?.band?.name || ''), album: (info?.album?.Name || info?.album?.Title || ''), show: (info?.album?.Name || info?.album?.Title || '') });
-      });
+        // In Select mode, toggle selection instead of opening the lightbox
+        if (selectMode) {
+          const key = String(idx);
+          if (selected.has(key)) selected.delete(key);
+          else selected.add(key);
 
-      grid.appendChild(box);
+          box.classList.toggle("selected", selected.has(key));
+          updateSelectUI();
+          return;
+        }
+
+        openLightbox(imgs, idx, info && info._lightboxContext ? info._lightboxContext : { band: (info?.band?.name || ''), album: (info?.album?.Name || info?.album?.Title || ''), show: (info?.album?.Name || info?.album?.Title || '') });
+      });grid.appendChild(box);
     });
   }
 
