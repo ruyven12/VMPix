@@ -2722,7 +2722,7 @@ const members = document.createElement("div");
             letter,
             band: bandObj,
             album: alb,
-            nodeKey: (alb && (alb.NodeID || alb.NodeId || alb.NodeKey || alb.nodeKey)) || "",
+            nodeKey: (alb && (alb.NodeKey || alb.nodeKey)) || "",
             folderPath,
           });
         });
@@ -2777,7 +2777,7 @@ const members = document.createElement("div");
 
     // ===== Buy Photos (SmugMug Shop) =====
     // NodeKey comes from the album object (passed in when the album card is clicked).
-    const nodeKey = info?.nodeKey || info?.album?.NodeID || info?.album?.NodeId || info?.album?.NodeKey || info?.album?.nodeKey || "";
+    const nodeKey = info?.nodeKey || info?.album?.NodeKey || info?.album?.nodeKey || "";
     if (nodeKey) {
       const buyLink = document.createElement("a");
       buyLink.className = "selectBtn buyPhotosBtn";
@@ -2920,24 +2920,10 @@ const grid = document.createElement("div");
     });
 
     const buyBtn = document.createElement("a");
-    buyBtn.className = "selectBtn buyPhotosBtn";
+    buyBtn.className = "selectBtn";
     buyBtn.textContent = "Buy Photos";
+    buyBtn.href = "#"; // TODO: replace with SmugMug buy link
     buyBtn.target = "_blank";
-
-    // Wire to SmugMug Shop for THIS album.
-    // SmugMug uses a "nodeKey" (aka NodeID/NodeKey) for shop entry.
-    const shopNodeKey =
-      (info && (info.nodeKey || info.album?.NodeID || info.album?.NodeId || info.album?.NodeKey || info.album?.nodeKey)) || "";
-
-    if (shopNodeKey) {
-      buyBtn.href = `https://vmpix.smugmug.com/shop?nodeKey=${encodeURIComponent(shopNodeKey)}`;
-    } else {
-      // No nodeKey available → keep it inert/hidden rather than a broken "#"
-      buyBtn.href = "javascript:void(0)";
-      buyBtn.style.opacity = "0.55";
-      buyBtn.style.pointerEvents = "none";
-      buyBtn.title = "Shop link unavailable for this album.";
-    }
     toolbar.appendChild(buyBtn);
     toolbar.appendChild(selectToggle);
     toolbar.appendChild(dlZipBtn);
