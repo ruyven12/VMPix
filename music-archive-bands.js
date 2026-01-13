@@ -619,6 +619,24 @@ color: rgba(226,232,240,0.92);
         opacity: .70;
         white-space: nowrap;
       }
+
+      .lightboxDownloadBtn{
+        background: rgba(17,24,39,0.35);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 999px;
+        padding: 6px 12px;
+        cursor:pointer;
+        font-size: 12px;
+        color: rgba(226,232,240,0.92);
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+      }
+      .lightboxDownloadBtn:hover{
+        border-color: rgba(239,68,68,0.45);
+      }
+
       .lightboxCloseBtn{
         background: rgba(17,24,39,0.35);
         border: 1px solid rgba(148,163,184,0.25);
@@ -1647,6 +1665,17 @@ color: rgba(226,232,240,0.92);
     counter.className = "lightboxCounter";
     counter.textContent = "";
 
+    const dlBtn = document.createElement("a");
+    dlBtn.className = "lightboxDownloadBtn";
+    dlBtn.textContent = "Download ⭳";
+    dlBtn.href = "#";
+    dlBtn.target = "_blank";
+    dlBtn.rel = "noopener";
+    dlBtn.addEventListener("click", (e) => {
+      // Best-effort: some browsers block download attribute for cross-origin; opening in new tab still works.
+      if (dlBtn.href === "#") { e.preventDefault(); return; }
+    });
+
     const closeBtn = document.createElement("button");
     closeBtn.className = "lightboxCloseBtn";
     closeBtn.textContent = "Close ✕";
@@ -1654,6 +1683,7 @@ color: rgba(226,232,240,0.92);
 
     topbar.appendChild(titleBox);
     topbar.appendChild(counter);
+    topbar.appendChild(dlBtn);
     topbar.appendChild(closeBtn);
 
     // Stage
@@ -1711,6 +1741,7 @@ color: rgba(226,232,240,0.92);
     lightboxEl._onKey = onKey;
     lightboxEl._line1 = line1;
     lightboxEl._counter = counter;
+    lightboxEl._dlBtn = dlBtn;
     lightboxEl._strip = strip;
   }
 
@@ -1746,6 +1777,18 @@ color: rgba(226,232,240,0.92);
     try { lightboxImg.style.opacity = "0"; } catch(_) {}
 
     const url = bestFullUrl(img);
+
+    // Update Download button for current image (best effort)
+    try {
+      const dl = lightboxEl && lightboxEl._dlBtn;
+      if (dl) {
+        const fn2 = String(img?.FileName || `photo-${idx+1}.jpg`).trim() || `photo-${idx+1}.jpg`;
+        dl.href = url || "#";
+        dl.setAttribute("download", fn2);
+        dl.style.pointerEvents = url ? "auto" : "none";
+        dl.style.opacity = url ? "1" : "0.55";
+      }
+    } catch(_) {}
     lightboxImg.onload = () => {
       try { lightboxImg.style.opacity = "1"; } catch(_) {}
     };
