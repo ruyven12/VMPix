@@ -262,36 +262,50 @@ color: rgba(226,232,240,0.92);
     padding: 16px;
   }
   .alsoModal{
+    font-family: "Orbitron", system-ui, sans-serif;
     width: min(720px, 96vw);
     max-height: min(520px, 80vh);
     overflow: auto;
     border-radius: 14px;
-    background: rgba(18, 31, 54, 0.92);
+    background: rgba(55, 0, 0, 0.92);
     border: 1px solid rgba(255,255,255,0.10);
     box-shadow: 0 18px 60px rgba(0,0,0,0.55);
     padding: 14px 14px 12px;
     backdrop-filter: blur(10px);
   }
   .alsoModalHeader{
+    position: relative;
     display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
+    align-items:center;
+    justify-content:center;
     gap: 10px;
     margin-bottom: 10px;
+    text-align: center;
+    padding: 0 72px 0 72px; /* space for Close button */
+  }
+  .alsoModalHeader > div{
+    flex: 1;
+    min-width: 0;
+    text-align: center;
   }
   .alsoModalTitle{
+    font-family: "Orbitron", system-ui, sans-serif;
     font-size: 12px;
     letter-spacing: 0.12em;
     opacity: 0.85;
-    text-transform: uppercase;
+    text-transform: none;
     margin-bottom: 6px;
   }
   .alsoModalName{
+    font-family: "Orbitron", system-ui, sans-serif;
     font-size: 16px;
     font-weight: 700;
     line-height: 1.2;
   }
   .alsoModalClose{
+    position: absolute;
+    right: 0;
+    top: 0;
     border: 1px solid rgba(255,255,255,0.20);
     background: rgba(0,0,0,0.18);
     color: rgba(255,255,255,0.92);
@@ -1829,8 +1843,8 @@ color: rgba(226,232,240,0.92);
       <div class="alsoModal" role="dialog" aria-modal="true">
         <div class="alsoModalHeader">
           <div>
-            <div class="alsoModalTitle">Also appears in these albums:</div>
             <div class="alsoModalName" id="alsoModalName">—</div>
+            <div class="alsoModalTitle">Also appears in these albums:</div>
           </div>
           <button class="alsoModalClose" id="alsoModalClose">Close</button>
         </div>
