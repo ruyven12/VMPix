@@ -276,22 +276,12 @@
         border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.08);
         background: rgba(15, 23, 42, 0.22);
-        cursor: pointer;
         transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
       .waMatchBox:hover{
         background: rgba(30, 41, 59, 0.35);
         border-color: rgba(255,255,255,0.14);
         transform: translateY(-1px);
-      }
-      .waMatchBox:focus-visible{
-        outline: 2px solid rgba(200,0,0,0.55);
-        outline-offset: 2px;
-      }
-      .waMatchBox:focus-visible{
-        outline: none;
-        border-color: rgba(200,0,0,0.55);
-        box-shadow: 0 0 0 2px rgba(200,0,0,0.22);
       }
       .waMatchHead{
         font-weight: 900;
@@ -324,12 +314,452 @@
         border: 1px solid rgba(56, 189, 248, 0.22);
         color: rgba(185, 230, 255, 0.92);
       }
-    `;
+    
+      .waMatchClickable{
+        cursor: pointer;
+      }
+      .waMatchClickable:hover{
+        border-color: rgba(255,255,255,0.22) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+      }
+      .waMatchSubHint{
+        margin-top: 6px;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 10px;
+        opacity: 0.55;
+      }
+`;
     document.head.appendChild(s);
   }
 
 
   // ================== CSV PARSER ==================
+
+  // ================== MATCH ALBUM VIEW (SmugMug thumbnails like Music) ==================
+  function ensureMatchAlbumStyles() {
+    if (document.getElementById("waMatchAlbumStyles")) return;
+    const s = document.createElement("style");
+    s.id = "waMatchAlbumStyles";
+    s.textContent = `
+      .waAlbumWrap{
+        width: 100%;
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 8px 10px 18px;
+      }
+      .waBackRow{
+        width: 100%;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        margin: 6px 0 10px;
+        opacity: 0.9;
+      }
+      .waBackRow a{
+        color: rgba(255,255,255,0.80);
+        text-decoration:none;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+      .waBackRow a:hover{ text-decoration: underline; }
+
+      .waAlbumHeader{
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto 10px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.22);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        text-align:center;
+      }
+      .waAlbumHeader .waAlbumTitle{
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 14px;
+        opacity: 0.92;
+      }
+      .waAlbumHeader .waAlbumSub{
+        margin-top: 4px;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 11px;
+        opacity: 0.65;
+      }
+      .waAlbumToolbar{
+        width: 100%;
+        max-width: 980px;
+        margin: 8px auto 10px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .waMiniBtn{
+        font-family: "Orbitron", system-ui, sans-serif;
+        background: rgba(17,24,39,0.35);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 999px;
+        padding: 7px 14px;
+        cursor:pointer;
+        color: rgba(255,255,255,0.88);
+        font-size: 12px;
+        text-decoration:none;
+        user-select:none;
+      }
+      .waMiniBtn:hover{
+        background: rgba(17,24,39,0.55);
+      }
+      .waAlbumHint{
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 11px;
+        opacity: 0.60;
+      }
+
+      .waPhotoGrid{
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      }
+      .waPhotoBox{
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(0,0,0,0.25);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        cursor: pointer;
+      }
+      .waPhotoBox img{
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        display:block;
+        filter: saturate(1.05) contrast(1.04);
+        transform: scale(1.01);
+      }
+      .waIdxBadge{
+        position:absolute;
+        top: 7px;
+        left: 7px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 11px;
+        background: rgba(0,0,0,0.55);
+        border: 1px solid rgba(255,255,255,0.18);
+        opacity: 0.95;
+      }
+
+      @media (max-width: 520px){
+        .waPhotoGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .waPhotoBox img{ height: 150px; }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function trimSlashes(s){
+    return String(s || "").replace(/^\/+/, "").replace(/\/+$/, "");
+  }
+  function trimTrailingSlash(s){ return String(s || "").replace(/\/+$/, ""); }
+  function isAbsUrl(s){ return /^https?:\/\//i.test(String(s||"").trim()); }
+
+  function buildAbsoluteMatchUrl(showUrl, partUrl){
+    const su = String(showUrl || "").trim();
+    const pu = String(partUrl || "").trim();
+    if (!pu) return "";
+    if (isAbsUrl(pu)) return pu;
+    if (!su) return pu; // best effort
+    return `${trimTrailingSlash(su)}/${trimSlashes(pu)}`;
+  }
+
+  // Best-effort: attempt several backend endpoints to resolve an AlbumKey from a SmugMug album URL.
+  async function resolveAlbumKeyFromUrl(albumUrl){
+    const u = String(albumUrl || "").trim();
+    if (!u) return "";
+    const candidates = [
+      `${API_BASE}/smug/resolve-album?url=${encodeURIComponent(u)}`,
+      `${API_BASE}/smug/album-by-url?url=${encodeURIComponent(u)}`,
+      `${API_BASE}/smug/album-from-url?url=${encodeURIComponent(u)}`,
+      `${API_BASE}/smug/albumkey?url=${encodeURIComponent(u)}`,
+      `${API_BASE}/smug/resolve?url=${encodeURIComponent(u)}`,
+    ];
+
+    for (const ep of candidates) {
+      try {
+        const r = await fetch(ep, { cache: "no-store" });
+        if (!r.ok) continue;
+        const j = await r.json().catch(()=>null);
+        const key =
+          String(j?.AlbumKey || j?.albumKey || j?.Key || j?.key || "").trim() ||
+          String(j?.Response?.Album?.AlbumKey || j?.Response?.Album?.Key || "").trim() ||
+          String(j?.Response?.AlbumKey || "").trim();
+        if (key) return key;
+      } catch(_) {}
+    }
+    return "";
+  }
+
+  // Pull album images by AlbumKey (same paging pattern as Music side)
+  async function fetchAllAlbumImagesByKey(albumKey){
+    const key = String(albumKey || "").trim();
+    if (!key) return [];
+    const all = [];
+    let start = 1;
+    let more = true;
+
+    while (more) {
+      const ep = `${API_BASE}/smug/album-images/${encodeURIComponent(key)}?count=200&start=${start}`;
+      const res = await fetch(ep, { cache: "no-store" });
+      if (!res.ok) break;
+
+      const data = await res.json().catch(()=>null);
+      const resp = (data && data.Response) || {};
+
+      let imgs = [];
+      if (Array.isArray(resp.AlbumImage)) imgs = resp.AlbumImage;
+      else if (resp.AlbumImage) imgs = [resp.AlbumImage];
+      else if (Array.isArray(resp.Images)) imgs = resp.Images;
+      else if (resp.Images) imgs = [resp.Images];
+
+      imgs = (imgs || []).filter(Boolean);
+      all.push(...imgs);
+
+      const pages = resp.Pages || {};
+      const total = Number(pages.Total) || 0;
+      const perPage = Number(pages.Count) || 200;
+      const gotSoFar = start - 1 + imgs.length;
+
+      if (!total || gotSoFar >= total || imgs.length === 0) more = false;
+      else start += perPage;
+    }
+    return all;
+  }
+
+  // Best full URL picker (matches Music-side behavior)
+  function bestFullUrl(img){
+    return (
+      img?.X3LargeUrl ||
+      img?.X2LargeUrl ||
+      img?.XLargeUrl ||
+      img?.LargestUrl ||
+      img?.HugeUrl ||
+      img?.LargeUrl ||
+      img?.MediumUrl ||
+      img?.SmallUrl ||
+      img?.ThumbnailUrl ||
+      img?.ArchivedUri ||
+      img?.Url ||
+      ""
+    );
+  }
+
+  // Try to load images for an album URL:
+  // 1) backend may support url-based image endpoint
+  // 2) otherwise resolve AlbumKey then load by key
+  async function fetchAlbumImagesFromUrl(albumUrl){
+    const u = String(albumUrl || "").trim();
+    if (!u) return [];
+
+    const urlEndpoints = [
+      `${API_BASE}/smug/album-images-by-url?url=${encodeURIComponent(u)}`,
+      `${API_BASE}/smug/images-by-url?url=${encodeURIComponent(u)}`,
+    ];
+
+    for (const ep of urlEndpoints) {
+      try {
+        const r = await fetch(ep, { cache: "no-store" });
+        if (!r.ok) continue;
+        const j = await r.json().catch(()=>null);
+        const resp = (j && j.Response) || j || {};
+        let imgs = [];
+        if (Array.isArray(resp.AlbumImage)) imgs = resp.AlbumImage;
+        else if (resp.AlbumImage) imgs = [resp.AlbumImage];
+        else if (Array.isArray(resp.Images)) imgs = resp.Images;
+        else if (resp.Images) imgs = [resp.Images];
+        imgs = (imgs || []).filter(Boolean);
+        if (imgs.length) return imgs;
+      } catch(_) {}
+    }
+
+    const key = await resolveAlbumKeyFromUrl(u);
+    if (!key) return [];
+    return await fetchAllAlbumImagesByKey(key);
+  }
+
+  async function showMatchAlbumDetail(showRow, year, matchIndex) {
+    if (!showRow) return;
+    ensureShowsStyles();
+    ensureMatchAlbumStyles();
+
+    const resultsEl = getResultsEl();
+    if (!resultsEl) return;
+
+    const showName = String(showRow?.show_name || showRow?.name || showRow?.Show || showRow?.show || "").trim();
+    const showUrl = String(showRow?.show_url || showRow?.url || "").trim();
+
+    // Reuse the same match-field logic (so match-1_* / match_1_* / part_1_* all work)
+    const partUrl = (function(){
+      const i = Number(matchIndex) || 1;
+      const dash = `match-${i}`;
+      const under = `match_${i}`;
+      const legacy = `part_${i}`;
+      const pick = (keys) => {
+        for (const k of keys) {
+          const v = (showRow && Object.prototype.hasOwnProperty.call(showRow, k)) ? showRow[k] : undefined;
+          if (v != null && String(v).trim() !== "") return String(v).trim();
+        }
+        return "";
+      };
+      return pick([`${dash}_url`, `${under}_url`, `${dash}url`, `${under}url`, `${legacy}_url`]);
+    })();
+
+    const matchTitle = (function(){
+      const i = Number(matchIndex) || 1;
+      const dash = `match-${i}`;
+      const under = `match_${i}`;
+      const legacy = `part_${i}`;
+      const pick = (keys) => {
+        for (const k of keys) {
+          const v = (showRow && Object.prototype.hasOwnProperty.call(showRow, k)) ? showRow[k] : undefined;
+          if (v != null && String(v).trim() !== "") return String(v).trim();
+        }
+        return "";
+      };
+      return pick([`${dash}_stip`,`${under}_stip`,`${legacy}_stip`,`${dash}_title`,`${under}_title`,`${legacy}_title`]);
+    })();
+
+    const albumUrl = buildAbsoluteMatchUrl(showUrl, partUrl);
+
+    // Clear + render
+    resultsEl.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "waAlbumWrap";
+
+    const backRow = document.createElement("div");
+    backRow.className = "waBackRow";
+    const backLink = document.createElement("a");
+    backLink.href = "#";
+    backLink.textContent = "← Back to show";
+    backLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      showShowDetail(showRow, year);
+    });
+    backRow.appendChild(backLink);
+    wrap.appendChild(backRow);
+
+    const hdr = document.createElement("div");
+    hdr.className = "waAlbumHeader";
+    const titleEl = document.createElement("div");
+    titleEl.className = "waAlbumTitle";
+    titleEl.textContent = matchTitle ? matchTitle : `Match ${matchIndex}`;
+    const subEl = document.createElement("div");
+    subEl.className = "waAlbumSub";
+    subEl.textContent = showName ? showName : "Match Album";
+    hdr.appendChild(titleEl);
+    hdr.appendChild(subEl);
+    wrap.appendChild(hdr);
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "waAlbumToolbar";
+
+    const openBtn = document.createElement("a");
+    openBtn.className = "waMiniBtn";
+    openBtn.textContent = "Open album on SmugMug";
+    openBtn.href = albumUrl || "#";
+    openBtn.target = "_blank";
+    openBtn.rel = "noopener";
+    openBtn.style.pointerEvents = albumUrl ? "auto" : "none";
+    openBtn.style.opacity = albumUrl ? "1" : "0.55";
+    toolbar.appendChild(openBtn);
+
+    const hint = document.createElement("div");
+    hint.className = "waAlbumHint";
+    hint.textContent = "Tip: click a thumbnail to open the full image in a new tab.";
+    toolbar.appendChild(hint);
+    wrap.appendChild(toolbar);
+
+    const grid = document.createElement("div");
+    grid.className = "waPhotoGrid";
+    wrap.appendChild(grid);
+
+    resultsEl.appendChild(wrap);
+    resetPanelScroll();
+
+    if (!albumUrl) {
+      const msg = document.createElement("div");
+      msg.style.opacity = "0.75";
+      msg.style.textAlign = "center";
+      msg.style.padding = "20px 10px";
+      msg.textContent = "No match album URL found for this entry yet.";
+      grid.appendChild(msg);
+      return;
+    }
+
+    const loading = document.createElement("div");
+    loading.style.opacity = "0.75";
+    loading.style.textAlign = "center";
+    loading.style.padding = "20px 10px";
+    loading.textContent = "Loading album photos…";
+    grid.appendChild(loading);
+
+    let imgs = [];
+    try {
+      imgs = await fetchAlbumImagesFromUrl(albumUrl);
+    } catch (err) {
+      console.warn("fetchAlbumImagesFromUrl failed", err);
+      imgs = [];
+    }
+
+    grid.innerHTML = "";
+
+    if (!imgs || !imgs.length) {
+      const msg = document.createElement("div");
+      msg.style.opacity = "0.75";
+      msg.style.textAlign = "center";
+      msg.style.padding = "20px 10px";
+      msg.textContent = "Could not load photos for this match yet.";
+      grid.appendChild(msg);
+      return;
+    }
+
+    imgs.forEach((img, idx) => {
+      const box = document.createElement("div");
+      box.className = "waPhotoBox";
+
+      const badge = document.createElement("div");
+      badge.className = "waIdxBadge";
+      badge.textContent = `#${idx + 1}`;
+      box.appendChild(badge);
+
+      const im = document.createElement("img");
+      im.loading = "lazy";
+      im.alt = String(img?.FileName || `Photo ${idx + 1}`);
+      im.src =
+        img?.ThumbnailUrl ||
+        img?.SmallUrl ||
+        img?.MediumUrl ||
+        img?.LargeUrl ||
+        bestFullUrl(img);
+
+      box.appendChild(im);
+
+      box.addEventListener("click", () => {
+        const url = bestFullUrl(img);
+        if (!url) return;
+        window.open(url, "_blank", "noopener");
+      });
+
+      grid.appendChild(box);
+    });
+  }
+
+
   function parseCsvLine(line) {
     const out = [];
     let cur = "";
@@ -696,13 +1126,14 @@
     matchesWrap.className = "waMatchesWrap";
     wrap.appendChild(matchesWrap);
 
-    renderMatchesInto(matchesWrap, row);
+    renderMatchesInto(matchesWrap, row, year);
 
     resultsEl.appendChild(wrap);
     resetPanelScroll();
   }
 
-  function renderMatchesInto(containerEl, row) {
+
+  function renderMatchesInto(containerEl, row, year) {
     if (!containerEl) return;
 
     let any = false;
@@ -719,42 +1150,22 @@
     }
 
     function getMatchField(obj, i, field) {
-      const n = Number(i);
-      const dash = `match-${n}`;
-      const under = `match_${n}`;
-      const legacy = `part_${n}`;
+      const n = Number(i) || 1;
+      const dash = `match-${n}_${field}`;
+      const under = `match_${n}_${field}`;
+      const legacy = `part_${n}_${field}`;
 
-      // Support a few common header variants:
-      //   match-1_type, match_1_type, match-1-type, match_1-type
-      //   legacy part_1_* fields
-      const suffixes = [
-        `_${field}`,
-        `-${field}`,
-      ];
-
+      // Some sheets may use just match-1 or match_1 for the people line.
       const keys = [];
-      for (const suf of suffixes) {
-        keys.push(`${dash}${suf}`);
-        keys.push(`${under}${suf}`);
+      if (field === "people") {
+        keys.push(`match-${n}`);
+        keys.push(`match_${n}`);
       }
-      keys.push(`${legacy}_${field}`);
+      keys.push(dash, under, `match-${n}${field}`, `match_${n}${field}`, legacy);
       return pickFirst(obj, keys);
     }
 
-    // Resolve a sheet "url" cell into a real SmugMug URL.
-    // If the cell is relative (e.g., "Match-1"), we join it to row.show_url when available.
-    function resolveMatchUrl(urlCell, showRow) {
-      const raw = String(urlCell || "").trim();
-      if (!raw) return "";
-      if (/^https?:\/\//i.test(raw)) return raw;
-      if (raw.startsWith("/")) {
-        const origin = (window.location && window.location.origin) ? window.location.origin : "";
-        return origin ? (origin.replace(/\/$/, "") + raw) : raw;
-      }
-      const base = String(showRow?.show_url || showRow?.showUrl || showRow?.show || "").trim();
-      if (base) return base.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
-      return raw;
-    }
+    const showUrl = String(row?.show_url || row?.url || "").trim();
 
     for (let i = 1; i <= 10; i++) {
       const matchId = `match-${i}`;
@@ -762,8 +1173,7 @@
       const stip = getMatchField(row, i, "stip");
       const partTitle = getMatchField(row, i, "title");
       const people = getMatchField(row, i, "people");
-      const urlCell = getMatchField(row, i, "url");
-      const matchUrl = resolveMatchUrl(urlCell, row);
+      const partUrl = getMatchField(row, i, "url");
 
       if (!type && !stip && !partTitle && !people) continue;
       any = true;
@@ -771,15 +1181,24 @@
       const box = document.createElement("div");
       box.className = "waMatchBox";
       box.dataset.matchId = matchId;
-      if (matchUrl) box.dataset.matchUrl = matchUrl;
-      box.setAttribute("role", "button");
-      box.setAttribute("tabindex", "0");
-      box.title = matchUrl ? "Open match album" : "";
 
-      const typeNorm = type.toLowerCase();
+      const absMatchUrl = buildAbsoluteMatchUrl(showUrl, partUrl);
+      if (absMatchUrl) {
+        box.classList.add("waMatchClickable");
+        box.setAttribute("role", "button");
+        box.setAttribute("tabindex", "0");
+        box.title = "Open match album";
+        const go = () => showMatchAlbumDetail(row, year, i);
+        box.addEventListener("click", go);
+        box.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            go();
+          }
+        });
+      }
 
-      // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
-      const headerLabel = buildMatchHeader({ type, stip, partTitle });
+      const typeNorm = String(type || "").toLowerCase();
 
       // Badges
       if (typeNorm.includes("championship")) {
@@ -796,6 +1215,12 @@
 
       const head = document.createElement("div");
       head.className = "waMatchHead";
+
+      let headerLabel = "";
+      if (partTitle) headerLabel = `${partTitle} Match`;
+      else if (stip) headerLabel = `${stip} Match`;
+      else headerLabel = type || "Match";
+
       head.textContent = headerLabel;
       box.appendChild(head);
 
@@ -806,91 +1231,28 @@
         box.appendChild(body);
       }
 
-      containerEl.appendChild(box);
-
-      // Click / keyboard: open the match album URL (when provided).
-      if (matchUrl) {
-        const go = () => {
-          try { window.location.href = matchUrl; } catch (_) {}
-        };
-        box.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          go();
-        });
-        box.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            e.stopPropagation();
-            go();
-          }
-        });
+      // subtle "opens album" hint (only when we have a URL)
+      if (absMatchUrl) {
+        const hint = document.createElement("div");
+        hint.className = "waMatchSubHint";
+        hint.textContent = "Tap to open album";
+        box.appendChild(hint);
       }
+
+      containerEl.appendChild(box);
     }
 
     if (!any) {
       const none = document.createElement("div");
       none.textContent = "No match info yet.";
-      none.style.opacity = "0.8";
+      none.style.opacity = "0.75";
       none.style.textAlign = "center";
-      none.style.padding = "10px 0";
+      none.style.padding = "14px 6px";
       containerEl.appendChild(none);
     }
   }
 
-  function buildMatchHeader({ type, stip, partTitle }) {
-    const t = String(type || "").trim();
-    const s = String(stip || "").trim();
-    const p = String(partTitle || "").trim();
 
-    const isSeg = (v) => {
-      const n = String(v || "").trim().toLowerCase();
-      return (
-        n === "promo" ||
-        n === "segment" ||
-        n === "backstage" ||
-        n === "interview" ||
-        n === "angle" ||
-        n === "vignette" ||
-        n.includes("promo") ||
-        n.includes("segment")
-      );
-    };
-
-    const hasMatchWord = (v) => /\bmatch\b/i.test(String(v || ""));
-    const hasVsWord = (v) => /\bvs\.?\b/i.test(String(v || ""));
-
-    // Prefer a custom title if provided.
-    if (p) {
-      // If it's a segment/promo, never append "Match".
-      if (isSeg(t)) return p;
-      // If it already contains match language, keep it as-is.
-      if (hasMatchWord(p) || hasVsWord(p)) return p;
-      return `${p} Match`;
-    }
-
-    // Next preference: stipulation
-    if (s) {
-      if (isSeg(t)) return s;
-      if (hasMatchWord(s) || hasVsWord(s)) return s;
-      return `${s} Match`;
-    }
-
-    // Fallback: type
-    if (t) {
-      if (isSeg(t)) return t;
-      if (hasMatchWord(t)) return t;
-      return `${t} Match`;
-    }
-
-    return "Match";
-  }
-
-  function escapeHtml(s) {
-    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
-    }[c]));
-  }
 
 function renderYearBubbles(years) {
     const row = getYearGroupsEl();
