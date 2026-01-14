@@ -711,6 +711,9 @@
 
       const typeNorm = type.toLowerCase();
 
+      // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
+      const headerLabel = buildMatchHeader({ type, stip, partTitle });
+
       // Badges
       if (typeNorm.includes("championship")) {
         const badge = document.createElement("div");
@@ -726,12 +729,6 @@
 
       const head = document.createElement("div");
       head.className = "waMatchHead";
-
-      let headerLabel = "";
-      if (partTitle) headerLabel = `${partTitle} Match`;
-      else if (stip) headerLabel = `${stip} Match`;
-      else headerLabel = type || "Match";
-
       head.textContent = headerLabel;
       box.appendChild(head);
 
@@ -753,6 +750,54 @@
       none.style.padding = "10px 0";
       containerEl.appendChild(none);
     }
+  }
+
+  function buildMatchHeader({ type, stip, partTitle }) {
+    const t = String(type || "").trim();
+    const s = String(stip || "").trim();
+    const p = String(partTitle || "").trim();
+
+    const isSeg = (v) => {
+      const n = String(v || "").trim().toLowerCase();
+      return (
+        n === "promo" ||
+        n === "segment" ||
+        n === "backstage" ||
+        n === "interview" ||
+        n === "angle" ||
+        n === "vignette" ||
+        n.includes("promo") ||
+        n.includes("segment")
+      );
+    };
+
+    const hasMatchWord = (v) => /\bmatch\b/i.test(String(v || ""));
+    const hasVsWord = (v) => /\bvs\.?\b/i.test(String(v || ""));
+
+    // Prefer a custom title if provided.
+    if (p) {
+      // If it's a segment/promo, never append "Match".
+      if (isSeg(t)) return p;
+      // If it already contains match language, keep it as-is.
+      if (hasMatchWord(p) || hasVsWord(p)) return p;
+      return `${p} Match`;
+    }
+
+    // Next preference: stipulation
+    if (s) {
+      if (isSeg(t)) return s;
+      if (hasMatchWord(s) || hasVsWord(s)) return s;
+      return `${s} Match`;
+    }
+
+    // Fallback: type
+    if (t) {
+      if (isSeg(t)) return t;
+      if (hasMatchWord(t)) return t;
+      return `${t} Match`;
+    }
+
+    return "Match";
   }
 
   function escapeHtml(s) {
