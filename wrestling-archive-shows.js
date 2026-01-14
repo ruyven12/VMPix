@@ -95,6 +95,21 @@
       .sort((a, b) => b - a);
 
     renderYearBubbles(filtered);
+
+    // Auto-select the newest year so the view isn't empty on load (matches live app feel)
+    if (filtered && filtered.length) {
+      const newest = filtered[0];
+      try {
+        const rowEl = getYearGroupsEl();
+        if (rowEl) {
+          const btns = Array.prototype.slice.call(rowEl.querySelectorAll(".letter-pill"));
+          btns.forEach((b) => b.classList.toggle("active", String((b.textContent || "")).trim() === String(newest)));
+        }
+      } catch (_) {}
+      setCrumbs(`Shows for ${newest}`);
+      renderShowsCards(getShowsForYear(newest), newest);
+      resetPanelScroll();
+    }
   }
 
   // ================== CLEANUP (OPTIONAL) ==================
@@ -161,6 +176,30 @@
     s.textContent = `
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
+
+      /* Year pills (scoped) */
+      #waShowsRoot .letter-pill{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        letter-spacing: .10em;
+        font-size: 12px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(0,0,0,0.18);
+        color: rgba(226,232,240,0.92);
+        cursor: pointer;
+        transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+      }
+      #waShowsRoot .letter-pill:hover{
+        transform: translateY(-1px);
+        border-color: rgba(200,0,0,0.55);
+        background: rgba(0,0,0,0.26);
+      }
+      #waShowsRoot .letter-pill.active{
+        border-color: rgba(200,0,0,0.90);
+        box-shadow: 0 0 0 2px rgba(200,0,0,0.18);
+      }
+
 
       .waDetailWrap{
         width:100%;
@@ -975,6 +1014,9 @@
       none.style.padding = "10px 0";
       containerEl.appendChild(none);
 
+    }
+  }
+
   // ================== MATCH ALBUM (Bands-style photos grid inside HUD) ==================
   async function openMatchAlbumInPanel(matchUrl, matchTitle, matchId, showRow) {
     const resultsEl = getResultsEl();
@@ -1227,8 +1269,6 @@
       });
 
       gridEl.appendChild(box);
-    }
-  }
     }
   }
 
