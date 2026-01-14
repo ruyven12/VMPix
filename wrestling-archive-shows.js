@@ -473,7 +473,177 @@
         color: rgba(226,232,240,0.92);
         pointer-events:none;
       }
-    `;
+    
+
+/* Selection toolbar */
+.waSelectBar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  margin: 6px auto 10px;
+}
+.waSelectBtn{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(226,232,240,0.92);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  cursor: pointer;
+  text-decoration:none;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.waSelectBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(200,0,0,0.55);
+  background: rgba(0,0,0,0.28);
+}
+.waSelectBtn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+.waSelectPrimary{
+  border-color: rgba(200,0,0,0.55);
+}
+.waSelectHint{
+  font-size: 11px;
+  opacity:.65;
+  letter-spacing: .08em;
+}
+.waSelectStatus{
+  text-align:center;
+  font-size: 12px;
+  opacity:.80;
+  margin: 0 0 10px;
+}
+
+/* Selected tile marker */
+.waPhotoBox.selected{
+  border-color: rgba(200,0,0,0.70);
+  box-shadow: 0 18px 40px rgba(200,0,0,0.12), 0 16px 34px rgba(0,0,0,0.40);
+}
+.waPhotoBox.selected::after{
+  content:"✓";
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:22px;
+  height:22px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 12px;
+  background: rgba(200,0,0,0.75);
+  color: rgba(255,255,255,0.95);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+  pointer-events:none;
+}
+
+/* Lightbox */
+.waLightbox{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 999999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+}
+.waLightboxShell{
+  width: min(1100px, 96vw);
+  height: min(760px, 86vh);
+  display:flex;
+  flex-direction:column;
+  border-radius: 18px;
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.45);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+}
+.waLightboxTopbar{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+.waLightboxTitle{
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  letter-spacing: .08em;
+  font-size: 12px;
+  opacity:.92;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.waLightboxActions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.waLightboxBtn{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(226,232,240,0.92);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  cursor: pointer;
+  text-decoration:none;
+}
+.waLightboxBtn:hover{
+  border-color: rgba(200,0,0,0.55);
+}
+.waLightboxClose{
+  border-color: rgba(200,0,0,0.40);
+}
+.waLightboxStage{
+  position:relative;
+  flex: 1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px;
+}
+.waLightboxImg{
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+  transition: opacity 180ms ease;
+}
+.waLightboxNav{
+  position:absolute;
+  top:50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.30);
+  color: rgba(226,232,240,0.92);
+  cursor:pointer;
+  font-size: 18px;
+}
+.waLightboxNav:hover{ border-color: rgba(200,0,0,0.55); }
+.waLightboxPrev{ left: 12px; }
+.waLightboxNext{ right: 12px; }
+`;
     document.head.appendChild(s);
   }
 
@@ -1107,7 +1277,67 @@
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
 
-    const meta = document.createElement("div");
+    
+// Toolbar (ported from bands: select-to-zip + buy buttons)
+const toolbar = document.createElement("div");
+toolbar.className = "waSelectBar";
+
+const buyPhotos = document.createElement("a");
+buyPhotos.className = "waSelectBtn";
+buyPhotos.textContent = "Buy Photos";
+buyPhotos.href = matchUrl || "#";
+buyPhotos.target = "_blank";
+buyPhotos.rel = "noopener";
+
+const buyDownload = document.createElement("a");
+buyDownload.className = "waSelectBtn";
+buyDownload.textContent = "Buy Gallery Download";
+buyDownload.href = matchUrl || "#";
+buyDownload.target = "_blank";
+buyDownload.rel = "noopener";
+
+const selectToggle = document.createElement("button");
+selectToggle.className = "waSelectBtn";
+selectToggle.type = "button";
+selectToggle.textContent = "Select Photos to Download";
+
+const selectAllBtn = document.createElement("button");
+selectAllBtn.className = "waSelectBtn";
+selectAllBtn.type = "button";
+selectAllBtn.textContent = "Select All";
+selectAllBtn.disabled = true;
+
+const clearBtn = document.createElement("button");
+clearBtn.className = "waSelectBtn";
+clearBtn.type = "button";
+clearBtn.textContent = "Clear";
+clearBtn.disabled = true;
+
+const dlZipBtn = document.createElement("button");
+dlZipBtn.className = "waSelectBtn waSelectPrimary";
+dlZipBtn.type = "button";
+dlZipBtn.textContent = "Download ZIP";
+dlZipBtn.disabled = true;
+
+const hint = document.createElement("div");
+hint.className = "waSelectHint";
+hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
+
+toolbar.appendChild(buyPhotos);
+toolbar.appendChild(buyDownload);
+toolbar.appendChild(selectToggle);
+toolbar.appendChild(selectAllBtn);
+toolbar.appendChild(dlZipBtn);
+toolbar.appendChild(clearBtn);
+toolbar.appendChild(hint);
+gridWrap.appendChild(toolbar);
+
+const statusLine = document.createElement("div");
+statusLine.className = "waSelectStatus";
+statusLine.textContent = "";
+gridWrap.appendChild(statusLine);
+
+const meta = document.createElement("div");
     meta.className = "waPhotosMeta";
     meta.textContent = "Loading photos…";
     gridWrap.appendChild(meta);
@@ -1144,15 +1374,125 @@
           '<div class="name">' + escapeHtml(albumTitle) + '</div>';
       }
 
-      const images = await fetchAllAlbumImages(albumKey);
-      if (!images || !images.length) {
-        meta.textContent = "No photos returned for this album.";
-        return;
-      }
+      
+const images = await fetchAllAlbumImages(albumKey);
+if (!images || !images.length) {
+  meta.textContent = "No photos returned for this album.";
+  return;
+}
 
-      meta.textContent = images.length + " photo" + (images.length === 1 ? "" : "s");
+meta.textContent = images.length + " photo" + (images.length === 1 ? "" : "s");
 
-      renderPhotoGrid(grid, images);
+// Selection state for ZIP downloads
+const selected = new Set();
+let selectMode = false;
+
+const albumNameForZip = (albumTitle || headerText || "album").trim() || "album";
+const albumCtx = { title: albumNameForZip, url: matchUrl || "" };
+
+function updateSelectUI() {
+  const n = selected.size;
+
+  selectToggle.textContent = selectMode ? "Done selecting" : "Select Photos to Download";
+  dlZipBtn.disabled = !(selectMode && n > 0);
+  clearBtn.disabled = !(selectMode && n > 0);
+  selectAllBtn.disabled = !selectMode;
+
+  if (selectMode) {
+    statusLine.textContent = n ? (n + " selected") : "Select photos to include in the ZIP.";
+  } else {
+    statusLine.textContent = "";
+  }
+}
+
+function redrawGrid() {
+  renderPhotoGrid(grid, images, {
+    onOpen: function (i) {
+      openWALightbox(images, i, albumCtx);
+    },
+    isSelected: function (i) {
+      return selected.has(String(i));
+    },
+    onToggleSelect: selectMode ? function (i, img, list, tileEl) {
+      const k = String(i);
+      if (selected.has(k)) selected.delete(k);
+      else selected.add(k);
+      try { if (tileEl) tileEl.classList.toggle("selected", selected.has(k)); } catch(_) {}
+      updateSelectUI();
+    } : null
+  });
+}
+
+// Toolbar handlers
+selectToggle.addEventListener("click", function () {
+  selectMode = !selectMode;
+  if (!selectMode) selected.clear();
+  updateSelectUI();
+  redrawGrid();
+});
+
+selectAllBtn.addEventListener("click", function () {
+  if (!selectMode) return;
+  selected.clear();
+  for (let i = 0; i < images.length; i++) selected.add(String(i));
+  updateSelectUI();
+  redrawGrid();
+});
+
+clearBtn.addEventListener("click", function () {
+  selected.clear();
+  updateSelectUI();
+  redrawGrid();
+});
+
+dlZipBtn.addEventListener("click", async function () {
+  const n = selected.size;
+  if (!n) return;
+
+  const items = [];
+  const idxs = Array.from(selected)
+    .map((s) => Number(s))
+    .filter((x) => Number.isFinite(x))
+    .sort((a, b) => a - b);
+
+  idxs.forEach((i) => {
+    const it = images[i];
+    if (!it) return;
+    const url = bestFullUrl(it);
+    if (!url) return;
+    const filename = String(it?.FileName || `photo-${i + 1}.jpg`).trim() || `photo-${i + 1}.jpg`;
+    items.push({ url, filename });
+  });
+
+  if (!items.length) {
+    statusLine.textContent = "No downloadable URLs found for the selected photos.";
+    return;
+  }
+
+  dlZipBtn.disabled = true;
+  clearBtn.disabled = true;
+  selectToggle.disabled = true;
+  selectAllBtn.disabled = true;
+  statusLine.textContent = `Preparing ZIP for ${items.length} photo(s)…`;
+
+  try {
+    await downloadZipFromServer(items, albumNameForZip);
+    statusLine.textContent = `ZIP download started (${items.length} photo(s)).`;
+  } catch (e) {
+    console.warn(e);
+    statusLine.textContent = "ZIP download failed. (This requires a server /zip endpoint.)";
+  } finally {
+    dlZipBtn.disabled = false;
+    clearBtn.disabled = false;
+    selectToggle.disabled = false;
+    selectAllBtn.disabled = false;
+    updateSelectUI();
+  }
+});
+
+// Initial paint
+updateSelectUI();
+redrawGrid();
     } catch (err) {
       console.warn("openMatchAlbumInPanel failed", err);
       meta.textContent = "Error loading photos for this album.";
@@ -1256,52 +1596,270 @@
     return "";
   }
 
-  function renderPhotoGrid(gridEl, images) {
-    if (!gridEl) return;
-    gridEl.innerHTML = "";
+// ================== PHOTO UTIL + ZIP + LIGHTBOX (ported from bands) ==================
+function bestFullUrl(img){
+  // Prefer the highest quality URL we have from SmugMug image payloads
+  return pickImageUrl(img, [
+    "OriginalUrl",
+    "LargestImageUrl",
+    "X3LargeUrl",
+    "X2LargeUrl",
+    "XLargeUrl",
+    "LargeUrl",
+    "MediumUrl",
+    "ImageUrl",
+    "Url"
+  ]);
+}
 
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i] || {};
-      const thumb = pickImageUrl(img, ["ThumbnailUrl", "ThumbUrl", "SmallUrl", "TinyUrl", "OriginalUrl"]);
-      const full = pickImageUrl(img, ["LargestImageUrl", "X3LargeUrl", "X2LargeUrl", "XLargeUrl", "LargeUrl", "OriginalUrl", "ImageUrl", "Url"]);
+async function downloadZipFromServer(items, suggestedName){
+  // items: [{ url, filename }]
+  const name = (suggestedName || "photos")
+    .replace(/[^a-z0-9-_]+/gi, "-")
+    .slice(0, 80) || "photos";
+  const endpoint = `${API_BASE}/zip`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items })
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`ZIP endpoint failed: ${res.status} ${t}`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
 
-      const box = document.createElement("div");
-      box.className = "waPhotoBox";
-      box.setAttribute("role", "button");
-      box.setAttribute("tabindex", "0");
+// Lightbox (kept minimal, same behavior as bands)
+let waLightboxEl = null;
+let waLightboxImg = null;
+let waLightboxIndex = 0;
+let waCurrentViewList = [];
+let waCurrentAlbumContext = { title: "", url: "" };
 
-      const badge = document.createElement("div");
-      badge.className = "waPhotoIndex";
-      badge.textContent = "#" + String(i + 1);
-      box.appendChild(badge);
+function ensureWALightbox(){
+  if (waLightboxEl) return;
 
-      const im = document.createElement("img");
-      im.loading = "lazy";
-      im.alt = "";
-      im.src = thumb || full;
-      box.appendChild(im);
+  waLightboxEl = document.createElement("div");
+  waLightboxEl.className = "waLightbox";
+  waLightboxEl.setAttribute("role", "dialog");
+  waLightboxEl.setAttribute("aria-modal", "true");
 
-      const open = function () {
-        if (!full) return;
-        try { window.open(full, "_blank", "noopener"); } catch (_) {}
-      };
+  const shell = document.createElement("div");
+  shell.className = "waLightboxShell";
 
-      box.addEventListener("click", function (e) {
+  const topbar = document.createElement("div");
+  topbar.className = "waLightboxTopbar";
+
+  const title = document.createElement("div");
+  title.className = "waLightboxTitle";
+  title.textContent = "Photo Viewer";
+
+  const right = document.createElement("div");
+  right.className = "waLightboxActions";
+
+  const openAlbumBtn = document.createElement("a");
+  openAlbumBtn.className = "waLightboxBtn";
+  openAlbumBtn.textContent = "Open Album ↗";
+  openAlbumBtn.href = "#";
+  openAlbumBtn.target = "_blank";
+  openAlbumBtn.rel = "noopener";
+
+  const dlBtn = document.createElement("a");
+  dlBtn.className = "waLightboxBtn";
+  dlBtn.textContent = "Download";
+  dlBtn.href = "#";
+  dlBtn.setAttribute("download", "photo.jpg");
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "waLightboxBtn waLightboxClose";
+  closeBtn.type = "button";
+  closeBtn.textContent = "✕";
+
+  right.appendChild(openAlbumBtn);
+  right.appendChild(dlBtn);
+  right.appendChild(closeBtn);
+
+  topbar.appendChild(title);
+  topbar.appendChild(right);
+
+  const stage = document.createElement("div");
+  stage.className = "waLightboxStage";
+
+  waLightboxImg = document.createElement("img");
+  waLightboxImg.className = "waLightboxImg";
+  waLightboxImg.alt = "";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "waLightboxNav waLightboxPrev";
+  prevBtn.type = "button";
+  prevBtn.textContent = "←";
+  prevBtn.onclick = (e) => { e.stopPropagation(); waShowAt(waLightboxIndex - 1); };
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "waLightboxNav waLightboxNext";
+  nextBtn.type = "button";
+  nextBtn.textContent = "→";
+  nextBtn.onclick = (e) => { e.stopPropagation(); waShowAt(waLightboxIndex + 1); };
+
+  stage.appendChild(waLightboxImg);
+  stage.appendChild(prevBtn);
+  stage.appendChild(nextBtn);
+
+  shell.appendChild(topbar);
+  shell.appendChild(stage);
+  waLightboxEl.appendChild(shell);
+  document.body.appendChild(waLightboxEl);
+
+  const destroy = () => destroyWALightbox();
+  closeBtn.addEventListener("click", destroy);
+  waLightboxEl.addEventListener("click", (e) => { if (e.target === waLightboxEl) destroy(); });
+
+  const onKey = (e) => {
+    if (!waLightboxEl) return;
+    if (e.key === "Escape") { e.preventDefault(); destroy(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); waShowAt(waLightboxIndex - 1); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); waShowAt(waLightboxIndex + 1); }
+  };
+  window.addEventListener("keydown", onKey);
+
+  waLightboxEl._onKey = onKey;
+  waLightboxEl._titleEl = title;
+  waLightboxEl._openAlbumBtn = openAlbumBtn;
+  waLightboxEl._dlBtn = dlBtn;
+
+  try { document.documentElement.style.overflow = "hidden"; } catch(_) {}
+}
+
+function destroyWALightbox(){
+  if (!waLightboxEl) return;
+  try {
+    const onKey = waLightboxEl._onKey;
+    if (onKey) window.removeEventListener("keydown", onKey);
+  } catch(_) {}
+  try { document.documentElement.style.overflow = ""; } catch(_) {}
+  try { waLightboxEl.remove(); } catch(_) {}
+  waLightboxEl = null;
+  waLightboxImg = null;
+  waCurrentViewList = [];
+}
+
+function waShowAt(idx){
+  if (!waLightboxEl || !waLightboxImg || !waCurrentViewList.length) return;
+  if (idx < 0) idx = waCurrentViewList.length - 1;
+  if (idx >= waCurrentViewList.length) idx = 0;
+  waLightboxIndex = idx;
+
+  const img = waCurrentViewList[idx] || {};
+  const url = bestFullUrl(img);
+  try { waLightboxImg.style.opacity = "0"; } catch(_) {}
+  waLightboxImg.onload = () => { try { waLightboxImg.style.opacity = "1"; } catch(_) {} };
+  waLightboxImg.src = url || "";
+
+  try {
+    const t = waLightboxEl._titleEl;
+    if (t) {
+      const base = String(waCurrentAlbumContext?.title || "Photo Viewer").trim() || "Photo Viewer";
+      t.textContent = `${base}  •  ${idx + 1} / ${waCurrentViewList.length}`;
+    }
+    const openAlbumBtn = waLightboxEl._openAlbumBtn;
+    if (openAlbumBtn) openAlbumBtn.href = waCurrentAlbumContext?.url || "#";
+
+    const dl = waLightboxEl._dlBtn;
+    if (dl) {
+      const fn = String(img?.FileName || `photo-${idx+1}.jpg`).trim() || `photo-${idx+1}.jpg`;
+      dl.href = url || "#";
+      dl.setAttribute("download", fn);
+      dl.style.pointerEvents = url ? "auto" : "none";
+      dl.style.opacity = url ? "1" : "0.55";
+    }
+  } catch(_) {}
+}
+
+function openWALightbox(images, startIndex, ctx){
+  waCurrentViewList = Array.isArray(images) ? images : [];
+  waCurrentAlbumContext = ctx || { title: "", url: "" };
+  ensureWALightbox();
+  waShowAt(Number(startIndex) || 0);
+}
+
+
+
+  
+function renderPhotoGrid(gridEl, images, opts) {
+  if (!gridEl) return;
+  const imgs = Array.isArray(images) ? images : [];
+  const onOpen = (opts && typeof opts.onOpen === "function") ? opts.onOpen : null;
+  const onToggleSelect = (opts && typeof opts.onToggleSelect === "function") ? opts.onToggleSelect : null;
+  const isSelected = (opts && typeof opts.isSelected === "function") ? opts.isSelected : null;
+
+  gridEl.innerHTML = "";
+
+  for (let i = 0; i < imgs.length; i++) {
+    const img = imgs[i] || {};
+    const thumb = pickImageUrl(img, ["ThumbnailUrl", "ThumbUrl", "SmallUrl", "TinyUrl", "OriginalUrl"]);
+    const full = bestFullUrl(img);
+
+    const box = document.createElement("div");
+    box.className = "waPhotoBox";
+    box.dataset.index = String(i);
+    box.setAttribute("role", "button");
+    box.setAttribute("tabindex", "0");
+
+    const badge = document.createElement("div");
+    badge.className = "waPhotoIndex";
+    badge.textContent = "#" + String(i + 1);
+    box.appendChild(badge);
+
+    const im = document.createElement("img");
+    im.loading = "lazy";
+    im.alt = "";
+    im.src = thumb || full || "";
+    box.appendChild(im);
+
+    // Selection state (if provided)
+    try {
+      if (isSelected) box.classList.toggle("selected", !!isSelected(i));
+    } catch(_) {}
+
+    const open = function () {
+      if (onOpen) return onOpen(i, img, imgs);
+      if (!full) return;
+      try { window.open(full, "_blank", "noopener"); } catch (_) {}
+    };
+
+    const toggle = function () {
+      if (onToggleSelect) return onToggleSelect(i, img, imgs, box);
+    };
+
+    box.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onToggleSelect) toggle();
+      else open();
+    });
+    box.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         e.stopPropagation();
-        open();
-      });
-      box.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          e.stopPropagation();
-          open();
-        }
-      });
+        if (onToggleSelect) toggle();
+        else open();
+      }
+    });
 
-      gridEl.appendChild(box);
-    }
+    gridEl.appendChild(box);
   }
+}
+
+
 
   // Classic args signature for broader compatibility (some embedded webviews can choke on destructuring)
   function buildMatchHeader(type, stip, partTitle) {
