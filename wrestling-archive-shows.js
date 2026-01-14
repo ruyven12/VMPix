@@ -131,6 +131,7 @@
 
   // Remember last list context so "Back" restores the same year view cleanly.
   let LAST_LIST_CTX = { year: null };
+  let LAST_SHOW_CTX = { row: null, year: null };
 
   // ================== STYLES (SCOPED TO THIS MODULE) ==================
   function ensureShowsStyles() {
@@ -324,7 +325,116 @@
         border: 1px solid rgba(56, 189, 248, 0.22);
         color: rgba(185, 230, 255, 0.92);
       }
-    `;
+    
+      /* ===== Match album photos (Bands-style) ===== */
+      .waAlbumPhotosWrap{
+        width:100%;
+        max-width:1200px;
+        margin:0 auto;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        padding: 6px 8px 14px;
+      }
+      .waAlbumTop{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin-top: 2px;
+      }
+      .waAlbumTitlePill{
+        width:100%;
+        border-radius: 999px;
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        text-align:center;
+        font-size: 12px;
+        letter-spacing: .08em;
+        opacity: .92;
+      }
+      .waAlbumActions{
+        display:flex;
+        justify-content:center;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top: 4px;
+      }
+      .waActionBtn{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        background: rgba(17,24,39,0.35);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 999px;
+        padding: 7px 14px;
+        cursor:pointer;
+        font-size: 12px;
+        color: rgba(226,232,240,0.92);
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+      }
+      .waActionBtn:hover{ border-color: rgba(200,0,0,0.45); }
+
+      .waPhotosGrid{
+        width:100%;
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap:10px;
+        margin: 0 auto;
+        padding-bottom: 10px;
+      }
+      .waPhotoBox{
+        position:relative;
+        background:rgba(255,255,255,0.04);
+        border:1px solid rgba(255,255,255,0.10);
+        border-radius:14px;
+        padding:8px;
+        cursor:pointer;
+        overflow:hidden;
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      .waPhotoBox:hover{
+        transform: translateY(-2px);
+        border-color: rgba(200,0,0,0.28);
+        box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+        background: rgba(255,255,255,0.06);
+      }
+      .waPhotoImg{
+        width:100%;
+        aspect-ratio: 1/1;
+        object-fit:cover;
+        border-radius:10px;
+        border:1px solid rgba(255,255,255,0.10);
+        background:rgba(255,255,255,0.04);
+      }
+      .waPhotoIndex{
+        position:absolute;
+        top:10px;
+        left:10px;
+        z-index:2;
+        font-size:11px;
+        font-weight:800;
+        letter-spacing:.08em;
+        padding:6px 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.55);
+        border: 1px solid rgba(255,255,255,0.14);
+        color: rgba(226,232,240,0.95);
+        backdrop-filter: blur(6px);
+        pointer-events:none;
+      }
+
+      .waAlbumStatus{
+        width:100%;
+        text-align:center;
+        font-size: 12px;
+        opacity: .82;
+        letter-spacing: .10em;
+        padding: 8px 0 0;
+      }
+
+`;
     document.head.appendChild(s);
   }
 
@@ -570,6 +680,7 @@
 
   // ================== SHOW DETAIL (Band-style routing) ==================
   function showShowDetail(row, year) {
+    LAST_SHOW_CTX = { row, year };
     if (!row) return;
     ensureShowsStyles();
 
@@ -811,7 +922,7 @@
       // Click / keyboard: open the match album URL (when provided).
       if (matchUrl) {
         const go = () => {
-          try { window.location.href = matchUrl; } catch (_) {}
+          openMatchAlbumInPanel(matchUrl, { matchId, headerLabel, people });
         };
         box.addEventListener("click", (e) => {
           e.preventDefault();
@@ -836,6 +947,193 @@
       none.style.padding = "10px 0";
       containerEl.appendChild(none);
     }
+  }
+
+
+  // ================== MATCH ALBUM (Bands-style photo grid inside panel) ==================
+  // Clicking a match should NOT navigate away; it should render thumbnails inside the HUD panel
+  // like the Bands -> Album Photos view.
+  async function openMatchAlbumInPanel(matchUrl, ctx) {
+    const url = String(matchUrl || "").trim();
+    if (!url) return;
+
+    const resultsEl = getResultsEl();
+    if (!resultsEl) {
+      // Fallback: navigate if the HUD panel isn't available for some reason.
+      try { window.location.href = url; } catch (_) {}
+      return;
+    }
+
+    // Build shell
+    resultsEl.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "waAlbumPhotosWrap";
+
+    const top = document.createElement("div");
+    top.className = "waAlbumTop";
+    const back = document.createElement("button");
+    back.className = "waBackBtn";
+    back.textContent = "← Back to show";
+    back.addEventListener("click", () => {
+      const r = LAST_SHOW_CTX?.row;
+      const y = LAST_SHOW_CTX?.year;
+      if (r) showShowDetail(r, y);
+    });
+    top.appendChild(back);
+    wrap.appendChild(top);
+
+    const titlePill = document.createElement("div");
+    titlePill.className = "waAlbumTitlePill";
+    const showName = String(LAST_SHOW_CTX?.row?.show_name || LAST_SHOW_CTX?.row?.title || LAST_SHOW_CTX?.row?.name || "").trim();
+    const showDate = String(LAST_SHOW_CTX?.row?.show_date || LAST_SHOW_CTX?.row?.date || "").trim();
+    const matchLabel = String(ctx?.headerLabel || ctx?.matchId || "").trim();
+    titlePill.textContent = [showDate, showName, matchLabel].filter(Boolean).join(" - ");
+    wrap.appendChild(titlePill);
+
+    const actions = document.createElement("div");
+    actions.className = "waAlbumActions";
+    const openSmug = document.createElement("a");
+    openSmug.className = "waActionBtn";
+    openSmug.href = url;
+    openSmug.target = "_blank";
+    openSmug.rel = "noopener";
+    openSmug.textContent = "Open album on SmugMug ↗";
+    actions.appendChild(openSmug);
+    wrap.appendChild(actions);
+
+    const status = document.createElement("div");
+    status.className = "waAlbumStatus";
+    status.textContent = "Loading photos…";
+    wrap.appendChild(status);
+
+    const grid = document.createElement("div");
+    grid.className = "waPhotosGrid";
+    wrap.appendChild(grid);
+
+    resultsEl.appendChild(wrap);
+    resetPanelScroll();
+
+    // Try to resolve the SmugMug album key via backend (preferred), then load images via backend.
+    let albumKey = "";
+    try {
+      albumKey = await tryResolveAlbumKeyFromUrl(url);
+    } catch (_) {}
+
+    if (!albumKey) {
+      status.textContent = "Could not resolve album key from URL (needs backend endpoint). Opening SmugMug link instead.";
+      // Still keep UI, but provide clear fallback.
+      return;
+    }
+
+    let images = [];
+    try {
+      images = await fetchAllAlbumImages(albumKey);
+    } catch (e) {
+      console.warn("fetchAllAlbumImages failed", albumKey, e);
+      status.textContent = "Could not load album images (backend endpoint missing).";
+      return;
+    }
+
+    if (!images || !images.length) {
+      status.textContent = "No photos returned for this album.";
+      return;
+    }
+
+    status.textContent = "";
+    grid.innerHTML = "";
+
+    images.forEach((img, idx) => {
+      const thumb = img.ThumbnailUrl || img.TinyUrl || img.SmallUrl || img.MediumUrl || img.LargeUrl || img.XLargeUrl || "";
+      const full = img.XLargeUrl || img.LargeUrl || img.MediumUrl || thumb || "";
+      const box = document.createElement("div");
+      box.className = "waPhotoBox";
+      box.title = "Open photo";
+      box.addEventListener("click", () => {
+        if (full) window.open(full, "_blank", "noopener");
+      });
+
+      const badge = document.createElement("div");
+      badge.className = "waPhotoIndex";
+      badge.textContent = "#" + (idx + 1);
+      box.appendChild(badge);
+
+      const im = document.createElement("img");
+      im.className = "waPhotoImg";
+      im.loading = "lazy";
+      im.alt = "";
+      im.src = thumb || full || "";
+      box.appendChild(im);
+
+      grid.appendChild(box);
+    });
+  }
+
+  // Attempt to resolve an album URL -> AlbumKey using whatever resolver endpoint exists on the backend.
+  async function tryResolveAlbumKeyFromUrl(url) {
+    const u = encodeURIComponent(String(url || "").trim());
+    if (!u) return "";
+
+    const candidates = [
+      `${API_BASE}/smug/resolve-album?url=${u}`,
+      `${API_BASE}/smug/resolve?url=${u}`,
+      `${API_BASE}/smug/album-from-url?url=${u}`,
+      `${API_BASE}/smug/resolveAlbum?url=${u}`,
+    ];
+
+    for (const ep of candidates) {
+      try {
+        const res = await fetch(ep, { cache: "no-store" });
+        if (!res.ok) continue;
+        const data = await res.json();
+        // Common shapes:
+        // { albumKey: "XXXX" } or { AlbumKey: "XXXX" } or { Response: { Album: { AlbumKey } } }
+        const k =
+          data?.albumKey ||
+          data?.AlbumKey ||
+          data?.key ||
+          data?.Key ||
+          data?.Response?.Album?.AlbumKey ||
+          data?.Response?.AlbumKey ||
+          "";
+        if (k && String(k).trim()) return String(k).trim();
+      } catch (_) {}
+    }
+    return "";
+  }
+
+  // Fetch all images for an album using the backend proxy.
+  async function fetchAllAlbumImages(albumKey) {
+    const all = [];
+    let start = 1;
+    let more = true;
+
+    while (more) {
+      const res = await fetch(`${API_BASE}/smug/album/${encodeURIComponent(albumKey)}?count=200&start=${start}`, { cache: "no-store" });
+      if (!res.ok) break;
+      const data = await res.json();
+      const resp = (data && data.Response) || {};
+
+      let imgs = [];
+      if (Array.isArray(resp.AlbumImage)) imgs = resp.AlbumImage;
+      else if (resp.AlbumImage) imgs = [resp.AlbumImage];
+      else if (Array.isArray(resp.Images)) imgs = resp.Images;
+      else if (resp.Images) imgs = [resp.Images];
+
+      imgs = (imgs || []).filter(Boolean);
+      all.push(...imgs);
+
+      const pages = resp.Pages || {};
+      const total = Number(pages.Total) || 0;
+      const perPage = Number(pages.Count) || 200;
+      const gotSoFar = start - 1 + imgs.length;
+      if (!total || gotSoFar >= total || imgs.length === 0) {
+        more = false;
+      } else {
+        start += perPage;
+      }
+    }
+
+    return all;
   }
 
   function buildMatchHeader({ type, stip, partTitle }) {
