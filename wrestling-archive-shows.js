@@ -259,39 +259,83 @@
         opacity: .80;
         margin: 2px 0 0;
         text-align:center;
+
+        /* Optional: keep the section label visible while scrolling */
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 10px 6px;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15));
       }
       .waMatchesWrap{
         width:100%;
-        max-width: 980px;
+        max-width: 1040px;
         margin: 0 auto;
-        display:flex;
-        flex-direction:column;
-        gap: 10px;
-        padding: 4px 0 0;
+
+        /* Grid on desktop, stacked on mobile */
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: start;
+
+        padding: 6px 0 0;
       }
+      @media (max-width: 860px){
+        .waMatchesWrap{ grid-template-columns: 1fr; }
+      }
+
       .waMatchBox{
+        position: relative;
         display:flex;
         flex-direction:column;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.08);
-        background: rgba(15, 23, 42, 0.22);
-        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
+        box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
       }
       .waMatchBox:hover{
-        background: rgba(30, 41, 59, 0.35);
-        border-color: rgba(255,255,255,0.14);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        border-color: rgba(200,0,0,0.30);
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 16px 30px rgba(0,0,0,0.30);
       }
-      .waMatchHead{
+
+      .waMatchHeadRow{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap: 10px;
+      }
+      .waMatchTitle{
         font-weight: 900;
-        font-size: 14px;
-        margin-bottom: 4px;
+        font-size: 13px;
+        letter-spacing: .04em;
+        line-height: 1.15;
+        opacity: .95;
+      }
+      .waBadges{
+        display:flex;
+        gap: 6px;
+        align-items:center;
+        justify-content:flex-end;
+        flex-wrap:wrap;
+        min-width: 0;
+      }
+      .waMatchStip{
+        margin-top: 6px;
+        font-size: 11px;
+        opacity: .70;
       }
       .waMatchBody{
-        font-size: 13px;
-        opacity: 0.9;
+        margin-top: 8px;
+        font-size: 12px;
+        opacity: 0.82;
+        line-height: 1.35;
       }
+
       .waBadge{
         display:inline-flex;
         align-items:center;
@@ -301,8 +345,8 @@
         letter-spacing: 0.08em;
         padding: 3px 8px;
         border-radius: 999px;
-        margin-bottom: 6px;
         width: fit-content;
+        line-height: 1;
       }
       .waBadgeChamp{
         background: rgba(250, 204, 21, 0.18);
@@ -313,6 +357,11 @@
         background: rgba(56, 189, 248, 0.10);
         border: 1px solid rgba(56, 189, 248, 0.22);
         color: rgba(185, 230, 255, 0.92);
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .waMatchBox{ transition: none !important; }
+        .waMatchBox:hover{ transform: none !important; }
       }
     `;
     document.head.appendChild(s);
@@ -714,24 +763,50 @@
       // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
       const headerLabel = buildMatchHeader({ type, stip, partTitle });
 
-      // Badges
+      // --- Header row: title (left) + badges (right) ---
+      const headRow = document.createElement("div");
+      headRow.className = "waMatchHeadRow";
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "waMatchTitle";
+      titleEl.textContent = headerLabel;
+
+      const badges = document.createElement("div");
+      badges.className = "waBadges";
+
+      // Badges (right aligned)
       if (typeNorm.includes("championship")) {
         const badge = document.createElement("div");
         badge.className = "waBadge waBadgeChamp";
         badge.innerHTML = `<span style="font-size:12px">🏆</span><span>CHAMPIONSHIP</span>`;
-        box.appendChild(badge);
-      } else if (typeNorm === "promo" || typeNorm === "segment") {
+        badges.appendChild(badge);
+      }
+      if (typeNorm === "promo" || typeNorm === "segment") {
         const badge = document.createElement("div");
         badge.className = "waBadge waBadgeSeg";
         badge.innerHTML = `<span style="font-size:12px">🎤</span><span>${escapeHtml(typeNorm.toUpperCase())}</span>`;
-        box.appendChild(badge);
+        badges.appendChild(badge);
       }
 
-      const head = document.createElement("div");
-      head.className = "waMatchHead";
-      head.textContent = headerLabel;
-      box.appendChild(head);
+      headRow.appendChild(titleEl);
+      if (badges.childElementCount) headRow.appendChild(badges);
+      box.appendChild(headRow);
 
+      // --- Stipulation line (subtle) ---
+      // Only show when it adds information (e.g., when the header isn't already the stipulation).
+      if (stip) {
+        const headerLower = String(headerLabel || "").toLowerCase();
+        const stipLower = String(stip || "").toLowerCase();
+        const includesStip = headerLower.includes(stipLower);
+        if (!includesStip) {
+          const stipEl = document.createElement("div");
+          stipEl.className = "waMatchStip";
+          stipEl.textContent = stip;
+          box.appendChild(stipEl);
+        }
+      }
+
+      // --- People line ---
       if (people) {
         const body = document.createElement("div");
         body.className = "waMatchBody";
