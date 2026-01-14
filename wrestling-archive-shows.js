@@ -202,12 +202,13 @@
         width:100%;
         display:flex;
         flex-direction:column;
-        gap: 12px;
+        /* Tighter vertical rhythm between Show pill + info pills */
+        gap: 8px;
       }
       .waDetailNamePill{
         width:100%;
         border-radius: 999px;
-        padding: 14px 18px;
+        padding: 12px 16px;
         background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
         border: 1px solid rgba(255,255,255,0.10);
         text-align:center;
@@ -216,7 +217,7 @@
         font-size: 10px;
         letter-spacing: .22em;
         opacity: .65;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
       .waDetailNamePill .name{
         font-size: 22px;
@@ -227,25 +228,51 @@
         display:grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
+
+        /* Tighter spacing between SHOW pill and bubbles */
+        margin-top: -2px;
       }
       @media (max-width: 920px){
         .waInfoRow{ grid-template-columns: 1fr; }
       }
       .waInfoPill{
         border-radius: 999px;
-        padding: 10px 14px;
+        padding: 12px 14px;
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,255,255,0.10);
         display:flex;
         flex-direction:column;
         gap: 4px;
-        min-height: 56px;
+        min-height: 64px;
+
+        /* Center content in the bubbles (requested) */
+        align-items:center;
         justify-content:center;
+        text-align:center;
+
+        /* Micro-motion: animate in on detail load */
+        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+        transition-delay: var(--d, 0ms);
       }
       .waInfoPill .lbl{
         font-size: 9px;
         letter-spacing:.18em;
         opacity: .55;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 6px;
+      }
+
+      .waInfoIcon{
+        width: 16px;
+        height: 16px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size: 12px;
+        opacity: .75;
+        transform: translateY(-0.5px);
       }
       .waInfoPill .val{
         font-size: 13px;
@@ -369,6 +396,46 @@
       @media (prefers-reduced-motion: reduce){
         .waMatchBox{ transition: none !important; }
         .waMatchBox:hover{ transform: none !important; }
+      }
+
+      /* ===== Detail enter animation (micro-motion) ===== */
+      .waDetailWrap{
+        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+      }
+      .waDetailWrap.waEnter{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
+      }
+
+      /* Stagger the pills inside the detail view */
+      .waDetailWrap.waEnter .waDetailNamePill,
+      .waDetailWrap.waEnter .waInfoPill{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
+      }
+      .waDetailWrap.isReady{
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+      .waDetailWrap.isReady .waDetailNamePill,
+      .waDetailWrap.isReady .waInfoPill{
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+
+      .waDetailNamePill{
+        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+        transition-delay: 60ms;
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        .waDetailWrap,
+        .waDetailNamePill,
+        .waInfoPill{ transition: none !important; }
       }
     `;
     document.head.appendChild(s);
@@ -647,7 +714,25 @@
 
     const lbl = document.createElement("div");
     lbl.className = "lbl";
-    lbl.textContent = String(label || "");
+
+    const labelTxt = String(label || "").trim();
+    const iconMap = {
+      "COMPANY": "🏷️",
+      "DATE": "📅",
+      "VENUE": "🏟️",
+    };
+    const ico = iconMap[labelTxt.toUpperCase()] || "";
+
+    if (ico) {
+      const span = document.createElement("span");
+      span.className = "waInfoIcon";
+      span.textContent = ico;
+      lbl.appendChild(span);
+    }
+
+    const labelNode = document.createElement("span");
+    labelNode.textContent = labelTxt;
+    lbl.appendChild(labelNode);
 
     const val = document.createElement("div");
     val.className = "val";
@@ -716,7 +801,8 @@
     const posterUrl = posterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrlRaw)}` : "";
 
     const wrap = document.createElement("div");
-    wrap.className = "waDetailWrap";
+    // Micro-motion: start hidden, then animate in on next frame
+    wrap.className = "waDetailWrap waEnter";
 
     const topbar = document.createElement("div");
     topbar.className = "waDetailTopbar";
@@ -777,9 +863,21 @@
 
     const infoRow = document.createElement("div");
     infoRow.className = "waInfoRow";
-    infoRow.appendChild(makeInfoPill("COMPANY", companyLines.length ? companyLines : ["—"]));
-    infoRow.appendChild(makeInfoPill("DATE", [prettyDate || "—"]));
-    infoRow.appendChild(makeInfoPill("VENUE", venueLines.length ? venueLines : ["—"]));
+
+    const companyPill = makeInfoPill("COMPANY", companyLines.length ? companyLines : ["—"]);
+    const datePill = makeInfoPill("DATE", [prettyDate || "—"]);
+    const venuePill = makeInfoPill("VENUE", venueLines.length ? venueLines : ["—"]);
+
+    // Stagger the three bubbles slightly for a "HUD" feel
+    try {
+      companyPill.style.setProperty("--d", "140ms");
+      datePill.style.setProperty("--d", "200ms");
+      venuePill.style.setProperty("--d", "260ms");
+    } catch (_) {}
+
+    infoRow.appendChild(companyPill);
+    infoRow.appendChild(datePill);
+    infoRow.appendChild(venuePill);
 
     card.appendChild(namePill);
     card.appendChild(infoRow);
@@ -800,6 +898,14 @@
     renderMatchesInto(matchesWrap, row);
 
     resultsEl.appendChild(wrap);
+
+    // Trigger enter animation after DOM insertion
+    try {
+      requestAnimationFrame(() => {
+        wrap.classList.add("isReady");
+      });
+    } catch (_) {}
+
     resetPanelScroll();
   }
 
