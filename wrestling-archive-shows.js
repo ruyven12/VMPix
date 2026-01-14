@@ -686,13 +686,165 @@
     matchesWrap.className = "waMatchesWrap";
     wrap.appendChild(matchesWrap);
 
-    renderMatchesInto(matchesWrap, row);
+    renderMatchesInto(matchesWrap, row, year);
 
     resultsEl.appendChild(wrap);
     resetPanelScroll();
   }
 
-  function renderMatchesInto(containerEl, row) {
+  
+  function isHttpUrl(s) {
+    const v = String(s || "").trim();
+    return /^https?:\/\//i.test(v);
+  }
+
+  // ================== MATCH DETAIL (route from a match tile) ==================
+  // For now this view reads the per-match URL/id column (part_1_url / match-1_url etc)
+  // and provides a clean "Back to show" path. Later we’ll hydrate this into Albums/Photos.
+  function showMatchDetail(showRow, year, matchCtx) {
+    if (!showRow || !matchCtx) return;
+    ensureShowsStyles();
+
+    const resultsEl = getResultsEl();
+    const yearRow = getYearGroupsEl();
+    const crumbsEl = getCrumbsEl();
+    if (!resultsEl) return;
+
+    // Keep year pills/crumbs hidden while in match detail (same as show detail)
+    try { if (yearRow) yearRow.style.display = "none"; } catch (_) {}
+    try { if (crumbsEl) crumbsEl.style.display = "none"; } catch (_) {}
+
+    resultsEl.style.display = "block";
+    resultsEl.innerHTML = "";
+
+    const idx = Number(matchCtx.index) || 0;
+    const matchId = String(matchCtx.matchId || `match-${idx || 0}`);
+    const matchUrl = String(matchCtx.matchUrl || "").trim();
+
+    // Build a readable title for the match header
+    const partTitle = String(matchCtx.partTitle || "").trim();
+    const stip = String(matchCtx.stip || "").trim();
+    const type = String(matchCtx.type || "").trim();
+    const people = String(matchCtx.people || "").trim();
+
+    const headerLabel = (partTitle || stip || type || matchId || "Match").trim();
+
+    const wrap = document.createElement("div");
+    wrap.className = "waDetailWrap";
+
+    const topbar = document.createElement("div");
+    topbar.className = "waDetailTopbar";
+
+    const backBtn = document.createElement("button");
+    backBtn.className = "waBackBtn";
+    backBtn.type = "button";
+    backBtn.textContent = "← Back to show";
+    backBtn.addEventListener("click", () => {
+      // Return to the show detail view we came from
+      showShowDetail(showRow, year);
+      resetPanelScroll();
+    });
+
+    topbar.appendChild(backBtn);
+    wrap.appendChild(topbar);
+
+    const header = document.createElement("div");
+    header.className = "waDetailHeader";
+
+    // Left: reuse the show poster (keeps context)
+    const showPosterUrlRaw = String((showRow.show_poster || showRow.poster_url || "").trim() || "");
+    const showPosterUrl = showPosterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(showPosterUrlRaw)}` : "";
+
+    const poster = document.createElement("img");
+    poster.className = "waDetailPoster";
+    poster.alt = headerLabel;
+    poster.loading = "lazy";
+    poster.src = showPosterUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='100%25' height='100%25' fill='rgba(0,0,0,0.35)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='rgba(255,255,255,0.55)' font-size='20'%3ENo%20poster%3C/text%3E%3C/svg%3E";
+
+    // Right: match meta (Bands-style: pill title + pills)
+    const card = document.createElement("div");
+    card.className = "waDetailCard";
+
+    const namePill = document.createElement("div");
+    namePill.className = "waDetailNamePill";
+    namePill.innerHTML = `
+      <div class="kicker">MATCH:</div>
+      <div class="name">${escapeHtml(headerLabel)}</div>
+    `;
+
+    const infoRow = document.createElement("div");
+    infoRow.className = "waInfoRow";
+
+    const urlDisplay = matchUrl ? matchUrl : "—";
+    const urlIsHttp = isHttpUrl(matchUrl);
+
+    // Use 3 pills to match the visual rhythm (Type / ID / Link)
+    infoRow.innerHTML = `
+      <div class="waInfoPill">
+        <div class="lbl">TYPE</div>
+        <div class="val">${escapeHtml(type || "—")}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">MATCH ID</div>
+        <div class="val">${escapeHtml(matchId)}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">ALBUM LINK</div>
+        <div class="val">${escapeHtml(urlDisplay)}</div>
+      </div>
+    `;
+
+    // Add an action row under the pills if we have a real URL
+    if (urlIsHttp) {
+      const actionRow = document.createElement("div");
+      actionRow.style.display = "flex";
+      actionRow.style.justifyContent = "center";
+      actionRow.style.gap = "10px";
+      actionRow.style.marginTop = "6px";
+
+      const openBtn = document.createElement("button");
+      openBtn.type = "button";
+      openBtn.className = "waBackBtn"; // reuse line-tab styling
+      openBtn.textContent = "Open album ↗";
+      openBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try { window.open(matchUrl, "_blank", "noopener"); } catch (_) {}
+      });
+
+      actionRow.appendChild(openBtn);
+      card.appendChild(actionRow);
+    }
+
+    card.appendChild(namePill);
+    card.appendChild(infoRow);
+
+    header.appendChild(poster);
+    header.appendChild(card);
+    wrap.appendChild(header);
+
+    // People line (if present)
+    if (people) {
+      const peopleBox = document.createElement("div");
+      peopleBox.className = "waMatchesWrap";
+      peopleBox.style.maxWidth = "980px";
+      peopleBox.style.paddingTop = "0";
+
+      const line = document.createElement("div");
+      line.className = "waMatchBox";
+      line.innerHTML = `
+        <div class="waMatchHead">Participants</div>
+        <div class="waMatchBody">${escapeHtml(people)}</div>
+      `;
+      peopleBox.appendChild(line);
+      wrap.appendChild(peopleBox);
+    }
+
+    resultsEl.appendChild(wrap);
+    resetPanelScroll();
+  }
+
+function renderMatchesInto(containerEl, row, year) {
     if (!containerEl) return;
 
     let any = false;
@@ -745,6 +897,7 @@
       const stip = getMatchField(row, i, "stip");
       const partTitle = getMatchField(row, i, "title");
       const people = getMatchField(row, i, "people");
+      const partUrl = getMatchField(row, i, "url");
 
       if (!type && !stip && !partTitle && !people) continue;
       any = true;
@@ -753,6 +906,25 @@
       box.className = "waMatchBox";
       // Expose a stable id for later album-linking (match-1..match-10)
       box.dataset.matchId = matchId;
+      if (partUrl) box.dataset.matchUrl = partUrl;
+
+      // If a URL/id is present, make the match tile routeable (click → match detail / album link)
+      if (partUrl) {
+        box.style.cursor = "pointer";
+        box.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showMatchDetail(row, year, {
+            index: i,
+            matchId,
+            matchUrl: partUrl,
+            type,
+            stip,
+            partTitle,
+            people,
+          });
+        });
+      }
 
       const typeNorm = type.toLowerCase();
 
