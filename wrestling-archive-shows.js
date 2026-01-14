@@ -897,12 +897,12 @@
       const raw = String(urlCell || "").trim();
       if (!raw) return "";
       if (/^https?:\/\//i.test(raw)) return raw;
+
       // Absolute path on the same origin
       if (raw.startsWith("/")) {
         return SMUG_ORIGIN.replace(/\/$/, "") + raw;
       }
 
-      
       function inferShowBaseUrl(r) {
         // 1) explicit base in the sheet (optional)
         const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
@@ -911,13 +911,14 @@
         // 2) preferred: build from show_date using your known structure:
         //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
+
         const mmddyy = (function () {
           if (!rawDate) return "";
-          // Accept: M/D/YY, MM/DD/YY, MM/DD/YYYY
+          // Accept: M/D/YY or MM/DD/YYYY
           const m1 = rawDate.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
           if (m1) {
-            let mm = String(m1[1]).padStart(2, "0");
-            let dd = String(m1[2]).padStart(2, "0");
+            const mm = String(m1[1]).padStart(2, "0");
+            const dd = String(m1[2]).padStart(2, "0");
             let yy = String(m1[3]);
             if (yy.length === 4) yy = yy.slice(2);
             return mm + dd + yy;
@@ -935,7 +936,7 @@
           return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + mmddyy;
         }
 
-        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/Limitless/<mmddyy> somewhere
+        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
         const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
         if (!poster) return "";
         try {
@@ -951,9 +952,6 @@
         } catch (_) {}
         return "";
       }
-        } catch (_) {}
-        return "";
-      }
 
       const base2 = inferShowBaseUrl(showRow);
       if (base2) return base2.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
@@ -961,6 +959,7 @@
       // Last resort: still return the raw string (keeps the UI from crashing)
       return raw;
     }
+
 
     for (let i = 1; i <= 10; i++) {
       const matchId = `match-${i}`;
