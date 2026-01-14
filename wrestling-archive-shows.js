@@ -11,6 +11,27 @@
 (function () {
   'use strict';
 
+  // ================== SMALL UTILITIES (USED EARLY) ==================
+  // Keep these near the top so they're definitely defined before any handlers run.
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[c]));
+  }
+
+  // SmugMug base origin (prefer current origin when already on SmugMug)
+  const SMUG_ORIGIN = (function () {
+    try {
+      const o = (window.location && window.location.origin) ? String(window.location.origin) : "";
+      if (o && /smugmug\.com$/i.test(o)) return o;
+    } catch (_) {}
+    return "https://vmpix.smugmug.com";
+  })();
+
   // ================== CONFIG ==================
   const API_BASE = "https://wrestling-archive.onrender.com";
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
@@ -276,12 +297,22 @@
         border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.08);
         background: rgba(15, 23, 42, 0.22);
+        cursor: pointer;
         transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
       .waMatchBox:hover{
         background: rgba(30, 41, 59, 0.35);
         border-color: rgba(255,255,255,0.14);
         transform: translateY(-1px);
+      }
+      .waMatchBox:focus-visible{
+        outline: 2px solid rgba(200,0,0,0.55);
+        outline-offset: 2px;
+      }
+      .waMatchBox:focus-visible{
+        outline: none;
+        border-color: rgba(200,0,0,0.55);
+        box-shadow: 0 0 0 2px rgba(200,0,0,0.22);
       }
       .waMatchHead{
         font-weight: 900;
@@ -708,58 +739,66 @@
       return "";
     }
 
-    function getMatchField(showRow, i, field) {
-      const n = String(i);
-      return pickFirst(showRow, [
-        `match-${n}_${field}`,  // new dash style
-        `match_${n}_${field}`,  // new underscore style
-        `part_${n}_${field}`    // legacy
-      ]);
+    function getMatchField(obj, i, field) {
+      const n = Number(i);
+      const dash = `match-${n}`;
+      const under = `match_${n}`;
+      const legacy = `part_${n}`;
+
+      // Support a few common header variants:
+      //   match-1_type, match_1_type, match-1-type, match_1-type
+      //   legacy part_1_* fields
+      const suffixes = [
+        `_${field}`,
+        `-${field}`,
+      ];
+
+      const keys = [];
+      for (const suf of suffixes) {
+        keys.push(`${dash}${suf}`);
+        keys.push(`${under}${suf}`);
+      }
+      keys.push(`${legacy}_${field}`);
+      return pickFirst(obj, keys);
     }
 
-    // Try to infer the show page base URL from the show poster URL, which typically contains:
-    //   .../Wrestling/<Company>/<DateFolder>/i-XXXX/...
-    // We want: https://vmpix.smugmug.com/Wrestling/<Company>/<DateFolder>
-    function inferShowBaseUrlFromPoster(showRow) {
-      const posterRaw = String(showRow?.show_poster || showRow?.showPoster || "").trim();
-      if (!posterRaw) return "";
-
-      try {
-        const u = new URL(posterRaw);
-        const parts = u.pathname.split("/").filter(Boolean);
-        const wIdx = parts.findIndex(p => p.toLowerCase() === "wrestling");
-        if (wIdx >= 0 && parts.length >= wIdx + 3) {
-          const companySeg = parts[wIdx + 1];
-          const dateSeg = parts[wIdx + 2];
-          // date folder is usually 6 digits (MMDDYY) but we accept whatever is present
-          return `https://vmpix.smugmug.com/Wrestling/${companySeg}/${dateSeg}`;
-        }
-      } catch (_) {}
-
-      // If the URL isn't parseable or doesn't include /Wrestling/, bail.
-      return "";
-    }
-
-    // Resolve match url cell: supports full URL, /absolute paths, or a slug like "Match-1".
+    // Resolve a sheet "url" cell into a real SmugMug URL.
+    // If the cell is relative (e.g., "Match-1"), we infer the show base URL from the poster URL
+    // (or optional show_url field) and then append the relative segment.
     function resolveMatchUrl(urlCell, showRow) {
       const raw = String(urlCell || "").trim();
       if (!raw) return "";
-
-      // Full URL already
       if (/^https?:\/\//i.test(raw)) return raw;
-
-      // Absolute path on this site
+      // Absolute path on the same origin
       if (raw.startsWith("/")) {
-        const origin = (window.location && window.location.origin) ? window.location.origin : "";
-        return origin ? (origin.replace(/\/$/, "") + raw) : raw;
+        return SMUG_ORIGIN.replace(/\/$/, "") + raw;
       }
 
-      // Prefer explicit show_url if provided; otherwise infer from poster URL
-      const baseExplicit = String(showRow?.show_url || showRow?.showUrl || showRow?.show || "").trim();
-      const base = baseExplicit || inferShowBaseUrlFromPoster(showRow);
-      if (base) return base.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
+      function inferShowBaseUrl(r) {
+        // 1) explicit base in the sheet (optional)
+        const base = String(r?.show_url || r?.showUrl || r?.show || "").trim();
+        if (base) return base;
 
-      // Last resort: treat it as-is
+        // 2) infer from show_poster URL: https://photos.smugmug.com/Wrestling/Limitless/110825/i-XXXX/...
+        const poster = String(r?.show_poster || r?.poster_url || "").trim();
+        if (!poster) return "";
+        try {
+          const u = new URL(poster);
+          const parts = String(u.pathname || "")
+            .split("/")
+            .filter(Boolean);
+          // Expect: ["Wrestling","Limitless","110825", ...]
+          if (parts.length >= 3) {
+            return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(0, 3).join("/");
+          }
+        } catch (_) {}
+        return "";
+      }
+
+      const base2 = inferShowBaseUrl(showRow);
+      if (base2) return base2.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
+
+      // Last resort: still return the raw string (keeps the UI from crashing)
       return raw;
     }
 
@@ -783,13 +822,33 @@
       box.setAttribute("tabindex", "0");
       box.title = matchUrl ? "Open match album" : "";
 
-      // Header + smart title
-      const hdr = document.createElement("div");
-      hdr.className = "waMatchHdr";
-      hdr.textContent = buildMatchHeader({ type, stip, partTitle });
-      box.appendChild(hdr);
+      // Defensive: ensure string (some rows may have blank type)
+      const typeNorm = String(type || "").toLowerCase();
 
-      // People line
+      // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
+      // Use classic args (avoids object-literal shorthand parsing issues in some webviews)
+      const headerLabel = buildMatchHeader(type, stip, partTitle);
+
+      // Badges
+      // Use indexOf for compatibility with older webviews
+      if (typeNorm.indexOf("championship") !== -1) {
+        const badge = document.createElement("div");
+        badge.className = "waBadge waBadgeChamp";
+        // Avoid template literals for older webviews
+        badge.innerHTML = '<span style="font-size:12px">🏆</span><span>CHAMPIONSHIP</span>';
+        box.appendChild(badge);
+      } else if (typeNorm === "promo" || typeNorm === "segment") {
+        const badge = document.createElement("div");
+        badge.className = "waBadge waBadgeSeg";
+        badge.innerHTML = '<span style="font-size:12px">🎤</span><span>' + escapeHtml(typeNorm.toUpperCase()) + '</span>';
+        box.appendChild(badge);
+      }
+
+      const head = document.createElement("div");
+      head.className = "waMatchHead";
+      head.textContent = headerLabel;
+      box.appendChild(head);
+
       if (people) {
         const body = document.createElement("div");
         body.className = "waMatchBody";
@@ -822,13 +881,15 @@
     if (!any) {
       const none = document.createElement("div");
       none.textContent = "No match info yet.";
-      none.style.opacity = "0.85";
-      none.style.padding = "8px 2px";
+      none.style.opacity = "0.8";
+      none.style.textAlign = "center";
+      none.style.padding = "10px 0";
       containerEl.appendChild(none);
     }
   }
 
-  function buildMatchHeader({ type, stip, partTitle }) {({ type, stip, partTitle }) {
+  // Classic args signature for broader compatibility (some embedded webviews can choke on destructuring)
+  function buildMatchHeader(type, stip, partTitle) {
     const t = String(type || "").trim();
     const s = String(stip || "").trim();
     const p = String(partTitle || "").trim();
@@ -842,8 +903,8 @@
         n === "interview" ||
         n === "angle" ||
         n === "vignette" ||
-        n.includes("promo") ||
-        n.includes("segment")
+        n.indexOf("promo") !== -1 ||
+        n.indexOf("segment") !== -1
       );
     };
 
@@ -876,13 +937,7 @@
     return "Match";
   }
 
-  function escapeHtml(s) {
-    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
-    }[c]));
-  }
-
-function renderYearBubbles(years) {
+	function renderYearBubbles(years) {
     const row = getYearGroupsEl();
     if (!row) return;
 
