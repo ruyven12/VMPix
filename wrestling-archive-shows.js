@@ -251,6 +251,13 @@
         font-size: 13px;
         font-weight: 800;
         opacity: .92;
+        display:flex;
+        flex-direction:column;
+        gap: 2px;
+        line-height: 1.15;
+      }
+      .waInfoPill .valLine{
+        display:block;
       }
 
       .waMatchesTitle{
@@ -570,7 +577,7 @@
       right.style.flexDirection = "column";
       right.style.gap = "6px";
 
-      const company = (r.company || "").trim();
+      const company = pickFirst(r, ["show_company", "company", "promotion", "promoter", "brand", "org"]) || "";
       if (company) {
         const companyEl = document.createElement("div");
         companyEl.textContent = company;
@@ -605,6 +612,67 @@
     });
   }
 
+
+  // ================== DETAIL HELPERS ==================
+  function pickFirst(obj, keys) {
+    if (!obj) return "";
+    for (const k of (keys || [])) {
+      const v = obj[k];
+      const s = String(v ?? "").trim();
+      if (s) return s;
+    }
+    return "";
+  }
+
+  function splitByCollabX(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return [];
+
+    // Match separators like: "GCW x Limitless" or "GCW X Limitless" or "GCW × Limitless"
+    const parts = s.split(/\s+[x×]\s+/i).map((p) => p.trim()).filter(Boolean);
+    if (parts.length <= 1) return [s];
+
+    // Put the "x" at the end of each line except the last, matching your bubble style.
+    const out = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (i < parts.length - 1) out.push(parts[i] + " x");
+      else out.push(parts[i]);
+    }
+    return out;
+  }
+
+  function makeInfoPill(label, lines) {
+    const pill = document.createElement("div");
+    pill.className = "waInfoPill";
+
+    const lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = String(label || "");
+
+    const val = document.createElement("div");
+    val.className = "val";
+
+    (lines || []).forEach((ln) => {
+      const line = String(ln ?? "").trim();
+      if (!line) return;
+      const d = document.createElement("div");
+      d.className = "valLine";
+      d.textContent = line;
+      val.appendChild(d);
+    });
+
+    if (!val.childElementCount) {
+      const d = document.createElement("div");
+      d.className = "valLine";
+      d.textContent = "—";
+      val.appendChild(d);
+    }
+
+    pill.appendChild(lbl);
+    pill.appendChild(val);
+    return pill;
+  }
+
   
 
   // ================== SHOW DETAIL (Band-style routing) ==================
@@ -631,13 +699,18 @@
     const title = String((row.show_name || row.title || "").trim() || "(Untitled show)");
     const rawDate = String((row.show_date || row.date || "").trim() || "");
     const prettyDate = rawDate ? formatPrettyDate(rawDate) : "—";
-    const company = String((row.company || "").trim() || "—");
+    const companyRaw = pickFirst(row, ["show_company", "company", "promotion", "promoter", "brand", "org"]) || "";
+
+    // Company lines: if there's an "x"/"×" collab, split it into neat stacked lines.
+    const companyLines = splitByCollabX(companyRaw);
 
     // Venue-ish (best-effort: supports venue/city/state columns if present)
-    const venue = String((row.show_venue || row.venue || "").trim() || "");
-    const city = String((row.show_city || row.city || "").trim() || "");
-    const state = String((row.show_state || row.state || "").trim() || "");
-    const venueLine = [venue, (city && state ? `${city}, ${state}` : (city || state))].filter(Boolean).join(" — ") || "—";
+    const venue = String((pickFirst(row, ["show_venue", "venue", "location", "arena", "building"]) || "").trim());
+    const city = String((pickFirst(row, ["show_city", "city", "town"]) || "").trim());
+    const state = String((pickFirst(row, ["show_state", "state", "province", "region"]) || "").trim());
+
+    const place = (city && state) ? `${city}, ${state}` : (city || state);
+    const venueLines = [venue || "—", place].filter(Boolean);
 
     const posterUrlRaw = String((row.show_poster || row.poster_url || "").trim() || "");
     const posterUrl = posterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrlRaw)}` : "";
@@ -704,20 +777,9 @@
 
     const infoRow = document.createElement("div");
     infoRow.className = "waInfoRow";
-    infoRow.innerHTML = `
-      <div class="waInfoPill">
-        <div class="lbl">COMPANY</div>
-        <div class="val">${escapeHtml(company)}</div>
-      </div>
-      <div class="waInfoPill">
-        <div class="lbl">DATE</div>
-        <div class="val">${escapeHtml(prettyDate)}</div>
-      </div>
-      <div class="waInfoPill">
-        <div class="lbl">VENUE</div>
-        <div class="val">${escapeHtml(venueLine)}</div>
-      </div>
-    `;
+    infoRow.appendChild(makeInfoPill("COMPANY", companyLines.length ? companyLines : ["—"]));
+    infoRow.appendChild(makeInfoPill("DATE", [prettyDate || "—"]));
+    infoRow.appendChild(makeInfoPill("VENUE", venueLines.length ? venueLines : ["—"]));
 
     card.appendChild(namePill);
     card.appendChild(infoRow);
