@@ -902,23 +902,55 @@
         return SMUG_ORIGIN.replace(/\/$/, "") + raw;
       }
 
+      
       function inferShowBaseUrl(r) {
         // 1) explicit base in the sheet (optional)
         const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
         if (base) return base;
 
-        // 2) infer from show_poster URL: https://photos.smugmug.com/Wrestling/Limitless/110825/i-XXXX/...
+        // 2) preferred: build from show_date using your known structure:
+        //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
+        const rawDate = String((r && (r.show_date || r.date)) || "").trim();
+        const mmddyy = (function () {
+          if (!rawDate) return "";
+          // Accept: M/D/YY, MM/DD/YY, MM/DD/YYYY
+          const m1 = rawDate.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
+          if (m1) {
+            let mm = String(m1[1]).padStart(2, "0");
+            let dd = String(m1[2]).padStart(2, "0");
+            let yy = String(m1[3]);
+            if (yy.length === 4) yy = yy.slice(2);
+            return mm + dd + yy;
+          }
+          // Accept: YYYY-MM-DD
+          const m2 = rawDate.match(/^\s*(\d{4})-(\d{2})-(\d{2})\s*$/);
+          if (m2) {
+            const yy = m2[1].slice(2);
+            return m2[2] + m2[3] + yy;
+          }
+          return "";
+        })();
+
+        if (mmddyy) {
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + mmddyy;
+        }
+
+        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/Limitless/<mmddyy> somewhere
         const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
         if (!poster) return "";
         try {
           const u = new URL(poster);
-          const parts = String(u.pathname || "")
-            .split("/")
-            .filter(Boolean);
-          // Expect: ["Wrestling","Limitless","110825", ...]
-          if (parts.length >= 3) {
-            return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(0, 3).join("/");
+          const parts = String(u.pathname || "").split("/").filter(Boolean);
+
+          // Find the "Wrestling/<fed>/<mmddyy>" triple anywhere in the path
+          for (let i = 0; i < parts.length - 2; i++) {
+            if (String(parts[i]).toLowerCase() === "wrestling" && /^\d{6}$/.test(parts[i + 2])) {
+              return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(i, i + 3).join("/");
+            }
           }
+        } catch (_) {}
+        return "";
+      }
         } catch (_) {}
         return "";
       }
