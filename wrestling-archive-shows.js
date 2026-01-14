@@ -202,13 +202,12 @@
         width:100%;
         display:flex;
         flex-direction:column;
-        /* Tighter vertical rhythm between Show pill + info pills */
-        gap: 8px;
+        gap: 12px;
       }
       .waDetailNamePill{
         width:100%;
         border-radius: 999px;
-        padding: 12px 16px;
+        padding: 14px 18px;
         background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
         border: 1px solid rgba(255,255,255,0.10);
         text-align:center;
@@ -217,7 +216,7 @@
         font-size: 10px;
         letter-spacing: .22em;
         opacity: .65;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
       .waDetailNamePill .name{
         font-size: 22px;
@@ -228,63 +227,30 @@
         display:grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
-
-        /* Tighter spacing between SHOW pill and bubbles */
-        margin-top: -2px;
       }
       @media (max-width: 920px){
         .waInfoRow{ grid-template-columns: 1fr; }
       }
       .waInfoPill{
         border-radius: 999px;
-        padding: 12px 14px;
+        padding: 10px 14px;
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,255,255,0.10);
         display:flex;
         flex-direction:column;
         gap: 4px;
-        min-height: 64px;
-
-        /* Center content in the bubbles (requested) */
-        align-items:center;
+        min-height: 56px;
         justify-content:center;
-        text-align:center;
-
-        /* Micro-motion: animate in on detail load */
-        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
-        transition-delay: var(--d, 0ms);
       }
       .waInfoPill .lbl{
         font-size: 9px;
         letter-spacing:.18em;
         opacity: .55;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap: 6px;
-      }
-
-      .waInfoIcon{
-        width: 16px;
-        height: 16px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        font-size: 12px;
-        opacity: .75;
-        transform: translateY(-0.5px);
       }
       .waInfoPill .val{
         font-size: 13px;
         font-weight: 800;
         opacity: .92;
-        display:flex;
-        flex-direction:column;
-        gap: 2px;
-        line-height: 1.15;
-      }
-      .waInfoPill .valLine{
-        display:block;
       }
 
       .waMatchesTitle{
@@ -293,83 +259,39 @@
         opacity: .80;
         margin: 2px 0 0;
         text-align:center;
-
-        /* Optional: keep the section label visible while scrolling */
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        padding: 10px 6px;
-        backdrop-filter: blur(10px);
-        background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15));
       }
       .waMatchesWrap{
         width:100%;
-        max-width: 1040px;
+        max-width: 980px;
         margin: 0 auto;
-
-        /* Grid on desktop, stacked on mobile */
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        align-items: start;
-
-        padding: 6px 0 0;
-      }
-      @media (max-width: 860px){
-        .waMatchesWrap{ grid-template-columns: 1fr; }
-      }
-
-      .waMatchBox{
-        position: relative;
         display:flex;
         flex-direction:column;
-        padding: 12px 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.04);
-        box-shadow: 0 10px 22px rgba(0,0,0,0.22);
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+        gap: 10px;
+        padding: 4px 0 0;
+      }
+      .waMatchBox{
+        display:flex;
+        flex-direction:column;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(15, 23, 42, 0.22);
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
       .waMatchBox:hover{
-        transform: translateY(-2px);
-        border-color: rgba(200,0,0,0.30);
-        background: rgba(255,255,255,0.06);
-        box-shadow: 0 16px 30px rgba(0,0,0,0.30);
+        background: rgba(30, 41, 59, 0.35);
+        border-color: rgba(255,255,255,0.14);
+        transform: translateY(-1px);
       }
-
-      .waMatchHeadRow{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap: 10px;
-      }
-      .waMatchTitle{
+      .waMatchHead{
         font-weight: 900;
-        font-size: 13px;
-        letter-spacing: .04em;
-        line-height: 1.15;
-        opacity: .95;
-      }
-      .waBadges{
-        display:flex;
-        gap: 6px;
-        align-items:center;
-        justify-content:flex-end;
-        flex-wrap:wrap;
-        min-width: 0;
-      }
-      .waMatchStip{
-        margin-top: 6px;
-        font-size: 11px;
-        opacity: .70;
+        font-size: 14px;
+        margin-bottom: 4px;
       }
       .waMatchBody{
-        margin-top: 8px;
-        font-size: 12px;
-        opacity: 0.82;
-        line-height: 1.35;
+        font-size: 13px;
+        opacity: 0.9;
       }
-
       .waBadge{
         display:inline-flex;
         align-items:center;
@@ -379,8 +301,8 @@
         letter-spacing: 0.08em;
         padding: 3px 8px;
         border-radius: 999px;
+        margin-bottom: 6px;
         width: fit-content;
-        line-height: 1;
       }
       .waBadgeChamp{
         background: rgba(250, 204, 21, 0.18);
@@ -391,51 +313,6 @@
         background: rgba(56, 189, 248, 0.10);
         border: 1px solid rgba(56, 189, 248, 0.22);
         color: rgba(185, 230, 255, 0.92);
-      }
-
-      @media (prefers-reduced-motion: reduce){
-        .waMatchBox{ transition: none !important; }
-        .waMatchBox:hover{ transform: none !important; }
-      }
-
-      /* ===== Detail enter animation (micro-motion) ===== */
-      .waDetailWrap{
-        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
-      }
-      .waDetailWrap.waEnter{
-        opacity: 0;
-        transform: translateY(10px);
-        filter: blur(10px);
-      }
-
-      /* Stagger the pills inside the detail view */
-      .waDetailWrap.waEnter .waDetailNamePill,
-      .waDetailWrap.waEnter .waInfoPill{
-        opacity: 0;
-        transform: translateY(10px);
-        filter: blur(10px);
-      }
-      .waDetailWrap.isReady{
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
-      .waDetailWrap.isReady .waDetailNamePill,
-      .waDetailWrap.isReady .waInfoPill{
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
-
-      .waDetailNamePill{
-        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
-        transition-delay: 60ms;
-      }
-
-      @media (prefers-reduced-motion: reduce){
-        .waDetailWrap,
-        .waDetailNamePill,
-        .waInfoPill{ transition: none !important; }
       }
     `;
     document.head.appendChild(s);
@@ -644,7 +521,7 @@
       right.style.flexDirection = "column";
       right.style.gap = "6px";
 
-      const company = pickFirst(r, ["show_company", "company", "promotion", "promoter", "brand", "org"]) || "";
+      const company = (r.company || "").trim();
       if (company) {
         const companyEl = document.createElement("div");
         companyEl.textContent = company;
@@ -679,85 +556,6 @@
     });
   }
 
-
-  // ================== DETAIL HELPERS ==================
-  function pickFirst(obj, keys) {
-    if (!obj) return "";
-    for (const k of (keys || [])) {
-      const v = obj[k];
-      const s = String(v ?? "").trim();
-      if (s) return s;
-    }
-    return "";
-  }
-
-  function splitByCollabX(raw) {
-    const s = String(raw || "").trim();
-    if (!s) return [];
-
-    // Match separators like: "GCW x Limitless" or "GCW X Limitless" or "GCW × Limitless"
-    const parts = s.split(/\s+[x×]\s+/i).map((p) => p.trim()).filter(Boolean);
-    if (parts.length <= 1) return [s];
-
-    // Put the "x" at the end of each line except the last, matching your bubble style.
-    const out = [];
-    for (let i = 0; i < parts.length; i++) {
-      if (i < parts.length - 1) out.push(parts[i] + " x");
-      else out.push(parts[i]);
-    }
-    return out;
-  }
-
-  function makeInfoPill(label, lines) {
-    const pill = document.createElement("div");
-    pill.className = "waInfoPill";
-
-    const lbl = document.createElement("div");
-    lbl.className = "lbl";
-
-    const labelTxt = String(label || "").trim();
-    const iconMap = {
-      "COMPANY": "🏷️",
-      "DATE": "📅",
-      "VENUE": "🏟️",
-    };
-    const ico = iconMap[labelTxt.toUpperCase()] || "";
-
-    if (ico) {
-      const span = document.createElement("span");
-      span.className = "waInfoIcon";
-      span.textContent = ico;
-      lbl.appendChild(span);
-    }
-
-    const labelNode = document.createElement("span");
-    labelNode.textContent = labelTxt;
-    lbl.appendChild(labelNode);
-
-    const val = document.createElement("div");
-    val.className = "val";
-
-    (lines || []).forEach((ln) => {
-      const line = String(ln ?? "").trim();
-      if (!line) return;
-      const d = document.createElement("div");
-      d.className = "valLine";
-      d.textContent = line;
-      val.appendChild(d);
-    });
-
-    if (!val.childElementCount) {
-      const d = document.createElement("div");
-      d.className = "valLine";
-      d.textContent = "—";
-      val.appendChild(d);
-    }
-
-    pill.appendChild(lbl);
-    pill.appendChild(val);
-    return pill;
-  }
-
   
 
   // ================== SHOW DETAIL (Band-style routing) ==================
@@ -784,25 +582,19 @@
     const title = String((row.show_name || row.title || "").trim() || "(Untitled show)");
     const rawDate = String((row.show_date || row.date || "").trim() || "");
     const prettyDate = rawDate ? formatPrettyDate(rawDate) : "—";
-    const companyRaw = pickFirst(row, ["show_company", "company", "promotion", "promoter", "brand", "org"]) || "";
-
-    // Company lines: if there's an "x"/"×" collab, split it into neat stacked lines.
-    const companyLines = splitByCollabX(companyRaw);
+    const company = String((row.company || "").trim() || "—");
 
     // Venue-ish (best-effort: supports venue/city/state columns if present)
-    const venue = String((pickFirst(row, ["show_venue", "venue", "location", "arena", "building"]) || "").trim());
-    const city = String((pickFirst(row, ["show_city", "city", "town"]) || "").trim());
-    const state = String((pickFirst(row, ["show_state", "state", "province", "region"]) || "").trim());
-
-    const place = (city && state) ? `${city}, ${state}` : (city || state);
-    const venueLines = [venue || "—", place].filter(Boolean);
+    const venue = String((row.show_venue || row.venue || "").trim() || "");
+    const city = String((row.show_city || row.city || "").trim() || "");
+    const state = String((row.show_state || row.state || "").trim() || "");
+    const venueLine = [venue, (city && state ? `${city}, ${state}` : (city || state))].filter(Boolean).join(" — ") || "—";
 
     const posterUrlRaw = String((row.show_poster || row.poster_url || "").trim() || "");
     const posterUrl = posterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrlRaw)}` : "";
 
     const wrap = document.createElement("div");
-    // Micro-motion: start hidden, then animate in on next frame
-    wrap.className = "waDetailWrap waEnter";
+    wrap.className = "waDetailWrap";
 
     const topbar = document.createElement("div");
     topbar.className = "waDetailTopbar";
@@ -863,21 +655,20 @@
 
     const infoRow = document.createElement("div");
     infoRow.className = "waInfoRow";
-
-    const companyPill = makeInfoPill("COMPANY", companyLines.length ? companyLines : ["—"]);
-    const datePill = makeInfoPill("DATE", [prettyDate || "—"]);
-    const venuePill = makeInfoPill("VENUE", venueLines.length ? venueLines : ["—"]);
-
-    // Stagger the three bubbles slightly for a "HUD" feel
-    try {
-      companyPill.style.setProperty("--d", "140ms");
-      datePill.style.setProperty("--d", "200ms");
-      venuePill.style.setProperty("--d", "260ms");
-    } catch (_) {}
-
-    infoRow.appendChild(companyPill);
-    infoRow.appendChild(datePill);
-    infoRow.appendChild(venuePill);
+    infoRow.innerHTML = `
+      <div class="waInfoPill">
+        <div class="lbl">COMPANY</div>
+        <div class="val">${escapeHtml(company)}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">DATE</div>
+        <div class="val">${escapeHtml(prettyDate)}</div>
+      </div>
+      <div class="waInfoPill">
+        <div class="lbl">VENUE</div>
+        <div class="val">${escapeHtml(venueLine)}</div>
+      </div>
+    `;
 
     card.appendChild(namePill);
     card.appendChild(infoRow);
@@ -898,14 +689,6 @@
     renderMatchesInto(matchesWrap, row);
 
     resultsEl.appendChild(wrap);
-
-    // Trigger enter animation after DOM insertion
-    try {
-      requestAnimationFrame(() => {
-        wrap.classList.add("isReady");
-      });
-    } catch (_) {}
-
     resetPanelScroll();
   }
 
@@ -914,67 +697,89 @@
 
     let any = false;
 
+    // Match columns are moving from part_1_* to match-1_* (and match_1_*).
+    // This keeps backward compatibility with the older sheet while supporting the new naming.
+    function pickFirst(obj, keys) {
+      for (const k of keys) {
+        if (!k) continue;
+        const v = obj && Object.prototype.hasOwnProperty.call(obj, k) ? obj[k] : undefined;
+        if (v !== undefined && v !== null && String(v).trim() !== "") return String(v).trim();
+      }
+      return "";
+    }
+
+    function getMatchField(obj, i, field) {
+      const n = Number(i);
+      const dash = `match-${n}`;
+      const under = `match_${n}`;
+      const legacy = `part_${n}`;
+
+      // Support a few common header variants:
+      //   match-1_type, match_1_type, match-1-type, match_1-type
+      //   match-1_people, match_1_people, match-1 (people), match_1 (people)
+      //   legacy part_1_* fields
+      const suffixes = [
+        `_${field}`,
+        `-${field}`,
+      ];
+
+      const keys = [];
+      for (const suf of suffixes) {
+        keys.push(`${dash}${suf}`);
+        keys.push(`${under}${suf}`);
+      }
+      // Some sheets may use just match-1 or match_1 for the people line.
+      if (field === "people") {
+        keys.push(dash);
+        keys.push(under);
+      }
+      // Legacy part_1_* keys
+      keys.push(`${legacy}_${field}`);
+
+      return pickFirst(obj, keys);
+    }
+
     for (let i = 1; i <= 10; i++) {
-      const type = String((row[`part_${i}_type`] || "").trim());
-      const stip = String((row[`part_${i}_stip`] || "").trim());
-      const partTitle = String((row[`part_${i}_title`] || "").trim());
-      const people = String((row[`part_${i}_people`] || "").trim());
+      const matchId = `match-${i}`;
+      const type = getMatchField(row, i, "type");
+      const stip = getMatchField(row, i, "stip");
+      const partTitle = getMatchField(row, i, "title");
+      const people = getMatchField(row, i, "people");
 
       if (!type && !stip && !partTitle && !people) continue;
       any = true;
 
       const box = document.createElement("div");
       box.className = "waMatchBox";
+      // Expose a stable id for later album-linking (match-1..match-10)
+      box.dataset.matchId = matchId;
 
       const typeNorm = type.toLowerCase();
 
-      // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
-      const headerLabel = buildMatchHeader({ type, stip, partTitle });
-
-      // --- Header row: title (left) + badges (right) ---
-      const headRow = document.createElement("div");
-      headRow.className = "waMatchHeadRow";
-
-      const titleEl = document.createElement("div");
-      titleEl.className = "waMatchTitle";
-      titleEl.textContent = headerLabel;
-
-      const badges = document.createElement("div");
-      badges.className = "waBadges";
-
-      // Badges (right aligned)
+      // Badges
       if (typeNorm.includes("championship")) {
         const badge = document.createElement("div");
         badge.className = "waBadge waBadgeChamp";
         badge.innerHTML = `<span style="font-size:12px">🏆</span><span>CHAMPIONSHIP</span>`;
-        badges.appendChild(badge);
-      }
-      if (typeNorm === "promo" || typeNorm === "segment") {
+        box.appendChild(badge);
+      } else if (typeNorm === "promo" || typeNorm === "segment") {
         const badge = document.createElement("div");
         badge.className = "waBadge waBadgeSeg";
         badge.innerHTML = `<span style="font-size:12px">🎤</span><span>${escapeHtml(typeNorm.toUpperCase())}</span>`;
-        badges.appendChild(badge);
+        box.appendChild(badge);
       }
 
-      headRow.appendChild(titleEl);
-      if (badges.childElementCount) headRow.appendChild(badges);
-      box.appendChild(headRow);
+      const head = document.createElement("div");
+      head.className = "waMatchHead";
 
-      // --- Stipulation line (subtle) ---
-      // Only show when it adds information (e.g., when the header isn't already the stipulation).
-      if (stip) {
-        const headerLower = String(headerLabel || "").toLowerCase();
-        const stipLower = String(stip || "").toLowerCase();
-        const includesStip = headerLower.includes(stipLower);
-        if (!includesStip) {
-          const stipEl = document.createElement("div");
-          stipEl.className = "waMatchStip";
-          stipEl.textContent = stip;
-          box.appendChild(stipEl);
-        }
-      }
+      let headerLabel = "";
+      if (partTitle) headerLabel = `${partTitle} Match`;
+      else if (stip) headerLabel = `${stip} Match`;
+      else headerLabel = type || "Match";
 
-      // --- People line ---
+      head.textContent = headerLabel;
+      box.appendChild(head);
+
       if (people) {
         const body = document.createElement("div");
         body.className = "waMatchBody";
@@ -993,54 +798,6 @@
       none.style.padding = "10px 0";
       containerEl.appendChild(none);
     }
-  }
-
-  function buildMatchHeader({ type, stip, partTitle }) {
-    const t = String(type || "").trim();
-    const s = String(stip || "").trim();
-    const p = String(partTitle || "").trim();
-
-    const isSeg = (v) => {
-      const n = String(v || "").trim().toLowerCase();
-      return (
-        n === "promo" ||
-        n === "segment" ||
-        n === "backstage" ||
-        n === "interview" ||
-        n === "angle" ||
-        n === "vignette" ||
-        n.includes("promo") ||
-        n.includes("segment")
-      );
-    };
-
-    const hasMatchWord = (v) => /\bmatch\b/i.test(String(v || ""));
-    const hasVsWord = (v) => /\bvs\.?\b/i.test(String(v || ""));
-
-    // Prefer a custom title if provided.
-    if (p) {
-      // If it's a segment/promo, never append "Match".
-      if (isSeg(t)) return p;
-      // If it already contains match language, keep it as-is.
-      if (hasMatchWord(p) || hasVsWord(p)) return p;
-      return `${p} Match`;
-    }
-
-    // Next preference: stipulation
-    if (s) {
-      if (isSeg(t)) return s;
-      if (hasMatchWord(s) || hasVsWord(s)) return s;
-      return `${s} Match`;
-    }
-
-    // Fallback: type
-    if (t) {
-      if (isSeg(t)) return t;
-      if (hasMatchWord(t)) return t;
-      return `${t} Match`;
-    }
-
-    return "Match";
   }
 
   function escapeHtml(s) {
