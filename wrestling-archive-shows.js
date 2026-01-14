@@ -276,12 +276,22 @@
         border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.08);
         background: rgba(15, 23, 42, 0.22);
+        cursor: pointer;
         transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
       .waMatchBox:hover{
         background: rgba(30, 41, 59, 0.35);
         border-color: rgba(255,255,255,0.14);
         transform: translateY(-1px);
+      }
+      .waMatchBox:focus-visible{
+        outline: 2px solid rgba(200,0,0,0.55);
+        outline-offset: 2px;
+      }
+      .waMatchBox:focus-visible{
+        outline: none;
+        border-color: rgba(200,0,0,0.55);
+        box-shadow: 0 0 0 2px rgba(200,0,0,0.22);
       }
       .waMatchHead{
         font-weight: 900;
@@ -686,165 +696,13 @@
     matchesWrap.className = "waMatchesWrap";
     wrap.appendChild(matchesWrap);
 
-    renderMatchesInto(matchesWrap, row, year);
+    renderMatchesInto(matchesWrap, row);
 
     resultsEl.appendChild(wrap);
     resetPanelScroll();
   }
 
-  
-  function isHttpUrl(s) {
-    const v = String(s || "").trim();
-    return /^https?:\/\//i.test(v);
-  }
-
-  // ================== MATCH DETAIL (route from a match tile) ==================
-  // For now this view reads the per-match URL/id column (part_1_url / match-1_url etc)
-  // and provides a clean "Back to show" path. Later we’ll hydrate this into Albums/Photos.
-  function showMatchDetail(showRow, year, matchCtx) {
-    if (!showRow || !matchCtx) return;
-    ensureShowsStyles();
-
-    const resultsEl = getResultsEl();
-    const yearRow = getYearGroupsEl();
-    const crumbsEl = getCrumbsEl();
-    if (!resultsEl) return;
-
-    // Keep year pills/crumbs hidden while in match detail (same as show detail)
-    try { if (yearRow) yearRow.style.display = "none"; } catch (_) {}
-    try { if (crumbsEl) crumbsEl.style.display = "none"; } catch (_) {}
-
-    resultsEl.style.display = "block";
-    resultsEl.innerHTML = "";
-
-    const idx = Number(matchCtx.index) || 0;
-    const matchId = String(matchCtx.matchId || `match-${idx || 0}`);
-    const matchUrl = String(matchCtx.matchUrl || "").trim();
-
-    // Build a readable title for the match header
-    const partTitle = String(matchCtx.partTitle || "").trim();
-    const stip = String(matchCtx.stip || "").trim();
-    const type = String(matchCtx.type || "").trim();
-    const people = String(matchCtx.people || "").trim();
-
-    const headerLabel = (partTitle || stip || type || matchId || "Match").trim();
-
-    const wrap = document.createElement("div");
-    wrap.className = "waDetailWrap";
-
-    const topbar = document.createElement("div");
-    topbar.className = "waDetailTopbar";
-
-    const backBtn = document.createElement("button");
-    backBtn.className = "waBackBtn";
-    backBtn.type = "button";
-    backBtn.textContent = "← Back to show";
-    backBtn.addEventListener("click", () => {
-      // Return to the show detail view we came from
-      showShowDetail(showRow, year);
-      resetPanelScroll();
-    });
-
-    topbar.appendChild(backBtn);
-    wrap.appendChild(topbar);
-
-    const header = document.createElement("div");
-    header.className = "waDetailHeader";
-
-    // Left: reuse the show poster (keeps context)
-    const showPosterUrlRaw = String((showRow.show_poster || showRow.poster_url || "").trim() || "");
-    const showPosterUrl = showPosterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(showPosterUrlRaw)}` : "";
-
-    const poster = document.createElement("img");
-    poster.className = "waDetailPoster";
-    poster.alt = headerLabel;
-    poster.loading = "lazy";
-    poster.src = showPosterUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='100%25' height='100%25' fill='rgba(0,0,0,0.35)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='rgba(255,255,255,0.55)' font-size='20'%3ENo%20poster%3C/text%3E%3C/svg%3E";
-
-    // Right: match meta (Bands-style: pill title + pills)
-    const card = document.createElement("div");
-    card.className = "waDetailCard";
-
-    const namePill = document.createElement("div");
-    namePill.className = "waDetailNamePill";
-    namePill.innerHTML = `
-      <div class="kicker">MATCH:</div>
-      <div class="name">${escapeHtml(headerLabel)}</div>
-    `;
-
-    const infoRow = document.createElement("div");
-    infoRow.className = "waInfoRow";
-
-    const urlDisplay = matchUrl ? matchUrl : "—";
-    const urlIsHttp = isHttpUrl(matchUrl);
-
-    // Use 3 pills to match the visual rhythm (Type / ID / Link)
-    infoRow.innerHTML = `
-      <div class="waInfoPill">
-        <div class="lbl">TYPE</div>
-        <div class="val">${escapeHtml(type || "—")}</div>
-      </div>
-      <div class="waInfoPill">
-        <div class="lbl">MATCH ID</div>
-        <div class="val">${escapeHtml(matchId)}</div>
-      </div>
-      <div class="waInfoPill">
-        <div class="lbl">ALBUM LINK</div>
-        <div class="val">${escapeHtml(urlDisplay)}</div>
-      </div>
-    `;
-
-    // Add an action row under the pills if we have a real URL
-    if (urlIsHttp) {
-      const actionRow = document.createElement("div");
-      actionRow.style.display = "flex";
-      actionRow.style.justifyContent = "center";
-      actionRow.style.gap = "10px";
-      actionRow.style.marginTop = "6px";
-
-      const openBtn = document.createElement("button");
-      openBtn.type = "button";
-      openBtn.className = "waBackBtn"; // reuse line-tab styling
-      openBtn.textContent = "Open album ↗";
-      openBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        try { window.open(matchUrl, "_blank", "noopener"); } catch (_) {}
-      });
-
-      actionRow.appendChild(openBtn);
-      card.appendChild(actionRow);
-    }
-
-    card.appendChild(namePill);
-    card.appendChild(infoRow);
-
-    header.appendChild(poster);
-    header.appendChild(card);
-    wrap.appendChild(header);
-
-    // People line (if present)
-    if (people) {
-      const peopleBox = document.createElement("div");
-      peopleBox.className = "waMatchesWrap";
-      peopleBox.style.maxWidth = "980px";
-      peopleBox.style.paddingTop = "0";
-
-      const line = document.createElement("div");
-      line.className = "waMatchBox";
-      line.innerHTML = `
-        <div class="waMatchHead">Participants</div>
-        <div class="waMatchBody">${escapeHtml(people)}</div>
-      `;
-      peopleBox.appendChild(line);
-      wrap.appendChild(peopleBox);
-    }
-
-    resultsEl.appendChild(wrap);
-    resetPanelScroll();
-  }
-
-function renderMatchesInto(containerEl, row, year) {
+  function renderMatchesInto(containerEl, row) {
     if (!containerEl) return;
 
     let any = false;
@@ -868,7 +726,6 @@ function renderMatchesInto(containerEl, row, year) {
 
       // Support a few common header variants:
       //   match-1_type, match_1_type, match-1-type, match_1-type
-      //   match-1_people, match_1_people, match-1 (people), match_1 (people)
       //   legacy part_1_* fields
       const suffixes = [
         `_${field}`,
@@ -880,15 +737,23 @@ function renderMatchesInto(containerEl, row, year) {
         keys.push(`${dash}${suf}`);
         keys.push(`${under}${suf}`);
       }
-      // Some sheets may use just match-1 or match_1 for the people line.
-      if (field === "people") {
-        keys.push(dash);
-        keys.push(under);
-      }
-      // Legacy part_1_* keys
       keys.push(`${legacy}_${field}`);
-
       return pickFirst(obj, keys);
+    }
+
+    // Resolve a sheet "url" cell into a real SmugMug URL.
+    // If the cell is relative (e.g., "Match-1"), we join it to row.show_url when available.
+    function resolveMatchUrl(urlCell, showRow) {
+      const raw = String(urlCell || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      if (raw.startsWith("/")) {
+        const origin = (window.location && window.location.origin) ? window.location.origin : "";
+        return origin ? (origin.replace(/\/$/, "") + raw) : raw;
+      }
+      const base = String(showRow?.show_url || showRow?.showUrl || showRow?.show || "").trim();
+      if (base) return base.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
+      return raw;
     }
 
     for (let i = 1; i <= 10; i++) {
@@ -897,36 +762,24 @@ function renderMatchesInto(containerEl, row, year) {
       const stip = getMatchField(row, i, "stip");
       const partTitle = getMatchField(row, i, "title");
       const people = getMatchField(row, i, "people");
-      const partUrl = getMatchField(row, i, "url");
+      const urlCell = getMatchField(row, i, "url");
+      const matchUrl = resolveMatchUrl(urlCell, row);
 
       if (!type && !stip && !partTitle && !people) continue;
       any = true;
 
       const box = document.createElement("div");
       box.className = "waMatchBox";
-      // Expose a stable id for later album-linking (match-1..match-10)
       box.dataset.matchId = matchId;
-      if (partUrl) box.dataset.matchUrl = partUrl;
-
-      // If a URL/id is present, make the match tile routeable (click → match detail / album link)
-      if (partUrl) {
-        box.style.cursor = "pointer";
-        box.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showMatchDetail(row, year, {
-            index: i,
-            matchId,
-            matchUrl: partUrl,
-            type,
-            stip,
-            partTitle,
-            people,
-          });
-        });
-      }
+      if (matchUrl) box.dataset.matchUrl = matchUrl;
+      box.setAttribute("role", "button");
+      box.setAttribute("tabindex", "0");
+      box.title = matchUrl ? "Open match album" : "";
 
       const typeNorm = type.toLowerCase();
+
+      // Smarter header: avoid "Match Match" and handle segment/promo labels cleanly.
+      const headerLabel = buildMatchHeader({ type, stip, partTitle });
 
       // Badges
       if (typeNorm.includes("championship")) {
@@ -943,12 +796,6 @@ function renderMatchesInto(containerEl, row, year) {
 
       const head = document.createElement("div");
       head.className = "waMatchHead";
-
-      let headerLabel = "";
-      if (partTitle) headerLabel = `${partTitle} Match`;
-      else if (stip) headerLabel = `${stip} Match`;
-      else headerLabel = type || "Match";
-
       head.textContent = headerLabel;
       box.appendChild(head);
 
@@ -960,6 +807,25 @@ function renderMatchesInto(containerEl, row, year) {
       }
 
       containerEl.appendChild(box);
+
+      // Click / keyboard: open the match album URL (when provided).
+      if (matchUrl) {
+        const go = () => {
+          try { window.location.href = matchUrl; } catch (_) {}
+        };
+        box.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          go();
+        });
+        box.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            go();
+          }
+        });
+      }
     }
 
     if (!any) {
@@ -970,6 +836,54 @@ function renderMatchesInto(containerEl, row, year) {
       none.style.padding = "10px 0";
       containerEl.appendChild(none);
     }
+  }
+
+  function buildMatchHeader({ type, stip, partTitle }) {
+    const t = String(type || "").trim();
+    const s = String(stip || "").trim();
+    const p = String(partTitle || "").trim();
+
+    const isSeg = (v) => {
+      const n = String(v || "").trim().toLowerCase();
+      return (
+        n === "promo" ||
+        n === "segment" ||
+        n === "backstage" ||
+        n === "interview" ||
+        n === "angle" ||
+        n === "vignette" ||
+        n.includes("promo") ||
+        n.includes("segment")
+      );
+    };
+
+    const hasMatchWord = (v) => /\bmatch\b/i.test(String(v || ""));
+    const hasVsWord = (v) => /\bvs\.?\b/i.test(String(v || ""));
+
+    // Prefer a custom title if provided.
+    if (p) {
+      // If it's a segment/promo, never append "Match".
+      if (isSeg(t)) return p;
+      // If it already contains match language, keep it as-is.
+      if (hasMatchWord(p) || hasVsWord(p)) return p;
+      return `${p} Match`;
+    }
+
+    // Next preference: stipulation
+    if (s) {
+      if (isSeg(t)) return s;
+      if (hasMatchWord(s) || hasVsWord(s)) return s;
+      return `${s} Match`;
+    }
+
+    // Fallback: type
+    if (t) {
+      if (isSeg(t)) return t;
+      if (hasMatchWord(t)) return t;
+      return `${t} Match`;
+    }
+
+    return "Match";
   }
 
   function escapeHtml(s) {
