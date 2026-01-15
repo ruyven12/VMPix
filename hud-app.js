@@ -162,23 +162,42 @@ function pulseFrame(){
   const WrestlingArchive = window.WrestlingArchive;
   const AboutArchive = window.AboutArchive;
 
+  // Optional: Home module (home.js)
+  const HomeArchive = window.HomeArchive;
+
   // Route modules: keep behavior identical, but allow upgrades via external JS later
   const modules = {
     home: {
-      render(){
-        const m = mount();
-        if (!m) return;
-        // If the music archive previously mounted UI, let it clean up
-        if (MusicArchive && typeof MusicArchive.destroy === 'function') MusicArchive.destroy();
-        renderTypedShell(m);
-      },
-      onEnter(){
-        const el = document.querySelector('[data-hud-main-text]');
-        typeHudMainText(ROUTE_COPY.home, el);
-      }
-    },
+  render(){
+    const m = mount();
+    if (!m) return;
 
-    music: {
+    // If the music archive previously mounted UI, let it clean up
+    if (MusicArchive && typeof MusicArchive.destroy === 'function') MusicArchive.destroy();
+
+    // Prefer external home.js module when present
+    if (HomeArchive && typeof HomeArchive.render === 'function'){
+      HomeArchive.render(m);
+    } else {
+      renderTypedShell(m);
+    }
+  },
+  onEnter(){
+    if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
+      HomeArchive.onEnter();
+      return;
+    }
+    const el = document.querySelector('[data-hud-main-text]');
+    typeHudMainText(ROUTE_COPY.home, el);
+  },
+  onLeave(){
+    if (HomeArchive && typeof HomeArchive.destroy === 'function'){
+      HomeArchive.destroy();
+    }
+  }
+},
+
+music: {
       render(){
         const m = mount();
         if (!m) return;
