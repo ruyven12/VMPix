@@ -1504,56 +1504,61 @@ redrawGrid();
 
   // Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
   async function resolveAlbumKeyFromUrl(albumUrl) {
-    const rawIn = String(albumUrl || "").trim();
-    if (!rawIn) return "";
+    const u0 = String(albumUrl || "").trim();
+    if (!u0) return "";
 
-    // IMPORTANT: Do not mutate routing logic upstream. Instead, be defensive here:
-    // Try resolving the AlbumKey using the provided URL first, then a few normalized variants
-    // (casing + common date-folder formats) in case the sheet/route uses a different convention.
-    const urlsToTry = [];
-    const push = (v) => {
-      const s = String(v || "").trim();
-      if (!s) return;
-      if (urlsToTry.indexOf(s) !== -1) return;
-      urlsToTry.push(s);
-    };
+    // Normalize ONLY toward your canonical structure:
+    //   /Wrestling/Limitless/MMDDYY/...
+    // (No dashed date variants are generated here.)
+    function normalizeToMMDDYY(u) {
+      const s = String(u || "").trim();
+      if (!s) return s;
 
-    // 1) As-is
-    push(rawIn);
-
-    // 2) Ensure absolute on SmugMug if a path was supplied
-    if (rawIn.startsWith("/")) {
-      push(SMUG_ORIGIN.replace(/\/$/, "") + rawIn);
+      // Convert a dashed date folder (MM-DD-YY or MM-DD-YYYY) to MMDDYY if it ever appears.
+      // This is one-way normalization toward MMDDYY.
+      return s.replace(/\/(\d{2})-(\d{2})-(\d{2})(?=\/|$)/g, "/$1$2$3")
+              .replace(/\/(\d{2})-(\d{2})-(\d{4})(?=\/|$)/g, (m, mm, dd, yyyy) => {
+                const yy = String(yyyy).slice(-2);
+                return `/${mm}${dd}${yy}`;
+              });
     }
 
-    // 3) Normalize origin to known SmugMug origin
-    try {
-      const u0 = new URL(rawIn, SMUG_ORIGIN);
-      // Use canonical SmugMug origin (vmpix) but preserve path/query
-      const canon = SMUG_ORIGIN.replace(/\/$/, "") + u0.pathname + (u0.search || "");
-      push(canon);
-    } catch (_) {}
+    function normalizePathCasing(u) {
+      const s = String(u || "").trim();
+      if (!s) return s;
 
-    // 4) Common casing variants (SmugMug folders are often case-sensitive in paths you store)
-    //    /wrestling/limitless/ -> /Wrestling/Limitless/
-    urlsToTry.slice().forEach((u) => {
-      push(u.replace(/\/wrestling\//i, "/Wrestling/").replace(/\/limitless\//i, "/Limitless/"));
-      push(u.replace(/\/Wrestling\//, "/wrestling/").replace(/\/Limitless\//, "/limitless/"));
-    });
+      // Make sure the canonical casing appears in the URL path when possible.
+      // (SmugMug is often forgiving, but the resolver/backend may not be.)
+      return s
+        .replace(/\/wrestling\//i, "/Wrestling/")
+        .replace(/\/limitless\//i, "/Limitless/");
+    }
 
-    // 5) Common date-folder variants:
-    //    If URL contains /MM-DD-YY/, also try /MMDDYY/
-    urlsToTry.slice().forEach((u) => {
-      push(u.replace(/\/(\d{2})-(\d{2})-(\d{2})(?=\/|$)/g, "/$1$2$3"));
-      // If it contains /MMDDYY/, also try /MM-DD-YY/
-      push(u.replace(/\/(\d{2})(\d{2})(\d{2})(?=\/|$)/g, "/$1-$2-$3"));
-    });
+    // Build candidate URLs in a deterministic order:
+    // 1) as-is
+    // 2) date-normalized (to MMDDYY)
+    // 3) casing-normalized
+    // 4) date + casing normalized
+    const candidates = [];
+    function pushUnique(v) {
+      const x = String(v || "").trim();
+      if (!x) return;
+      if (candidates.indexOf(x) === -1) candidates.push(x);
+    }
 
-    // Now try resolving against backend for each candidate URL.
-    for (let i = 0; i < urlsToTry.length; i++) {
-      const u = urlsToTry[i];
+    const u1 = normalizeToMMDDYY(u0);
+    const u2 = normalizePathCasing(u0);
+    const u3 = normalizePathCasing(u1);
 
-      const candidates = [
+    pushUnique(u0);
+    pushUnique(u1);
+    pushUnique(u2);
+    pushUnique(u3);
+
+    for (let i = 0; i < candidates.length; i++) {
+      const u = candidates[i];
+
+      const endpoints = [
         API_BASE + "/smug/resolve-album?url=" + encodeURIComponent(u),
         API_BASE + "/smug/resolve?url=" + encodeURIComponent(u),
         API_BASE + "/smug/album-from-url?url=" + encodeURIComponent(u),
@@ -1561,23 +1566,27 @@ redrawGrid();
       ];
 
       try {
-        const json = await fetchJsonFirstOk(candidates);
+        const json = await fetchJsonFirstOk(endpoints);
+
         // accept several shapes
-        if (json && typeof json.albumKey === "string") return json.albumKey.trim();
-        if (json && typeof json.AlbumKey === "string") return json.AlbumKey.trim();
+        if (json && typeof json.albumKey === "string" && json.albumKey.trim()) return json.albumKey.trim();
+        if (json && typeof json.AlbumKey === "string" && json.AlbumKey.trim()) return json.AlbumKey.trim();
+
         const resp = json && json.Response;
         if (resp) {
-          if (resp.Album && typeof resp.Album.AlbumKey === "string") return String(resp.Album.AlbumKey).trim();
-          if (typeof resp.AlbumKey === "string") return String(resp.AlbumKey).trim();
+          if (resp.Album && typeof resp.Album.AlbumKey === "string" && String(resp.Album.AlbumKey).trim()) {
+            return String(resp.Album.AlbumKey).trim();
+          }
+          if (typeof resp.AlbumKey === "string" && String(resp.AlbumKey).trim()) return String(resp.AlbumKey).trim();
         }
       } catch (_) {
-        // try next variant
+        // try next candidate
       }
     }
 
-    // If backend doesn't support resolving, give up gracefully.
     return "";
   }
+
 
   async function fetchAllAlbumImages(albumKey) {
     if (!albumKey) return [];
