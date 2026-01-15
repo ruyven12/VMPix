@@ -13,7 +13,9 @@
   'use strict';
 
   const DEFAULT_COPY =
-    "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.";
+    "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.
+	
+	Also, this page at the moment is best viewed inside a browser only and should do good with most devices. If you are viewing this from Facebook Webview (you clicked the link in Facebook), view by browser instead.";
 
   let _mount = null;
 
