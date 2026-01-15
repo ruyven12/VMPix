@@ -1,82 +1,165 @@
 // home.js
-(function () {
-  "use strict";
+// Home module for the HUD shell (hud-app.js)
+//
+// Exposes:
+//   window.HomeArchive.render(mountEl)
+//   window.HomeArchive.onEnter()
+//   window.HomeArchive.destroy()
+//
+// This keeps things consistent with music-archive.js / wrestling-archive.js / about-archive.js:
+// the shell routes, this file owns the Home UI.
 
-  let _root = null;
+(function () {
+  'use strict';
+
+  const DEFAULT_COPY =
+    "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.";
+
+  let _mount = null;
 
   function ensureHomeStyles() {
-    if (document.getElementById("voodooHomeStyles")) return;
-    const s = document.createElement("style");
-    s.id = "voodooHomeStyles";
+    if (document.getElementById('homeArchiveStyles')) return;
+
+    const s = document.createElement('style');
+    s.id = 'homeArchiveStyles';
     s.textContent = `
-      /* Scoped to Home panel */
-      #voodooHomeRoot { width:100%; max-width:1200px; margin:0 auto; padding: 14px 10px; }
-      #voodooHomeRoot .homeTitle { text-align:center; opacity:.9; letter-spacing:.12em; font-size: 13px; }
-      #voodooHomeRoot .homeGrid { margin-top:14px; display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-      #voodooHomeRoot .homeCard {
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(0,0,0,0.18);
-        padding: 14px;
-        text-align:center;
+      /* Home module: keep it subtle + consistent with HUD */
+      #homeContentRoot{
+        width: 100%;
+        max-width: min(900px, 92%);
+        margin: 0 auto;
+        text-align: center;
+        display: grid;
+        gap: 14px;
+        justify-items: center;
       }
-      #voodooHomeRoot .homeCard .k { font-size: 10px; opacity:.65; letter-spacing:.20em; margin-bottom:6px; }
-      #voodooHomeRoot .homeCard .v { font-size: 16px; font-weight: 800; }
+
+      #homeContentRoot .homeQuickRow{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 6px;
+      }
+
+      #homeContentRoot .homeQuickBtn{
+        appearance: none;
+        border: 1px solid rgba(255,60,60,.32);
+        background: rgba(0,0,0,.16);
+        color: inherit;
+        font-family: inherit;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
+      }
+
+      #homeContentRoot .homeQuickBtn:hover{
+        border-color: rgba(255,60,60,.46);
+        box-shadow: 0 0 0 1px rgba(255,60,60,.16), 0 0 22px rgba(255,60,60,.20);
+        filter: brightness(1.06);
+      }
+
+      #homeContentRoot .homeQuickBtn:active{
+        transform: translateY(1px);
+      }
     `;
     document.head.appendChild(s);
   }
 
-  function render() {
-    return `
-      <div id="voodooHomeRoot">
-        <div class="homeTitle">
-          WELCOME TO THE LANDING SITE FOR VOODOO MEDIA. PLEASE MAKE YOUR SELECTION ABOVE.
+  function mountEl() {
+    return _mount || document.getElementById('hudMainMount');
+  }
+
+  // Tiny self-contained typer so we don't depend on hud-app.js internals
+  function typeInto(el, text) {
+    if (!el) return;
+    const full = String(text || '').trim();
+    if (!full) {
+      el.textContent = '';
+      return;
+    }
+
+    if (el._typeTimer) {
+      clearInterval(el._typeTimer);
+      el._typeTimer = null;
+    }
+
+    el.classList.add('isTyping');
+    el.textContent = '';
+
+    const speedMs = 12;
+    let i = 0;
+
+    el._typeTimer = setInterval(() => {
+      i++;
+      el.textContent = full.slice(0, i);
+      if (i >= full.length) {
+        clearInterval(el._typeTimer);
+        el._typeTimer = null;
+        el.textContent = full;
+        el.classList.remove('isTyping');
+      }
+    }, speedMs);
+  }
+
+  function render(mount) {
+    ensureHomeStyles();
+    _mount = mount || mountEl();
+    if (!_mount) return;
+
+    // Keep the same HUD-main expectations: a [data-hud-main-text] exists
+    _mount.innerHTML = `
+      <div id="homeContentRoot">
+        <div>
+          <span data-hud-main-text></span>
         </div>
 
-        <div class="homeGrid">
-          <div class="homeCard" id="homeCardMusic">
-            <div class="k">SECTION</div>
-            <div class="v">MUSIC</div>
-          </div>
-          <div class="homeCard" id="homeCardWrestling">
-            <div class="k">SECTION</div>
-            <div class="v">WRESTLING</div>
-          </div>
-          <div class="homeCard" id="homeCardAbout">
-            <div class="k">SECTION</div>
-            <div class="v">ABOUT</div>
-          </div>
+        <!-- Optional quick actions (safe; purely hash changes) -->
+        <div class="homeQuickRow" aria-label="Quick navigation">
+          <button class="homeQuickBtn" type="button" data-go="#/music">Music</button>
+          <button class="homeQuickBtn" type="button" data-go="#/wrestling">Wrestling</button>
+          <button class="homeQuickBtn" type="button" data-go="#/about">About</button>
         </div>
       </div>
     `;
+
+    // Wire quick nav buttons (no external deps)
+    _mount.querySelectorAll('[data-go]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const to = btn.getAttribute('data-go') || '#/home';
+        location.hash = to;
+      }, { passive: true });
+    });
   }
 
-  function onMount(rootEl) {
-    ensureHomeStyles();
-    _root = rootEl || document;
-
-    // OPTIONAL: if your shell/router exposes a navigate function, hook cards to it.
-    // Replace window.VoodooShell.navigate(...) with whatever your router uses.
-    const go = (key) => {
-      try {
-        if (window.VoodooShell && typeof window.VoodooShell.navigate === "function") {
-          window.VoodooShell.navigate(key);
-        }
-      } catch (_) {}
-    };
-
-    const music = _root.querySelector("#homeCardMusic");
-    const wrestling = _root.querySelector("#homeCardWrestling");
-    const about = _root.querySelector("#homeCardAbout");
-
-    if (music) music.addEventListener("click", () => go("music"));
-    if (wrestling) wrestling.addEventListener("click", () => go("wrestling"));
-    if (about) about.addEventListener("click", () => go("about"));
+  function onEnter(copyOverride) {
+    const root = mountEl();
+    if (!root) return;
+    const el = root.querySelector('[data-hud-main-text]');
+    typeInto(el, copyOverride || DEFAULT_COPY);
   }
 
   function destroy() {
-    _root = null;
+    const root = mountEl();
+    if (!root) return;
+
+    // Stop typer if running
+    const el = root.querySelector('[data-hud-main-text]');
+    if (el && el._typeTimer) {
+      clearInterval(el._typeTimer);
+      el._typeTimer = null;
+    }
+    // Leave DOM alone; the router will replace it on next route render.
   }
 
-  window.VoodooHome = { render, onMount, destroy };
+  window.HomeArchive = {
+    render,
+    onEnter,
+    destroy,
+  };
 })();
