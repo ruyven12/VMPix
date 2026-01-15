@@ -703,8 +703,30 @@
 
         const row = {};
         header.forEach((colName, i) => {
-          row[colName.trim().toLowerCase()] = (cols[i] || "").trim();
-        });
+  const val = (cols[i] || "").trim();
+
+  const rawKey = String(colName || "").trim().toLowerCase();
+  if (!rawKey) return;
+
+  // Store the raw key
+  row[rawKey] = val;
+
+  // Also store normalized variants so "Match-1 Type" can be found as "match-1_type", etc.
+  const kSpaceToUnderscore = rawKey.replace(/\s+/g, "_");
+  const kSpaceToDash       = rawKey.replace(/\s+/g, "-");
+  const kDashToUnderscore  = rawKey.replace(/-/g, "_");
+  const kUnderscoreToDash  = rawKey.replace(/_/g, "-");
+
+  row[kSpaceToUnderscore] = val;
+  row[kSpaceToDash] = val;
+  row[kDashToUnderscore] = val;
+  row[kUnderscoreToDash] = val;
+
+  // And combos (covers weird mixes like "match-1 type" -> "match-1_type")
+  row[kSpaceToUnderscore.replace(/-/g, "_")] = val;
+  row[kSpaceToUnderscore.replace(/_/g, "-")] = val;
+});
+
 
         row.date =
           dateIdx !== -1 ? (cols[dateIdx] || "").trim() : (row.show_date || row.date || "");
