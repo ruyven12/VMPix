@@ -1391,7 +1391,7 @@ function updateSelectUI() {
   try { selectToggle.classList.toggle("waSelectPrimary", !!selectMode); } catch(_) {}
 
   if (selectMode) {
-    statusLine.textContent = n ? (n + " selected") : "Select photos to include in the ZIP.";
+    statusLine.textContent = n ? (n + " selected") : "";
   } else {
     statusLine.textContent = "";
   }
