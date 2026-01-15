@@ -342,6 +342,17 @@
         cursor: pointer;
         transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
+	  /* Center text ONLY inside match boxes */
+.waMatchBox{
+  align-items: center;
+  text-align: center;
+}
+
+.waMatchHead,
+.waMatchBody{
+  text-align: center;
+}
+
       .waMatchBox:hover{
         background: rgba(30, 41, 59, 0.35);
         border-color: rgba(255,255,255,0.14);
