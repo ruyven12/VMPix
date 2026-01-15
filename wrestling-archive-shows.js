@@ -342,17 +342,6 @@
         cursor: pointer;
         transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
       }
-	  /* Center text ONLY inside match boxes */
-.waMatchBox{
-  align-items: center;
-  text-align: center;
-}
-
-.waMatchHead,
-.waMatchBody{
-  text-align: center;
-}
-
       .waMatchBox:hover{
         background: rgba(30, 41, 59, 0.35);
         border-color: rgba(255,255,255,0.14);
@@ -714,30 +703,8 @@
 
         const row = {};
         header.forEach((colName, i) => {
-  const val = (cols[i] || "").trim();
-
-  const rawKey = String(colName || "").trim().toLowerCase();
-  if (!rawKey) return;
-
-  // Store the raw key
-  row[rawKey] = val;
-
-  // Also store normalized variants so "Match-1 Type" can be found as "match-1_type", etc.
-  const kSpaceToUnderscore = rawKey.replace(/\s+/g, "_");
-  const kSpaceToDash       = rawKey.replace(/\s+/g, "-");
-  const kDashToUnderscore  = rawKey.replace(/-/g, "_");
-  const kUnderscoreToDash  = rawKey.replace(/_/g, "-");
-
-  row[kSpaceToUnderscore] = val;
-  row[kSpaceToDash] = val;
-  row[kDashToUnderscore] = val;
-  row[kUnderscoreToDash] = val;
-
-  // And combos (covers weird mixes like "match-1 type" -> "match-1_type")
-  row[kSpaceToUnderscore.replace(/-/g, "_")] = val;
-  row[kSpaceToUnderscore.replace(/_/g, "-")] = val;
-});
-
+          row[colName.trim().toLowerCase()] = (cols[i] || "").trim();
+        });
 
         row.date =
           dateIdx !== -1 ? (cols[dateIdx] || "").trim() : (row.show_date || row.date || "");
@@ -1367,6 +1334,15 @@ const meta = document.createElement("div");
     // Load images (resolve URL -> AlbumKey -> images) using the wrestling backend
     try {
       const albumKey = await resolveAlbumKeyFromUrl(matchUrl);
+
+      // Update Buy Photos to point at SmugMug's shop page for this album.
+      // SmugMug uses the album's key as nodeKey in the /shop URL.
+      try {
+        if (albumKey) {
+          buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(albumKey);
+        }
+      } catch (_) {}
+
       if (!albumKey) {
         meta.textContent = "Could not resolve this album yet (no AlbumKey returned).";
         return;
