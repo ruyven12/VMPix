@@ -1333,15 +1333,20 @@ const meta = document.createElement("div");
 
     // Load images (resolve URL -> AlbumKey -> images) using the wrestling backend
     try {
-      const albumKey = await resolveAlbumKeyFromUrl(matchUrl);
-
-      // Update Buy Photos to point at SmugMug's shop page for this album.
-      // SmugMug uses the album's key as nodeKey in the /shop URL.
+      // Resolve URL -> Shop NodeKey (SmugMug /shop expects a NodeKey, not always the AlbumKey)
+      let albumKey = "";
       try {
-        if (albumKey) {
-          buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(albumKey);
+        const shopInfo = await resolveShopNodeFromUrl(matchUrl);
+        if (shopInfo && shopInfo.nodeKey) {
+          buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
         }
+        if (shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
       } catch (_) {}
+
+      // Still need AlbumKey to load images (fail-soft)
+      if (!albumKey) {
+        albumKey = await resolveAlbumKeyFromUrl(matchUrl);
+      }
 
       if (!albumKey) {
         meta.textContent = "Could not resolve this album yet (no AlbumKey returned).";
@@ -1518,7 +1523,31 @@ redrawGrid();
     throw new Error("No endpoints tried");
   }
 
-  // Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
+  
+  // Resolve a SmugMug album URL into a SmugMug Shop NodeKey (and AlbumKey) using the wrestling backend.
+  // This supports SmugMug's shop URL format: /shop?nodeKey=<NodeKey>
+  async function resolveShopNodeFromUrl(albumUrl) {
+    const u = String(albumUrl || "").trim();
+    if (!u) return { nodeKey: "", albumKey: "", finalUrl: "" };
+
+    const candidates = [
+      API_BASE + "/smug/resolve-shop-node?url=" + encodeURIComponent(u),
+    ];
+
+    try {
+      const json = await fetchJsonFirstOk(candidates);
+      const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+      const albumKey = (json && typeof json.albumKey === "string") ? json.albumKey.trim()
+                    : (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim()
+                    : "";
+      const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim() : "";
+      return { nodeKey, albumKey, finalUrl };
+    } catch (_) {
+      return { nodeKey: "", albumKey: "", finalUrl: "" };
+    }
+  }
+
+// Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
   async function resolveAlbumKeyFromUrl(albumUrl) {
     const u = String(albumUrl || "").trim();
     if (!u) return "";
