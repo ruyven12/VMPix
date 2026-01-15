@@ -1259,20 +1259,6 @@
       '<div class="name">' + escapeHtml(matchTitle || matchId || "Match") + '</div>';
     wrap.appendChild(headerPill);
 
-    // Actions row
-    const actions = document.createElement("div");
-    actions.className = "waAlbumActionsRow";
-
-    const openLink = document.createElement("a");
-    openLink.className = "waAlbumActionBtn";
-    openLink.href = matchUrl;
-    openLink.target = "_blank";
-    openLink.rel = "noopener noreferrer";
-    openLink.textContent = "Open album on SmugMug ↗";
-
-    actions.appendChild(openLink);
-    wrap.appendChild(actions);
-
     // Grid container
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
@@ -1289,42 +1275,6 @@ buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
 
-const buyDownload = document.createElement("a");
-buyDownload.className = "waSelectBtn";
-buyDownload.textContent = "Buy Gallery Download";
-buyDownload.href = matchUrl || "#";
-buyDownload.target = "_blank";
-buyDownload.rel = "noopener";
-
-const selectToggle = document.createElement("button");
-selectToggle.className = "waSelectBtn";
-selectToggle.type = "button";
-selectToggle.textContent = "Select Photos to Download";
-
-const selectAllBtn = document.createElement("button");
-selectAllBtn.className = "waSelectBtn";
-selectAllBtn.type = "button";
-selectAllBtn.textContent = "Select All";
-selectAllBtn.disabled = true;
-
-const clearBtn = document.createElement("button");
-clearBtn.className = "waSelectBtn";
-clearBtn.type = "button";
-clearBtn.textContent = "Clear";
-clearBtn.disabled = true;
-
-const dlZipBtn = document.createElement("button");
-dlZipBtn.className = "waSelectBtn waSelectPrimary";
-dlZipBtn.type = "button";
-dlZipBtn.textContent = "Download ZIP";
-dlZipBtn.disabled = true;
-
-const hint = document.createElement("div");
-hint.className = "waSelectHint";
-hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
-
-toolbar.appendChild(buyPhotos);
-toolbar.appendChild(buyDownload);
 toolbar.appendChild(selectToggle);
 toolbar.appendChild(selectAllBtn);
 toolbar.appendChild(dlZipBtn);
@@ -1398,10 +1348,17 @@ function updateSelectUI() {
   clearBtn.disabled = !(selectMode && n > 0);
   selectAllBtn.disabled = !selectMode;
 
+  // Only show these controls when select mode is ON
+  selectAllBtn.style.display = selectMode ? "" : "none";
+  dlZipBtn.style.display = selectMode ? "" : "none";
+  clearBtn.style.display = selectMode ? "" : "none";
+
   if (selectMode) {
-    statusLine.textContent = n ? (n + " selected") : "Select photos to include in the ZIP.";
+    statusLine.textContent = n ? (n + " selected") : "";
+    selectToggle.classList.add("waSelectPrimary");
   } else {
     statusLine.textContent = "";
+    selectToggle.classList.remove("waSelectPrimary");
   }
 }
 
@@ -1666,13 +1623,6 @@ function ensureWALightbox(){
   const right = document.createElement("div");
   right.className = "waLightboxActions";
 
-  /* removed open-album pill: const openAlbumBtn = document.createElement("a"); */
-  openAlbumBtn.className = "waLightboxBtn";
-  openAlbumBtn.textContent = "Open Album ↗";
-  openAlbumBtn.href = "#";
-  openAlbumBtn.target = "_blank";
-  openAlbumBtn.rel = "noopener";
-
   const dlBtn = document.createElement("a");
   dlBtn.className = "waLightboxBtn";
   dlBtn.textContent = "Download";
@@ -1684,7 +1634,6 @@ function ensureWALightbox(){
   closeBtn.type = "button";
   closeBtn.textContent = "✕";
 
-  /* removed open-album pill: right.appendChild(openAlbumBtn); */
   right.appendChild(dlBtn);
   right.appendChild(closeBtn);
 
@@ -1733,7 +1682,6 @@ function ensureWALightbox(){
 
   waLightboxEl._onKey = onKey;
   waLightboxEl._titleEl = title;
-  /* removed open-album pill: waLightboxEl._openAlbumBtn = openAlbumBtn; */
   waLightboxEl._dlBtn = dlBtn;
 
   try { document.documentElement.style.overflow = "hidden"; } catch(_) {}
@@ -1770,8 +1718,6 @@ function waShowAt(idx){
       const base = String(waCurrentAlbumContext?.title || "Photo Viewer").trim() || "Photo Viewer";
       t.textContent = `${base}  •  ${idx + 1} / ${waCurrentViewList.length}`;
     }
-    const openAlbumBtn = waLightboxEl._openAlbumBtn;
-    if (openAlbumBtn) openAlbumBtn.href = waCurrentAlbumContext?.url || "#";
 
     const dl = waLightboxEl._dlBtn;
     if (dl) {
