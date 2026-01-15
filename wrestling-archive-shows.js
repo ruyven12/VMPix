@@ -1079,12 +1079,12 @@
         if (base) return base;
 
         // 2) preferred: build from show_date using your known structure:
-        //    https://vmpix.smugmug.com/Wrestling/limitless/<mmddyy>
+        //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
 
-        const dateFolder = (function () {
+        const dateFolderCompact = (function () {
           if (!rawDate) return "";
-          // Folder format on SmugMug is typically MM-DD-YY (per your Wrestling/Limitless structure)
+          // Folder format on SmugMug is MMDDYY (e.g., 101725)
           // Accept: M/D/YY or MM/DD/YYYY
           const m1 = rawDate.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
           if (m1) {
@@ -1092,21 +1092,19 @@
             const dd = String(m1[2]).padStart(2, "0");
             let yy = String(m1[3]);
             if (yy.length === 4) yy = yy.slice(2);
-            return mm + "-" + dd + "-" + yy;
+            return mm + dd + yy;
           }
           // Accept: YYYY-MM-DD
           const m2 = rawDate.match(/^\s*(\d{4})-(\d{2})-(\d{2})\s*$/);
           if (m2) {
             const yy = m2[1].slice(2);
-            return m2[2] + "-" + m2[3] + "-" + yy;
+            return m2[2] + m2[3] + yy;
           }
           return "";
         })();
-        const dateFolderCompact = dateFolder ? String(dateFolder).replace(/-/g, "") : "";
 
-
-        if (dateFolder) {
-          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/limitless/" + dateFolder;
+        if (dateFolderCompact) {
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + dateFolderCompact;
         }
 
         // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
