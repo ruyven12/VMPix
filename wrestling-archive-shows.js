@@ -1089,8 +1089,35 @@
         const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
         if (base) return base;
 
-        // 2) preferred: build from show_date using your known structure:
-        //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
+        // Try to determine the promotion / folder name from the row (so this works for every album)
+        // Common column names we may see in the sheet:
+        //   promotion, company, fed, federation
+        const fedRaw = String((r && (r.promotion || r.company || r.fed || r.federation || r.promo || r.show_fed)) || "").trim();
+
+        // Helper: if we can infer /Wrestling/<fed>/<dateFolder> from the poster URL, use that.
+        function inferFromPosterUrl(rr) {
+          const poster = String((rr && (rr.show_poster || rr.poster_url)) || "").trim();
+          if (!poster) return "";
+          try {
+            const u = new URL(poster);
+            const parts = String(u.pathname || "").split("/").filter(Boolean);
+            const iW = parts.findIndex((p) => String(p).toLowerCase() === "wrestling");
+            if (iW >= 0) {
+              const fed = parts[iW + 1] || "";
+              const dateFolder = parts[iW + 2] || "";
+              if (fed && dateFolder) {
+                return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed) + "/" + encodeURIComponent(dateFolder);
+              }
+              if (fed) {
+                return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed);
+              }
+            }
+          } catch (_) {}
+          return "";
+        }
+
+        // 2) preferred: build from show_date using your structure:
+        //    https://vmpix.smugmug.com/Wrestling/<Promotion>/<mmddyy>
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
 
         const mmddyy = (function () {
@@ -1114,10 +1141,28 @@
         })();
 
         if (mmddyy) {
-          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + mmddyy;
+          // If the promotion is known, use it. Otherwise, try to infer from poster URL,
+          // and only as a last resort fall back to Limitless (your original default).
+          const inferred = inferFromPosterUrl(r);
+          const fed = fedRaw || (function () {
+            if (inferred) {
+              try {
+                const u = new URL(inferred, SMUG_ORIGIN);
+                const parts = String(u.pathname || "").split("/").filter(Boolean);
+                const iW = parts.findIndex((p) => String(p).toLowerCase() === "wrestling");
+                return parts[iW + 1] || "";
+              } catch (_) {}
+            }
+            return "";
+          })() || "Limitless";
+
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed) + "/" + mmddyy;
         }
 
-        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
+        // If we have no parsable date, try to infer from the poster path anyway.
+        const fromPoster = inferFromPosterUrl(r);
+        if (fromPoster) return fromPoster;
+// 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
         const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
         if (!poster) return "";
         try {
