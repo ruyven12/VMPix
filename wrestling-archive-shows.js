@@ -1275,11 +1275,14 @@ buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
 
-toolbar.appendChild(selectToggle);
-toolbar.appendChild(selectAllBtn);
-toolbar.appendChild(dlZipBtn);
-toolbar.appendChild(clearBtn);
-toolbar.appendChild(hint);
+
+  // THEN append (fixed ReferenceError)
+  toolbar.appendChild(selectToggle);
+  toolbar.appendChild(selectAllBtn);
+  toolbar.appendChild(dlZipBtn);
+  toolbar.appendChild(clearBtn);
+  toolbar.appendChild(hint);
+
 gridWrap.appendChild(toolbar);
 
 const statusLine = document.createElement("div");
