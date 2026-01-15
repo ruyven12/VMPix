@@ -38,7 +38,7 @@
 
   // Only show 2021–2025 (your current behavior)
   const MIN_YEAR = 2021;
-  const MAX_YEAR = 2025;
+  const MAX_YEAR = 2026;
 
   // ================== STATE ==================
   let SHOWS = [];
