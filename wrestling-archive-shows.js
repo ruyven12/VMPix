@@ -36,7 +36,7 @@
   const API_BASE = "https://wrestling-archive.onrender.com";
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
-  // Only show 2021–2025 (your current behavior)
+  // Only show 2021–2026 (your current behavior)
   const MIN_YEAR = 2021;
   const MAX_YEAR = 2026;
 
