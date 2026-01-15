@@ -1504,29 +1504,76 @@ redrawGrid();
 
   // Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
   async function resolveAlbumKeyFromUrl(albumUrl) {
-    const u = String(albumUrl || "").trim();
-    if (!u) return "";
+    const rawIn = String(albumUrl || "").trim();
+    if (!rawIn) return "";
 
-    // Some backends can return images directly by URL; try that first.
-    // If that exists, it should return { albumKey, Response, ... } or similar.
-    const candidates = [
-      API_BASE + "/smug/resolve-album?url=" + encodeURIComponent(u),
-      API_BASE + "/smug/resolve?url=" + encodeURIComponent(u),
-      API_BASE + "/smug/album-from-url?url=" + encodeURIComponent(u),
-      API_BASE + "/smug/url-to-album?url=" + encodeURIComponent(u),
-    ];
+    // IMPORTANT: Do not mutate routing logic upstream. Instead, be defensive here:
+    // Try resolving the AlbumKey using the provided URL first, then a few normalized variants
+    // (casing + common date-folder formats) in case the sheet/route uses a different convention.
+    const urlsToTry = [];
+    const push = (v) => {
+      const s = String(v || "").trim();
+      if (!s) return;
+      if (urlsToTry.indexOf(s) !== -1) return;
+      urlsToTry.push(s);
+    };
 
+    // 1) As-is
+    push(rawIn);
+
+    // 2) Ensure absolute on SmugMug if a path was supplied
+    if (rawIn.startsWith("/")) {
+      push(SMUG_ORIGIN.replace(/\/$/, "") + rawIn);
+    }
+
+    // 3) Normalize origin to known SmugMug origin
     try {
-      const json = await fetchJsonFirstOk(candidates);
-      // accept several shapes
-      if (json && typeof json.albumKey === "string") return json.albumKey.trim();
-      if (json && typeof json.AlbumKey === "string") return json.AlbumKey.trim();
-      const resp = json && json.Response;
-      if (resp) {
-        if (resp.Album && typeof resp.Album.AlbumKey === "string") return String(resp.Album.AlbumKey).trim();
-        if (typeof resp.AlbumKey === "string") return String(resp.AlbumKey).trim();
-      }
+      const u0 = new URL(rawIn, SMUG_ORIGIN);
+      // Use canonical SmugMug origin (vmpix) but preserve path/query
+      const canon = SMUG_ORIGIN.replace(/\/$/, "") + u0.pathname + (u0.search || "");
+      push(canon);
     } catch (_) {}
+
+    // 4) Common casing variants (SmugMug folders are often case-sensitive in paths you store)
+    //    /wrestling/limitless/ -> /Wrestling/Limitless/
+    urlsToTry.slice().forEach((u) => {
+      push(u.replace(/\/wrestling\//i, "/Wrestling/").replace(/\/limitless\//i, "/Limitless/"));
+      push(u.replace(/\/Wrestling\//, "/wrestling/").replace(/\/Limitless\//, "/limitless/"));
+    });
+
+    // 5) Common date-folder variants:
+    //    If URL contains /MM-DD-YY/, also try /MMDDYY/
+    urlsToTry.slice().forEach((u) => {
+      push(u.replace(/\/(\d{2})-(\d{2})-(\d{2})(?=\/|$)/g, "/$1$2$3"));
+      // If it contains /MMDDYY/, also try /MM-DD-YY/
+      push(u.replace(/\/(\d{2})(\d{2})(\d{2})(?=\/|$)/g, "/$1-$2-$3"));
+    });
+
+    // Now try resolving against backend for each candidate URL.
+    for (let i = 0; i < urlsToTry.length; i++) {
+      const u = urlsToTry[i];
+
+      const candidates = [
+        API_BASE + "/smug/resolve-album?url=" + encodeURIComponent(u),
+        API_BASE + "/smug/resolve?url=" + encodeURIComponent(u),
+        API_BASE + "/smug/album-from-url?url=" + encodeURIComponent(u),
+        API_BASE + "/smug/url-to-album?url=" + encodeURIComponent(u),
+      ];
+
+      try {
+        const json = await fetchJsonFirstOk(candidates);
+        // accept several shapes
+        if (json && typeof json.albumKey === "string") return json.albumKey.trim();
+        if (json && typeof json.AlbumKey === "string") return json.AlbumKey.trim();
+        const resp = json && json.Response;
+        if (resp) {
+          if (resp.Album && typeof resp.Album.AlbumKey === "string") return String(resp.Album.AlbumKey).trim();
+          if (typeof resp.AlbumKey === "string") return String(resp.AlbumKey).trim();
+        }
+      } catch (_) {
+        // try next variant
+      }
+    }
 
     // If backend doesn't support resolving, give up gracefully.
     return "";
