@@ -53,7 +53,7 @@
     // This HTML gets inserted inside #wrestlingContentPanel by wrestling-archive.js
     // Keep IDs unique to this module to avoid collisions.
     return `
-      <div id="waShowsRoot" style="width:100%; max-width:1200px; margin:0 auto;">
+      <div id="waShowsRoot" class="waReadyGate" style="width:100%; max-width:1200px; margin:0 auto;">
         <div class="wa-results-head" style="text-align:center; padding:2px 4px 10px;">
           <div id="waCrumbs"
                style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;">
@@ -79,6 +79,8 @@
     ensureShowsStyles();
     _panel = panelEl || document.getElementById("wrestlingContentPanel") || document.body;
     _root = _panel.querySelector("#waShowsRoot");
+
+    try { if (_root) _root.classList.remove("waReady"); } catch (_) {}
 
     if (!_root) {
       // If someone calls onMount without render() having run, create the skeleton anyway.
@@ -109,6 +111,7 @@
       setCrumbs(`Shows for ${newest}`);
       renderShowsCards(getShowsForYear(newest), newest);
       resetPanelScroll();
+    try { if (_root) _root.classList.add("waReady"); } catch (_) {}
     }
   }
 
@@ -176,6 +179,10 @@
     s.textContent = `
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
+
+      /* Prevent flash/glitch while the module bootstraps (stays hidden until onMount completes) */
+      #waShowsRoot.waReadyGate{ opacity: 0; transition: opacity 160ms ease; will-change: opacity; }
+      #waShowsRoot.waReadyGate.waReady{ opacity: 1; }
 
       /* Loading crumbs dot */
       #waCrumbs .waLoadingDot{ margin-left:6px; opacity:.9; }
