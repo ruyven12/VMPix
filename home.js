@@ -117,15 +117,7 @@
       <div id="homeContentRoot">
         <div>
           <span data-hud-main-text></span>
-        </div>
-
-        <!-- Optional quick actions (safe; purely hash changes) -->
-        <div class="homeQuickRow" aria-label="Quick navigation">
-          <button class="homeQuickBtn" type="button" data-go="#/music">Music</button>
-          <button class="homeQuickBtn" type="button" data-go="#/wrestling">Wrestling</button>
-          <button class="homeQuickBtn" type="button" data-go="#/about">About</button>
-        </div>
-      </div>
+        </div></div>
     `;
 
     // Wire quick nav buttons (no external deps)
