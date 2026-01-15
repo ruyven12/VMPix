@@ -1265,6 +1265,8 @@
 
     
 // Toolbar (ported from bands: select-to-zip + buy buttons)
+
+// Toolbar (ported from bands: select-to-zip + buy buttons)
 const toolbar = document.createElement("div");
 toolbar.className = "waSelectBar";
 
@@ -1275,16 +1277,39 @@ buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
 
+const selectToggle = document.createElement("button");
+selectToggle.className = "waSelectBtn";
+selectToggle.type = "button";
+selectToggle.textContent = "Select Photos to Download";
 
-  // THEN append (fixed ReferenceError)
-  toolbar.appendChild(selectToggle);
-  toolbar.appendChild(selectAllBtn);
-  toolbar.appendChild(dlZipBtn);
-  toolbar.appendChild(clearBtn);
-  toolbar.appendChild(hint);
+const selectAllBtn = document.createElement("button");
+selectAllBtn.className = "waSelectBtn";
+selectAllBtn.type = "button";
+selectAllBtn.textContent = "Select All";
+
+const dlZipBtn = document.createElement("button");
+dlZipBtn.className = "waSelectBtn";
+dlZipBtn.type = "button";
+dlZipBtn.textContent = "Download ZIP";
+
+const clearBtn = document.createElement("button");
+clearBtn.className = "waSelectBtn";
+clearBtn.type = "button";
+clearBtn.textContent = "Clear";
+
+const hint = document.createElement("div");
+hint.className = "waSelectHint";
+hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
+
+// THEN append
+toolbar.appendChild(buyPhotos);
+toolbar.appendChild(selectToggle);
+toolbar.appendChild(selectAllBtn);
+toolbar.appendChild(dlZipBtn);
+toolbar.appendChild(clearBtn);
+toolbar.appendChild(hint);
 
 gridWrap.appendChild(toolbar);
-
 const statusLine = document.createElement("div");
 statusLine.className = "waSelectStatus";
 statusLine.textContent = "";
