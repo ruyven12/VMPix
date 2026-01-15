@@ -301,6 +301,9 @@
         gap: 4px;
         min-height: 56px;
         justify-content:center;
+      
+        align-items: center;
+        text-align: center;
       }
       .waInfoPill .lbl{
         font-size: 9px;
