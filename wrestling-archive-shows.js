@@ -53,11 +53,11 @@
     // This HTML gets inserted inside #wrestlingContentPanel by wrestling-archive.js
     // Keep IDs unique to this module to avoid collisions.
     return `
-      <div id="waShowsRoot" style="width:100%; max-width:1200px; margin:0 auto;">
+      <div id="waShowsRoot" class="waReadyGate" style="width:100%; max-width:1200px; margin:0 auto;">
         <div class="wa-results-head" style="text-align:center; padding:2px 4px 10px;">
           <div id="waCrumbs"
                style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;">
-            Loading up the archives – this takes about 30 seconds to complete. Bear with me as I work on getting it up faster and things looking better.
+            Loading the machine, takes about 30 seconds to load up. <span class="waLoadingDot">•</span>
           </div>
 
           <div id="waYearGroups"
@@ -79,6 +79,8 @@
     ensureShowsStyles();
     _panel = panelEl || document.getElementById("wrestlingContentPanel") || document.body;
     _root = _panel.querySelector("#waShowsRoot");
+
+    try { if (_root) _root.classList.remove("waReady"); } catch (_) {}
 
     if (!_root) {
       // If someone calls onMount without render() having run, create the skeleton anyway.
@@ -109,6 +111,7 @@
       setCrumbs(`Shows for ${newest}`);
       renderShowsCards(getShowsForYear(newest), newest);
       resetPanelScroll();
+    try { if (_root) _root.classList.add("waReady"); } catch (_) {}
     }
   }
 
@@ -176,6 +179,14 @@
     s.textContent = `
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
+
+      /* Prevent flash/glitch while the module bootstraps (stays hidden until onMount completes) */
+      #waShowsRoot.waReadyGate{ opacity: 0; transition: opacity 160ms ease; will-change: opacity; }
+      #waShowsRoot.waReadyGate.waReady{ opacity: 1; }
+
+      /* Loading crumbs dot */
+      #waCrumbs .waLoadingDot{ margin-left:6px; opacity:.9; }
+
 
       /* Year pills (scoped) */
       #waShowsRoot .letter-pill{
@@ -1078,13 +1089,39 @@
         const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
         if (base) return base;
 
-        // 2) preferred: build from show_date using your known structure:
-        //    https://vmpix.smugmug.com/Wrestling/limitless/<mmddyy>
+        // Try to determine the promotion / folder name from the row (so this works for every album)
+        // Common column names we may see in the sheet:
+        //   promotion, company, fed, federation
+        const fedRaw = String((r && (r.promotion || r.company || r.fed || r.federation || r.promo || r.show_fed)) || "").trim();
+
+        // Helper: if we can infer /Wrestling/<fed>/<dateFolder> from the poster URL, use that.
+        function inferFromPosterUrl(rr) {
+          const poster = String((rr && (rr.show_poster || rr.poster_url)) || "").trim();
+          if (!poster) return "";
+          try {
+            const u = new URL(poster);
+            const parts = String(u.pathname || "").split("/").filter(Boolean);
+            const iW = parts.findIndex((p) => String(p).toLowerCase() === "wrestling");
+            if (iW >= 0) {
+              const fed = parts[iW + 1] || "";
+              const dateFolder = parts[iW + 2] || "";
+              if (fed && dateFolder) {
+                return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed) + "/" + encodeURIComponent(dateFolder);
+              }
+              if (fed) {
+                return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed);
+              }
+            }
+          } catch (_) {}
+          return "";
+        }
+
+        // 2) preferred: build from show_date using your structure:
+        //    https://vmpix.smugmug.com/Wrestling/<Promotion>/<mmddyy>
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
 
-        const dateFolder = (function () {
+        const mmddyy = (function () {
           if (!rawDate) return "";
-          // Folder format on SmugMug is typically MM-DD-YY (per your Wrestling/Limitless structure)
           // Accept: M/D/YY or MM/DD/YYYY
           const m1 = rawDate.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
           if (m1) {
@@ -1092,24 +1129,40 @@
             const dd = String(m1[2]).padStart(2, "0");
             let yy = String(m1[3]);
             if (yy.length === 4) yy = yy.slice(2);
-            return mm + "-" + dd + "-" + yy;
+            return mm + dd + yy;
           }
           // Accept: YYYY-MM-DD
           const m2 = rawDate.match(/^\s*(\d{4})-(\d{2})-(\d{2})\s*$/);
           if (m2) {
             const yy = m2[1].slice(2);
-            return m2[2] + "-" + m2[3] + "-" + yy;
+            return m2[2] + m2[3] + yy;
           }
           return "";
         })();
-        const dateFolderCompact = dateFolder ? String(dateFolder).replace(/-/g, "") : "";
 
+        if (mmddyy) {
+          // If the promotion is known, use it. Otherwise, try to infer from poster URL,
+          // and only as a last resort fall back to Limitless (your original default).
+          const inferred = inferFromPosterUrl(r);
+          const fed = fedRaw || (function () {
+            if (inferred) {
+              try {
+                const u = new URL(inferred, SMUG_ORIGIN);
+                const parts = String(u.pathname || "").split("/").filter(Boolean);
+                const iW = parts.findIndex((p) => String(p).toLowerCase() === "wrestling");
+                return parts[iW + 1] || "";
+              } catch (_) {}
+            }
+            return "";
+          })() || "Limitless";
 
-        if (dateFolder) {
-          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/limitless/" + dateFolder;
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + encodeURIComponent(fed) + "/" + mmddyy;
         }
 
-        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
+        // If we have no parsable date, try to infer from the poster path anyway.
+        const fromPoster = inferFromPosterUrl(r);
+        if (fromPoster) return fromPoster;
+// 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
         const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
         if (!poster) return "";
         try {
@@ -1118,7 +1171,7 @@
 
           // Find the "Wrestling/<fed>/<mmddyy>" triple anywhere in the path
           for (let i = 0; i < parts.length - 2; i++) {
-            if (String(parts[i]).toLowerCase() === "wrestling" && /^(?:\d{6}|\d{2}-\d{2}-\d{2})$/.test(parts[i + 2])) {
+            if (String(parts[i]).toLowerCase() === "wrestling" && /^\d{6}$/.test(parts[i + 2])) {
               return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(i, i + 3).join("/");
             }
           }
@@ -1262,6 +1315,20 @@
       '<div class="name">' + escapeHtml(matchTitle || matchId || "Match") + '</div>';
     wrap.appendChild(headerPill);
 
+    // Actions row
+    const actions = document.createElement("div");
+    actions.className = "waAlbumActionsRow";
+
+    const openLink = document.createElement("a");
+    openLink.className = "waAlbumActionBtn";
+    openLink.href = matchUrl;
+    openLink.target = "_blank";
+    openLink.rel = "noopener noreferrer";
+    openLink.textContent = "Open album on SmugMug ↗";
+
+    actions.appendChild(openLink);
+    wrap.appendChild(actions);
+
     // Grid container
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
@@ -1277,6 +1344,13 @@ buyPhotos.textContent = "Buy Photos";
 buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
+
+const buyDownload = document.createElement("a");
+buyDownload.className = "waSelectBtn";
+buyDownload.textContent = "Buy Gallery Download";
+buyDownload.href = matchUrl || "#";
+buyDownload.target = "_blank";
+buyDownload.rel = "noopener";
 
 const selectToggle = document.createElement("button");
 selectToggle.className = "waSelectBtn";
@@ -1301,16 +1375,12 @@ dlZipBtn.type = "button";
 dlZipBtn.textContent = "Download ZIP";
 dlZipBtn.disabled = true;
 
-// Hidden until "Select Photos to Download" is active
-selectAllBtn.style.display = "none";
-dlZipBtn.style.display = "none";
-clearBtn.style.display = "none";
-
 const hint = document.createElement("div");
 hint.className = "waSelectHint";
 hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
 
 toolbar.appendChild(buyPhotos);
+toolbar.appendChild(buyDownload);
 toolbar.appendChild(selectToggle);
 toolbar.appendChild(selectAllBtn);
 toolbar.appendChild(dlZipBtn);
@@ -1384,14 +1454,8 @@ function updateSelectUI() {
   clearBtn.disabled = !(selectMode && n > 0);
   selectAllBtn.disabled = !selectMode;
 
-  // Only show bulk/zip controls in select mode
-  selectAllBtn.style.display = selectMode ? "" : "none";
-  dlZipBtn.style.display = selectMode ? "" : "none";
-  clearBtn.style.display = selectMode ? "" : "none";
-  try { selectToggle.classList.toggle("waSelectPrimary", !!selectMode); } catch(_) {}
-
   if (selectMode) {
-    statusLine.textContent = n ? (n + " selected") : "";
+    statusLine.textContent = n ? (n + " selected") : "Select photos to include in the ZIP.";
   } else {
     statusLine.textContent = "";
   }
@@ -1515,89 +1579,33 @@ redrawGrid();
 
   // Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
   async function resolveAlbumKeyFromUrl(albumUrl) {
-    const u0 = String(albumUrl || "").trim();
-    if (!u0) return "";
+    const u = String(albumUrl || "").trim();
+    if (!u) return "";
 
-    // Normalize ONLY toward your canonical structure:
-    //   /Wrestling/Limitless/MMDDYY/...
-    // (No dashed date variants are generated here.)
-    function normalizeToMMDDYY(u) {
-      const s = String(u || "").trim();
-      if (!s) return s;
+    // Some backends can return images directly by URL; try that first.
+    // If that exists, it should return { albumKey, Response, ... } or similar.
+    const candidates = [
+      API_BASE + "/smug/resolve-album?url=" + encodeURIComponent(u),
+      API_BASE + "/smug/resolve?url=" + encodeURIComponent(u),
+      API_BASE + "/smug/album-from-url?url=" + encodeURIComponent(u),
+      API_BASE + "/smug/url-to-album?url=" + encodeURIComponent(u),
+    ];
 
-      // Convert a dashed date folder (MM-DD-YY or MM-DD-YYYY) to MMDDYY if it ever appears.
-      // This is one-way normalization toward MMDDYY.
-      return s.replace(/\/(\d{2})-(\d{2})-(\d{2})(?=\/|$)/g, "/$1$2$3")
-              .replace(/\/(\d{2})-(\d{2})-(\d{4})(?=\/|$)/g, (m, mm, dd, yyyy) => {
-                const yy = String(yyyy).slice(-2);
-                return `/${mm}${dd}${yy}`;
-              });
-    }
-
-    function normalizePathCasing(u) {
-      const s = String(u || "").trim();
-      if (!s) return s;
-
-      // Make sure the canonical casing appears in the URL path when possible.
-      // (SmugMug is often forgiving, but the resolver/backend may not be.)
-      return s
-        .replace(/\/wrestling\//i, "/Wrestling/")
-        .replace(/\/limitless\//i, "/Limitless/");
-    }
-
-    // Build candidate URLs in a deterministic order:
-    // 1) as-is
-    // 2) date-normalized (to MMDDYY)
-    // 3) casing-normalized
-    // 4) date + casing normalized
-    const candidates = [];
-    function pushUnique(v) {
-      const x = String(v || "").trim();
-      if (!x) return;
-      if (candidates.indexOf(x) === -1) candidates.push(x);
-    }
-
-    const u1 = normalizeToMMDDYY(u0);
-    const u2 = normalizePathCasing(u0);
-    const u3 = normalizePathCasing(u1);
-
-    pushUnique(u0);
-    pushUnique(u1);
-    pushUnique(u2);
-    pushUnique(u3);
-
-    for (let i = 0; i < candidates.length; i++) {
-      const u = candidates[i];
-
-      const endpoints = [
-        API_BASE + "/smug/resolve-album?url=" + encodeURIComponent(u),
-        API_BASE + "/smug/resolve?url=" + encodeURIComponent(u),
-        API_BASE + "/smug/album-from-url?url=" + encodeURIComponent(u),
-        API_BASE + "/smug/url-to-album?url=" + encodeURIComponent(u),
-      ];
-
-      try {
-        const json = await fetchJsonFirstOk(endpoints);
-
-        // accept several shapes
-        if (json && typeof json.albumKey === "string" && json.albumKey.trim()) return json.albumKey.trim();
-        if (json && typeof json.AlbumKey === "string" && json.AlbumKey.trim()) return json.AlbumKey.trim();
-
-        const resp = json && json.Response;
-        if (resp) {
-          if (resp.Album && typeof resp.Album.AlbumKey === "string" && String(resp.Album.AlbumKey).trim()) {
-            return String(resp.Album.AlbumKey).trim();
-          }
-          if (typeof resp.AlbumKey === "string" && String(resp.AlbumKey).trim()) return String(resp.AlbumKey).trim();
-        }
-      } catch (_) {
-        // try next candidate
+    try {
+      const json = await fetchJsonFirstOk(candidates);
+      // accept several shapes
+      if (json && typeof json.albumKey === "string") return json.albumKey.trim();
+      if (json && typeof json.AlbumKey === "string") return json.AlbumKey.trim();
+      const resp = json && json.Response;
+      if (resp) {
+        if (resp.Album && typeof resp.Album.AlbumKey === "string") return String(resp.Album.AlbumKey).trim();
+        if (typeof resp.AlbumKey === "string") return String(resp.AlbumKey).trim();
       }
-    }
+    } catch (_) {}
 
+    // If backend doesn't support resolving, give up gracefully.
     return "";
   }
-
 
   async function fetchAllAlbumImages(albumKey) {
     if (!albumKey) return [];
@@ -1714,12 +1722,6 @@ function ensureWALightbox(){
   const right = document.createElement("div");
   right.className = "waLightboxActions";
 
-  const openAlbumBtn = document.createElement("a");
-  openAlbumBtn.className = "waLightboxBtn";
-  openAlbumBtn.textContent = "Open Album ↗";
-  openAlbumBtn.href = "#";
-  openAlbumBtn.target = "_blank";
-  openAlbumBtn.rel = "noopener";
 
   const dlBtn = document.createElement("a");
   dlBtn.className = "waLightboxBtn";
@@ -1732,7 +1734,6 @@ function ensureWALightbox(){
   closeBtn.type = "button";
   closeBtn.textContent = "✕";
 
-  right.appendChild(openAlbumBtn);
   right.appendChild(dlBtn);
   right.appendChild(closeBtn);
 
@@ -1781,7 +1782,6 @@ function ensureWALightbox(){
 
   waLightboxEl._onKey = onKey;
   waLightboxEl._titleEl = title;
-  waLightboxEl._openAlbumBtn = openAlbumBtn;
   waLightboxEl._dlBtn = dlBtn;
 
   try { document.documentElement.style.overflow = "hidden"; } catch(_) {}
@@ -1818,8 +1818,6 @@ function waShowAt(idx){
       const base = String(waCurrentAlbumContext?.title || "Photo Viewer").trim() || "Photo Viewer";
       t.textContent = `${base}  •  ${idx + 1} / ${waCurrentViewList.length}`;
     }
-    const openAlbumBtn = waLightboxEl._openAlbumBtn;
-    if (openAlbumBtn) openAlbumBtn.href = waCurrentAlbumContext?.url || "#";
 
     const dl = waLightboxEl._dlBtn;
     if (dl) {
