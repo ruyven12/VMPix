@@ -1301,6 +1301,11 @@ dlZipBtn.type = "button";
 dlZipBtn.textContent = "Download ZIP";
 dlZipBtn.disabled = true;
 
+// Hidden until "Select Photos to Download" is active
+selectAllBtn.style.display = "none";
+dlZipBtn.style.display = "none";
+clearBtn.style.display = "none";
+
 const hint = document.createElement("div");
 hint.className = "waSelectHint";
 hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
@@ -1378,6 +1383,12 @@ function updateSelectUI() {
   dlZipBtn.disabled = !(selectMode && n > 0);
   clearBtn.disabled = !(selectMode && n > 0);
   selectAllBtn.disabled = !selectMode;
+
+  // Only show bulk/zip controls in select mode
+  selectAllBtn.style.display = selectMode ? "" : "none";
+  dlZipBtn.style.display = selectMode ? "" : "none";
+  clearBtn.style.display = selectMode ? "" : "none";
+  try { selectToggle.classList.toggle("waSelectPrimary", !!selectMode); } catch(_) {}
 
   if (selectMode) {
     statusLine.textContent = n ? (n + " selected") : "Select photos to include in the ZIP.";
