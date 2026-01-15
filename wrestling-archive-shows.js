@@ -1079,12 +1079,12 @@
         if (base) return base;
 
         // 2) preferred: build from show_date using your known structure:
-        //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
+        //    https://vmpix.smugmug.com/Wrestling/limitless/<mmddyy>
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
 
-        const dateFolderCompact = (function () {
+        const dateFolder = (function () {
           if (!rawDate) return "";
-          // Folder format on SmugMug is MMDDYY (e.g., 101725)
+          // Folder format on SmugMug is typically MM-DD-YY (per your Wrestling/Limitless structure)
           // Accept: M/D/YY or MM/DD/YYYY
           const m1 = rawDate.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
           if (m1) {
@@ -1092,19 +1092,21 @@
             const dd = String(m1[2]).padStart(2, "0");
             let yy = String(m1[3]);
             if (yy.length === 4) yy = yy.slice(2);
-            return mm + dd + yy;
+            return mm + "-" + dd + "-" + yy;
           }
           // Accept: YYYY-MM-DD
           const m2 = rawDate.match(/^\s*(\d{4})-(\d{2})-(\d{2})\s*$/);
           if (m2) {
             const yy = m2[1].slice(2);
-            return m2[2] + m2[3] + yy;
+            return m2[2] + "-" + m2[3] + "-" + yy;
           }
           return "";
         })();
+        const dateFolderCompact = dateFolder ? String(dateFolder).replace(/-/g, "") : "";
 
-        if (dateFolderCompact) {
-          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + dateFolderCompact;
+
+        if (dateFolder) {
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/limitless/" + dateFolder;
         }
 
         // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
@@ -1260,20 +1262,6 @@
       '<div class="name">' + escapeHtml(matchTitle || matchId || "Match") + '</div>';
     wrap.appendChild(headerPill);
 
-    // Actions row
-    const actions = document.createElement("div");
-    actions.className = "waAlbumActionsRow";
-
-    const openLink = document.createElement("a");
-    openLink.className = "waAlbumActionBtn";
-    openLink.href = matchUrl;
-    openLink.target = "_blank";
-    openLink.rel = "noopener noreferrer";
-    openLink.textContent = "Open album on SmugMug ↗";
-
-    actions.appendChild(openLink);
-    wrap.appendChild(actions);
-
     // Grid container
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
@@ -1289,13 +1277,6 @@ buyPhotos.textContent = "Buy Photos";
 buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
-
-const buyDownload = document.createElement("a");
-buyDownload.className = "waSelectBtn";
-buyDownload.textContent = "Buy Gallery Download";
-buyDownload.href = matchUrl || "#";
-buyDownload.target = "_blank";
-buyDownload.rel = "noopener";
 
 const selectToggle = document.createElement("button");
 selectToggle.className = "waSelectBtn";
@@ -1325,7 +1306,6 @@ hint.className = "waSelectHint";
 hint.textContent = "Tip: Toggle select mode, pick photos, then Download ZIP.";
 
 toolbar.appendChild(buyPhotos);
-toolbar.appendChild(buyDownload);
 toolbar.appendChild(selectToggle);
 toolbar.appendChild(selectAllBtn);
 toolbar.appendChild(dlZipBtn);
