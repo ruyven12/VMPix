@@ -436,7 +436,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 16px;
+    font-size: 17px;
     opacity: 0.96;
     line-height: 1.2;
   }
@@ -1917,8 +1917,17 @@ color: rgba(226,232,240,0.92);
     return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
   }
   function _stripRoleSuffix(s) {
-    // "Bob Rox (drums)" -> "Bob Rox"
-    return String(s || "").trim().replace(/\s*\([^)]*\)\s*$/, "").trim();
+    // Normalize member strings coming from the Bands CSV so name-matching works.
+    // Examples:
+    //   "Bob Rox (drums)" -> "Bob Rox"
+    //   "Brian Crawford - Guitar" -> "Brian Crawford"
+    // Note: we ONLY strip a trailing role suffix when it's clearly separated
+    // by spaces around a dash (so hyphenated names remain intact).
+    return String(s || "")
+      .trim()
+      .replace(/\s*\([^)]*\)\s*$/, "")          // trailing "(role)"
+      .replace(/\s*[-–—]\s+[^()]+$/, "")          // trailing " - Role"
+      .trim();
   }
 
   function _eh(s){
