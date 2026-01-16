@@ -436,7 +436,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 13px;
+    font-size: 17px;
     opacity: 0.96;
     line-height: 1.2;
   }
