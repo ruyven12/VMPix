@@ -396,7 +396,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemDate{
     font-weight: 900;
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: .06em;
     opacity: .92;
     padding: 6px 8px;
