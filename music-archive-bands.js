@@ -359,7 +359,7 @@ color: rgba(226,232,240,0.92);
   .alsoModalGroupHdr{
     width: 100%;
     text-align: center;
-    font-size: 11px;
+    font-size: 17px;
     letter-spacing: .14em;
     opacity: .80;
     padding: 8px 10px;
@@ -436,7 +436,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 17px;
+    font-size: 15px;
     opacity: 0.96;
     line-height: 1.2;
   }
