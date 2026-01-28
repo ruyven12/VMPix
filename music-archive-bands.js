@@ -1277,8 +1277,8 @@ color: rgba(226,232,240,0.92);
       }
 
       .albumRowThumb{
-        width: auth;
-        height: 100px;
+        width: 140px;
+        height: auto;
         aspect-ratio: 2 / 3;
         object-fit: cover;
         border-radius: 12px;
@@ -1910,7 +1910,10 @@ color: rgba(226,232,240,0.92);
   // Click a keyword/person chip in the Album Photos view to see other albums (in candidate band folders) where that keyword appears
   // in album-level SmugMug keywords. Candidates bands are filtered using the Bands CSV member columns to avoid scanning the whole archive.
 
-  const _alsoModalCache = new Map(); // nameLower -> results[]
+  // Cache "Also appears" results.
+  // IMPORTANT: cache is scoped per (person + currentAlbumKey) so navigating to a different album
+  // and clicking the same name will run a fresh search (and properly exclude the new current album).
+  const _alsoModalCache = new Map(); // cacheKey -> results[]
   const _albumKeywordSetCache = new Map(); // albumKeyLower -> Set(keywordLower)
 
   function _normKey(s) {
@@ -2013,8 +2016,10 @@ color: rgba(226,232,240,0.92);
     const personLower = _normKey(_stripRoleSuffix(personName));
     if (!personLower) return [];
 
-    // cache by nameLower only (fast). If you later want scope-aware cache, include ctx.region/folder.
-    if (_alsoModalCache.has(personLower)) return _alsoModalCache.get(personLower);
+    // Cache is scoped per album so moving to a different album resets the search.
+    const albumKeyLower = _normKey(ctx && ctx.currentAlbumKey ? ctx.currentAlbumKey : "");
+    const cacheKey = `${personLower}||${albumKeyLower}`;
+    if (_alsoModalCache.has(cacheKey)) return _alsoModalCache.get(cacheKey);
 
     const candidates = _getAllBandEntries().filter((b) => _bandMatchesPerson(b, personLower));
     const results = [];
@@ -2070,7 +2075,7 @@ color: rgba(226,232,240,0.92);
     // Sort newest-ish by title (since we don't reliably have dates everywhere)
     results.sort((a, b) => String(a.title).localeCompare(String(b.title)));
 
-    _alsoModalCache.set(personLower, results);
+    _alsoModalCache.set(cacheKey, results);
     return results;
   }
 
