@@ -644,6 +644,19 @@ color: rgba(226,232,240,0.92);
         background:rgba(255,255,255,0.06);
       }
 
+      /* ===== Band list -> Band detail transition helpers ===== */
+      #results.is-dimming .band-card{
+        transition: transform 180ms ease, opacity 180ms ease;
+      }
+      #results.is-dimming .band-card:not(.is-opening){
+        opacity: 0.55;
+        transform: scale(0.985);
+      }
+      #results .band-card.is-opening{
+        transform: scale(1.03);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+      }
+
 
       /* ===== Band list card status backgrounds (based on sets_archive vs total_sets) =====
          - if total_sets and sets_archive are equal (and both present) => green
@@ -682,13 +695,6 @@ color: rgba(226,232,240,0.92);
         font-size:15px;
         font-weight:700;
         line-height:1.1;
-      }
-      .band-setsline{
-        font-size:12px;
-        font-weight:700;
-        line-height:1.05;
-        opacity:.78;
-        letter-spacing:.04em;
       }
       .band-meta{
         margin-top:6px;
@@ -1074,7 +1080,6 @@ color: rgba(226,232,240,0.92);
       #results .band-card .band-row{ display:flex !important; }
       #results .band-card .band-logo{ display:block !important; }
       #results .band-card .band-name{ display:block !important; }
-      #results .band-card .band-setsline{ display:block !important; }
       #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
 
       /* ===== Band detail view (modeled after your Video 2 layout) ===== */
@@ -1282,6 +1287,16 @@ color: rgba(226,232,240,0.92);
       .albumRowCard:hover{
         background: rgba(255,255,255,0.06);
         border-color: rgba(255,255,255,0.16);
+      }
+
+      /* Stagger reveal for album rows (after band logo transition lands) */
+      .albumRowCard.staggerHidden{
+        opacity: 0;
+        transform: translateY(8px);
+        filter: blur(8px);
+      }
+      .albumRowCard{
+        transition: opacity 240ms ease, transform 240ms ease, filter 240ms ease, background 160ms ease, border-color 160ms ease;
       }
 
       .albumRowThumb{
@@ -1554,53 +1569,6 @@ color: rgba(226,232,240,0.92);
     const dd = m[2].padStart(2, "0");
     const yy = (m[3].length === 4 ? m[3].slice(2) : m[3]).padStart(2, "0");
     return `${mm}${dd}${yy}`;
-  }
-
-
-  // Convert date strings like "10/18/25" or "10/18/2025" (or "2025-10-18") into:
-  //   "October 18th, 2025"
-  function formatLongDate(raw) {
-    const s = String(raw || "").trim();
-    if (!s) return "";
-
-    let mm = 0, dd = 0, yy = 0;
-
-    // YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-      const parts = s.split("-");
-      yy = parseInt(parts[0], 10) || 0;
-      mm = parseInt(parts[1], 10) || 0;
-      dd = parseInt(parts[2], 10) || 0;
-    } else {
-      // M/D/YY or MM/DD/YYYY
-      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-      if (!m) return s; // unknown format; return as-is
-      mm = parseInt(m[1], 10) || 0;
-      dd = parseInt(m[2], 10) || 0;
-      yy = parseInt(m[3], 10) || 0;
-      if (yy && yy < 100) yy += 2000;
-    }
-
-    if (!mm || !dd || !yy) return s;
-
-    const months = [
-      "January","February","March","April","May","June",
-      "July","August","September","October","November","December"
-    ];
-    const monthName = months[mm - 1] || "";
-    if (!monthName) return s;
-
-    const suffix = (() => {
-      const n = dd % 100;
-      if (n >= 11 && n <= 13) return "th";
-      const last = dd % 10;
-      if (last === 1) return "st";
-      if (last === 2) return "nd";
-      if (last === 3) return "rd";
-      return "th";
-    })();
-
-    return `${monthName} ${dd}${suffix}, ${yy}`;
   }
 
   function parseAlbumNameToShowBits(name){
@@ -1965,10 +1933,7 @@ color: rgba(226,232,240,0.92);
   // Click a keyword/person chip in the Album Photos view to see other albums (in candidate band folders) where that keyword appears
   // in album-level SmugMug keywords. Candidates bands are filtered using the Bands CSV member columns to avoid scanning the whole archive.
 
-  // Cache "Also appears" results.
-  // IMPORTANT: cache is scoped per (person + currentAlbumKey) so navigating to a different album
-  // and clicking the same name will run a fresh search (and properly exclude the new current album).
-  const _alsoModalCache = new Map(); // cacheKey -> results[]
+  const _alsoModalCache = new Map(); // nameLower -> results[]
   const _albumKeywordSetCache = new Map(); // albumKeyLower -> Set(keywordLower)
 
   function _normKey(s) {
@@ -2071,10 +2036,8 @@ color: rgba(226,232,240,0.92);
     const personLower = _normKey(_stripRoleSuffix(personName));
     if (!personLower) return [];
 
-    // Cache is scoped per album so moving to a different album resets the search.
-    const albumKeyLower = _normKey(ctx && ctx.currentAlbumKey ? ctx.currentAlbumKey : "");
-    const cacheKey = `${personLower}||${albumKeyLower}`;
-    if (_alsoModalCache.has(cacheKey)) return _alsoModalCache.get(cacheKey);
+    // cache by nameLower only (fast). If you later want scope-aware cache, include ctx.region/folder.
+    if (_alsoModalCache.has(personLower)) return _alsoModalCache.get(personLower);
 
     const candidates = _getAllBandEntries().filter((b) => _bandMatchesPerson(b, personLower));
     const results = [];
@@ -2130,7 +2093,7 @@ color: rgba(226,232,240,0.92);
     // Sort newest-ish by title (since we don't reliably have dates everywhere)
     results.sort((a, b) => String(a.title).localeCompare(String(b.title)));
 
-    _alsoModalCache.set(cacheKey, results);
+    _alsoModalCache.set(personLower, results);
     return results;
   }
 
@@ -2213,7 +2176,7 @@ color: rgba(226,232,240,0.92);
         item.setAttribute("role", "button");
         item.setAttribute("tabindex", "0");
 
-        const datePart = r.__dateStr ? _eh(formatLongDate(r.__dateStr) || r.__dateStr) : "—";
+        const datePart = r.__dateStr ? _eh(r.__dateStr) : "—";
         const titlePart = _eh(r.__restTitle || r.title);
 
         // Prefer poster image from Shows CSV (match by date, then best-effort by show title).
@@ -2626,6 +2589,15 @@ async function downloadZipFromServer(items, suggestedName){
         return;
       }
 
+      // Card emphasis (makes the click feel like it "expands" into the detail view)
+      const fromCardEl = (() => {
+        try { return fromImgEl.closest && fromImgEl.closest('.band-card'); } catch(_) { return null; }
+      })();
+      try {
+        if (resultsEl) resultsEl.classList.add('is-dimming');
+        if (fromCardEl) fromCardEl.classList.add('is-opening');
+      } catch(_) {}
+
       const startRect = fromImgEl.getBoundingClientRect();
       if (!startRect || !startRect.width || !startRect.height) {
         showBandCard(region, letter, bandObj, { deferContent: true });
@@ -2676,6 +2648,10 @@ async function downloadZipFromServer(items, suggestedName){
 
       if (!destLogo) {
         // fallback cleanup
+        try {
+          if (resultsEl) resultsEl.classList.remove('is-dimming');
+          if (fromCardEl) fromCardEl.classList.remove('is-opening');
+        } catch(_) {}
         overlay.remove();
         clone.remove();
         return;
@@ -2723,6 +2699,13 @@ async function downloadZipFromServer(items, suggestedName){
 
       // Reveal the real logo and cleanup
       destLogo.style.opacity = "";
+
+      // Restore list card state (best effort)
+      try {
+        if (resultsEl) resultsEl.classList.remove('is-dimming');
+        if (fromCardEl) fromCardEl.classList.remove('is-opening');
+      } catch(_) {}
+
       overlay.style.opacity = "0";
       window.setTimeout(() => {
         try { overlay.remove(); } catch (_) {}
@@ -2731,6 +2714,11 @@ async function downloadZipFromServer(items, suggestedName){
       try { clone.remove(); } catch (_) {}
     } catch (e) {
       // If anything goes wrong, just open normally
+      try {
+        if (resultsEl) resultsEl.classList.remove('is-dimming');
+        const c = (fromImgEl && fromImgEl.closest) ? fromImgEl.closest('.band-card') : null;
+        if (c) c.classList.remove('is-opening');
+      } catch(_) {}
       try { showBandCard(region, letter, bandObj); } catch (_) {}
     }
   }
@@ -3018,20 +3006,6 @@ async function downloadZipFromServer(items, suggestedName){
       const name = document.createElement("div");
       name.className = "band-name";
       name.textContent = bandObj.name || "";right.appendChild(name);
-
-      // If this band is "In Progress" (yellow), show sets progress as a small second line.
-      try {
-        if (setsStateClass(bandObj) === "setsPartial") {
-          const tRaw = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
-          const aRaw = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
-          if (tRaw && aRaw) {
-            const setsLine = document.createElement("div");
-            setsLine.className = "band-setsline";
-            setsLine.textContent = `(${aRaw} / ${tRaw})`;
-            right.appendChild(setsLine);
-          }
-        }
-      } catch (_) {}
       row.appendChild(img);
       row.appendChild(right);
       card.appendChild(row);
@@ -3266,7 +3240,7 @@ const members = document.createElement("div");
       if (!folderPath) {
         const msg = document.createElement("div");
         msg.style.opacity = "0.85";
-        msg.textContent = "No photos uploaded yet for this band. Check back later.";
+        msg.textContent = "No SmugMug folder set for this band in the Bands sheet.";
         albumsGrid.appendChild(msg);
         return;
       }
@@ -3301,9 +3275,11 @@ const members = document.createElement("div");
       }
 
       // Show albums (row cards)
-      albums.forEach((alb) => {
+      albums.forEach((alb, i) => {
         const card = document.createElement("div");
         card.className = "albumRowCard";
+        // Start hidden; we'll stagger-reveal for a smoother transition.
+        card.classList.add("staggerHidden");
 
         const thumb = document.createElement("img");
         thumb.className = "albumRowThumb";
@@ -3331,7 +3307,7 @@ const members = document.createElement("div");
 
         const t2 = document.createElement("div");
         t2.className = "albumRowSub";
-        t2.textContent = formatLongDate(showDateLine);
+        t2.textContent = showDateLine;
 
         const t3 = document.createElement("div");
         t3.className = "albumRowSub";
@@ -3378,6 +3354,11 @@ const members = document.createElement("div");
 
         card.appendChild(thumb);
         card.appendChild(meta);
+
+        // Stagger reveal (pairs with .albumRowCard.staggerHidden CSS)
+        window.setTimeout(() => {
+          try { card.classList.remove("staggerHidden"); } catch(_) {}
+        }, Math.min(650, (Number(i) || 0) * 45));
 
         card.addEventListener("click", async () => {
           await showAlbumPhotos({
