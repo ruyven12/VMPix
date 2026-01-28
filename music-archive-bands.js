@@ -436,12 +436,12 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 20px;
+    font-size: 18px;
     opacity: 0.96;
     line-height: 1.2;
   }
   .alsoModalItemSub{
-    font-size: 14px;
+    font-size: 16px;
     opacity: 0.78;
   }
 
