@@ -612,13 +612,6 @@
              ARCHIVES HEADER (Bands / Shows)
              All values below are SAFE TO TUNE
           -------------------------------------------------- */
-/* === DEBUG BORDERS (1px) === */
-#musicInfoStrip{ outline:1px solid rgba(0,255,255,.8); }
-#musicInfoStrip .hudTabs{ outline:1px solid rgba(255,255,0,.8); }
-#musicInfoStrip .hudTab{ outline:1px solid rgba(255,0,0,.8); }
-#musicInfoStrip .scanPing{ outline:1px solid rgba(0,255,0,.8); }
-/* ========================== */
-
 
           .archiveHeaderWrap{
             width:100%;
