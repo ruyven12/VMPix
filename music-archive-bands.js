@@ -780,6 +780,44 @@ color: rgba(226,232,240,0.92);
       }
 
 
+
+      /* ===== Album Photos view: enter + skeleton (HUD transition smoothing) ===== */
+      .photosWrap{
+        transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
+      }
+      .photosWrap.photosWrapEntering{
+        opacity: 0;
+        transform: translateY(8px) scale(0.995);
+        filter: blur(8px);
+      }
+
+      .photoSkeleton{
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1/1;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.05);
+        overflow: hidden;
+      }
+      .photoSkeleton:before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background: linear-gradient(90deg,
+          rgba(255,255,255,0.00) 0%,
+          rgba(255,255,255,0.06) 40%,
+          rgba(239,68,68,0.10) 55%,
+          rgba(255,255,255,0.00) 100%);
+        transform: translateX(-60%);
+        animation: photoSk 900ms ease-in-out infinite;
+        mix-blend-mode: screen;
+      }
+      @keyframes photoSk{
+        0%{ transform: translateX(-60%); opacity: .65; }
+        50%{ opacity: .95; }
+        100%{ transform: translateX(160%); opacity: .65; }
+      }
       /* ===== Photos grid: editorial tiles (hover meta + index) ===== */
       .photosGrid{
         padding-bottom: 10px;
@@ -2565,6 +2603,8 @@ function runHudWipe(hostEl, opts) {
     const host = hostEl || panelRoot || document.getElementById("musicContentPanel") || document.body;
     if (!host) return Promise.resolve();
 
+    const minHoldMs = Number(opts && opts.minHoldMs) || 0;
+
     // Ensure host can contain absolutely-positioned wipe and clip it.
     const prevPos = host.style.position;
     const prevOv = host.style.overflow;
@@ -2618,6 +2658,8 @@ function runHudWipe(hostEl, opts) {
     // Kick in the tint right away for a subtle HUD flash
     window.requestAnimationFrame(() => { try { tint.style.opacity = "1"; } catch(_){} });
 
+    const startedAt = Date.now();
+
     const anim = beam.animate(
       [
         { transform: `skewX(-14deg) translateX(0%)` },
@@ -2635,9 +2677,27 @@ function runHudWipe(hostEl, opts) {
       try { host.style.position = prevPos; } catch(_) {}
     };
 
-    return anim.finished
+    const finished = anim.finished
       .catch(() => {})
-      .then(() => { cleanup(); });
+      .then(() => {
+        if (!minHoldMs) return;
+        const elapsed = Date.now() - startedAt;
+        const wait = Math.max(0, minHoldMs - elapsed);
+        if (!wait) return;
+        return new Promise((r) => window.setTimeout(r, wait));
+      });
+
+    // If caller wants to hold the wipe (for async view swap), return a controller.
+    if (opts && opts.hold) {
+      return {
+        finished,
+        remove: cleanup,
+        _startedAt: startedAt,
+        _minHoldMs: minHoldMs,
+      };
+    }
+
+    return finished.then(() => { cleanup(); });
   } catch (e) {
     return Promise.resolve();
   }
@@ -3293,6 +3353,40 @@ const members = document.createElement("div");
 
     resultsEl.appendChild(wrap);
 
+    // ---- Transition smoothing (only when opened via HUD wipe) ----
+    if (hudCtl) {
+      try {
+        // Let the new view exist immediately (still under the wipe), then fade it in.
+        window.requestAnimationFrame(() => {
+          try { wrap.classList.remove("photosWrapEntering"); } catch(_) {}
+        });
+
+        // Fade out the previous view and remove it shortly after.
+        if (prevView) {
+          window.requestAnimationFrame(() => {
+            try {
+              prevView.style.opacity = "0";
+              prevView.style.filter = "blur(8px)";
+            } catch(_) {}
+          });
+          window.setTimeout(() => {
+            try { if (prevView && prevView.parentNode) prevView.parentNode.removeChild(prevView); } catch(_) {}
+          }, 220);
+        }
+
+        // Remove the wipe after a minimum hold so the swap feels intentional.
+        const startedAt = Number(hudCtl._startedAt) || Date.now();
+        const elapsed = Date.now() - startedAt;
+        const wait = Math.max(0, minHoldMs - elapsed);
+        window.setTimeout(() => {
+          try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
+          // release the height lock after the wipe is gone
+          try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
+        }, wait);
+      } catch (_) {}
+    }
+
+
     async function __loadBandAlbums() {
       const folderPath = cleanFolderPath(bandObj?.smug_folder || "");
       if (!folderPath) {
@@ -3413,18 +3507,21 @@ const members = document.createElement("div");
 
         card.addEventListener("click", async () => {
           // Hi-tech HUD swipe for band-detail -> album-photos transition (panel-scoped)
+          let hudCtl = null;
           try {
             const host = panelRoot || document.getElementById("musicContentPanel") || document.body;
-            await runHudWipe(host);
+            hudCtl = runHudWipe(host, { hold: true, minHoldMs: 340 });
           } catch (_) {}
           await showAlbumPhotos({
             region,
             letter,
-            band: bandObj,
-            album: alb,
-            folderPath,
-            allAlbums: albums,
+            band: bandName,
+            folderPath: folderPath,
+            album,
+            _hudWipe: hudCtl,
+            _hudMinHoldMs: 340,
           });
+        });
         });
 
         albumsGrid.appendChild(card);
@@ -3446,14 +3543,44 @@ const members = document.createElement("div");
 
   }
   async function showAlbumPhotos(info) {
-    resultsEl.innerHTML = "";
+    const hudCtl = info && info._hudWipe;
+    const minHoldMs = Number(info && info._hudMinHoldMs) || 320;
+
+    let prevView = null;
+    let lockedMinHeight = "";
+    if (hudCtl) {
+      try {
+        // Keep the current band-detail view visible underneath the wipe to prevent "blank flash".
+        prevView = resultsEl && resultsEl.firstElementChild;
+        if (resultsEl) {
+          const rs = window.getComputedStyle(resultsEl);
+          if (rs.position === "static") resultsEl.style.position = "relative";
+          lockedMinHeight = resultsEl.style.minHeight || "";
+          resultsEl.style.minHeight = `${resultsEl.getBoundingClientRect().height || 0}px`;
+        }
+        if (prevView) {
+          prevView.style.position = "absolute";
+          prevView.style.inset = "0";
+          prevView.style.width = "100%";
+          prevView.style.pointerEvents = "none";
+          prevView.style.opacity = "0.92";
+          prevView.style.filter = "blur(1.5px)";
+          prevView.style.transition = "opacity 160ms ease, filter 160ms ease";
+        }
+      } catch (_) {}
+    } else {
+      resultsEl.innerHTML = "";
+    }
+
     try { document.body.classList.remove("inBandDetail"); } catch(_) {}
     try { document.body.classList.add("inAlbumPhotos"); } catch(_) {}
     // crumbs removed
     resetPanelScroll();
 
     const wrap = document.createElement("div");
+    wrap.className = "photosWrap";
     wrap.style.width = "100%";
+    if (hudCtl) wrap.classList.add("photosWrapEntering");
 
     const top = document.createElement("div");
     top.className = "photosTop";
@@ -3671,37 +3798,92 @@ const grid = document.createElement("div");
     wrap.appendChild(grid);
     resultsEl.appendChild(wrap);
 
+    // ---- Transition smoothing (only when opened via HUD wipe) ----
+    if (hudCtl) {
+      try {
+        // Let the new view exist immediately (still under the wipe), then fade it in.
+        window.requestAnimationFrame(() => {
+          try { wrap.classList.remove("photosWrapEntering"); } catch(_) {}
+        });
+
+        // Fade out the previous view and remove it shortly after.
+        if (prevView) {
+          window.requestAnimationFrame(() => {
+            try {
+              prevView.style.opacity = "0";
+              prevView.style.filter = "blur(8px)";
+            } catch(_) {}
+          });
+          window.setTimeout(() => {
+            try { if (prevView && prevView.parentNode) prevView.parentNode.removeChild(prevView); } catch(_) {}
+          }, 220);
+        }
+
+        // Remove the wipe after a minimum hold so the swap feels intentional.
+        const startedAt = Number(hudCtl._startedAt) || Date.now();
+        const elapsed = Date.now() - startedAt;
+        const wait = Math.max(0, minHoldMs - elapsed);
+        window.setTimeout(() => {
+          try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
+          // release the height lock after the wipe is gone
+          try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
+        }, wait);
+      } catch (_) {}
+    }
+
+
     const albumKey = info.album?.AlbumKey || info.album?.Key;
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
       msg.textContent = "Album key missing; can’t load photos.";
       grid.appendChild(msg);
+      try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
+      try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
       return;
     }
 
     // Populate the album keyword chips now that we have albumKey
     renderAlbumKeywords();
 
+
+    // Skeleton tiles (prevents blank grid while loading photos)
+    try {
+      grid.innerHTML = "";
+      const skCount = 18;
+      for (let i = 0; i < skCount; i++) {
+        const sk = document.createElement("div");
+        sk.className = "photoSkeleton";
+        grid.appendChild(sk);
+      }
+    } catch (_) {}
+
     let imgs = [];
     try {
       imgs = await fetchAllAlbumImages(albumKey);
     } catch (e) {
+      try { grid.innerHTML = ""; } catch(_) {}
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
       msg.textContent = "Could not load album photos.";
       grid.appendChild(msg);
+      try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
+      try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
       return;
     }
 
     if (!imgs.length) {
+      try { grid.innerHTML = ""; } catch(_) {}
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
       msg.textContent = "No photos found in this album.";
       grid.appendChild(msg);
+      try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
+      try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
       return;
     }
 
+    try { grid.innerHTML = ""; } catch(_) {}
     imgs.forEach((img, idx) => {
       const box = document.createElement("div");
       box.className = "smug-photo-box";
