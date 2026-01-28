@@ -144,12 +144,12 @@
   }
 
   // ---- Music-only tuning ----
-  const MUSIC_FRAME_HEIGHT = '50px'; // adjust safely (100px–130px)
+  const MUSIC_FRAME_HEIGHT = '5px'; // adjust safely (100px–130px)
 
   // 👉 HEADER WRAP (translucent layer) HEIGHT CONTROL (MUSIC ONLY)
   // This controls .neonFrameWrap (the magenta debug layer we confirmed).
   // Use MIN height for safety; set strict=true only if you want a fixed box.
-  const NEON_WRAP_MIN_HEIGHT = '50px'; // try 140px–260px
+  const NEON_WRAP_MIN_HEIGHT = '5px'; // try 140px–260px
   const NEON_WRAP_STRICT_HEIGHT = false; // true = force exact height (can clip)
 
   // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
