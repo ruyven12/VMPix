@@ -2696,8 +2696,7 @@ function runHudWipe(hostEl, opts) {
 
       overlayHost.appendChild(overlay);
       document.body.appendChild(clone);
-      // HUD swipe (constrained to the content panel)
-      runHudWipe(overlayHost);
+      // (HUD wipe intentionally NOT used here; reserved for album-row -> photos transition)
       window.requestAnimationFrame(() => (overlay.style.opacity = "1"));
 
       // Render destination view ASAP (don’t await album loading)
@@ -2826,8 +2825,7 @@ function runHudWipe(hostEl, opts) {
       overlayHost.appendChild(overlay);
       document.body.appendChild(clone);
 
-      // HUD swipe (constrained to the content panel)
-      runHudWipe(overlayHost, { direction: "rtl" });
+      // (HUD wipe intentionally NOT used here; reserved for album-row -> photos transition)
 
       // Render the destination (band list) first, but keep it hidden until the logo lands
       showLetter(region, letter);
@@ -3414,6 +3412,11 @@ const members = document.createElement("div");
         card.appendChild(meta);
 
         card.addEventListener("click", async () => {
+          // Hi-tech HUD swipe for band-detail -> album-photos transition (panel-scoped)
+          try {
+            const host = panelRoot || document.getElementById("musicContentPanel") || document.body;
+            await runHudWipe(host);
+          } catch (_) {}
           await showAlbumPhotos({
             region,
             letter,
