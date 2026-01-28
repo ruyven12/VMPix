@@ -549,7 +549,7 @@
       }
 
       hudMain.style.position = 'relative';
-      hudMain.style.padding = `0 18px calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP})`;
+      hudMain.style.padding = '0 18px 18px'; // strip moved above content panel
 
       // Ensure hudMain has a reliable height context for our “green box” sizing
       hudMain.style.boxSizing = 'border-box';
@@ -797,10 +797,13 @@
       _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.width = '100%';
-      _orangeBoxEl.style.position = 'absolute';
-      _orangeBoxEl.style.left = '50%';
-      _orangeBoxEl.style.bottom = ORANGE_BOX_BOTTOM;
-      _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
+      // Strip is now ABOVE the content panel (not pinned to bottom)
+      _orangeBoxEl.style.position = 'relative';
+      _orangeBoxEl.style.left = '';
+      _orangeBoxEl.style.bottom = '';
+      _orangeBoxEl.style.transform = '';
+      _orangeBoxEl.style.margin = '12px auto 10px';
+
 
       _orangeBoxEl.style.border = 'none';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
@@ -960,7 +963,11 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
       });
 
       _orangeBoxEl.style.pointerEvents = 'auto';
-      hudMain.appendChild(_orangeBoxEl);
+      if (_contentPanelEl && _contentPanelEl.parentNode === hudMain) {
+        hudMain.insertBefore(_orangeBoxEl, _contentPanelEl);
+      } else {
+        hudMain.appendChild(_orangeBoxEl);
+      }
 
       // Default: keep original auto-sizing unless Archives is selected
       setArchiveViewportExpanded(false);
