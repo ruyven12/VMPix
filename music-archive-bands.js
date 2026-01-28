@@ -301,7 +301,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalName{
     font-family: "Orbitron", system-ui, sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 6px;
@@ -309,14 +309,14 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalTitle{
     font-family: "Orbitron", system-ui, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.12em;
     opacity: 0.85;
     text-transform: none !important;
     margin-bottom: 8px;
   }
   .alsoModalMeta{
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: .10em;
     opacity: .78;
   }
@@ -359,7 +359,7 @@ color: rgba(226,232,240,0.92);
   .alsoModalGroupHdr{
     width: 100%;
     text-align: center;
-    font-size: 20px;
+    font-size: 24px;
     letter-spacing: .14em;
     opacity: .80;
     padding: 8px 10px;
@@ -436,12 +436,12 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 17px;
+    font-size: 20px;
     opacity: 0.96;
     line-height: 1.2;
   }
   .alsoModalItemSub{
-    font-size: 11px;
+    font-size: 14px;
     opacity: 0.78;
   }
 
