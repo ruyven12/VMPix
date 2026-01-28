@@ -3522,7 +3522,6 @@ const members = document.createElement("div");
             _hudMinHoldMs: 340,
           });
         });
-        });
 
         albumsGrid.appendChild(card);
       });
