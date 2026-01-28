@@ -2652,7 +2652,7 @@ function runHudWipe(hostEl, opts) {
 
     // Optional direction (default left->right)
     const dir = (opts && opts.direction === "rtl") ? -1 : 1;
-    const travel = dir === 1 ? "translateX(320%)" : "translateX(-320%)";
+    const travel = dir === 1 ? "translateX(400%)" : "translateX(-400%)";
 
     host.appendChild(wipe);
     // Kick in the tint right away for a subtle HUD flash
