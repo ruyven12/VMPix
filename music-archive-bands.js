@@ -2556,6 +2556,93 @@ async function downloadZipFromServer(items, suggestedName){
 
   // ================== UI BUILDERS ==================
 
+
+// ================== HUD WIPE (constrained to panel) ==================
+// Quick hi-tech swipe used during band list <-> band detail transitions.
+// This is intentionally self-contained and appended to the content panel (not full-screen).
+function runHudWipe(hostEl, opts) {
+  try {
+    const host = hostEl || panelRoot || document.getElementById("musicContentPanel") || document.body;
+    if (!host) return Promise.resolve();
+
+    // Ensure host can contain absolutely-positioned wipe and clip it.
+    const prevPos = host.style.position;
+    const prevOv = host.style.overflow;
+    try {
+      const cs = window.getComputedStyle(host);
+      if (cs.position === "static") host.style.position = "relative";
+    } catch(_) {}
+    host.style.overflow = "hidden";
+
+    const wipe = document.createElement("div");
+    wipe.className = "hudWipeLayer";
+    wipe.style.position = "absolute";
+    wipe.style.inset = "0";
+    wipe.style.pointerEvents = "none";
+    wipe.style.zIndex = "999997"; // under logo clone (999999) but above content
+    wipe.style.overflow = "hidden";
+
+    // Soft scanline tint behind beam
+    const tint = document.createElement("div");
+    tint.style.position = "absolute";
+    tint.style.inset = "0";
+    tint.style.background = "radial-gradient(120% 120% at 0% 0%, rgba(255,80,80,0.08) 0%, rgba(0,0,0,0.00) 55%, rgba(0,0,0,0.14) 100%)";
+    tint.style.opacity = "0";
+    tint.style.transition = "opacity 120ms ease";
+    wipe.appendChild(tint);
+
+    const beam = document.createElement("div");
+    beam.style.position = "absolute";
+    beam.style.top = "-25%";
+    beam.style.bottom = "-25%";
+    beam.style.width = "42%";
+    beam.style.left = "-60%";
+    beam.style.transform = "skewX(-14deg)";
+    beam.style.filter = "blur(0px) drop-shadow(0 0 18px rgba(255,60,60,0.25))";
+    beam.style.background = [
+      "linear-gradient(90deg,",
+      "rgba(255,255,255,0.00) 0%,",
+      "rgba(255,255,255,0.05) 20%,",
+      "rgba(255,80,80,0.25) 45%,",
+      "rgba(255,255,255,0.10) 55%,",
+      "rgba(255,255,255,0.00) 100%)"
+    ].join(" ");
+    beam.style.mixBlendMode = "screen";
+    wipe.appendChild(beam);
+
+    // Optional direction (default left->right)
+    const dir = (opts && opts.direction === "rtl") ? -1 : 1;
+    const travel = dir === 1 ? "translateX(260%)" : "translateX(-260%)";
+
+    host.appendChild(wipe);
+    // Kick in the tint right away for a subtle HUD flash
+    window.requestAnimationFrame(() => { try { tint.style.opacity = "1"; } catch(_){} });
+
+    const anim = beam.animate(
+      [
+        { transform: `skewX(-14deg) translateX(0%)` },
+        { transform: `skewX(-14deg) ${travel}` },
+      ],
+      { duration: 520, easing: "cubic-bezier(0.2, 0.75, 0.2, 1)", fill: "forwards" }
+    );
+
+    // Fade tint out near the end
+    window.setTimeout(() => { try { tint.style.opacity = "0"; } catch(_){} }, 260);
+
+    const cleanup = () => {
+      try { wipe.remove(); } catch(_) {}
+      try { host.style.overflow = prevOv; } catch(_) {}
+      try { host.style.position = prevPos; } catch(_) {}
+    };
+
+    return anim.finished
+      .catch(() => {})
+      .then(() => { cleanup(); });
+  } catch (e) {
+    return Promise.resolve();
+  }
+}
+
   // ================== SHARED-ELEMENT TRANSITION ==================
   // Option A: "logo zoom" from the clicked band card into the detail header logo.
   async function animateBandOpen(region, letter, bandObj, fromImgEl) {
@@ -2609,6 +2696,8 @@ async function downloadZipFromServer(items, suggestedName){
 
       overlayHost.appendChild(overlay);
       document.body.appendChild(clone);
+      // HUD swipe (constrained to the content panel)
+      runHudWipe(overlayHost);
       window.requestAnimationFrame(() => (overlay.style.opacity = "1"));
 
       // Render destination view ASAP (don’t await album loading)
@@ -2736,6 +2825,9 @@ async function downloadZipFromServer(items, suggestedName){
 
       overlayHost.appendChild(overlay);
       document.body.appendChild(clone);
+
+      // HUD swipe (constrained to the content panel)
+      runHudWipe(overlayHost, { direction: "rtl" });
 
       // Render the destination (band list) first, but keep it hidden until the logo lands
       showLetter(region, letter);
