@@ -301,7 +301,7 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalName{
     font-family: "Orbitron", system-ui, sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 6px;
@@ -309,14 +309,14 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalTitle{
     font-family: "Orbitron", system-ui, sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 0.12em;
     opacity: 0.85;
     text-transform: none !important;
     margin-bottom: 8px;
   }
   .alsoModalMeta{
-    font-size: 13px;
+    font-size: 11px;
     letter-spacing: .10em;
     opacity: .78;
   }
@@ -359,7 +359,7 @@ color: rgba(226,232,240,0.92);
   .alsoModalGroupHdr{
     width: 100%;
     text-align: center;
-    font-size: 24px;
+    font-size: 20px;
     letter-spacing: .14em;
     opacity: .80;
     padding: 8px 10px;
@@ -436,12 +436,12 @@ color: rgba(226,232,240,0.92);
   }
   .alsoModalItemTitle{
     font-weight: 800;
-    font-size: 18px;
+    font-size: 17px;
     opacity: 0.96;
     line-height: 1.2;
   }
   .alsoModalItemSub{
-    font-size: 16px;
+    font-size: 11px;
     opacity: 0.78;
   }
 
@@ -682,6 +682,13 @@ color: rgba(226,232,240,0.92);
         font-size:15px;
         font-weight:700;
         line-height:1.1;
+      }
+      .band-setsline{
+        font-size:12px;
+        font-weight:700;
+        line-height:1.05;
+        opacity:.78;
+        letter-spacing:.04em;
       }
       .band-meta{
         margin-top:6px;
@@ -1067,6 +1074,7 @@ color: rgba(226,232,240,0.92);
       #results .band-card .band-row{ display:flex !important; }
       #results .band-card .band-logo{ display:block !important; }
       #results .band-card .band-name{ display:block !important; }
+      #results .band-card .band-setsline{ display:block !important; }
       #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
 
       /* ===== Band detail view (modeled after your Video 2 layout) ===== */
@@ -1277,8 +1285,8 @@ color: rgba(226,232,240,0.92);
       }
 
       .albumRowThumb{
-        width: auto;
-        height: 100px;
+        width: 140px;
+        height: auto;
         aspect-ratio: 2 / 3;
         object-fit: cover;
         border-radius: 12px;
@@ -1306,7 +1314,7 @@ color: rgba(226,232,240,0.92);
         opacity: .96;
       }
       .albumRowSub{
-        font-size: 14px;
+        font-size: 12px;
         opacity: .82;
         line-height: 1.2;
       }
@@ -3010,6 +3018,20 @@ async function downloadZipFromServer(items, suggestedName){
       const name = document.createElement("div");
       name.className = "band-name";
       name.textContent = bandObj.name || "";right.appendChild(name);
+
+      // If this band is "In Progress" (yellow), show sets progress as a small second line.
+      try {
+        if (setsStateClass(bandObj) === "setsPartial") {
+          const tRaw = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
+          const aRaw = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
+          if (tRaw && aRaw) {
+            const setsLine = document.createElement("div");
+            setsLine.className = "band-setsline";
+            setsLine.textContent = `(${aRaw} / ${tRaw})`;
+            right.appendChild(setsLine);
+          }
+        }
+      } catch (_) {}
       row.appendChild(img);
       row.appendChild(right);
       card.appendChild(row);
