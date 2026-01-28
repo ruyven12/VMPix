@@ -1277,8 +1277,8 @@ color: rgba(226,232,240,0.92);
       }
 
       .albumRowThumb{
-        width: 140px;
-        height: auto;
+        width: auth;
+        height: 100px;
         aspect-ratio: 2 / 3;
         object-fit: cover;
         border-radius: 12px;
