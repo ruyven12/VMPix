@@ -2652,7 +2652,31 @@ function runHudWipe(hostEl, opts) {
 
     // Optional direction (default left->right)
     const dir = (opts && opts.direction === "rtl") ? -1 : 1;
-    const travel = dir === 1 ? "translateX(400%)" : "translateX(-400%)";
+
+    // Dynamic travel distance (px) so the wipe fully clears the panel on any width.
+    // We intentionally overshoot a bit so the glow doesn't clip on the right edge.
+    const hostW = Math.max(1, host.clientWidth || host.getBoundingClientRect().width || 1);
+    const beamW = hostW * 0.42; // keep in sync with beam.style.width
+    const overshoot = (Number(opts && opts.overshoot) || 0.12) * hostW;
+
+    // For LTR, beam starts off-left (left:-60%) and travels to beyond the right edge.
+    // For RTL, start off-right and travel to beyond the left edge.
+    let travelPx = 0;
+    if (dir === 1) {
+      // left:-60% => -0.60 * hostW
+      const startLeftPx = -0.60 * hostW;
+      const endLeftPx = hostW + overshoot;
+      travelPx = endLeftPx - startLeftPx;
+      beam.style.left = "-60%";
+    } else {
+      // start off-right
+      const startLeftPx = hostW + (0.18 * hostW); // ~118%
+      const endLeftPx = -(beamW + overshoot);
+      travelPx = endLeftPx - startLeftPx;
+      beam.style.left = "118%";
+    }
+
+    const travel = `translateX(${travelPx}px)`;
 
     host.appendChild(wipe);
     // Kick in the tint right away for a subtle HUD flash
