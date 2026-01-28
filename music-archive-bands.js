@@ -1306,7 +1306,7 @@ color: rgba(226,232,240,0.92);
         opacity: .96;
       }
       .albumRowSub{
-        font-size: 12px;
+        font-size: 14px;
         opacity: .82;
         line-height: 1.2;
       }
@@ -1546,6 +1546,53 @@ color: rgba(226,232,240,0.92);
     const dd = m[2].padStart(2, "0");
     const yy = (m[3].length === 4 ? m[3].slice(2) : m[3]).padStart(2, "0");
     return `${mm}${dd}${yy}`;
+  }
+
+
+  // Convert date strings like "10/18/25" or "10/18/2025" (or "2025-10-18") into:
+  //   "October 18th, 2025"
+  function formatLongDate(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+
+    let mm = 0, dd = 0, yy = 0;
+
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const parts = s.split("-");
+      yy = parseInt(parts[0], 10) || 0;
+      mm = parseInt(parts[1], 10) || 0;
+      dd = parseInt(parts[2], 10) || 0;
+    } else {
+      // M/D/YY or MM/DD/YYYY
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (!m) return s; // unknown format; return as-is
+      mm = parseInt(m[1], 10) || 0;
+      dd = parseInt(m[2], 10) || 0;
+      yy = parseInt(m[3], 10) || 0;
+      if (yy && yy < 100) yy += 2000;
+    }
+
+    if (!mm || !dd || !yy) return s;
+
+    const months = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+    const monthName = months[mm - 1] || "";
+    if (!monthName) return s;
+
+    const suffix = (() => {
+      const n = dd % 100;
+      if (n >= 11 && n <= 13) return "th";
+      const last = dd % 10;
+      if (last === 1) return "st";
+      if (last === 2) return "nd";
+      if (last === 3) return "rd";
+      return "th";
+    })();
+
+    return `${monthName} ${dd}${suffix}, ${yy}`;
   }
 
   function parseAlbumNameToShowBits(name){
@@ -2158,7 +2205,7 @@ color: rgba(226,232,240,0.92);
         item.setAttribute("role", "button");
         item.setAttribute("tabindex", "0");
 
-        const datePart = r.__dateStr ? _eh(r.__dateStr) : "—";
+        const datePart = r.__dateStr ? _eh(formatLongDate(r.__dateStr) || r.__dateStr) : "—";
         const titlePart = _eh(r.__restTitle || r.title);
 
         // Prefer poster image from Shows CSV (match by date, then best-effort by show title).
@@ -3262,7 +3309,7 @@ const members = document.createElement("div");
 
         const t2 = document.createElement("div");
         t2.className = "albumRowSub";
-        t2.textContent = showDateLine;
+        t2.textContent = formatLongDate(showDateLine);
 
         const t3 = document.createElement("div");
         t3.className = "albumRowSub";
