@@ -600,7 +600,25 @@
       _orangeBoxEl.id = 'musicInfoStrip';
 
       // styles injected (content wipe + strip)
-      if (!document.getElementById('musicContentWipeStyles')) {
+      
+if (!document.getElementById('musicDebugBorders')) {
+  const dbg = document.createElement('style');
+  dbg.id = 'musicDebugBorders';
+  dbg.textContent = `
+/* === DEBUG BORDERS: MUSIC LANDING TOP GAP === */
+.hudStub.hudMain{ outline:1px solid rgba(0,255,255,.9); }
+.neonFrameWrap{ outline:1px solid rgba(255,0,0,.9); }
+.neonFrame{ outline:1px solid rgba(255,255,0,.9); }
+.hudOrn{ outline:1px solid rgba(0,255,0,.9); }
+#musicInfoStrip{ outline:1px solid rgba(255,0,255,.9); }
+#musicContentPanel{ outline:1px solid rgba(0,180,255,.9); }
+/* ======================================== */
+`;
+  document.head.appendChild(dbg);
+}
+
+if (!document.getElementById('musicContentWipeStyles')) {
+
         const cs = document.createElement('style');
         cs.id = 'musicContentWipeStyles';
         cs.textContent = `
