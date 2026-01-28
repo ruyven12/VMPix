@@ -3266,7 +3266,7 @@ const members = document.createElement("div");
       if (!folderPath) {
         const msg = document.createElement("div");
         msg.style.opacity = "0.85";
-        msg.textContent = "No SmugMug folder set for this band in the Bands sheet.";
+        msg.textContent = "No photos uploaded yet for this band. Check back later.";
         albumsGrid.appendChild(msg);
         return;
       }
