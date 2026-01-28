@@ -67,6 +67,80 @@
     s.id = "musicBandsStyles";
     s.textContent = `
 
+      /* ===== Hi-tech HUD transition: band detail -> album photos ===== */
+      .hudWipeOverlay{
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        pointer-events: none;
+        background: rgba(0,0,0,0.18);
+        opacity: 0;
+        transition: opacity 120ms ease;
+      }
+      .hudWipeOverlay.is-on{ opacity: 1; }
+      .hudWipeOverlay::before{
+        content:"";
+        position:absolute;
+        left:-20vw;
+        right:-20vw;
+        top:-30vh;
+        height: 48vh;
+        background: linear-gradient(180deg,
+          rgba(239,68,68,0.00) 0%,
+          rgba(239,68,68,0.10) 25%,
+          rgba(255,255,255,0.16) 50%,
+          rgba(239,68,68,0.10) 75%,
+          rgba(239,68,68,0.00) 100%
+        );
+        filter: blur(6px);
+        transform: translateY(-70vh);
+        opacity: .92;
+      }
+      .hudWipeOverlay.is-on::before{
+        animation: hudSweep 420ms cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+      }
+      .hudWipeOverlay::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.04) 0px,
+          rgba(255,255,255,0.04) 1px,
+          rgba(0,0,0,0.00) 3px,
+          rgba(0,0,0,0.00) 6px
+        );
+        opacity: 0.22;
+        mix-blend-mode: overlay;
+      }
+      @keyframes hudSweep{
+        0%{ transform: translateY(-70vh); }
+        100%{ transform: translateY(140vh); }
+      }
+
+      .albumRowCard.is-opening-album{
+        transform: scale(1.02);
+        border-color: rgba(239,68,68,0.30);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.40);
+      }
+
+      .photosWrap.entering{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
+      }
+      .photosWrap{
+        transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
+      }
+      .smug-photo-box.tileHidden{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
+      }
+      .smug-photo-box{
+        transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
       /* ===== Multi-select + ZIP download (album photos) ===== */
       .selectToolbar{
         width: 100%;
@@ -640,6 +714,16 @@ color: rgba(226,232,240,0.92);
         padding:12px;
         cursor:pointer;
       }
+
+      /* Stagger reveal for photo tiles */
+      .smug-photo-box.tileHidden{
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+        filter: blur(8px);
+      }
+      .smug-photo-box{
+        transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease, transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
       .band-card:hover{
         background:rgba(255,255,255,0.06);
       }
@@ -758,6 +842,16 @@ color: rgba(226,232,240,0.92);
         margin:0 auto 10px;
         flex-wrap:wrap;
       }
+
+      /* Album photos view enter (pairs with HUD sweep) */
+      .photosWrap.entering{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
+      }
+      .photosWrap{
+        transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+      }
       .btn{
         padding:6px 14px;
         background:rgba(17,24,39,0.35);
@@ -782,6 +876,13 @@ color: rgba(226,232,240,0.92);
         border-radius:14px;
         padding:8px;
         cursor:pointer;
+      }
+
+      /* Stagger reveal for photos (after view mounts) */
+      .smug-photo-box.tileHidden{
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(10px);
       }
       .smug-photo{
         width:100%;
@@ -1287,6 +1388,13 @@ color: rgba(226,232,240,0.92);
       .albumRowCard:hover{
         background: rgba(255,255,255,0.06);
         border-color: rgba(255,255,255,0.16);
+      }
+
+      /* Selected album row (pre-transition emphasis) */
+      .albumRowCard.is-opening-album{
+        transform: scale(1.01);
+        border-color: rgba(239,68,68,0.30);
+        box-shadow: 0 18px 44px rgba(0,0,0,0.38), 0 0 0 2px rgba(239,68,68,0.14);
       }
 
       /* Stagger reveal for album rows (after band logo transition lands) */
@@ -2579,6 +2687,34 @@ async function downloadZipFromServer(items, suggestedName){
 
   // ================== UI BUILDERS ==================
 
+  // ================== HUD TRANSITION HELPERS ==================
+  function runHudWipe(durationMs){
+    const dur = Number(durationMs) || 420;
+    try {
+      const existing = document.getElementById('hudWipeOverlay');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    } catch(_) {}
+
+    const overlay = document.createElement('div');
+    overlay.id = 'hudWipeOverlay';
+    overlay.className = 'hudWipeOverlay';
+    document.body.appendChild(overlay);
+
+    window.requestAnimationFrame(() => {
+      try { overlay.classList.add('is-on'); } catch(_) {}
+    });
+
+    return new Promise((resolve) => {
+      window.setTimeout(() => {
+        try { overlay.classList.remove('is-on'); } catch(_) {}
+        window.setTimeout(() => {
+          try { overlay.remove(); } catch(_) {}
+          resolve();
+        }, 160);
+      }, dur);
+    });
+  }
+
   // ================== SHARED-ELEMENT TRANSITION ==================
   // Option A: "logo zoom" from the clicked band card into the detail header logo.
   async function animateBandOpen(region, letter, bandObj, fromImgEl) {
@@ -3361,6 +3497,13 @@ const members = document.createElement("div");
         }, Math.min(650, (Number(i) || 0) * 45));
 
         card.addEventListener("click", async () => {
+          // Hi-tech HUD transition into the album photos view
+          try { card.classList.add("is-opening-album"); } catch(_) {}
+          const wipeP = runHudWipe(420);
+
+          // small lead-in so the user feels the click before we swap views
+          await new Promise((r) => window.setTimeout(r, 120));
+
           await showAlbumPhotos({
             region,
             letter,
@@ -3369,6 +3512,9 @@ const members = document.createElement("div");
             folderPath,
             allAlbums: albums,
           });
+
+          // let the sweep finish (best-effort)
+          await wipeP.catch(() => {});
         });
 
         albumsGrid.appendChild(card);
@@ -3397,6 +3543,7 @@ const members = document.createElement("div");
     resetPanelScroll();
 
     const wrap = document.createElement("div");
+    wrap.className = "photosWrap entering";
     wrap.style.width = "100%";
 
     const top = document.createElement("div");
@@ -3615,6 +3762,11 @@ const grid = document.createElement("div");
     wrap.appendChild(grid);
     resultsEl.appendChild(wrap);
 
+    // allow the view to "land" after the HUD sweep
+    window.requestAnimationFrame(() => {
+      try { wrap.classList.remove("entering"); } catch(_) {}
+    });
+
     const albumKey = info.album?.AlbumKey || info.album?.Key;
     if (!albumKey) {
       const msg = document.createElement("div");
@@ -3648,7 +3800,7 @@ const grid = document.createElement("div");
 
     imgs.forEach((img, idx) => {
       const box = document.createElement("div");
-      box.className = "smug-photo-box";
+      box.className = "smug-photo-box tileHidden";
 
       // index badge (helps orientation)
       const badge = document.createElement("div");
@@ -3675,6 +3827,11 @@ const grid = document.createElement("div");
       meta.appendChild(sub);
       box.appendChild(meta);
       box.dataset.index = String(idx);
+
+      // Stagger reveal (pairs with .smug-photo-box.tileHidden CSS)
+      window.setTimeout(() => {
+        try { box.classList.remove("tileHidden"); } catch(_) {}
+      }, Math.min(720, (Number(idx) || 0) * 18));
 
       const im = document.createElement("img");
       im.className = "smug-photo";
