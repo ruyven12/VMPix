@@ -297,6 +297,16 @@ const WIPE_MS     = 500;  // wipe speed (about half-speed vs your prior 250ms)
 const DIM_IN_MS   = 180;  // fade back in
 const SWAP_SETTLE_RAFS = 2; // settle frames while fully black
 
+
+/* === DEBUG BORDERS (HUD TOP SPACING) === */
+#hud{ outline:1px solid rgba(0,255,255,.9); }
+.hudStub{ outline:1px solid rgba(255,255,0,.9); }
+.hudStub.hudTop{ outline:1px solid rgba(255,0,0,.9); }
+.hudIntro{ outline:1px solid rgba(0,255,0,.9); }
+.hudIntroInner{ outline:1px solid rgba(255,0,255,.9); }
+.hudIntroText{ outline:1px solid rgba(0,180,255,.9); }
+/* ==================================== */
+
 function ensureRouteTransitionStyles(){
   if (document.getElementById('hudRouteTransitionStyles')) return;
 
