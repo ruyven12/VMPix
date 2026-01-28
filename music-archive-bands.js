@@ -3353,40 +3353,6 @@ const members = document.createElement("div");
 
     resultsEl.appendChild(wrap);
 
-    // ---- Transition smoothing (only when opened via HUD wipe) ----
-    if (hudCtl) {
-      try {
-        // Let the new view exist immediately (still under the wipe), then fade it in.
-        window.requestAnimationFrame(() => {
-          try { wrap.classList.remove("photosWrapEntering"); } catch(_) {}
-        });
-
-        // Fade out the previous view and remove it shortly after.
-        if (prevView) {
-          window.requestAnimationFrame(() => {
-            try {
-              prevView.style.opacity = "0";
-              prevView.style.filter = "blur(8px)";
-            } catch(_) {}
-          });
-          window.setTimeout(() => {
-            try { if (prevView && prevView.parentNode) prevView.parentNode.removeChild(prevView); } catch(_) {}
-          }, 220);
-        }
-
-        // Remove the wipe after a minimum hold so the swap feels intentional.
-        const startedAt = Number(hudCtl._startedAt) || Date.now();
-        const elapsed = Date.now() - startedAt;
-        const wait = Math.max(0, minHoldMs - elapsed);
-        window.setTimeout(() => {
-          try { if (hudCtl && typeof hudCtl.remove === "function") hudCtl.remove(); } catch(_) {}
-          // release the height lock after the wipe is gone
-          try { if (resultsEl) resultsEl.style.minHeight = lockedMinHeight; } catch(_) {}
-        }, wait);
-      } catch (_) {}
-    }
-
-
     async function __loadBandAlbums() {
       const folderPath = cleanFolderPath(bandObj?.smug_folder || "");
       if (!folderPath) {
@@ -3515,9 +3481,9 @@ const members = document.createElement("div");
           await showAlbumPhotos({
             region,
             letter,
-            band: bandName,
+            band: bandObj,
             folderPath: folderPath,
-            album,
+            album: alb,
             _hudWipe: hudCtl,
             _hudMinHoldMs: 340,
           });
