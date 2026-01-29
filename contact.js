@@ -40,6 +40,7 @@
           gap:14px;
           flex-wrap:wrap;
           margin-bottom:16px;
+          justify-content:center;
         }
         .contactBtn{
           display:flex;
@@ -172,19 +173,7 @@
             Contact Form (Soon)
           </a>
         </div>
-
-        <div class="contactEmail">
-          Email: <a href="mailto:none@none.com" data-action="email-link">none@none.com</a>
-          &nbsp;·&nbsp;
-          <a class="contactBtn is-ghost" style="display:inline-flex; padding:6px 10px; border-radius:14px; font-size:13px;" href="#copy" data-action="copy-email">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="9" y="9" width="11" height="11" rx="2"/>
-              <rect x="4" y="4" width="11" height="11" rx="2"/>
-            </svg>
-            Copy
-          </a>
-          <div class="contactToast" id="contactToast">Copied to clipboard</div>
-        </div>
+</div>
       </div>
     `;
 
