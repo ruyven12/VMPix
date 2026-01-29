@@ -430,6 +430,43 @@
       tabEl.setAttribute('aria-selected', 'true');
     }
 
+  function animateStripOpen(el) {
+    if (!el) return;
+    const prefersReduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      el.style.height = 'auto';
+      el.style.opacity = '1';
+      return;
+    }
+
+    // measure target height
+    el.style.height = 'auto';
+    const target = el.scrollHeight || 0;
+
+    // start collapsed
+    el.style.opacity = '0';
+    el.style.height = '0px';
+    el.style.paddingTop = '0px';
+    el.style.paddingBottom = '0px';
+
+    // animate to content height, then release to auto
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.height = target + 'px';
+      el.style.paddingTop = '10px';
+      el.style.paddingBottom = '10px';
+    });
+
+    const onEnd = (e) => {
+      if (e && e.propertyName !== 'height') return;
+      el.style.height = 'auto';
+      el.removeEventListener('transitionend', onEnd);
+    };
+    el.addEventListener('transitionend', onEnd);
+  }
+
+
     tabEl.classList.remove('sweep');
     void tabEl.offsetWidth;
     tabEl.classList.add('sweep');
@@ -724,20 +761,26 @@ if (!document.getElementById('musicContentWipeStyles')) {
         const style = document.createElement('style');
         style.id = 'musicInfoStripStyles';
         style.textContent = `
-          #musicInfoStrip{ overflow:hidden; }
+          #musicInfoStrip{ overflow:hidden; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
 
           #musicInfoStrip .hudTabs{
-			display:flex;
-			flex-wrap:wrap;              /* ✅ allow 2 rows */
-			justify-content:center;
-			align-items:center;
-			gap:10px 18px;               /* row-gap / column-gap */
-			user-select:none;
+            display:flex;
+            flex-wrap:nowrap;              /* ✅ single row */
+            justify-content:center;
+            align-items:center;
+            gap:18px;
+            user-select:none;
 
-			max-width: 920px;            /* optional: forces wrapping sooner */
-			margin: 0 auto;
-			white-space:normal;          /* ✅ allow wrap */
-		  }
+            overflow-x:auto;              /* ✅ horizontal scroll */
+            overflow-y:hidden;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:none;         /* Firefox hide scrollbar */
+            padding:0 10px;
+            white-space:nowrap;
+          }
+          #musicInfoStrip .hudTabs::-webkit-scrollbar{ display:none; }
+
+          #musicInfoStrip .hudTab{ flex:0 0 auto; }
 
           #musicInfoStrip .hudTab{
             position:relative;
@@ -822,7 +865,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       _orangeBoxEl.style.height = 'auto';
 	  _orangeBoxEl.style.minHeight = 'unset';
-	  _orangeBoxEl.style.padding = '10px 14px';
+	  _orangeBoxEl.style.paddingTop = '10px';
+	  _orangeBoxEl.style.paddingBottom = '10px';
+	  _orangeBoxEl.style.paddingLeft = '14px';
+	  _orangeBoxEl.style.paddingRight = '14px';
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.width = '100%';
       // Strip is now ABOVE the content panel (not pinned to bottom)
@@ -843,9 +889,7 @@ _orangeBoxEl.style.display = 'flex';
   <div class="hudTabs" role="tablist" aria-label="Music sections">
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
-    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>
-	<span style="flex-basis:100%; height:0;"></span>
-	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
+    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
     <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
     <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
   </div>
@@ -1027,6 +1071,8 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
       } else {
         hudMain.appendChild(_orangeBoxEl);
       }
+
+      animateStripOpen(_orangeBoxEl);
 
       // Default: keep original auto-sizing unless Archives is selected
       setArchiveViewportExpanded(false);
