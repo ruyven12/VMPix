@@ -976,6 +976,33 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             return;
           }
 
+          if (label === 'The Reimaging Project' || label === 'Reimaging Project') {
+            wipeSwapContent(
+              '',
+              `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
+
+The kickstarter for this project really started when we lost a good friend of ours in the Maine local scene - Steve Lepannen. When he unexpectedly passed, I was trying to find photos to post on socials of his passing and some thoughts. However I can recall I was frustrated because of the disorganization. From there, it has been the goal to get it under control. 
+
+What originally started as that, it evolved into something bigger than that. It then evolved into bringing the quality of the shots to my photo standards of today, and bringing everything into one area. This will explain the bands section a bit more with colors of who's up and who's not.
+
+The actual process to do the project is below. Imagine this...times 60,000+.
+
+* Organized shots back into region/band/show heiarchy.
+* Added GPS/Location data to each individual shot to preserve location history.
+* Added "Job" data to each individual shot to highlight the "name" of the show (if any).
+* Added Creator flags of my name and "Voodoo Media 20XX" to each individual shot.
+* Added individual keywords of individuals to each photo (if I could, still a work in progress) to preserve individual history. 
+* Harnessed the power of AI to assist in bringing details up to modern standards in archive files
+* Removed all previous watermarks as best as I could from older photos, used one universal watermark for all shots
+* Put them through my photo editor once more. A lot of the shots just needed minor touchups, but I wanted to preserve the original edits while bringing it to my standards of today.
+* Back up shot 3x - Web, Cloud, and Physical storages.
+
+Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come.`
+            );
+            return;
+          }
+
+
           // Updates (or anything else)
           wipeSwapContent(
             `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
