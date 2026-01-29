@@ -399,6 +399,24 @@
     text-align: center;
   }
 
+
+  /* =============================
+     MUSIC ROUTE SPACING FIX
+     - When the Music module re-parents #hudMainMount into the neon frame,
+       .hudMainPlain becomes an empty wrapper. Its padding can leave an
+       unwanted "dead band" above the Music UI.
+     - These overrides are Music-only to avoid impacting other routes.
+     ============================= */
+  body.route-music .hudMainPlain{
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  body.route-music .hudStub.hudMain{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
   .hudMain{
     border: 1px solid rgba(255,60,60,.32);
     background: rgba(0,0,0,.18);
