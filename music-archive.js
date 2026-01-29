@@ -839,7 +839,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
   <div class="hudTabs" role="tablist" aria-label="Music sections">
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
-    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
+    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>
     <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
     <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
   </div>
