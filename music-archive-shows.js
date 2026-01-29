@@ -1289,7 +1289,7 @@ contentEl.addEventListener("click", (e) => {
 
   const content = panelEl.querySelector("#showsYearContent");
   if (content) {
-    content.innerHTML = `<div class="showsWip">Loading posters…</div>`;
+    content.innerHTML = `<div class="showsWip">Loading the machine up, this takes up to 30 seconds to load due to server loadup. This will be fixed soon!</div>`;
 
     const requestId = String(Date.now()) + String(Math.random());
     content.dataset.req = requestId;
