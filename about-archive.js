@@ -13,7 +13,7 @@ This site is a nearly-100% automated website using coding that reads from the na
     if (!mountEl) return;
     mountEl.innerHTML = `
       <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:16px; line-height:1.7; letter-spacing:.04em; text-transform:none;">
-        <strong style="font-size:22px; letter-spacing:.06em;text-transform:uppercase;">About The Site</strong><br><br>
+        <strong style="font-size:22px; letter-spacing:.06em;text-transform:uppercase;">About The Site</strong><br>
         <div style="font-size:16px; opacity:.75; white-space:pre-wrap; text-transform:none;">
 This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.
         </div>
