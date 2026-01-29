@@ -417,6 +417,22 @@
     padding-bottom: 0 !important;
   }
 
+
+  /* =============================
+     MUSIC DEBUG OUTLINE OVERRIDE
+     - If music-archive.js debug borders are enabled, they add bright outlines (cyan/magenta/etc).
+     - This safely disables those outlines from CSS side (no JS changes).
+     ============================= */
+  body.route-music #musicInfoStrip,
+  body.route-music #musicContentPanel,
+  body.route-music .hudStub.hudMain,
+  body.route-music .neonFrameWrap,
+  body.route-music .neonFrame,
+  body.route-music .hudOrn{
+    outline: none !important;
+  }
+
+
   .hudMain{
     border: 1px solid rgba(255,60,60,.32);
     background: rgba(0,0,0,.18);
