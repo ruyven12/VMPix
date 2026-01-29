@@ -1134,7 +1134,7 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
 -Voodoo 1/29/26`;
             const html = `
               <div class="musicProject">
-                <div class="musicProjectTitle">Test</div>
+                <div class="musicProjectTitle">The "Reimaging" Project</div>
                 <div class="musicProjectBody" style="text-transform:none;">${projectBody}</div>
               </div>
             `;
