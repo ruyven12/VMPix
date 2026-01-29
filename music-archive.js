@@ -914,12 +914,15 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
           const label = tab.textContent.trim();
 
+          // Use data-tab as the stable routing key (text can change)
+          const tabKey = (tab.getAttribute('data-tab') || '').trim();
+
           // Bands + Shows are the driven UI now (use the expanded green viewport)
-if (label === 'Bands' || label === 'Shows') {
+if (tabKey === 'bands' || tabKey === 'shows' || label === 'Bands' || label === 'Shows') {
   setArchiveViewportExpanded(true);
 
  // Bands (external module)
-if (label === 'Bands') {
+if (tabKey === 'bands' || label === 'Bands') {
   const html =
     window.MusicArchiveBands?.render?.() ||
     `<div style="opacity:.7">Bands module not loaded.</div>`;
@@ -956,7 +959,7 @@ return;
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(true);
 
-          if (label === 'Origins of Music') {
+          if (tabKey === 'origins' || label === 'Origins of Music' || label === 'Origins in Music' || label === 'Origins') {
             wipeSwapContent(
               '',
               `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time. However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
@@ -966,7 +969,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             return;
           }
 
-          if (label === 'Notes') {
+          if (tabKey === 'notes' || label === 'Notes') {
             wipeSwapContent(
               '',
               `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
@@ -976,7 +979,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             return;
           }
 
-          if (label === 'The Reimaging Project' || label === 'Reimaging Project') {
+          if (tabKey === 'project' || label === 'The Reimaging Project' || label === 'Reimaging Project') {
             wipeSwapContent(
               '',
               `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
