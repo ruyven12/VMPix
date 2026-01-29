@@ -168,7 +168,7 @@
   // ------------------------------------------------------------
   // ORANGE BOX (info strip) tuning knobs (Music only)
   // ------------------------------------------------------------
-  const ORANGE_BOX_HEIGHT = '56px';
+  const ORANGE_BOX_HEIGHT = 'auto';
   const ORANGE_BOX_BOTTOM = '12px'; // distance from bottom of hudMain when pinned
   const ORANGE_BOX_SAFE_GAP = '16px'; // extra breathing room between strip + content/padding
   const ORANGE_BOX_MARGIN_TOP = '2px';
@@ -820,7 +820,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
         document.head.appendChild(style);
       }
 
-      _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
+      _orangeBoxEl.style.height = 'auto';
+	  _orangeBoxEl.style.minHeight = 'unset';
+	  _orangeBoxEl.style.padding = '10px 14px';
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.width = '100%';
       // Strip is now ABOVE the content panel (not pinned to bottom)
