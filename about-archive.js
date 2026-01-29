@@ -13,8 +13,7 @@
       <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
         <strong>About</strong><br><br>
         <div style="opacity:.75">
-          About Me - Coming Soon
-        </div>
+This site is a nearly-100% automated website using coding that reads from the native Smugmug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.        </div>
       </div>
     `;
   }
