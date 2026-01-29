@@ -243,14 +243,14 @@
       }
     }
   }
-  function onEnter() {}
-  function onEnter() {}() {}
+
+  function onEnter() {} 
+
   function destroy() {
     if (_mount) {
       _mount.innerHTML = '';
       _mount = null;
     }
-  }
 
   window.Contact = { render, onEnter, destroy };
 })();
