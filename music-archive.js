@@ -703,6 +703,40 @@ if (!document.getElementById('musicContentWipeStyles')) {
           #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
           #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
 
+
+          /* --------------------------------------------------
+             OPTION 2: Title + Body blocks (Music route informational tabs)
+          -------------------------------------------------- */
+          .musicProject{
+            width:100%;
+            max-width:760px;
+            margin:0 auto;
+          }
+          .musicProjectTitle{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:28px;
+            font-weight:900;
+            letter-spacing:.14em;
+            text-transform:uppercase;
+            text-align:center;
+            margin-bottom:16px;
+            color:rgba(255,210,210,.95);
+            text-shadow:
+              0 0 14px rgba(255,60,60,.35),
+              0 0 28px rgba(255,60,60,.18);
+          }
+          .musicProjectBody{
+            font-size:15px;
+            line-height:1.7;
+            opacity:.82;
+            letter-spacing:.04em;
+            white-space:pre-wrap;
+          }
+          @media (max-width:520px){
+            .musicProjectTitle{ font-size:22px; }
+            .musicProjectBody{ font-size:14px; }
+          }
+
           /* --------------------------------------------------
              ARCHIVES HEADER (Bands / Shows)
              All values below are SAFE TO TUNE
