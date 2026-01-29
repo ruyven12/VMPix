@@ -727,13 +727,17 @@ if (!document.getElementById('musicContentWipeStyles')) {
           #musicInfoStrip{ overflow:hidden; }
 
           #musicInfoStrip .hudTabs{
-            display:flex;
-            gap:16px;
-            align-items:center;
-            justify-content:center;
-            white-space:nowrap;
-            user-select:none;
-          }
+			display:flex;
+			flex-wrap:wrap;              /* ✅ allow 2 rows */
+			justify-content:center;
+			align-items:center;
+			gap:10px 18px;               /* row-gap / column-gap */
+			user-select:none;
+
+			max-width: 920px;            /* optional: forces wrapping sooner */
+			margin: 0 auto;
+			white-space:normal;          /* ✅ allow wrap */
+		  }
 
           #musicInfoStrip .hudTab{
             position:relative;
@@ -838,6 +842,7 @@ _orangeBoxEl.style.display = 'flex';
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
     <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>
+	<span style="flex-basis:100%; height:0;"></span>
 	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
     <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
     <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
