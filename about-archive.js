@@ -65,7 +65,11 @@ This site is a nearly-100% automated website using coding that reads from the na
       <div class="aboutArchiveWrap">
         <strong class="aboutArchiveTitle">About The Site</strong><br>
         <div class="aboutArchiveBody">
-This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.
+This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.<br><br>
+        </div>
+		<strong class="aboutArchiveTitle">About The Person</strong><br>
+		<div class="aboutArchiveBody">
+Coming soon!<br>
         </div>
       </div>
     `;
