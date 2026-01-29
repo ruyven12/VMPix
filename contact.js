@@ -21,7 +21,6 @@
           font-size:16px;
           line-height:1.7;
           letter-spacing:.04em;
-          text-transform:none;
         }
         .contactTitle{
           font-size:22px;
@@ -39,7 +38,7 @@
           display:flex;
           gap:14px;
           flex-wrap:wrap;
-          margin-bottom:16px;
+          margin-bottom:18px;
         }
         .contactBtn{
           display:flex;
@@ -56,7 +55,6 @@
             0 0 0 1px rgba(255,70,110,.15) inset,
             0 0 14px rgba(255,70,110,.18);
           transition:all .2s ease;
-          user-select:none;
         }
         .contactBtn:hover{
           opacity:1;
@@ -67,28 +65,11 @@
         .contactBtn svg{
           width:16px;
           height:16px;
-          fill:none;
-          stroke:currentColor;
-          stroke-width:1.8;
-          stroke-linecap:round;
-          stroke-linejoin:round;
+          fill:currentColor;
         }
-        .contactBtn.is-ghost{
-          opacity:.82;
-          border-color: rgba(255,70,110,.28);
-          box-shadow: 0 0 0 1px rgba(255,70,110,.10) inset;
-        }
-        .contactBtn.is-ghost:hover{
-          opacity:.95;
-          box-shadow:
-            0 0 0 1px rgba(255,70,110,.18) inset,
-            0 0 16px rgba(255,70,110,.22);
-        }
-
         .contactEmail{
           opacity:.8;
           font-size:15px;
-          margin-top:6px;
         }
         .contactEmail a{
           color:#fff;
@@ -96,30 +77,13 @@
           border-bottom:1px dotted rgba(255,70,110,.45);
         }
 
-        .contactToast{
-          margin-top:10px;
-          opacity:0;
-          transform:translateY(-4px);
-          transition:opacity 160ms ease, transform 160ms ease;
-          font-size:13px;
-          letter-spacing:.04em;
-        }
-        .contactToast.is-on{
-          opacity:.78;
-          transform:translateY(0);
-        }
-
         @media (max-width:520px){
           .contactTitle{ font-size:18px; }
           .contactWrap{ font-size:15px; padding:0 6px; }
-          .contactEmail{ font-size:14px; }
         }
       `;
       document.head.appendChild(s);
     }
-
-    // Re-wire actions each render (we rebuild DOM)
-    delete mountEl.dataset.contactWired;
 
     mountEl.innerHTML = `
       <div class="contactWrap">
@@ -130,127 +94,34 @@
 
         <div class="contactLinks">
           <a class="contactBtn" href="https://www.facebook.com/VMPix" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9z"/>
-              <path d="M13 9h2V7h-2c-1.1 0-2 .9-2 2v2H9v2h2v4h2v-4h2l.4-2H13V9z"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2V9.5c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.3l-.4 3h-1.9v7A10 10 0 0 0 22 12z"/></svg>
             Facebook
           </a>
 
           <a class="contactBtn" href="https://www.instagram.com/vmpix1" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="6" y="6" width="12" height="12" rx="3"/>
-              <path d="M12 16a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/>
-              <path d="M16.5 7.8h.01"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm0 7.4A2.9 2.9 0 1 1 14.9 12 2.9 2.9 0 0 1 12 14.9zM17.8 6.2a1.1 1.1 0 1 0 1.1 1.1 1.1 1.1 0 0 0-1.1-1.1z"/></svg>
             Instagram
           </a>
 
           <a class="contactBtn" href="https://x.com/vmpix1" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 7l10 10"/>
-              <path d="M17 7L7 17"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M18.9 2H22l-6.7 7.7L23 22h-6.7l-5.3-6.5L5.6 22H2.5l7.2-8.2L1 2h6.8l4.8 5.9L18.9 2z"/></svg>
             X
-          </a>
-
-          <a class="contactBtn" href="mailto:none@none.com" data-action="email">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="4" y="6" width="16" height="12" rx="2"/>
-              <path d="M4 8l8 6 8-6"/>
-            </svg>
-            Gmail
-          </a>
-
-          <a class="contactBtn is-ghost" href="#/contact-form" data-action="form">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 7h10"/>
-              <path d="M8 11h10"/>
-              <path d="M8 15h6"/>
-              <path d="M7 20h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3z"/>
-            </svg>
-            Contact Form (Soon)
           </a>
         </div>
 
         <div class="contactEmail">
-          Email: <a href="mailto:none@none.com" data-action="email-link">none@none.com</a>
-          &nbsp;·&nbsp;
-          <a class="contactBtn is-ghost" style="display:inline-flex; padding:6px 10px; border-radius:14px; font-size:13px;" href="#copy" data-action="copy-email">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="9" y="9" width="11" height="11" rx="2"/>
-              <rect x="4" y="4" width="11" height="11" rx="2"/>
-            </svg>
-            Copy
-          </a>
-          <div class="contactToast" id="contactToast">Copied to clipboard</div>
+          Email: <a href="mailto:none@none.com">none@none.com</a>
         </div>
       </div>
     `;
-
-    // Actions: copy email + form coming soon
-    if (!mountEl.dataset.contactWired) {
-      mountEl.dataset.contactWired = '1';
-
-      const email = 'none@none.com';
-      const toast = mountEl.querySelector('#contactToast');
-
-      const showToast = (msg) => {
-        if (!toast) return;
-        if (msg) toast.textContent = msg;
-        toast.classList.remove('is-on');
-        void toast.offsetWidth;
-        toast.classList.add('is-on');
-        window.clearTimeout(showToast._t);
-        showToast._t = window.setTimeout(() => toast.classList.remove('is-on'), 1200);
-      };
-
-      const copyEmail = async () => {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(email);
-          } else {
-            const ta = document.createElement('textarea');
-            ta.value = email;
-            ta.setAttribute('readonly', '');
-            ta.style.position = 'fixed';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-          }
-          showToast('Copied to clipboard');
-        } catch {
-          showToast('Copy failed');
-        }
-      };
-
-      const copyBtn = mountEl.querySelector('[data-action="copy-email"]');
-      if (copyBtn) {
-        copyBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          copyEmail();
-        }, { passive: false });
-      }
-
-      const formBtn = mountEl.querySelector('[data-action="form"]');
-      if (formBtn) {
-        formBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          showToast('Contact form coming soon');
-        }, { passive: false });
-      }
-    }
   }
-
-  function onEnter() {} 
-
+  function onEnter() {}
   function destroy() {
     if (_mount) {
       _mount.innerHTML = '';
       _mount = null;
     }
+  }
 
   window.Contact = { render, onEnter, destroy };
 })();
