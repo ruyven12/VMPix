@@ -1090,7 +1090,7 @@ return;
 Back then, I started to just take pictures (albeit not the best, but gotta start somewhere) for keepsakes of what I've seen and been through. From going to a lot of the 13 High shows between 2011 and a lot of 2012, I was hooked. And as through those shows, most of those bands from there became life-long friends of mine, and I wouldn't trade it for the world. Fast forward now to 2025 and 14 years later it is still a prevalent force in my life. Without that one decision back then, who knows where I would be today! This page is dedicated to the vast journey that it has been and will continue to be until I can no longer do it anymore.`;
             const html = `
               <div class="musicProject">
-                <div class="musicProjectTitle">Test</div>
+                <div class="musicProjectTitle">The Origins of Music</div>
                 <div class="musicProjectBody">${originsBody}</div>
               </div>
             `;
