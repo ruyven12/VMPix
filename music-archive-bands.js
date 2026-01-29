@@ -796,6 +796,16 @@ color: rgba(226,232,240,0.92);
         font-weight:700;
         line-height:1.1;
       }
+
+      .band-count{
+        font-size: 12px;
+        font-weight: 800;
+        opacity: .80;
+        margin-left: 8px;
+        letter-spacing: .06em;
+        white-space: nowrap;
+        display: inline-block;
+      }
       .band-meta{
         margin-top:6px;
         font-size:12px;
@@ -1197,6 +1207,7 @@ color: rgba(226,232,240,0.92);
       #results .band-card .band-row{ display:flex !important; }
       #results .band-card .band-logo{ display:block !important; }
       #results .band-card .band-name{ display:block !important; }
+#results .band-card .band-count{ display:inline-block !important; }
       #results .band-card .band-row > div{ display:flex !important; flex-direction:column !important; }
 
       /* ===== Band detail view (modeled after your Video 2 layout) ===== */
@@ -3154,7 +3165,8 @@ async function downloadZipFromServer(items, suggestedName){
       card.className = "band-card";
 
       // background color state (green/yellow/gray) based on sets_archive vs total_sets
-      card.classList.add(setsStateClass(bandObj));
+      const _setsState = setsStateClass(bandObj);
+      card.classList.add(_setsState);
 
       const row = document.createElement("div");
       row.className = "band-row";
@@ -3175,6 +3187,18 @@ async function downloadZipFromServer(items, suggestedName){
       const name = document.createElement("div");
       name.className = "band-name";
       name.textContent = bandObj.name || "";
+
+      // Show ( archived / total ) ONLY on yellow "In Progress" cards
+      if (_setsState === "setsPartial") {
+        const t = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
+        const a = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
+        if (t && a) {
+          const cnt = document.createElement("span");
+          cnt.className = "band-count";
+          cnt.textContent = ` ( ${a} / ${t} )`;
+          name.appendChild(cnt);
+        }
+      }
       right.appendChild(name);
 
       row.appendChild(img);
