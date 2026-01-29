@@ -223,6 +223,9 @@
   // (Tabs + content panel remain in code for later re-enable.)
   const SHOW_MUSIC_PANELS = true;
 
+  // Debug outlines (keep OFF for production)
+  const DEBUG_BORDERS = false;
+
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
     const wrap = document.querySelector('.neonFrameWrap');
@@ -565,9 +568,10 @@
         _contentPanelEl.style.minHeight = GREEN_BOX_DESKTOP_MIN_HEIGHT;
         _contentPanelEl.style.borderRadius = '10px';
 
-        _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
+        _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.35)';
         _contentPanelEl.style.background = 'rgba(0,0,0,0.10)';
-        _contentPanelEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.08) inset';
+        _contentPanelEl.style.boxShadow =
+          '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 22px rgba(255,70,110,0.16)';
 
         _contentPanelEl.style.boxSizing = 'border-box';
         _contentPanelEl.style.padding = GREEN_BOX_PADDING;
@@ -601,7 +605,7 @@
 
       // styles injected (content wipe + strip)
       
-if (!document.getElementById('musicDebugBorders')) {
+if (DEBUG_BORDERS && !document.getElementById('musicDebugBorders')) {
   const dbg = document.createElement('style');
   dbg.id = 'musicDebugBorders';
   dbg.textContent = `
@@ -821,16 +825,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
       _orangeBoxEl.style.bottom = '';
       _orangeBoxEl.style.transform = '';
       _orangeBoxEl.style.margin = '12px auto 10px';
-
-
       // --- RED GLOW BORDER (Music tabs strip) ---
-      _orangeBoxEl.style.border = '1px solid rgba(255,70,110,0.25)';
-      _orangeBoxEl.style.boxShadow =
-        '0 0 0 1px rgba(255,70,110,0.35) inset, 0 0 16px rgba(255,70,110,0.45)';
-      _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
-      _orangeBoxEl.style.background = ORANGE_BOX_BG;
-      _orangeBoxEl.style.boxShadow = 'none';
-      _orangeBoxEl.style.display = 'flex';
+      _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
+      _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
+_orangeBoxEl.style.display = 'flex';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
       _orangeBoxEl.style.textAlign = 'center';
