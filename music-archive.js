@@ -177,11 +177,11 @@
   const ORANGE_BOX_X_OFFSET = '0px';
   const ORANGE_BOX_Y_OFFSET = '0px';
 
-  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 90, 0.35)';
+  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.55)';
   const ORANGE_BOX_RADIUS = '10px';
   const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';
   const ORANGE_BOX_GLOW =
-    'inset 0 0 0 1px rgba(255, 70, 90, 0.08), 0 0 14px rgba(255, 40, 60, 0.12)';
+    '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
   // ORANGE BOX text styling (match the small HUD instruction text vibe)
   const ORANGE_BOX_TEXT_SIZE = '11px';
   const ORANGE_BOX_TEXT_TRACKING = '.12em';
@@ -409,42 +409,6 @@
     `;
   }
 
-    function animateStripOpen(el) {
-      if (!el) return;
-      const prefersReduced =
-        window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) {
-        el.style.height = 'auto';
-        el.style.opacity = '1';
-        return;
-      }
-
-      // measure target height
-      el.style.height = 'auto';
-      const target = el.scrollHeight || 0;
-
-      // start collapsed
-      el.style.opacity = '0';
-      el.style.height = '0px';
-      el.style.paddingTop = '0px';
-      el.style.paddingBottom = '0px';
-
-      // animate to content height, then release to auto
-      requestAnimationFrame(() => {
-        el.style.opacity = '1';
-        el.style.height = target + 'px';
-        el.style.paddingTop = '10px';
-        el.style.paddingBottom = '10px';
-      });
-
-      const onEnd = (e) => {
-        if (e && e.propertyName !== 'height') return;
-        el.style.height = 'auto';
-        el.removeEventListener('transitionend', onEnd);
-      };
-      el.addEventListener('transitionend', onEnd);
-    }
-
   function animateHudTab(tabEl) {
     if (!tabEl) return;
 
@@ -507,9 +471,18 @@
     void tabEl.offsetWidth;
     tabEl.classList.add('sweep');
 
-    strip.classList.remove('ping', 'pulse');
+    // --- click feedback: press + underline + scan ping + border pulse + flash ---
+    tabEl.classList.remove('press');
+    void tabEl.offsetWidth;
+    tabEl.classList.add('press');
+    window.setTimeout(() => tabEl.classList.remove('press'), 110);
+
+    strip.classList.remove('ping', 'pulse', 'flash');
     void strip.offsetWidth;
-    strip.classList.add('ping');
+    strip.classList.add('ping', 'pulse', 'flash');
+
+    // remove flash class after it plays (keeps DOM clean)
+    window.setTimeout(() => strip.classList.remove('flash'), 260);
   }
 
   function render(mountEl) {
@@ -841,6 +814,36 @@ if (!document.getElementById('musicContentWipeStyles')) {
             filter:brightness(1.15);
             transform:translateY(-1px);
           }
+
+           /* tactile press (JS adds .press for ~110ms) */
+           #musicInfoStrip .hudTab.press{
+             transform: translateY(0px) scale(0.985);
+             filter: brightness(1.18);
+           }
+
+           /* aggressive tech: brief scanline flash overlay on click */
+           #musicInfoStrip.flash::before{
+             content:"";
+             position:absolute;
+             inset:0;
+             pointer-events:none;
+             opacity:0;
+             background: repeating-linear-gradient(
+               to bottom,
+               rgba(255,255,255,0.06) 0px,
+               rgba(255,255,255,0.06) 1px,
+               rgba(0,0,0,0.00) 3px,
+               rgba(0,0,0,0.00) 7px
+             );
+             mix-blend-mode: overlay;
+             animation: hudStripFlash 240ms ease-out both;
+           }
+
+           @keyframes hudStripFlash{
+             0%{ opacity:0; }
+             15%{ opacity:.35; }
+             100%{ opacity:0; }
+           }
 
           #musicInfoStrip .hudTab::after{
             content:"";
