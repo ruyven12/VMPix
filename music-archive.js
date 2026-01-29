@@ -409,6 +409,42 @@
     `;
   }
 
+    function animateStripOpen(el) {
+      if (!el) return;
+      const prefersReduced =
+        window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) {
+        el.style.height = 'auto';
+        el.style.opacity = '1';
+        return;
+      }
+
+      // measure target height
+      el.style.height = 'auto';
+      const target = el.scrollHeight || 0;
+
+      // start collapsed
+      el.style.opacity = '0';
+      el.style.height = '0px';
+      el.style.paddingTop = '0px';
+      el.style.paddingBottom = '0px';
+
+      // animate to content height, then release to auto
+      requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.height = target + 'px';
+        el.style.paddingTop = '10px';
+        el.style.paddingBottom = '10px';
+      });
+
+      const onEnd = (e) => {
+        if (e && e.propertyName !== 'height') return;
+        el.style.height = 'auto';
+        el.removeEventListener('transitionend', onEnd);
+      };
+      el.addEventListener('transitionend', onEnd);
+    }
+
   function animateHudTab(tabEl) {
     if (!tabEl) return;
 
