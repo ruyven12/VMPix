@@ -824,7 +824,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
 
       // --- RED GLOW BORDER (Music tabs strip) ---
-      _orangeBoxEl.style.border = '1px solid rgba(255,70,110,0.75)';
+      _orangeBoxEl.style.border = '1px solid rgba(255,70,110,0.25)';
       _orangeBoxEl.style.boxShadow =
         '0 0 0 1px rgba(255,70,110,0.35) inset, 0 0 16px rgba(255,70,110,0.45)';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
