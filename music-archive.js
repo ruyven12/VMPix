@@ -409,27 +409,6 @@
     `;
   }
 
-  function animateHudTab(tabEl) {
-    if (!tabEl) return;
-
-    const strip = document.getElementById('musicInfoStrip');
-    if (!strip) return;
-
-    const wasActive = tabEl.classList.contains('is-active');
-
-    strip.querySelectorAll('.hudTab').forEach((t) => {
-      t.classList.remove('sweep');
-    });
-
-    if (!wasActive) {
-      strip.querySelectorAll('.hudTab').forEach((t) => {
-        t.classList.remove('is-active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tabEl.classList.add('is-active');
-      tabEl.setAttribute('aria-selected', 'true');
-    }
-
   function animateStripOpen(el) {
     if (!el) return;
     const prefersReduced =
@@ -466,6 +445,26 @@
     el.addEventListener('transitionend', onEnd);
   }
 
+  function animateHudTab(tabEl) {
+    if (!tabEl) return;
+
+    const strip = document.getElementById('musicInfoStrip');
+    if (!strip) return;
+
+    const wasActive = tabEl.classList.contains('is-active');
+
+    strip.querySelectorAll('.hudTab').forEach((t) => {
+      t.classList.remove('sweep');
+    });
+
+    if (!wasActive) {
+      strip.querySelectorAll('.hudTab').forEach((t) => {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tabEl.classList.add('is-active');
+      tabEl.setAttribute('aria-selected', 'true');
+    }
 
     tabEl.classList.remove('sweep');
     void tabEl.offsetWidth;
