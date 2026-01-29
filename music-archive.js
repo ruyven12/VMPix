@@ -1000,7 +1000,9 @@ The actual process to do the project is below. Imagine this...times 60,000+.
 * Put them through my photo editor once more. A lot of the shots just needed minor touchups, but I wanted to preserve the original edits while bringing it to my standards of today.
 * Back up shot 3x - Web, Cloud, and Physical storages.
 
-Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come.`
+Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come. This also is a 'love letter' of sorts to the scene that gave me so much in this life that I am grateful for. This is also giving back to those who I've photoed, met, and became lifelong friends with.
+
+-Voodoo 1/29/26`
             );
             return;
           }
