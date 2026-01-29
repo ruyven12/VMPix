@@ -148,8 +148,10 @@ function pulseFrame(){
   const ROUTE_COPY = {
     home: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
     wrestling: "Wrestling Archives - Coming Soon",
-    about: "About Me - Coming Soon"
-  };
+    about: "About Me - Coming Soon",
+    pricing: "Pricing - Coming Soon",
+    contact: "Contact - Coming Soon"
+};
 
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
@@ -161,6 +163,8 @@ function pulseFrame(){
   const MusicArchive = window.MusicArchive;
   const WrestlingArchive = window.WrestlingArchive;
   const AboutArchive = window.AboutArchive;
+  const Pricing = window.Pricing;
+  const Contact = window.Contact;
 
   // Optional: Home module (home.js)
   const HomeArchive = window.HomeArchive;
@@ -267,6 +271,56 @@ music: {
       onLeave(){
         if (AboutArchive && typeof AboutArchive.destroy === 'function'){
           AboutArchive.destroy();
+        }
+      }
+    },
+
+    pricing: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        if (Pricing && typeof Pricing.render === 'function'){
+          Pricing.render(m);
+        } else {
+          renderTypedShell(m);
+        }
+      },
+      onEnter(){
+        if (Pricing && typeof Pricing.onEnter === 'function'){
+          Pricing.onEnter();
+          return;
+        }
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.pricing, el);
+      },
+      onLeave(){
+        if (Pricing && typeof Pricing.destroy === 'function'){
+          Pricing.destroy();
+        }
+      }
+    },
+
+    contact: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        if (Contact && typeof Contact.render === 'function'){
+          Contact.render(m);
+        } else {
+          renderTypedShell(m);
+        }
+      },
+      onEnter(){
+        if (Contact && typeof Contact.onEnter === 'function'){
+          Contact.onEnter();
+          return;
+        }
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.contact, el);
+      },
+      onLeave(){
+        if (Contact && typeof Contact.destroy === 'function'){
+          Contact.destroy();
         }
       }
     }
@@ -495,7 +549,7 @@ async function transitionTo(route){
     try { modules[currentRoute].onLeave(); } catch(e) {}
   }
 
-  document.body.classList.remove('route-home','route-music','route-wrestling','route-about');
+  document.body.classList.remove('route-home','route-music','route-wrestling','route-about','route-pricing','route-contact');
   document.body.classList.add(`route-${next}`);
 
   setActiveTopNav(next);
