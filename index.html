@@ -393,45 +393,12 @@
     width: 100%;
     max-width: min(760px, 92%);
     margin: 0 auto;
+    min-height: 72px;
     display: grid;
     place-items: center;
     padding: 18px 20px;
     text-align: center;
   }
-
-
-  /* =============================
-     MUSIC ROUTE SPACING FIX
-     - When the Music module re-parents #hudMainMount into the neon frame,
-       .hudMainPlain becomes an empty wrapper. Its padding can leave an
-       unwanted "dead band" above the Music UI.
-     - These overrides are Music-only to avoid impacting other routes.
-     ============================= */
-  body.route-music .hudMainPlain{
-    padding: 0 !important;
-    margin: 0 auto !important;
-  }
-
-  body.route-music .hudStub.hudMain{
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-
-
-  /* =============================
-     MUSIC DEBUG OUTLINE OVERRIDE
-     - If music-archive.js debug borders are enabled, they add bright outlines (cyan/magenta/etc).
-     - This safely disables those outlines from CSS side (no JS changes).
-     ============================= */
-  body.route-music #musicInfoStrip,
-  body.route-music #musicContentPanel,
-  body.route-music .hudStub.hudMain,
-  body.route-music .neonFrameWrap,
-  body.route-music .neonFrame,
-  body.route-music .hudOrn{
-    outline: none !important;
-  }
-
 
   .hudMain{
     border: 1px solid rgba(255,60,60,.32);
@@ -562,7 +529,7 @@
   align-content: start;
 
   /* was 20px — this is the mobile "empty band" */
-  padding-top: 1px;
+  padding-top: 8px;
   padding-bottom: 12px;
 }
 
@@ -1315,7 +1282,7 @@
     /* Pull content upward / reduce dead space */
     .hudContent{
       padding: 10px 10px;
-      gap: 0px;
+      gap: 8px;
       grid-template-rows: 64px 50px 1fr;
     }
 
@@ -1495,6 +1462,8 @@
   <a class="hudIntroText" href="#/music" data-nav="music"><span class="hudIntroType">Music</span></a>
   <a class="hudIntroText" href="#/wrestling" data-nav="wrestling"><span class="hudIntroType">Wrestling</span></a>
   <a class="hudIntroText" href="#/about" data-nav="about"><span class="hudIntroType">About</span></a>
+  <a class="hudIntroText" href="#/pricing" data-nav="pricing"><span class="hudIntroType">Pricing</span></a>
+  <a class="hudIntroText" href="#/contact" data-nav="contact"><span class="hudIntroType">Contact</span></a>
 </div>
 
             <div class="hudStub hudMain">
@@ -1523,6 +1492,8 @@
 
 <script src="wrestling-archive.js"></script>
 <script src="about-archive.js"></script>
+<script src="pricing.js"></script>
+<script src="contact.js"></script>
 <script src="home.js"></script>
 <script src="hud-app.js"></script>
 
