@@ -34,6 +34,9 @@
   let legendEl = null;
   // remember the most recent band context so back-navigation always has something to restore
   let LAST_BAND_CTX = null;
+  // sequence token to prevent out-of-order renders during rapid Region/Letter clicks
+  let SHOWLETTER_SEQ = 0;
+
 
 
   function resetPanelScroll() {
@@ -706,6 +709,19 @@ color: rgba(226,232,240,0.92);
       /* results */
       #results{
         min-height:200px;
+
+        /* ===== Region/Letter transitions (fade + tiny slide + blur) ===== */
+        transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+        will-change: opacity, transform, filter;
+      }
+      #results.is-swapping{
+        opacity: 0;
+        transform: translateY(6px) scale(0.995);
+        filter: blur(8px);
+      }
+      @media (prefers-reduced-motion: reduce){
+        #results{ transition: none !important; }
+        #results.is-swapping{ transform:none !important; filter:none !important; opacity: 0; }
       }
       .band-card{
         background:rgba(255,255,255,0.04);
@@ -3000,8 +3016,7 @@ async function downloadZipFromServer(items, suggestedName){
 
         CURRENT_REGION = key;
         resetPanelScroll();
-        // clear before auto-select renders
-        try { resultsEl.innerHTML = ""; } catch(_) {}
+        // Keep current results visible until the transition swaps to the next letter group
         updateLetterGroups(key, { autoSelect: true });
         window.setTimeout(() => resetPanelScroll(), 200);
         // crumbs removed
@@ -3093,10 +3108,24 @@ async function downloadZipFromServer(items, suggestedName){
 
 
   function showLetter(region, letter) {
-    if (!resultsEl) return;
-    try { document.body.classList.remove("inBandDetail"); } catch(_) {}
+  if (!resultsEl) return;
 
-    resultsEl.innerHTML = "";
+  // Token prevents rapid clicks from rendering out-of-order.
+  const seq = ++SHOWLETTER_SEQ;
+
+  // Leave old content in place while we animate out.
+  try { resultsEl.classList.add("is-swapping"); } catch(_) {}
+
+  // Make sure we're in the list mode immediately (so pills/legend behave)
+  try { document.body.classList.remove("inBandDetail"); } catch(_) {}
+  try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
+
+  // Small delay so the opacity/blur transition actually runs before we replace DOM.
+  window.setTimeout(() => {
+    if (!resultsEl) return;
+    if (seq !== SHOWLETTER_SEQ) return;
+
+    try { resultsEl.innerHTML = ""; } catch(_) {}
     // crumbs removed
     resetPanelScroll();
 
@@ -3108,11 +3137,15 @@ async function downloadZipFromServer(items, suggestedName){
     resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
     resultsEl.style.gap = "14px";
     resultsEl.style.width = "100%";
-        resultsEl.style.maxWidth = "none";
+    resultsEl.style.maxWidth = "none";
     resultsEl.style.margin = "0";
 
     if (!bandsArr.length) {
       resultsEl.appendChild(document.createTextNode("No bands in this group."));
+      // Reveal (even if empty)
+      window.requestAnimationFrame(() => {
+        try { if (seq === SHOWLETTER_SEQ) resultsEl.classList.remove("is-swapping"); } catch(_) {}
+      });
       return;
     }
 
@@ -3141,7 +3174,9 @@ async function downloadZipFromServer(items, suggestedName){
 
       const name = document.createElement("div");
       name.className = "band-name";
-      name.textContent = bandObj.name || "";right.appendChild(name);
+      name.textContent = bandObj.name || "";
+      right.appendChild(name);
+
       row.appendChild(img);
       row.appendChild(right);
       card.appendChild(row);
@@ -3151,14 +3186,20 @@ async function downloadZipFromServer(items, suggestedName){
         window.requestAnimationFrame(() => animateBandOpen(region, letter, bandObj, img));
       });
 
-    window.requestAnimationFrame(() => resetPanelScroll());
-    window.setTimeout(() => resetPanelScroll(), 200);
-
       resultsEl.appendChild(card);
     });
-  }
 
-  async function showBandCard(region, letter, bandObj, opts) {
+    // Reveal the new content
+    window.requestAnimationFrame(() => {
+      if (seq !== SHOWLETTER_SEQ) return;
+      try { resultsEl.classList.remove("is-swapping"); } catch(_) {}
+      resetPanelScroll();
+      window.setTimeout(() => resetPanelScroll(), 200);
+    });
+  }, 120);
+}
+
+async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
 
     // Keep a safe return context for Back buttons / modal jumps
