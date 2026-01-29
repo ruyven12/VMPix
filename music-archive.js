@@ -1105,7 +1105,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
           }
 
           if (tabKey === 'project' || label === 'The Reimaging Project' || label === 'Reimaging Project') {
-            const projectBody = `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
+            const projectBody = `This project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
 
 The kickstarter for this project really started when we lost a good friend of ours in the Maine local scene - Steve Lepannen. When he unexpectedly passed, I was trying to find photos to post on socials of his passing and some thoughts. However I can recall I was frustrated because of the disorganization. From there, it has been the goal to get it under control. 
 
@@ -1128,7 +1128,7 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
 -Voodoo 1/29/26`;
             const html = `
               <div class="musicProject">
-                <div class="musicProjectTitle">Test</div>
+                <div class="musicProjectTitle">The "Reimaging" Project</div>
                 <div class="musicProjectBody">${projectBody}</div>
               </div>
             `;
