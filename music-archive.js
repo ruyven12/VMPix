@@ -756,7 +756,41 @@ if (!document.getElementById('musicContentWipeStyles')) {
               0 0 26px rgba(255,90,120,0.75);
           }
 
-          /* -------------------------------------------------- */
+          
+          /* ===== Project tab: Title + Body (Option 2) ===== */
+          .musicProject{
+            width:100%;
+            max-width:760px;
+            margin:0 auto;
+            text-transform:none;
+          }
+          .musicProjectTitle{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:28px;
+            font-weight:900;
+            letter-spacing:.14em;
+            text-transform:uppercase;
+            text-align:center;
+            margin-bottom:16px;
+            color:rgba(255,210,210,.95);
+            text-shadow:
+              0 0 14px rgba(255,60,60,.35),
+              0 0 28px rgba(255,60,60,.18);
+          }
+          .musicProjectBody{
+            font-size:15px;
+            line-height:1.7;
+            opacity:.82;
+            letter-spacing:.04em;
+            white-space:pre-wrap;
+            text-transform:none;
+          }
+          @media (max-width:520px){
+            .musicProjectTitle{ font-size:22px; }
+            .musicProjectBody{ font-size:14px; }
+          }
+
+/* -------------------------------------------------- */
 
           @keyframes musicContentWipeOut{
             0%{ opacity:1; filter:blur(0px); clip-path:inset(0% 0% 0% 0%); }
@@ -1071,9 +1105,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
           }
 
           if (tabKey === 'project' || label === 'The Reimaging Project' || label === 'Reimaging Project') {
-            wipeSwapContent(
-              '',
-              `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
+            const projectBody = `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
 
 The kickstarter for this project really started when we lost a good friend of ours in the Maine local scene - Steve Lepannen. When he unexpectedly passed, I was trying to find photos to post on socials of his passing and some thoughts. However I can recall I was frustrated because of the disorganization. From there, it has been the goal to get it under control. 
 
@@ -1093,8 +1125,14 @@ The actual process to do the project is below. Imagine this...times 60,000+.
 
 Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come. This also is a 'love letter' of sorts to the scene that gave me so much in this life that I am grateful for. This is also giving back to those who I've photoed, met, and became lifelong friends with.
 
--Voodoo 1/29/26`
-            );
+-Voodoo 1/29/26`;
+            const html = `
+              <div class="musicProject">
+                <div class="musicProjectTitle">Test</div>
+                <div class="musicProjectBody">${projectBody}</div>
+              </div>
+            `;
+            wipeSwapContent(html, '');
             return;
           }
 
