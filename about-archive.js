@@ -13,7 +13,6 @@ This site is a nearly-100% automated website using coding that reads from the na
     if (!mountEl) return;
     mountEl.innerHTML = `
       <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-        <strong>About</strong><br><br>
         <div style="opacity:.75; white-space:pre-wrap;">
           About The Site
 
