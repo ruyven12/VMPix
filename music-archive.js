@@ -965,7 +965,8 @@ _orangeBoxEl.style.display = 'flex';
   <div class="hudTabs" role="tablist" aria-label="Music sections">
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
-    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
+    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
+	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
     <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
     <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
   </div>
@@ -1110,9 +1111,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
           }
 
           if (tabKey === 'project' || label === 'The Reimaging Project' || label === 'Reimaging Project') {
-            wipeSwapContent(
-              '',
-              `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
+            const projectBody = `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
 
 The kickstarter for this project really started when we lost a good friend of ours in the Maine local scene - Steve Lepannen. When he unexpectedly passed, I was trying to find photos to post on socials of his passing and some thoughts. However I can recall I was frustrated because of the disorganization. From there, it has been the goal to get it under control. 
 
@@ -1132,13 +1131,16 @@ The actual process to do the project is below. Imagine this...times 60,000+.
 
 Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come. This also is a 'love letter' of sorts to the scene that gave me so much in this life that I am grateful for. This is also giving back to those who I've photoed, met, and became lifelong friends with.
 
--Voodoo 1/29/26`
-            );
+-Voodoo 1/29/26`;
+            const html = `
+              <div class="musicProject">
+                <div class="musicProjectTitle">Test</div>
+                <div class="musicProjectBody" style="text-transform:none;">${projectBody}</div>
+              </div>
+            `;
+            wipeSwapContent(html, '');
             return;
-          }
-
-
-          // Updates (or anything else)
+          }// Updates (or anything else)
           wipeSwapContent(
             `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
             `${label} – Coming Soon`
