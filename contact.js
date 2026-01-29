@@ -154,7 +154,7 @@
           </a>
 
           <!-- Gmail icon button -->
-          <a class="contactBtn" href="mailto:none@none.com" data-action="email">
+          <a class="contactBtn" href="mailto:ruyven12@gmail.com" data-action="email">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="4" y="6" width="16" height="12" rx="2"/>
               <path d="M4 8l8 6 8-6"/>
