@@ -12,7 +12,8 @@ This site is a nearly-100% automated website using coding that reads from the na
   function render(mountEl){
     if (!mountEl) return;
     mountEl.innerHTML = `
-      <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
+      <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:16px; line-height:1.7; letter-spacing:.04em; text-transform:none;">
+        <strong style="font-size:18px; letter-spacing:.06em;">About</strong><br><br>
         <div style="opacity:.75; white-space:pre-wrap;">
           About The Site
 
