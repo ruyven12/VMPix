@@ -409,6 +409,27 @@
     `;
   }
 
+  function animateHudTab(tabEl) {
+    if (!tabEl) return;
+
+    const strip = document.getElementById('musicInfoStrip');
+    if (!strip) return;
+
+    const wasActive = tabEl.classList.contains('is-active');
+
+    strip.querySelectorAll('.hudTab').forEach((t) => {
+      t.classList.remove('sweep');
+    });
+
+    if (!wasActive) {
+      strip.querySelectorAll('.hudTab').forEach((t) => {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tabEl.classList.add('is-active');
+      tabEl.setAttribute('aria-selected', 'true');
+    }
+
   function animateStripOpen(el) {
     if (!el) return;
     const prefersReduced =
@@ -445,26 +466,6 @@
     el.addEventListener('transitionend', onEnd);
   }
 
-  function animateHudTab(tabEl) {
-    if (!tabEl) return;
-
-    const strip = document.getElementById('musicInfoStrip');
-    if (!strip) return;
-
-    const wasActive = tabEl.classList.contains('is-active');
-
-    strip.querySelectorAll('.hudTab').forEach((t) => {
-      t.classList.remove('sweep');
-    });
-
-    if (!wasActive) {
-      strip.querySelectorAll('.hudTab').forEach((t) => {
-        t.classList.remove('is-active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tabEl.classList.add('is-active');
-      tabEl.setAttribute('aria-selected', 'true');
-    }
 
     tabEl.classList.remove('sweep');
     void tabEl.offsetWidth;
@@ -674,7 +675,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .archiveHeaderWrap{
             width:100%;
             display:flex;
-            justify-content:center;
+            justify-content:flex-start;
             margin-bottom:26px; /* space below header */
           }
 
@@ -760,12 +761,12 @@ if (!document.getElementById('musicContentWipeStyles')) {
         const style = document.createElement('style');
         style.id = 'musicInfoStripStyles';
         style.textContent = `
-          #musicInfoStrip{ overflow:hidden; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
+          #musicInfoStrip{ position:relative; overflow:hidden; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
 
           #musicInfoStrip .hudTabs{
             display:flex;
             flex-wrap:nowrap;              /* ✅ single row */
-            justify-content:center;
+            justify-content:flex-start;
             align-items:center;
             gap:18px;
             user-select:none;
@@ -774,7 +775,13 @@ if (!document.getElementById('musicContentWipeStyles')) {
             overflow-y:hidden;
             -webkit-overflow-scrolling:touch;
             scrollbar-width:none;         /* Firefox hide scrollbar */
-            padding:0 10px;
+            padding:0 18px;
+            width:100%;
+            box-sizing:border-box;
+            flex:1 1 auto;
+            min-width:0;
+            scroll-padding-left:18px;
+            scroll-padding-right:18px;
             white-space:nowrap;
           }
           #musicInfoStrip .hudTabs::-webkit-scrollbar{ display:none; }
