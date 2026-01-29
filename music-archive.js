@@ -177,11 +177,11 @@
   const ORANGE_BOX_X_OFFSET = '0px';
   const ORANGE_BOX_Y_OFFSET = '0px';
 
-  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 110, 0.55)';
+  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 90, 0.35)';
   const ORANGE_BOX_RADIUS = '10px';
   const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';
   const ORANGE_BOX_GLOW =
-    '0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 18px rgba(255,70,110,0.10)';
+    'inset 0 0 0 1px rgba(255, 70, 90, 0.08), 0 0 14px rgba(255, 40, 60, 0.12)';
   // ORANGE BOX text styling (match the small HUD instruction text vibe)
   const ORANGE_BOX_TEXT_SIZE = '11px';
   const ORANGE_BOX_TEXT_TRACKING = '.12em';
