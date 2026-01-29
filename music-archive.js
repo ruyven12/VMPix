@@ -1091,7 +1091,7 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             const html = `
               <div class="musicProject">
                 <div class="musicProjectTitle">The Origins of Music</div>
-                <div class="musicProjectBody">${originsBody}</div>
+                <div class="musicProjectBody"; style="text-transform:none";>${originsBody}</div>
               </div>
             `;
             wipeSwapContent(html, '');
