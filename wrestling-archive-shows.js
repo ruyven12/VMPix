@@ -182,6 +182,47 @@
   display: none !important;
 }
 
+
+/* ===== Album keyword chips (People in this album) ===== */
+#waShowsRoot .waAlbumKeywordBox{
+  width:100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 10px 0;
+  text-align:center;
+}
+#waShowsRoot .waAlbumKeywordTitle{
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  letter-spacing: .10em;
+  font-size: 12px;
+  opacity:.92;
+  margin-bottom: 6px;
+}
+#waShowsRoot .waAlbumKeywordChips{
+  display:flex;
+  flex-wrap:wrap;
+  gap: 8px;
+  justify-content:center;
+}
+#waShowsRoot .waAlbumKeywordChip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.18);
+  font-size: 11px;
+  letter-spacing: .08em;
+  opacity:.92;
+}
+#waShowsRoot .waAlbumKeywordEmpty{
+  font-size: 12px;
+  opacity:.65;
+  letter-spacing:.08em;
+  padding: 6px 0 2px;
+}
+
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
 
@@ -1270,6 +1311,28 @@
       '<div class="name">' + escapeHtml(matchTitle || matchId || "Match") + '</div>';
     wrap.appendChild(headerPill);
 
+    // People in this album (keywords)
+    const kwBox = document.createElement("div");
+    kwBox.className = "waAlbumKeywordBox";
+
+    const kwTitle = document.createElement("div");
+    kwTitle.className = "waAlbumKeywordTitle";
+    kwTitle.textContent = "People in this album:";
+    kwBox.appendChild(kwTitle);
+
+    const kwChips = document.createElement("div");
+    kwChips.className = "waAlbumKeywordChips";
+    kwBox.appendChild(kwChips);
+
+    const kwEmpty = document.createElement("div");
+    kwEmpty.className = "waAlbumKeywordEmpty";
+    kwEmpty.textContent = "Loading…";
+    kwBox.appendChild(kwEmpty);
+    kwEmpty.style.display = "none";
+
+    wrap.appendChild(kwBox);
+
+
     // Grid container
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
@@ -1369,6 +1432,40 @@ const meta = document.createElement("div");
         ]);
         const album = metaJson && metaJson.Response && metaJson.Response.Album;
         if (album && typeof album.Title === "string") albumTitle = album.Title;
+
+        // Keywords (People in this album)
+        try {
+          const rawKw =
+            (album && typeof album.Keywords === "string") ? album.Keywords :
+            (album && typeof album.Keyword === "string") ? album.Keyword :
+            (album && Array.isArray(album.Keywords)) ? album.Keywords.join(";") :
+            "";
+
+          const list = String(rawKw || "")
+            .split(/[;,]/g)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          // Render into the keyword box if it exists
+          try {
+            if (kwChips) kwChips.innerHTML = "";
+            if (list.length) {
+              if (kwEmpty) kwEmpty.style.display = "none";
+              for (let i = 0; i < list.length; i++) {
+                const chip = document.createElement("div");
+                chip.className = "waAlbumKeywordChip";
+                chip.textContent = list[i];
+                if (kwChips) kwChips.appendChild(chip);
+              }
+            } else {
+              if (kwEmpty) {
+                kwEmpty.textContent = "No people tags found.";
+                kwEmpty.style.display = "";
+              }
+            }
+          } catch (_) {}
+        } catch (_) {}
+
       } catch (_) {}
 
       if (albumTitle) {
