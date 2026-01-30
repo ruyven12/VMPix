@@ -10,7 +10,7 @@
 
     _mount.innerHTML = `
       <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-        <strong>Pricing for Prints</strong><br><br>
+        <div style="font-size:22px; text-transform:uppercase;"><strong>Pricing for Prints</strong></div><br><br>
 
         <div style="opacity:.85; margin-bottom:16px;">
           All photographs on this site that were not taken with a cell phone are available for purchase in a variety of formats. These images have been used for posters, signed wrestler prints, trading cards, and other promotional and personal projects.
