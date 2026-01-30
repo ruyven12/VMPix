@@ -557,7 +557,7 @@
     _mount.innerHTML = `<span data-hud-main-text
       style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:none;
              display:inline-block; transform:translateY(${WRESTLING_TITLE_VISUAL_NUDGE});">
-      The World of Wrestling
+      
     </span>`;
 
     const hudMain = document.querySelector('.hudStub.hudMain');
