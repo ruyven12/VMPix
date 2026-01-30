@@ -13,6 +13,10 @@
   // Flip to true later if you want to re-enable it.
   const ENABLE_ZIP_SELECT_UI = false;
 
+  // Keep the Lightbox download button logic, but hide the button for now.
+  // Flip to true later if you want to show it again.
+  const SHOW_LIGHTBOX_DOWNLOAD_BTN = false;
+
   // Loading message shown while the Bands CSV is being fetched.
   // Edit this string to whatever you want displayed.
   const BANDS_LOADING_TEXT = "Loading the machine, takes about 30 seconds to load up.";
@@ -1005,12 +1009,20 @@ color: rgba(226,232,240,0.92);
 
       /* ===== Lightbox v2: cinematic focus + filmstrip ===== */
       .lightbox{
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: rgba(0,0,0,0.92);
         padding: 0;
+        overflow: hidden;
       }
       .lightboxShell{
         width: min(1280px, 96vw);
         height: min(860px, 92vh);
+        max-height: 92vh;
         display:flex;
         flex-direction:column;
         align-items:stretch;
@@ -1083,6 +1095,7 @@ color: rgba(226,232,240,0.92);
       .lightboxStage{
         position: relative;
         flex: 1 1 auto;
+        min-height: 0;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -2526,6 +2539,9 @@ async function downloadZipFromServer(items, suggestedName){
       if (dlBtn.href === "#") { e.preventDefault(); return; }
     });
 
+    // Hide by default (logic still updates href in showAt)
+    try { dlBtn.style.display = SHOW_LIGHTBOX_DOWNLOAD_BTN ? "inline-flex" : "none"; } catch(_) {}
+
     const closeBtn = document.createElement("button");
     closeBtn.className = "lightboxCloseBtn";
     closeBtn.textContent = "Close ✕";
@@ -2637,6 +2653,7 @@ async function downloadZipFromServer(items, suggestedName){
         dl.setAttribute("download", fn2);
         dl.style.pointerEvents = url ? "auto" : "none";
         dl.style.opacity = url ? "1" : "0.55";
+        dl.style.display = SHOW_LIGHTBOX_DOWNLOAD_BTN ? "inline-flex" : "none";
       }
     } catch(_) {}
     lightboxImg.onload = () => {
