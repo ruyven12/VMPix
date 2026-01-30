@@ -6,30 +6,6 @@
 
   // ================== CONFIG (matches script.js) ==================
   const API_BASE = "https://music-archive-3lfa.onrender.com";
-
-  // Resolve a SmugMug album URL into a Shop NodeKey via backend.
-  // SmugMug shop URL format: /shop?nodeKey=<NodeKey>
-  async function resolveShopNodeFromUrl(albumUrl) {
-    const u = String(albumUrl || "").trim();
-    if (!u) return { nodeKey: "", albumKey: "" };
-
-    const endpoint = `${API_BASE}/smug/resolve-shop-node?url=${encodeURIComponent(u)}`;
-    try {
-      const res = await fetch(endpoint, { cache: "no-store" });
-      if (!res.ok) return { nodeKey: "", albumKey: "" };
-      const json = await res.json();
-
-      const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
-      const albumKey =
-        (json && typeof json.albumKey === "string") ? json.albumKey.trim() :
-        (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim() : "";
-
-      return { nodeKey, albumKey };
-    } catch (_) {
-      return { nodeKey: "", albumKey: "" };
-    }
-  }
-
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
   // ===== Feature flags =====
@@ -3787,71 +3763,52 @@ const grid = document.createElement("div");
     const buyBtn = document.createElement("a");
     buyBtn.className = "selectBtn";
     buyBtn.textContent = "Buy Photos";
-    buyBtn.href = "javascript:void(0)"; // set below; avoid HUD hash routing
-    buyBtn.target = "_blank";
-    buyBtn.rel = "noopener";
-
-    // Build a safe fallback album URL immediately (so Buy Photos never routes the HUD)
-    let __albumUrl = "";
-    try {
+    // Default to the album URL; then try to resolve the SmugMug Shop NodeKey
+    // (SmugMug shop links use /shop?nodeKey=..., not always the AlbumKey).
+    (function initBuyPhotosLink() {
       const alb = info && info.album ? info.album : null;
-      const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
-      const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
-      if (typeof rawWeb === "string" && rawWeb.trim()) {
-        __albumUrl = rawWeb.trim();
-      } else if (typeof rawPath === "string" && rawPath.trim()) {
-        const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
-        __albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
-      }
-    } catch (_) {}
-    if (__albumUrl) buyBtn.href = __albumUrl;
+      const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url) ? (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url) : "";
+      const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.urlpath) ? (alb.UrlPath || alb.urlPath || alb.urlpath) : "";
 
-    // Prefer /shop?nodeKey=... (resolved from album URL via backend)
-    let __shopUrl = "";
-    (async () => {
+      // Prefer the current origin when already on SmugMug, otherwise default to your SmugMug domain.
+      let smugOrigin = "https://vmpix.smugmug.com";
       try {
-        if (!__albumUrl) return;
-        const shopInfo = await resolveShopNodeFromUrl(__albumUrl);
-        if (shopInfo && shopInfo.nodeKey) {
-          __shopUrl = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-          buyBtn.href = __shopUrl;
+        const o = (window.location && window.location.origin) ? String(window.location.origin) : "";
+        if (o && /smugmug\.com$/i.test(o)) smugOrigin = o;
+      } catch (_) {}
+
+      let albumUrl = "";
+      try {
+        if (typeof rawWeb === "string" && /^https?:\/\//i.test(rawWeb.trim())) {
+          albumUrl = rawWeb.trim();
+          try { smugOrigin = new URL(albumUrl).origin; } catch (_) {}
+        } else if (typeof rawPath === "string" && rawPath.trim()) {
+          const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
+          albumUrl = smugOrigin.replace(/\/$/, "") + p;
         }
       } catch (_) {}
-    })();
 
-    // Click: always open a real URL in a new tab, never trigger HUD routing.
-    buyBtn.addEventListener("click", (e) => {
-      try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
-      const out = (__shopUrl || __albumUrl || "").trim();
-      if (!out) return;
-      try { window.open(out, "_blank", "noopener"); } catch (_) { try { window.location.href = out; } catch (_) {} }
-    });
-    buyBtn.rel = "noopener";
+      // Safe fallback: at least go to the album page if we can.
+      buyBtn.href = albumUrl || "#";
+      buyBtn.rel = "noopener";
+      buyBtn.target = "_blank";
 
-    // Set Buy Photos link (match wrestling): prefer /shop?nodeKey=..., else fall back to the album URL.
-    try {
-      const alb = info && info.album ? info.album : null;
-      const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
-      const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
-      let albumUrl = "";
-      if (typeof rawWeb === "string" && rawWeb.trim()) {
-        albumUrl = rawWeb.trim();
-      } else if (typeof rawPath === "string" && rawPath.trim()) {
-        const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
-        albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
-      }
-      if (albumUrl) buyBtn.href = albumUrl; // safe fallback
-
+      // Best case: resolve to /shop?nodeKey=... using the backend (same pattern as wrestling file)
+      if (!albumUrl) return;
       (async () => {
         try {
-          if (!albumUrl) return;
-          const shopInfo = await resolveShopNodeFromUrl(albumUrl);
-          if (shopInfo && shopInfo.nodeKey) {
-            buyBtn.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-          }
+          const res = await fetch(
+            API_BASE + "/smug/resolve-shop-node?url=" + encodeURIComponent(albumUrl),
+          );
+          if (!res.ok) return;
+          const json = await res.json();
+          const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+          if (!nodeKey) return;
+          buyBtn.href = smugOrigin.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);
         } catch (_) {}
       })();
-    } catch (_) {}
+    })();
+    buyBtn.target = "_blank";
     toolbar.appendChild(buyBtn);
 
     // Only mount the ZIP/select UI when explicitly enabled.
