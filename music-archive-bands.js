@@ -15,7 +15,7 @@
 
   // Keep the Lightbox download button logic, but hide the button for now.
   // Flip to true later if you want to show it again.
-  const SHOW_LIGHTBOX_DOWNLOAD_BTN = false;
+  const SHOW_LIGHTBOX_DOWNLOAD_BTN = true;
 
   // Loading message shown while the Bands CSV is being fetched.
   // Edit this string to whatever you want displayed.
