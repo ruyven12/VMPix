@@ -1148,18 +1148,6 @@ color: rgba(226,232,240,0.92);
         box-shadow: 0 0 0 1px rgba(239,68,68,0.25);
       }
 
-
-      /* ===== Lightbox fix: force "contain" so images never appear cropped by external/global CSS ===== */
-      .lightboxShell .lightboxImg{
-        width: auto !important;
-        height: auto !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        object-fit: contain !important;
-        display: block;
-      }
-      .lightboxShell .lightboxStage{ overflow: visible; }
-
       @media (max-width: 620px){
         .lightboxShell{ height: 94vh; }
         .lightboxNavBtn{ width: 40px; height: 40px; }
