@@ -10,7 +10,7 @@
 
     _mount.innerHTML = `
       <div style="max-width:760px; margin:0 auto; opacity:.9; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-        <div style="font-size:22px; text-transform:uppercase;"><strong>Pricing for Prints</strong></div><br><br>
+        <div style="font-size:20px; text-transform:uppercase;"><strong>Pricing for Prints</strong></div><br>
 
         <div style="opacity:.85; margin-bottom:16px;">
           All photographs on this site that were not taken with a cell phone are available for purchase in a variety of formats. These images have been used for posters, signed wrestler prints, trading cards, and other promotional and personal projects.
@@ -20,7 +20,7 @@
           The pricing below reflects my current print options. I strive to keep pricing straightforward and affordable. If you have a specific size, quantity, or use in mind that isn’t listed, please feel free to reach out — I’m always happy to discuss custom options.
         </div>
 
-        <strong>Print Pricing (Per Quantity)</strong><br><br>
+        <div style="font-size:18px;"><strong>Print Pricing (Per Quantity)</strong></div><br>
         <div style="opacity:.9; margin-bottom:24px;">
           Set of 8 Wallet Prints – $7<br>
           4×6 – $1<br>
