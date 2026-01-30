@@ -20,7 +20,7 @@
           The pricing below reflects my current print options. I strive to keep pricing straightforward and affordable. If you have a specific size, quantity, or use in mind that isn’t listed, please feel free to reach out — I’m always happy to discuss custom options.
         </div>
 
-        <div style="font-size:18px;"><strong>Print Pricing (Per Quantity)</strong></div><br>
+        <div style="font-size:20px; text-decoration:underline;"><strong>Print Pricing (Per Quantity)</strong></div><br>
         <div style="opacity:.9; margin-bottom:24px;">
           Set of 8 Wallet Prints – $7<br>
           4×6 – $1<br>
@@ -33,7 +33,7 @@
           24×36 – $50
         </div>
 
-        <strong>Pricing for Hire</strong><br><br>
+        <div style="font-size:24px; text-transform:uppercase; text-decoration:underline;"><strong>Pricing for Hire</strong></div><br>
         <div style="opacity:.85;">
           While I frequently photograph music shows and wrestling events, my work is not limited to those areas. I have experience covering weddings, professional business events, promotional shoots, and a wide range of other projects.
           <br><br>
