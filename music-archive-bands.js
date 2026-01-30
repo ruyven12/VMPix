@@ -8,6 +8,11 @@
   const API_BASE = "https://music-archive-3lfa.onrender.com";
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
+  // ===== Feature flags =====
+  // Keep the ZIP/multi-select code in place, but hide the UI for now.
+  // Flip to true later if you want to re-enable it.
+  const ENABLE_ZIP_SELECT_UI = false;
+
   // Loading message shown while the Bands CSV is being fetched.
   // Edit this string to whatever you want displayed.
   const BANDS_LOADING_TEXT = "Loading the machine, takes about 30 seconds to load up.";
@@ -3724,113 +3729,12 @@ const grid = document.createElement("div");
 
 
     // ===== Multi-select toolbar (Select mode + Download ZIP) =====
+    // UI is currently hidden (feature-flagged), but code remains for later.
     let selectMode = false;
     const selected = new Set(); // stores indices as strings
 
     const toolbar = document.createElement("div");
     toolbar.className = "selectToolbar";
-
-    const selectToggle = document.createElement("button");
-    selectToggle.className = "selectBtn";
-    selectToggle.type = "button";
-    selectToggle.textContent = "Select Photos to Download";
-
-    const dlZipBtn = document.createElement("button");
-    dlZipBtn.className = "selectBtn primary";
-    dlZipBtn.type = "button";
-    dlZipBtn.textContent = "Download ZIP (0)";
-    dlZipBtn.style.display = "none";
-
-    const clearBtn = document.createElement("button");
-    clearBtn.className = "selectBtn";
-    clearBtn.type = "button";
-    clearBtn.textContent = "Clear";
-    clearBtn.style.display = "none";
-
-    const hint = document.createElement("div");
-    hint.className = "selectHint";
-    hint.textContent = "Tip: In Select mode, click thumbnails to add/remove.";
-
-    const statusLine = document.createElement("div");
-    statusLine.className = "zipStatus";
-    statusLine.textContent = "";
-
-    function updateSelectUI(){
-      const n = selected.size;
-      dlZipBtn.textContent = `Download ZIP (${n})`;
-      dlZipBtn.style.display = selectMode ? "inline-flex" : "none";
-      clearBtn.style.display = (selectMode && n) ? "inline-flex" : "none";
-      hint.style.display = selectMode ? "block" : "none";
-
-      try {
-        if (selectMode) document.body.classList.add("inSelectMode");
-        else document.body.classList.remove("inSelectMode");
-      } catch(_) {}
-    }
-
-    selectToggle.addEventListener("click", () => {
-      selectMode = !selectMode;
-      if (!selectMode) selected.clear();
-      statusLine.textContent = "";
-      selectToggle.textContent = selectMode ? "Done selecting" : "Select Photos to Download";
-      updateSelectUI();
-      try {
-        const tiles = grid.querySelectorAll(".smug-photo-box");
-        tiles.forEach((t) => {
-          const k = t.dataset.index || "";
-          t.classList.toggle("selected", selectMode && selected.has(k));
-        });
-      } catch(_) {}
-    });
-
-    clearBtn.addEventListener("click", () => {
-      selected.clear();
-      statusLine.textContent = "";
-      updateSelectUI();
-      try {
-        const tiles = grid.querySelectorAll(".smug-photo-box.selected");
-        tiles.forEach((t) => t.classList.remove("selected"));
-      } catch(_) {}
-    });
-
-    dlZipBtn.addEventListener("click", async () => {
-      const n = selected.size;
-      if (!n) return;
-
-      const items = [];
-      const idxs = Array.from(selected).map((s) => Number(s)).filter((x) => Number.isFinite(x)).sort((a,b)=>a-b);
-      idxs.forEach((i) => {
-        const it = imgs[i];
-        if (!it) return;
-        const url = bestFullUrl(it);
-        if (!url) return;
-        const filename = String(it?.FileName || `photo-${i+1}.jpg`).trim() || `photo-${i+1}.jpg`;
-        items.push({ url, filename });
-      });
-
-      if (!items.length) {
-        statusLine.textContent = "No downloadable URLs found for the selected photos.";
-        return;
-      }
-
-      dlZipBtn.disabled = true;
-      clearBtn.disabled = true;
-      selectToggle.disabled = true;
-      statusLine.textContent = `Preparing ZIP for ${items.length} photo(s)…`;
-
-      try {
-        const albumName = (info?.album?.Name || info?.album?.Title || "album").trim();
-        await downloadZipFromServer(items, albumName);
-        statusLine.textContent = `ZIP download started (${items.length} photo(s)).`;
-      } catch (e) {
-        console.warn(e);
-        statusLine.textContent = "ZIP download failed. (This requires a server /zip endpoint.)";
-      } finally {
-        dlZipBtn.disabled = false;
-        clearBtn.disabled = false;
-        selectToggle.disabled = false;
-      }
-    });
 
     const buyBtn = document.createElement("a");
     buyBtn.className = "selectBtn";
@@ -3838,12 +3742,129 @@ const grid = document.createElement("div");
     buyBtn.href = "#"; // TODO: replace with SmugMug buy link
     buyBtn.target = "_blank";
     toolbar.appendChild(buyBtn);
-    toolbar.appendChild(selectToggle);
-    toolbar.appendChild(dlZipBtn);
-    toolbar.appendChild(clearBtn);
-    toolbar.appendChild(hint);
-    wrap.appendChild(toolbar);
-    wrap.appendChild(statusLine);
+
+    // Only mount the ZIP/select UI when explicitly enabled.
+    let selectToggle = null;
+    let dlZipBtn = null;
+    let clearBtn = null;
+    let hint = null;
+    let statusLine = null;
+    // Safe default when the feature is disabled (or before it's initialized).
+    let updateSelectUI = () => {};
+
+    if (ENABLE_ZIP_SELECT_UI) {
+      selectToggle = document.createElement("button");
+      selectToggle.className = "selectBtn";
+      selectToggle.type = "button";
+      selectToggle.textContent = "Select Photos to Download";
+
+      dlZipBtn = document.createElement("button");
+      dlZipBtn.className = "selectBtn primary";
+      dlZipBtn.type = "button";
+      dlZipBtn.textContent = "Download ZIP (0)";
+      dlZipBtn.style.display = "none";
+
+      clearBtn = document.createElement("button");
+      clearBtn.className = "selectBtn";
+      clearBtn.type = "button";
+      clearBtn.textContent = "Clear";
+      clearBtn.style.display = "none";
+
+      hint = document.createElement("div");
+      hint.className = "selectHint";
+      hint.textContent = "Tip: In Select mode, click thumbnails to add/remove.";
+
+      statusLine = document.createElement("div");
+      statusLine.className = "zipStatus";
+      statusLine.textContent = "";
+
+      updateSelectUI = function updateSelectUI(){
+        const n = selected.size;
+        dlZipBtn.textContent = `Download ZIP (${n})`;
+        dlZipBtn.style.display = selectMode ? "inline-flex" : "none";
+        clearBtn.style.display = (selectMode && n) ? "inline-flex" : "none";
+        hint.style.display = selectMode ? "block" : "none";
+
+        try {
+          if (selectMode) document.body.classList.add("inSelectMode");
+          else document.body.classList.remove("inSelectMode");
+        } catch(_) {}
+      };
+
+      selectToggle.addEventListener("click", () => {
+        selectMode = !selectMode;
+        if (!selectMode) selected.clear();
+        statusLine.textContent = "";
+        selectToggle.textContent = selectMode ? "Done selecting" : "Select Photos to Download";
+        updateSelectUI();
+        try {
+          const tiles = grid.querySelectorAll(".smug-photo-box");
+          tiles.forEach((t) => {
+            const k = t.dataset.index || "";
+            t.classList.toggle("selected", selectMode && selected.has(k));
+          });
+        } catch(_) {}
+      });
+
+      clearBtn.addEventListener("click", () => {
+        selected.clear();
+        statusLine.textContent = "";
+        updateSelectUI();
+        try {
+          const tiles = grid.querySelectorAll(".smug-photo-box.selected");
+          tiles.forEach((t) => t.classList.remove("selected"));
+        } catch(_) {}
+      });
+
+      dlZipBtn.addEventListener("click", async () => {
+        const n = selected.size;
+        if (!n) return;
+
+        const items = [];
+        const idxs = Array.from(selected).map((s) => Number(s)).filter((x) => Number.isFinite(x)).sort((a,b)=>a-b);
+        idxs.forEach((i) => {
+          const it = imgs[i];
+          if (!it) return;
+          const url = bestFullUrl(it);
+          if (!url) return;
+          const filename = String(it?.FileName || `photo-${i+1}.jpg`).trim() || `photo-${i+1}.jpg`;
+          items.push({ url, filename });
+        });
+
+        if (!items.length) {
+          statusLine.textContent = "No downloadable URLs found for the selected photos.";
+          return;
+        }
+
+        dlZipBtn.disabled = true;
+        clearBtn.disabled = true;
+        selectToggle.disabled = true;
+        statusLine.textContent = `Preparing ZIP for ${items.length} photo(s)…`;
+
+        try {
+          const albumName = (info?.album?.Name || info?.album?.Title || "album").trim();
+          await downloadZipFromServer(items, albumName);
+          statusLine.textContent = `ZIP download started (${items.length} photo(s)).`;
+        } catch (e) {
+          console.warn(e);
+          statusLine.textContent = "ZIP download failed. (This requires a server /zip endpoint.)";
+        } finally {
+          dlZipBtn.disabled = false;
+          clearBtn.disabled = false;
+          selectToggle.disabled = false;
+        }
+      });
+
+      toolbar.appendChild(selectToggle);
+      toolbar.appendChild(dlZipBtn);
+      toolbar.appendChild(clearBtn);
+      toolbar.appendChild(hint);
+      wrap.appendChild(toolbar);
+      wrap.appendChild(statusLine);
+    } else {
+      // Still show the toolbar container (currently only the Buy button).
+      wrap.appendChild(toolbar);
+    }
 
     function prettyKeyword(s) {
       const t = String(s || "").trim();
@@ -3937,10 +3958,13 @@ const grid = document.createElement("div");
       box.appendChild(badge);
 
       // selection check (visible in Select mode)
-      const chk = document.createElement("div");
-      chk.className = "selectCheck";
-      chk.textContent = "✓";
-      box.appendChild(chk);
+      // Kept behind feature flag so we can re-enable later without rewriting.
+      if (ENABLE_ZIP_SELECT_UI) {
+        const chk = document.createElement("div");
+        chk.className = "selectCheck";
+        chk.textContent = "✓";
+        box.appendChild(chk);
+      }
 
       // hover meta (filename + hint)
       const meta = document.createElement("div");
@@ -3979,7 +4003,7 @@ const grid = document.createElement("div");
 
       box.addEventListener("click", () => {
         // In Select mode, toggle selection instead of opening the lightbox
-        if (selectMode) {
+        if (ENABLE_ZIP_SELECT_UI && selectMode) {
           const key = String(idx);
           if (selected.has(key)) selected.delete(key);
           else selected.add(key);
@@ -3990,7 +4014,8 @@ const grid = document.createElement("div");
         }
 
         openLightbox(imgs, idx, info && info._lightboxContext ? info._lightboxContext : { band: (info?.band?.name || ''), album: (info?.album?.Name || info?.album?.Title || ''), show: (info?.album?.Name || info?.album?.Title || '') });
-      });grid.appendChild(box);
+      });
+      grid.appendChild(box);
     });
   }
 
