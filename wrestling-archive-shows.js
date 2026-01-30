@@ -174,6 +174,15 @@
     const s = document.createElement("style");
     s.id = "waShowsStyles";
     s.textContent = `
+/* === SURGICAL: hide ZIP / select UI in album photo view (keep code intact) === */
+#waShowsRoot .waSelectBar,
+#waShowsRoot .waSelectBtn,
+#waShowsRoot .waSelectPrimary,
+#waShowsRoot .waSelectHint,
+#waShowsRoot .waSelectStatus{
+  display: none !important;
+}
+
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
 
