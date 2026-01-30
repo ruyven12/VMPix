@@ -3941,6 +3941,15 @@ const grid = document.createElement("div");
     });
 
     const albumKey = info.album?.AlbumKey || info.album?.Key;
+
+    // === SURGICAL: Fix Buy Photos link to open the correct SmugMug purchase page for this album ===
+    // Previously this was '#', which can route back to home in the HUD app.
+    try {
+      if (buyBtn && albumKey) {
+        buyBtn.href = "https://vmpix.smugmug.com/Buy?AlbumKey=" + encodeURIComponent(String(albumKey));
+        buyBtn.rel = "noopener";
+      }
+    } catch (_) {}
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
