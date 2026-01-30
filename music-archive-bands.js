@@ -6,13 +6,7 @@
 
   // ================== CONFIG (matches script.js) ==================
   const API_BASE = "https://music-archive-3lfa.onrender.com";
-  
-  // SmugMug site origin (used for /shop links)
-  const SMUG_ORIGIN = (function(){
-    try { return (window && window.location && window.location.origin) ? window.location.origin : "https://vmpix.smugmug.com"; }
-    catch(_) { return "https://vmpix.smugmug.com"; }
-  })();
-const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
+  const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
   // ===== Feature flags =====
   // Keep the ZIP/multi-select code in place, but hide the UI for now.
@@ -1987,6 +1981,29 @@ color: rgba(226,232,240,0.92);
   }
 
   // ================== SMUGMUG API HELPERS ==================
+
+// Resolve a SmugMug album URL into a Shop NodeKey (and AlbumKey) via backend.
+// SmugMug shop URL format: /shop?nodeKey=<NodeKey>
+async function resolveShopNodeFromUrl(albumUrl) {
+  const u = String(albumUrl || "").trim();
+  if (!u) return { nodeKey: "", albumKey: "", finalUrl: "" };
+
+  const endpoint = `${API_BASE}/smug/resolve-shop-node?url=${encodeURIComponent(u)}`;
+  try {
+    const res = await fetch(endpoint);
+    if (!res.ok) return { nodeKey: "", albumKey: "", finalUrl: "" };
+    const json = await res.json();
+    const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+    const albumKey = (json && typeof json.albumKey === "string") ? json.albumKey.trim()
+                  : (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim()
+                  : "";
+    const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim() : "";
+    return { nodeKey, albumKey, finalUrl };
+  } catch (_) {
+    return { nodeKey: "", albumKey: "", finalUrl: "" };
+  }
+}
+
   async function fetchFolderAlbums(folderPath, region) {
     const safeFolder = cleanFolderPath(folderPath || "");
     const baseSlug = toSlug(safeFolder || "");
@@ -3635,29 +3652,6 @@ const members = document.createElement("div");
     }
 
   }
-
-
-// Resolve a SmugMug album URL into a Shop NodeKey (and AlbumKey) via backend.
-// SmugMug shop URL format: /shop?nodeKey=<NodeKey>
-async function resolveShopNodeFromUrl(albumUrl) {
-  const u = String(albumUrl || "").trim();
-  if (!u) return { nodeKey: "", albumKey: "", finalUrl: "" };
-
-  const endpoint = `${API_BASE}/smug/resolve-shop-node?url=${encodeURIComponent(u)}`;
-  try {
-    const res = await fetch(endpoint);
-    if (!res.ok) return { nodeKey: "", albumKey: "", finalUrl: "" };
-    const json = await res.json();
-    const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
-    const albumKey = (json && typeof json.albumKey === "string") ? json.albumKey.trim()
-                  : (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim()
-                  : "";
-    const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim() : "";
-    return { nodeKey, albumKey, finalUrl };
-  } catch (_) {
-    return { nodeKey: "", albumKey: "", finalUrl: "" };
-  }
-}
   async function showAlbumPhotos(info) {
     resultsEl.innerHTML = "";
     try { document.body.classList.remove("inBandDetail"); } catch(_) {}
@@ -3973,40 +3967,34 @@ const grid = document.createElement("div");
 
 
 
-// Set Buy Photos link (SmugMug /shop expects a NodeKey, not the AlbumKey)
-(async () => {
-  try {
-    const alb = info && info.album ? info.album : null;
-    const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
-    const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
+    // Set Buy Photos link (SmugMug /shop expects a NodeKey, not the AlbumKey)
+    (async () => {
+      try {
+        const alb = info && info.album ? info.album : null;
+        const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
+        const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
 
-    let albumUrl = "";
-    if (typeof rawWeb === "string" && rawWeb.trim()) {
-      albumUrl = rawWeb.trim();
-    } else if (typeof rawPath === "string" && rawPath.trim()) {
-      const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
-      albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
-    }
+        let albumUrl = "";
+        if (typeof rawWeb === "string" && rawWeb.trim()) {
+          albumUrl = rawWeb.trim();
+        } else if (typeof rawPath === "string" && rawPath.trim()) {
+          const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
+          albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
+        }
 
-    if (!albumUrl) return;
+        if (!albumUrl) return;
 
-    const shopInfo = await resolveShopNodeFromUrl(albumUrl);
-    if (shopInfo && shopInfo.nodeKey) {
-      buyBtn.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-    } else {
-      // Fail-soft: at least send them to the album page if nodeKey couldn't be resolved
-      buyBtn.href = albumUrl;
-    }
-  } catch (_) {}
-})();
-    // === SURGICAL: Fix Buy Photos link to open the correct SmugMug purchase page for this album ===
-    // Previously this was '#', which can route back to home in the HUD app.
-    try {
-      if (buyBtn && albumKey) {
-        buyBtn.href = "https://vmpix.smugmug.com/shop?nodeKey=" + encodeURIComponent(String(albumKey));
-        buyBtn.rel = "noopener";
-      }
-    } catch (_) {}
+        const shopInfo = await resolveShopNodeFromUrl(albumUrl);
+        if (shopInfo && shopInfo.nodeKey) {
+          buyBtn.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
+          try { buyBtn.rel = "noopener"; } catch (_) {}
+        } else {
+          // Fail-soft: at least send them to the album page if nodeKey couldn't be resolved
+          buyBtn.href = albumUrl;
+          try { buyBtn.rel = "noopener"; } catch (_) {}
+        }
+      } catch (_) {}
+    })();
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
