@@ -3787,59 +3787,45 @@ const grid = document.createElement("div");
     const buyBtn = document.createElement("a");
     buyBtn.className = "selectBtn";
     buyBtn.textContent = "Buy Photos";
-    buyBtn.href = "#"; // replaced below (prefer /shop?nodeKey=..., else album URL)
+    buyBtn.href = "javascript:void(0)"; // set below; avoid HUD hash routing
     buyBtn.target = "_blank";
     buyBtn.rel = "noopener";
 
-    // Buy Photos: always open a real URL (never navigate the HUD router).
-    // - Prefer a resolved shop nodeKey URL
-    // - Otherwise fall back to the album URL
-    buyBtn.addEventListener("click", async (e) => {
-      try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
-
-      // Prefer the last-resolved shop URL
-      let outUrl = (buyBtn && buyBtn.dataset && buyBtn.dataset.shopUrl) ? buyBtn.dataset.shopUrl : "";
-      if (!outUrl) outUrl = (buyBtn && buyBtn.dataset && buyBtn.dataset.albumUrl) ? buyBtn.dataset.albumUrl : "";
-
-      // If we still don't have anything, try to resolve from the album URL on demand.
-      if (!outUrl) {
-        try {
-          const alb = info && info.album ? info.album : null;
-          const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
-          const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
-
-          let albumUrl = "";
-          if (typeof rawWeb === "string" && rawWeb.trim()) {
-            albumUrl = rawWeb.trim();
-          } else if (typeof rawPath === "string" && rawPath.trim()) {
-            const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
-            albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
-          }
-
-          if (albumUrl) {
-            buyBtn.dataset.albumUrl = albumUrl;
-            const shopInfo = await resolveShopNodeFromUrl(albumUrl);
-            if (shopInfo && shopInfo.nodeKey) {
-              outUrl = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-              buyBtn.dataset.shopUrl = outUrl;
-            } else {
-              outUrl = albumUrl;
-            }
-          }
-        } catch (_) {}
+    // Build a safe fallback album URL immediately (so Buy Photos never routes the HUD)
+    let __albumUrl = "";
+    try {
+      const alb = info && info.album ? info.album : null;
+      const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
+      const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
+      if (typeof rawWeb === "string" && rawWeb.trim()) {
+        __albumUrl = rawWeb.trim();
+      } else if (typeof rawPath === "string" && rawPath.trim()) {
+        const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
+        __albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
       }
+    } catch (_) {}
+    if (__albumUrl) buyBtn.href = __albumUrl;
 
-      // Final fail-soft: do nothing if we can't resolve a URL.
-      if (!outUrl) return;
-
+    // Prefer /shop?nodeKey=... (resolved from album URL via backend)
+    let __shopUrl = "";
+    (async () => {
       try {
-        window.open(outUrl, "_blank", "noopener");
-      } catch (_) {
-        // last resort: assign href and let browser handle
-        try { buyBtn.href = outUrl; } catch (_) {}
-      }
-    });
+        if (!__albumUrl) return;
+        const shopInfo = await resolveShopNodeFromUrl(__albumUrl);
+        if (shopInfo && shopInfo.nodeKey) {
+          __shopUrl = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
+          buyBtn.href = __shopUrl;
+        }
+      } catch (_) {}
+    })();
 
+    // Click: always open a real URL in a new tab, never trigger HUD routing.
+    buyBtn.addEventListener("click", (e) => {
+      try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+      const out = (__shopUrl || __albumUrl || "").trim();
+      if (!out) return;
+      try { window.open(out, "_blank", "noopener"); } catch (_) { try { window.location.href = out; } catch (_) {} }
+    });
     buyBtn.rel = "noopener";
 
     // Set Buy Photos link (match wrestling): prefer /shop?nodeKey=..., else fall back to the album URL.
@@ -4042,38 +4028,6 @@ const grid = document.createElement("div");
     });
 
     const albumKey = info.album?.AlbumKey || info.album?.Key;
-
-    // Precompute Buy Photos URL in the background (fail-soft).
-    (async () => {
-      try {
-        const alb = info && info.album ? info.album : null;
-        const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url);
-        const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.Urlpath || alb.urlpath);
-
-        let albumUrl = "";
-        if (typeof rawWeb === "string" && rawWeb.trim()) {
-          albumUrl = rawWeb.trim();
-        } else if (typeof rawPath === "string" && rawPath.trim()) {
-          const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
-          albumUrl = SMUG_ORIGIN.replace(/\/$/, "") + p;
-        }
-
-        if (albumUrl && buyBtn && buyBtn.dataset) {
-          buyBtn.dataset.albumUrl = albumUrl;
-          // immediate fallback so clicking never routes the HUD
-          buyBtn.href = albumUrl;
-        }
-
-        if (!albumUrl) return;
-
-        const shopInfo = await resolveShopNodeFromUrl(albumUrl);
-        if (shopInfo && shopInfo.nodeKey) {
-          const shopUrl = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-          if (buyBtn && buyBtn.dataset) buyBtn.dataset.shopUrl = shopUrl;
-          try { buyBtn.href = shopUrl; } catch (_) {}
-        }
-      } catch (_) {}
-    })();
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
