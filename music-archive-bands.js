@@ -3942,11 +3942,14 @@ const grid = document.createElement("div");
 
     const albumKey = info.album?.AlbumKey || info.album?.Key;
 
-    // === SURGICAL: Fix Buy Photos link to open the correct SmugMug purchase page for this album ===
-    // Previously this was '#', which can route back to home in the HUD app.
+    // === SURGICAL: Fix Buy Photos link (SmugMug shop) ===
+    // Use the album's key as the nodeKey for the SmugMug shop URL (example: /shop?nodeKey=xxxxxx).
+    // Keeps routing intact (avoids href="#" sending users "home").
     try {
-      if (buyBtn && albumKey) {
-        buyBtn.href = "https://vmpix.smugmug.com/shop?nodeKey=" + encodeURIComponent(String(albumKey));
+      const nodeKey = (info && info.album && (info.album.AlbumKey || info.album.NodeKey || info.album.Key)) || albumKey;
+      if (buyBtn && nodeKey) {
+        buyBtn.href = "https://vmpix.smugmug.com/shop?nodeKey=" + encodeURIComponent(String(nodeKey).trim());
+        buyBtn.target = "_blank";
         buyBtn.rel = "noopener";
       }
     } catch (_) {}
