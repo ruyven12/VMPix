@@ -175,10 +175,9 @@
     s.id = "waShowsStyles";
     s.textContent = `
 /* === SURGICAL: hide ZIP / select UI in album photo view (keep code intact) === */
-#waShowsRoot .waSelectBar,
-#waShowsRoot .waSelectBtn,
-#waShowsRoot .waSelectPrimary,
-#waShowsRoot .waSelectHint,
+/* Keep the Buy Photos link visible (it's an <a>), but hide the select/zip buttons + hint/status. */
+#waShowsRoot .waSelectBar button.waSelectBtn,
+#waShowsRoot .waSelectBar .waSelectHint,
 #waShowsRoot .waSelectStatus{
   display: none !important;
 }
@@ -654,88 +653,6 @@
 }
 .waLightboxNav:hover{ border-color: rgba(200,0,0,0.55); }
 .waLightboxPrev{ left: 12px; }
-
-/* ===== Album keyword chips (ported from bands) ===== */
-.waAlbumKeywordBox{
-  width:100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 12px 10px 0;
-  text-align:center;
-}
-.waAlbumKeywordTitle{
-  font-family: "Orbitron", system-ui, sans-serif !important;
-  letter-spacing: .10em;
-  font-size: 12px;
-  opacity:.92;
-  margin-bottom: 6px;
-}
-.waAlbumKeywordLabel{
-  font-size: 11px;
-  letter-spacing: .10em;
-  opacity:.70;
-  margin-bottom: 8px;
-}
-.waAlbumKeywordChips{
-  display:flex;
-  flex-wrap:wrap;
-  gap: 8px;
-  justify-content:center;
-}
-.waAlbumKeywordChip{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.18);
-  font-size: 11px;
-  letter-spacing: .08em;
-  opacity:.92;
-}
-.waAlbumKeywordEmpty{
-  font-size: 12px;
-  opacity:.65;
-  letter-spacing:.08em;
-}
-
-/* ===== Photo hover meta + stagger reveal (ported from bands) ===== */
-.waPhotoHoverMeta{
-  position:absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 10px 10px 9px;
-  background: linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.0));
-  transform: translateY(8px);
-  opacity: 0;
-  transition: opacity 160ms ease, transform 160ms ease;
-  pointer-events:none;
-}
-.waPhotoBox:hover .waPhotoHoverMeta{
-  opacity: 1;
-  transform: translateY(0);
-}
-.waPhotoHoverMeta .fn{
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .06em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.waPhotoHoverMeta .sub{
-  font-size: 10px;
-  opacity: .78;
-  margin-top: 2px;
-  letter-spacing: .06em;
-}
-.waTileHidden{
-  opacity: 0;
-  transform: translateY(10px) scale(0.98);
-}
-
 .waLightboxNext{ right: 12px; }
 `;
     document.head.appendChild(s);
@@ -1353,51 +1270,6 @@
       '<div class="name">' + escapeHtml(matchTitle || matchId || "Match") + '</div>';
     wrap.appendChild(headerPill);
 
-    // ===== Album keywords (from SmugMug album metadata) =====
-    const keywordBox = document.createElement("div");
-    keywordBox.className = "waAlbumKeywordBox";
-
-    const kwLabel = document.createElement("div");
-    kwLabel.className = "waAlbumKeywordLabel";
-    kwLabel.textContent = "People in this album:";
-
-    const kwChips = document.createElement("div");
-    kwChips.className = "waAlbumKeywordChips";
-
-    keywordBox.appendChild(kwLabel);
-    keywordBox.appendChild(kwChips);
-    wrap.appendChild(keywordBox);
-
-    function prettyKeyword(v) {
-      const t = String(v || "").trim();
-      if (!t) return "";
-      return t
-        .split(/\s+/)
-        .map((p) => (p ? (p.charAt(0).toUpperCase() + p.slice(1)) : ""))
-        .join(" ");
-    }
-
-    async function renderAlbumKeywords(albumKey) {
-      try { kwChips.innerHTML = ""; } catch (_) {}
-      const kws = await fetchAlbumKeywords(albumKey);
-      const list = (kws || []).filter(Boolean);
-
-      if (!list.length) {
-        const none = document.createElement("div");
-        none.className = "waAlbumKeywordEmpty";
-        none.textContent = "No keywords found on this album.";
-        kwChips.appendChild(none);
-        return;
-      }
-
-      list.forEach((kw) => {
-        const chip = document.createElement("span");
-        chip.className = "waAlbumKeywordChip";
-        chip.textContent = prettyKeyword(kw);
-        kwChips.appendChild(chip);
-      });
-    }
-
     // Grid container
     const gridWrap = document.createElement("div");
     gridWrap.className = "waPhotosGridWrap";
@@ -1489,9 +1361,6 @@ const meta = document.createElement("div");
         return;
       }
 
-      // Populate keyword chips (fail-soft)
-      try { renderAlbumKeywords(albumKey); } catch (_) {}
-
       // Load meta (title/keywords) if available (fail-soft)
       let albumTitle = "";
       try {
@@ -1506,7 +1375,6 @@ const meta = document.createElement("div");
         headerPill.innerHTML =
           '<div class="kicker">ALBUM:</div>' +
           '<div class="name">' + escapeHtml(albumTitle) + '</div>';
-        try { kwTitle.textContent = albumTitle; } catch (_) {}
       }
 
       
@@ -1752,51 +1620,6 @@ redrawGrid();
     return all;
   }
 
-// Fetch album keywords from SmugMug album metadata (via backend). Returns an array of strings.
-async function fetchAlbumKeywords(albumKey) {
-  const key = String(albumKey || "").trim();
-  if (!key) return [];
-  try {
-    const metaJson = await fetchJsonFirstOk([
-      API_BASE + "/smug/album-meta/" + encodeURIComponent(key),
-    ]);
-    const album = metaJson && metaJson.Response && metaJson.Response.Album;
-
-    const raw = album && (album.Keywords || album.Keyword || album.keywords || album.keyword);
-    if (!raw) return [];
-
-    if (typeof raw === "string") {
-      return raw
-        .split(/[;,]/)
-        .map((x) => String(x || "").trim())
-        .filter(Boolean);
-    }
-
-    if (Array.isArray(raw)) {
-      return raw
-        .map((k) => {
-          if (!k) return "";
-          if (typeof k === "string") return k;
-          if (typeof k.Name === "string") return k.Name;
-          if (typeof k.name === "string") return k.name;
-          return "";
-        })
-        .map((x) => String(x || "").trim())
-        .filter(Boolean);
-    }
-
-    if (raw && typeof raw === "object") {
-      const arr = raw.Keyword || raw.keywords || raw.Items || raw.items;
-      if (Array.isArray(arr)) {
-        return arr
-          .map((k) => (k && (k.Name || k.name)) ? String(k.Name || k.name).trim() : "")
-          .filter(Boolean);
-      }
-    }
-  } catch (_) {}
-  return [];
-}
-
   function pickImageUrl(img, keys) {
     for (let i = 0; i < keys.length; i++) {
       const k = keys[i];
@@ -2009,7 +1832,7 @@ function renderPhotoGrid(gridEl, images, opts) {
     const full = bestFullUrl(img);
 
     const box = document.createElement("div");
-    box.className = "waPhotoBox waTileHidden";
+    box.className = "waPhotoBox";
     box.dataset.index = String(i);
     box.setAttribute("role", "button");
     box.setAttribute("tabindex", "0");
@@ -2023,27 +1846,9 @@ function renderPhotoGrid(gridEl, images, opts) {
     im.loading = "lazy";
     im.alt = "";
     im.src = thumb || full || "";
-box.appendChild(im);
+    box.appendChild(im);
 
-// hover meta (filename + hint)
-const meta = document.createElement("div");
-meta.className = "waPhotoHoverMeta";
-const fn = document.createElement("div");
-fn.className = "fn";
-fn.textContent = img?.FileName || ("Photo " + String(i + 1));
-const sub = document.createElement("div");
-sub.className = "sub";
-sub.textContent = "Click to view • ←/→ to navigate";
-meta.appendChild(fn);
-meta.appendChild(sub);
-box.appendChild(meta);
-
-// Stagger reveal (pairs with .waTileHidden CSS)
-window.setTimeout(function () {
-  try { box.classList.remove("waTileHidden"); } catch (_) {}
-}, Math.min(720, (Number(i) || 0) * 18));
-
-// Selection state (if provided)
+    // Selection state (if provided)
     try {
       if (isSelected) box.classList.toggle("selected", !!isSelected(i));
     } catch(_) {}
