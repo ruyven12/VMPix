@@ -566,7 +566,7 @@
     if (_prevHudMainPadding === null) _prevHudMainPadding = hudMain.style.padding || '';
 
     hudMain.style.position = 'relative';
-    hudMain.style.padding = `0 18px calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP})`;
+    hudMain.style.padding = `calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP}) 18px 0`;
     hudMain.style.boxSizing = 'border-box';
     hudMain.style.overflow = 'hidden';
 
@@ -616,7 +616,8 @@
       _orangeBoxEl.style.width = '100%';
       _orangeBoxEl.style.position = 'absolute';
       _orangeBoxEl.style.left = '50%';
-      _orangeBoxEl.style.bottom = ORANGE_BOX_BOTTOM;
+      _orangeBoxEl.style.top = ORANGE_BOX_BOTTOM;
+      _orangeBoxEl.style.bottom = '';
       _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
       _orangeBoxEl.style.border = 'none';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
