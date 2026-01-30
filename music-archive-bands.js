@@ -3946,7 +3946,7 @@ const grid = document.createElement("div");
     // Previously this was '#', which can route back to home in the HUD app.
     try {
       if (buyBtn && albumKey) {
-        buyBtn.href = "https://vmpix.smugmug.com/Buy?AlbumKey=" + encodeURIComponent(String(albumKey));
+        buyBtn.href = "https://vmpix.smugmug.com/shop?nodeKey=" + encodeURIComponent(String(albumKey));
         buyBtn.rel = "noopener";
       }
     } catch (_) {}
