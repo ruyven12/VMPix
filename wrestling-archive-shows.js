@@ -1348,10 +1348,6 @@
     const keywordBox = document.createElement("div");
     keywordBox.className = "waAlbumKeywordBox";
 
-    const kwTitle = document.createElement("div");
-    kwTitle.className = "waAlbumKeywordTitle";
-    kwTitle.textContent = (matchTitle || matchId || "Match Album");
-
     const kwLabel = document.createElement("div");
     kwLabel.className = "waAlbumKeywordLabel";
     kwLabel.textContent = "People in this album:";
@@ -1359,7 +1355,6 @@
     const kwChips = document.createElement("div");
     kwChips.className = "waAlbumKeywordChips";
 
-    keywordBox.appendChild(kwTitle);
     keywordBox.appendChild(kwLabel);
     keywordBox.appendChild(kwChips);
     wrap.appendChild(keywordBox);
