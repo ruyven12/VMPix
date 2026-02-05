@@ -3180,6 +3180,26 @@ async function downloadZipFromServer(items, suggestedName){
   }
 
   // ===== Overall stats (all regions / letters) =====
+  // Prefer the CSV "status" column so counts match the sheet.
+  // Fallback to sets_archive vs total_sets when status is missing/unknown.
+  function _bandStatusBucket(bandObj){
+    try {
+      const s = String((bandObj && bandObj.status) || "").trim().toLowerCase();
+      if (s) {
+        if (s.includes("fully")) return "good";
+        if (s.includes("progress")) return "partial";
+        if (s.includes("not") || s.includes("haven't") || s.includes("have not")) return "none";
+      }
+
+      const cls = setsStateClass(bandObj);
+      if (cls === "setsGood") return "good";
+      if (cls === "setsPartial") return "partial";
+      return "none";
+    } catch (_) {
+      return "none";
+    }
+  }
+
   function computeOverallBandsStats(){
     let good = 0, partial = 0, none = 0, total = 0;
     try {
@@ -3190,9 +3210,9 @@ async function downloadZipFromServer(items, suggestedName){
           const arr = letterMap[letterKey] || [];
           arr.forEach((bandObj) => {
             total++;
-            const cls = setsStateClass(bandObj);
-            if (cls === "setsGood") good++;
-            else if (cls === "setsPartial") partial++;
+            const b = _bandStatusBucket(bandObj);
+            if (b === "good") good++;
+            else if (b === "partial") partial++;
             else none++;
           });
         });
