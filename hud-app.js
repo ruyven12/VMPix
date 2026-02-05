@@ -173,7 +173,7 @@ function pulseFrame(){
     home: `
 	<div class="hud-copy">
 
-		<p class="hud-title" style="text-transform: none";>
+		<p class="hud-title" style="text-transform:none;">
 			Welcome to the landing site for Voodoo Media.
 		</p>
 
