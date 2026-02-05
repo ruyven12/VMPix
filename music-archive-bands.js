@@ -3282,12 +3282,13 @@ async function downloadZipFromServer(items, suggestedName){
 
       // Static overall stats line (does not change with Region/Letter clicks)
       overallEl.innerHTML = `
-	  <div style="font-size:16px; text-align:center">
-		Overall Stats: 
+	  <div style="font-size:168x; text-align:center">
+		Overall Archive Stats:<br>
 	  </div>
 	  <div style="font-size:14px">
-	    <span class="legend-dot" style="background:#22c55e"></span>
-		<strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet
+		<strong>${total}</strong> Total Bands<br>		
+		<span class="legend-dot" style="background:#22c55e"></span>
+		<strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet
 	  </div>
 	  `.trim();
     } catch(_){}
