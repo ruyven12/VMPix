@@ -3286,7 +3286,8 @@ async function downloadZipFromServer(items, suggestedName){
 		Overall Stats: 
 	  </div>
 	  <div style="font-size:14px">
-	    <strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet
+	    <span class="legend-dot" style="background:#22c55e"></span>
+		<strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet
 	  </div>
 	  `.trim();
     } catch(_){}
