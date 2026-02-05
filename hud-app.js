@@ -174,7 +174,7 @@ function pulseFrame(){
     <div class="hud-copy">
 
       <p class="hud-title" style="text-transform:none;">
-        Welcome to the landing site for Voodoo Media.
+        Welcome to the landing site for Voodoo Media.<br><br>
       </p>
 
       <p class="hud-subtitle">
