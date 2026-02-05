@@ -169,20 +169,37 @@ function pulseFrame(){
   // Tip: This uses a template string so you can add real line breaks.
   // If you want a blank line between paragraphs, just leave an empty line.
 
-  const ROUTE_COPY = {
+const ROUTE_COPY = {
   home: `
     <div class="hud-copy">
 
-      <p class="hud-title" style="text-transform:none;">
-        Welcome to the landing site for Voodoo Media.<br><br>
+      <!-- EDIT TEXT + STYLE HERE -->
+      <p class="hud-title"
+         style="
+           font-size: 22px;
+           text-transform: none;
+           letter-spacing: 0.08em;
+           margin-bottom: 14px;
+         ">
+        Welcome to the landing site for Voodoo Media.
       </p>
 
-      <p class="hud-subtitle">
+      <p class="hud-subtitle"
+         style="
+           font-size: 16px;
+           text-transform: none;
+           margin-bottom: 18px;
+         ">
         Right now this is a placeholder for more content later,
         but for now please make your selection above.
       </p>
 
-      <p class="hud-note">
+      <p class="hud-note"
+         style="
+           font-size: 13px;
+           line-height: 1.45;
+           opacity: 0.75;
+         ">
         Also, this page at the moment is best viewed inside a browser
         and should load with most devices. If you are viewing this
         from Facebook webview you likely will encounter issues.
