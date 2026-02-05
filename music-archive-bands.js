@@ -3281,7 +3281,7 @@ async function downloadZipFromServer(items, suggestedName){
       const total = (list || []).length;
 
       // Static overall stats line (does not change with Region/Letter clicks)
-      overallEl.innerHTML = `Overall Stats: <strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet`;
+      overallEl.innerHTML = `<div style="font-size:16px">Overall Stats: <strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet</div>`;
     } catch(_){}
   }
 function updateLegendStats(region, letter){
