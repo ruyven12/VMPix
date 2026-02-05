@@ -246,7 +246,9 @@ const ROUTE_COPY = {
     if (HomeArchive && typeof HomeArchive.render === 'function'){
       HomeArchive.render(m);
     } else {
-      renderTypedShell(m);
+      // Home copy is HTML (so you can style/edit it). It must be injected as markup,
+      // not typed via textContent, or the tags/styles will never render.
+      m.innerHTML = ROUTE_COPY.home;
     }
   },
   onEnter(){
@@ -254,8 +256,9 @@ const ROUTE_COPY = {
       HomeArchive.onEnter();
       return;
     }
-    const el = document.querySelector('[data-hud-main-text]');
-    typeHudMainText(ROUTE_COPY.home, el);
+    // Ensure the editable HTML copy is present (no typing animation for Home).
+    const m = mount();
+    if (m) m.innerHTML = ROUTE_COPY.home;
   },
   onLeave(){
     if (HomeArchive && typeof HomeArchive.destroy === 'function'){
@@ -263,6 +266,7 @@ const ROUTE_COPY = {
     }
   }
 },
+
 
 music: {
       render(){
