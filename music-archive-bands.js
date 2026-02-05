@@ -251,6 +251,13 @@
         text-transform: none !important;
         opacity: .85;
       }
+      .bandsOverallLine{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 11px;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .72;
+      }
       .bandsLegendLine{
         display:flex;
         align-items:center;
@@ -1646,6 +1653,7 @@ color: rgba(226,232,240,0.92);
         <div class="bandsTop">
           <div class="bandsTopDivider" aria-hidden="true"></div>
           <div id="status-legend">
+            <div id="bands-overall" class="bandsOverallLine"></div>
             <div id="bands-total" class="bandsTotalLine"></div>
             <div id="bands-legend" class="bandsLegendLine"></div>
           </div>
@@ -3237,7 +3245,46 @@ async function downloadZipFromServer(items, suggestedName){
     }
   }
 
-  function updateLegendStats(region, letter){
+  
+  function getAllBandsOverall(){
+    try{
+      const out = [];
+      const regions = Object.keys(BANDS || {});
+      regions.forEach((rk) => {
+        const reg = BANDS[rk] || {};
+        Object.keys(reg || {}).forEach((lk) => {
+          const arr = reg[lk];
+          if (Array.isArray(arr)) out.push(...arr);
+        });
+      });
+      return out;
+    } catch(_){
+      return [];
+    }
+  }
+
+  function renderOverallStatsOnce(){
+    try{
+      const overallEl =
+        (panelRoot ? panelRoot.querySelector("#bands-overall") : null) ||
+        document.getElementById("bands-overall");
+      if (!overallEl) return;
+
+      const list = getAllBandsOverall();
+      let good = 0, partial = 0, none = 0;
+      (list || []).forEach((b) => {
+        const cls = setsStateClass(b);
+        if (cls === "setsGood") good++;
+        else if (cls === "setsPartial") partial++;
+        else none++;
+      });
+      const total = (list || []).length;
+
+      // Static overall stats line (does not change with Region/Letter clicks)
+      overallEl.innerHTML = `Overall Stats: <strong>${total}</strong> Total • <strong>${good}</strong> Upgraded • <strong>${partial}</strong> In Progress • <strong>${none}</strong> Not Worked Yet`;
+    } catch(_){}
+  }
+function updateLegendStats(region, letter){
     try{
       const totalEl = (panelRoot ? panelRoot.querySelector("#bands-total") : null) || document.getElementById("bands-total");
       const legendLineEl = (panelRoot ? panelRoot.querySelector("#bands-legend") : null) || document.getElementById("bands-legend");
@@ -4232,6 +4279,9 @@ const grid = document.createElement("div");
 
     // load data + init UI
     BANDS = await loadBandsFromCsv();
+
+    // Static overall stats line (once)
+    renderOverallStatsOnce();
 
     initRegionPills();
     try { updateLegendStats(CURRENT_REGION, null); } catch(_) {}
