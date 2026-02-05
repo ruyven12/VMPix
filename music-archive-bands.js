@@ -630,7 +630,14 @@ color: rgba(226,232,240,0.92);
   margin: 2px 0 8px;
 }
 
-      /* region pills (match top action tabs style) */
+      /* ===== Divider between legend and region tabs ===== */
+.bandsLegendDivider{
+  width: 100%;
+  border-top: 1px solid rgba(239,68,68,0.22);
+  margin: 6px 0 10px;
+}
+
+/* region pills (match top action tabs style) */
       #region-pills{
         display:flex;
         flex-wrap:wrap;
@@ -1642,6 +1649,7 @@ color: rgba(226,232,240,0.92);
             <div id="bands-total" class="bandsTotalLine"></div>
             <div id="bands-legend" class="bandsLegendLine"></div>
           </div>
+                    <div class="bandsLegendDivider" aria-hidden="true"></div>
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
         </div>
@@ -3266,20 +3274,6 @@ async function downloadZipFromServer(items, suggestedName){
     } catch(_){}
   }
 
-
-const legendDivider = document.createElement('div');
-legendDivider.className = 'bands-legend-divider';
-legendDivider.style.cssText = `
-  height: 1px;
-  margin: 12px 0 14px 0;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 80, 80, 0.65),
-    transparent
-  );
-`;
-legendWrapper.appendChild(legendDivider);
 
 
   function showLetter(region, letter) {
