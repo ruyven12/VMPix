@@ -110,24 +110,12 @@ function pulseFrame(){
     window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
   }
   // HUD MAIN: terminal typing (paragraph mode)
-  // TEMP: Disable typing/scrolling effect. When true, route text appears immediately.
-  // Set to false to restore the original typing animation.
-  const DISABLE_TYPING_EFFECT = true;
   function typeHudMainText(newText, el){
     const t = el || document.querySelector('[data-hud-main-text]');
     if (!t) return;
 
     const fullText = (newText ?? t.textContent ?? '').toString().trim();
     if (!fullText) return;
-
-    // If typing effect is disabled, render immediately.
-    if (typeof DISABLE_TYPING_EFFECT !== 'undefined' && DISABLE_TYPING_EFFECT){
-      if (t._typeTimer) clearInterval(t._typeTimer);
-      t._typeTimer = null;
-      t.classList.remove('isTyping');
-      t.textContent = fullText;
-      return;
-    }
 
     t.classList.add('isTyping');
     t.textContent = '';
@@ -174,59 +162,39 @@ function pulseFrame(){
     const hash = location.hash || '#/home';
     return (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
   }
+
   // Keep your exact copy (same as inline)
-  // =============================
-  // EDITABLE HUD TEXT (Home + stubs)
-  // =============================
-  // Tip: This uses a template string so you can add real line breaks.
-  // If you want a blank line between paragraphs, just leave an empty line.
+  const ROUTE_COPY = {
+    // Home supports HTML so you can style + edit copy easily.
+    // You can change these CSS vars to tweak the look:
+    //   --homeTextTransform: none | uppercase | ...
+    //   --homeTitleSize / --homeSubtitleSize / --homeNoteSize
+    home: `
+      <div class="hud-copy" style="--homeTextTransform:none;">
 
-const ROUTE_COPY = {
-  home: `
-    <div class="hud-copy">
+        <p class="hud-title" style="--homeTitleSize:22px;">
+          Welcome to the landing site for Voodoo Media.
+        </p>
 
-      <!-- EDIT TEXT + STYLE HERE -->
-      <p class="hud-title"
-         style="
-           font-size: 22px;
-           text-transform: none;
-           letter-spacing: 0.08em;
-           margin-bottom: 14px;
-         ">
-        Welcome to the landing site for Voodoo Media.
-      </p>
+        <p class="hud-subtitle" style="--homeSubtitleSize:16px;">
+          Right now this is a placeholder for more content later,
+          but for now please make your selection above.
+        </p>
 
-      <p class="hud-subtitle"
-         style="
-           font-size: 16px;
-           text-transform: none;
-           margin-bottom: 18px;
-         ">
-        Right now this is a placeholder for more content later,
-        but for now please make your selection above.
-      </p>
+        <p class="hud-note" style="--homeNoteSize:13px; line-height:1.45; opacity:0.75;">
+          Also, this page at the moment is best viewed inside a browser
+          and should load with most devices. If you are viewing this
+          from Facebook webview you likely will encounter issues.
+          In Facebook, view by browser instead.
+        </p>
 
-      <p class="hud-note"
-         style="
-           font-size: 13px;
-           line-height: 1.45;
-           opacity: 0.75;
-         ">
-        Also, this page at the moment is best viewed inside a browser
-        and should load with most devices. If you are viewing this
-        from Facebook webview you likely will encounter issues.
-        In Facebook, view by browser instead.
-      </p>
-
-    </div>
-  `,
-
-  wrestling: "Wrestling Archives – Coming Soon",
-  about: "About Me – Coming Soon",
-  pricing: "Pricing – Coming Soon",
-  contact: "Contact – Coming Soon"
+      </div>
+    `,
+    wrestling: "Wrestling Archives - Coming Soon",
+    about: "About Me - Coming Soon",
+    pricing: "Pricing - Coming Soon",
+    contact: "Contact - Coming Soon"
 };
-
 
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
@@ -258,17 +226,17 @@ const ROUTE_COPY = {
     if (HomeArchive && typeof HomeArchive.render === 'function'){
       HomeArchive.render(m);
     } else {
-      // Home copy is HTML (so you can style/edit it). It must be injected as markup,
-      // not typed via textContent, or the tags/styles will never render.
+      // Home copy is HTML so you can style/edit it. Inject as markup.
       m.innerHTML = ROUTE_COPY.home;
     }
   },
   onEnter(){
     if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
+      // Pass the editable Home copy through so home.js can render it (HTML or plain text).
       HomeArchive.onEnter(ROUTE_COPY.home);
       return;
     }
-    // Ensure the editable HTML copy is present (no typing animation for Home).
+    // No typing animation for Home; render styled HTML immediately.
     const m = mount();
     if (m) m.innerHTML = ROUTE_COPY.home;
   },
@@ -278,7 +246,6 @@ const ROUTE_COPY = {
     }
   }
 },
-
 
 music: {
       render(){

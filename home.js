@@ -12,11 +12,11 @@
 (function () {
   'use strict';
 
-  const DEFAULT_COPY = `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.\n\nAlso, this page at the moment is best viewed inside a browser only and should do good with most devices. If you are viewing this from Facebook Webview (you clicked the link in Facebook), view by browser instead.`;
-
-  // TEMP: set true to disable typing and render the full copy immediately.
-  // This is useful for testing styling and layout changes.
+  // TEMP: When true, the Home copy renders immediately (no typing effect).
+  // Set to false to restore the original typer.
   const DISABLE_HOME_TYPING_EFFECT = true;
+
+  const DEFAULT_COPY = `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.\n\nAlso, this page at the moment is best viewed inside a browser only and should do good with most devices. If you are viewing this from Facebook Webview (you clicked the link in Facebook), view by browser instead.`;
 
   let _mount = null;
 
@@ -41,16 +41,22 @@
         white-space: pre-line;
       }
 
-      /* When Home copy is provided as HTML, don't force pre-line (let HTML handle layout). */
-      #homeContentRoot [data-hud-main-text].is-html{
-        white-space: normal;
+      /* Allow Home to override any global uppercase rules via CSS variables.
+         Example inline usage:
+           style="--homeTextTransform:none;"
+         Or on individual elements:
+           style="--homeTextTransform:uppercase;" */
+      #homeContentRoot .hud-copy,
+      #homeContentRoot .hud-copy *{
+        /* Default to NONE so this wins against global uppercase rules.
+           Set --homeTextTransform to change it (e.g. uppercase, none). */
+        text-transform: var(--homeTextTransform, none) !important;
       }
 
-      /* Optional: tighter + more reliable text sizing in in-app webviews */
-      html.webview #homeContentRoot{
-        text-size-adjust: 100%;
-        -webkit-text-size-adjust: 100%;
-      }
+      /* Optional helpers if you use these classes in your Home HTML */
+      #homeContentRoot .hud-title{ font-size: var(--homeTitleSize, inherit); }
+      #homeContentRoot .hud-subtitle{ font-size: var(--homeSubtitleSize, inherit); }
+      #homeContentRoot .hud-note{ font-size: var(--homeNoteSize, inherit); }
 
       #homeContentRoot .homeQuickRow{
         display: flex;
@@ -96,44 +102,24 @@
   // Tiny self-contained typer so we don't depend on hud-app.js internals
   function typeInto(el, text) {
     if (!el) return;
-
-    const raw = (text == null) ? '' : String(text);
-    const full = raw.trim();
-
+    const full = String(text || '').trim();
     if (!full) {
       el.textContent = '';
-      el.classList.remove('is-html');
       return;
     }
 
-    // If the copy contains markup, render it as HTML (no typing effect).
-    const looksLikeHTML = /<\s*\w+[\s\S]*>/.test(full);
-
-    // If typing is disabled (or HTML detected), render immediately.
-    if (DISABLE_HOME_TYPING_EFFECT || looksLikeHTML) {
-      if (el._typeTimer) {
-        clearInterval(el._typeTimer);
-        el._typeTimer = null;
-      }
-      el.classList.remove('isTyping');
-
-      if (looksLikeHTML) {
-        el.classList.add('is-html');
-        el.innerHTML = full;
-      } else {
-        el.classList.remove('is-html');
-        el.textContent = full;
-      }
-      return;
-    }
-
-    // Plain-text typing mode
     if (el._typeTimer) {
       clearInterval(el._typeTimer);
       el._typeTimer = null;
     }
 
-    el.classList.remove('is-html');
+    // If typing effect is disabled, render immediately.
+    if (DISABLE_HOME_TYPING_EFFECT){
+      el.textContent = full;
+      el.classList.remove('isTyping');
+      return;
+    }
+
     el.classList.add('isTyping');
     el.textContent = '';
 
@@ -161,7 +147,7 @@
     _mount.innerHTML = `
       <div id="homeContentRoot">
         <div>
-          <div data-hud-main-text></div>
+          <span data-hud-main-text></span>
         </div></div>
     `;
 
@@ -177,8 +163,21 @@
   function onEnter(copyOverride) {
     const root = mountEl();
     if (!root) return;
+    const copy = copyOverride || DEFAULT_COPY;
+
+    // If the override looks like HTML, render it as markup so inline styles work.
+    if (/<\s*[a-z][\s\S]*>/i.test(String(copy))){
+      ensureHomeStyles();
+      root.innerHTML = `
+        <div id="homeContentRoot">
+          ${copy}
+        </div>
+      `;
+      return;
+    }
+
     const el = root.querySelector('[data-hud-main-text]');
-    typeInto(el, copyOverride || DEFAULT_COPY);
+    typeInto(el, copy);
   }
 
   function destroy() {
