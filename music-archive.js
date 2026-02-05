@@ -1117,17 +1117,23 @@ The kickstarter for this project really started when we lost a good friend of ou
 
 What originally started as that, it evolved into something bigger than that. It then evolved into bringing the quality of the shots to my photo standards of today, and bringing everything into one area. This will explain the bands section a bit more with colors of who's up and who's not.
 
-The actual process to do the project is below, along with progress markers made in green. The total amount of this that is done is marked in the Bands section.
+The actual process for this project is below (with progress markers). Overall progress is tracked in the Bands tab.
 
-* <span style="color:#5CFF8A;">Organized shots back into region/band/show heiarchy.</span>
-* <span style="color:#5CFF8A;">Added GPS/Location data to each individual shot to preserve location history.</span>
-* <span style="color:#FFD700;">Added "Job" data to each individual shot to highlight the "name" of the show. (still need to do for candid shots)</span>
+<strong>What the project involves</strong>
+
+* <span style="color:#5CFF8A;"><strong>Archive organization:</strong> Reorganized the entire archive into a consistent region → band → show hierarchy.</span>
+* <span style="color:#5CFF8A;"><strong>Location history:</strong> Embedded GPS/location data into individual photos to preserve historical context.</span>
+* <span style="color:#FFD700;"><strong>Show metadata (“Job”):</strong> Added Job data to identify the specific show associated with each image. (still need to do for candid shots)</span>
+
+<strong>Additional work</strong>
+
 * <span style="color:#FFD700;">Added Creator flags of my name and "Voodoo Media 20XX" to each individual shot. (still need to do for candid shots)</span>
 * <span style="color:#FFD700;">Added individual keywords of individuals to each photo (if possible) to preserve individual history. (done up to the point of researching more)</span>
 * <span style="color:#5CFF8A;">Harnessed the power of AI to assist in bringing details up to modern standards in archive files.</span>
 * <span style="color:#FFD700;">Removed all previous watermarks as best as I could from older photos, used one universal watermark for all shots. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
 * <span style="color:#FFD700;">Put them through my photo editor once more. A lot of the shots just needed minor touchups, but I wanted to preserve the original edits while bringing it to my standards of today. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
 * <span style="color:#FFD700;">Back up shot 3x - Web, Cloud, and Physical storages. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
+
 
 Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come. This also is a 'love letter' of sorts to the scene that gave me so much in this life that I am grateful for. This is also giving back to those who I've photoed, met, and became lifelong friends with.
 
