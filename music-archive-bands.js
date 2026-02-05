@@ -3288,9 +3288,6 @@ async function downloadZipFromServer(items, suggestedName){
 	  <div style="font-size:14px; text-align:center">
 		Total Bands: <strong>${total}</strong><br>
 	  </div>
-	  <div style="text-color:#22c55e;">
-	    Fully Upgraded (xx.xx%) (coming soon)<br>
-	  </div>
 		<span style="text-color:#22c55e"></span><strong>${good}</strong>  Fully Upgraded (xx.xx%) (coming soon)<br>
 		<span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong>  In Progress (xx.xx%) (coming soon)<br>
 		<span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong>  Not Worked Yet (xx.xx%) (coming soon)
