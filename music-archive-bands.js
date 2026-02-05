@@ -236,6 +236,39 @@
       /* ===== Band detail view: hide letter groupings + status legend ===== */
       .inBandDetail #letter-groups{ display:none !important; }
       .inBandDetail #status-legend{ display:none !important; }
+
+      /* ===== Bands stats lines (Total + Legend) ===== */
+      #status-legend{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap: 8px;
+      }
+      .bandsTotalLine{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 12px;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .85;
+      }
+      .bandsLegendLine{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 14px;
+        flex-wrap:wrap;
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 11px;
+        letter-spacing: .10em;
+        text-transform: none !important;
+        opacity: .80;
+      }
+      .bandsLegendLine .mini{
+        display:inline-flex;
+        align-items:center;
+        gap: 6px;
+      }
+
       .inBandDetail #region-pills{ display:none !important; }
 
       /* ===== Album photos view: center Back-to-albums + hide legend ===== */
@@ -1599,10 +1632,8 @@ color: rgba(226,232,240,0.92);
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
           <div id="status-legend">
-            <span><span class="legend-dot" style="background:#22c55e"></span>Fully Upgraded</span>
-            <span><span class="legend-dot" style="background:#f59e0b"></span>In Progress</span>
-            <span><span class="legend-dot" style="background:#94a3b8"></span>Have Not Worked Yet</span>
-            <span id="bands-stats" class="bandsStatsInline"></span>
+            <div id="bands-total" class="bandsTotalLine"></div>
+            <div id="bands-legend" class="bandsLegendLine"></div>
           </div>
         </div>
 
@@ -3191,8 +3222,9 @@ async function downloadZipFromServer(items, suggestedName){
 
   function updateLegendStats(region, letter){
     try{
-      const el = legendEl || (panelRoot ? panelRoot.querySelector("#bands-stats") : null) || document.getElementById("bands-stats");
-      if (!el) return;
+      const totalEl = (panelRoot ? panelRoot.querySelector("#bands-total") : null) || document.getElementById("bands-total");
+      const legendLineEl = (panelRoot ? panelRoot.querySelector("#bands-legend") : null) || document.getElementById("bands-legend");
+      if (!totalEl || !legendLineEl) return;
 
       const list = getBandsInScope(region, letter);
       let good = 0, partial = 0, none = 0;
@@ -3204,15 +3236,20 @@ async function downloadZipFromServer(items, suggestedName){
       });
       const total = (list || []).length;
 
-      // Keep the main legend text as-is; add totals inline on the same row.
-      el.innerHTML = `
-        <span class="mini"><span class="legend-dot" style="background:#e2e8f0"></span>Total Bands: <strong>${total}</strong></span>
-        <span class="mini"><span class="legend-dot" style="background:#22c55e"></span><strong>${good}</strong></span>
-        <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong></span>
-        <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong></span>
+      // Line 1: Total bands (own line)
+      totalEl.innerHTML = `Total Bands: <strong>${total}</strong>`;
+
+      // Line 2: Legend + counts (kept compact, matches your snippet)
+      legendLineEl.innerHTML = `
+        <span class="mini"><span class="legend-dot" style="background:#22c55e"></span><strong>${good}</strong> Fully Upgraded" title="All metadata, structure, and processing completed</span>
+        <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong> In Progress" title="Partially processed; work ongoing</span>
+        <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong> Not Worked Yet" title="No re-imaging or metadata work started</span>
       `;
     } catch(_){}
   }
+
+
+
 
 
   function showLetter(region, letter) {
@@ -3287,7 +3324,7 @@ async function downloadZipFromServer(items, suggestedName){
       name.className = "band-name";
       name.textContent = bandObj.name || "";
 
-      // Show ( archived / total ) ONLY on yellow "In Progress" cards
+      // Show ( archived / total ) ONLY on yellow "In Progress" title="Partially processed; work ongoing" cards
       if (_setsState === "setsPartial") {
         const t = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
         const a = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
