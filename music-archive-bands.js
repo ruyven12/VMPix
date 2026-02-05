@@ -32,6 +32,7 @@
   // ================== STATE ==================
   let BANDS = {};
   let CURRENT_REGION = "Local";
+  let CURRENT_LETTER = null;
 
   // panel-scoped DOM refs
   let panelRoot = null;
@@ -645,8 +646,7 @@ color: rgba(226,232,240,0.92);
         color:rgba(226,232,240,0.98);
         border-bottom-color: rgba(239,68,68,0.85);
       }
-
-/* legend */
+      /* legend */
       #status-legend{
         display:flex;
         justify-content:center;
@@ -660,7 +660,29 @@ color: rgba(226,232,240,0.92);
         display:inline-block;margin-right:6px;
       }
 
-      /* 2-column layout: tree + results */
+      /* ===== Stats inline (Dynamic) ===== */
+      .bandsStatsInline{
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        padding-left: 6px;
+        opacity: .92;
+        letter-spacing: .06em;
+        white-space: nowrap;
+      }
+      .bandsStatsInline .mini{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+      }
+      @media (max-width: 520px){
+        .bandsStatsInline{
+          width: 100%;
+          justify-content: center;
+          white-space: normal;
+        }
+      }
+/* 2-column layout: tree + results */
       /* hide tree sidebar */
       #tree{ display:none !important; }
 
@@ -1580,6 +1602,7 @@ color: rgba(226,232,240,0.92);
             <span><span class="legend-dot" style="background:#22c55e"></span>Fully Upgraded</span>
             <span><span class="legend-dot" style="background:#f59e0b"></span>In Progress</span>
             <span><span class="legend-dot" style="background:#94a3b8"></span>Have Not Worked Yet</span>
+            <span id="bands-stats" class="bandsStatsInline"></span>
           </div>
         </div>
 
@@ -3055,6 +3078,8 @@ async function downloadZipFromServer(items, suggestedName){
         pill.classList.add("active");
 
         CURRENT_REGION = key;
+        try { CURRENT_LETTER = null; } catch(_) {}
+        try { updateLegendStats(key, null); } catch(_) {}
         resetPanelScroll();
         // Keep current results visible until the transition swaps to the next letter group
         updateLetterGroups(key, { autoSelect: true });
@@ -3146,8 +3171,53 @@ async function downloadZipFromServer(items, suggestedName){
     }
   }
 
+  // ===== Dynamic legend stats (counts update on Region/Letter changes) =====
+  function getBandsInScope(region, letter){
+    try{
+      const reg = (region && BANDS && BANDS[region]) ? BANDS[region] : null;
+      if (!reg) return [];
+      // If a letter is provided, use that group; otherwise combine all letters for the region.
+      if (letter && reg[letter]) return Array.isArray(reg[letter]) ? reg[letter] : [];
+      const out = [];
+      Object.keys(reg || {}).forEach((lk) => {
+        const arr = reg[lk];
+        if (Array.isArray(arr)) out.push(...arr);
+      });
+      return out;
+    } catch(_){
+      return [];
+    }
+  }
+
+  function updateLegendStats(region, letter){
+    try{
+      const el = legendEl || (panelRoot ? panelRoot.querySelector("#bands-stats") : null) || document.getElementById("bands-stats");
+      if (!el) return;
+
+      const list = getBandsInScope(region, letter);
+      let good = 0, partial = 0, none = 0;
+      (list || []).forEach((b) => {
+        const cls = setsStateClass(b);
+        if (cls === "setsGood") good++;
+        else if (cls === "setsPartial") partial++;
+        else none++;
+      });
+      const total = (list || []).length;
+
+      // Keep the main legend text as-is; add totals inline on the same row.
+      el.innerHTML = `
+        <span class="mini"><span class="legend-dot" style="background:#e2e8f0"></span>Total Bands: <strong>${total}</strong></span>
+        <span class="mini"><span class="legend-dot" style="background:#22c55e"></span><strong>${good}</strong></span>
+        <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong></span>
+        <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong></span>
+      `;
+    } catch(_){}
+  }
+
 
   function showLetter(region, letter) {
+  try { CURRENT_LETTER = letter; } catch(_) {}
+  try { updateLegendStats(region, letter); } catch(_) {}
   if (!resultsEl) return;
 
   // Token prevents rapid clicks from rendering out-of-order.
@@ -4103,6 +4173,7 @@ const grid = document.createElement("div");
     BANDS = await loadBandsFromCsv();
 
     initRegionPills();
+    try { updateLegendStats(CURRENT_REGION, null); } catch(_) {}
     updateLetterGroups(CURRENT_REGION);
 
     // End initial loading state (show crumbs only after data is ready)
