@@ -3241,10 +3241,19 @@ async function downloadZipFromServer(items, suggestedName){
 
       // Line 2: Legend + counts (kept compact, matches your snippet)
       legendLineEl.innerHTML = `
-        <span class="mini"><span class="legend-dot" style="background:#22c55e"></span><strong>${good}</strong> Fully Upgraded"</span>
-        <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong> In Progress"</span>
-        <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong> Not Worked Yet"</span>
-      `;
+	<span class="mini">
+		<span class="legend-dot" style="background:#22c55e"></span>
+		<strong>${good}</strong> Fully Upgraded
+	</span>
+	<span class="mini">
+		<span class="legend-dot" style="background:#f59e0b"></span>
+		<strong>${partial}</strong> In Progress
+	</span>
+	<span class="mini">
+		<span class="legend-dot" style="background:#94a3b8"></span>
+		<strong>${none}</strong> Not Worked Yet
+	</span>
+	`.trim();
     } catch(_){}
   }
 
