@@ -30,3 +30,70 @@
   background: none !important;
   box-shadow: none !important;
 }
+/* =========================================================
+   TYPOGRAPHY + FACEBOOK/MESSENGER WEBVIEW SANITY PATCH
+   - Prevents iOS/FB in-app text autosizing from blowing up or clipping
+   - Makes small UI text (buttons/chips/meta) scale down gracefully
+   ========================================================= */
+
+/* Prevent in-app browsers from auto-resizing text */
+html{
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html.webview, html.messenger, html.facebook, html.instagram{
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Base readable sizing (keeps desktop unchanged, helps small screens) */
+:root{
+  --vmpix-body-font: clamp(13px, 3.6vw, 16px);
+  --vmpix-ui-font: clamp(11px, 3.2vw, 12px);
+  --vmpix-micro-font: clamp(10px, 2.9vw, 11px);
+}
+body{
+  font-size: var(--vmpix-body-font);
+}
+
+/* HUD text line: keep it from clipping in tighter webviews */
+html.webview .neonFrameTextInner .hudMainType{
+  font-size: clamp(12px, 3.4vw, 14px) !important;
+  line-height: 1.35 !important;
+}
+
+/* On narrow screens inside FB/Messenger: allow scrolling rather than cutting text */
+@media (max-width: 520px){
+  html.webview .neonFrameTextInner{
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Common UI micro-text used across modules */
+.backToBandsBtn,
+.backToAlbumsBtn,
+.waBackBtn,
+#homeContentRoot .homeQuickBtn{
+  font-size: var(--vmpix-ui-font) !important;
+}
+
+/* Chips + labels */
+.albumKeywordLabel,
+.albumKeywordChip,
+.waAlbumKeywordChip,
+.waAlbumKeywordEmpty{
+  font-size: var(--vmpix-micro-font) !important;
+}
+
+/* Photo hover meta + lightbox titles (avoid truncation on small screens) */
+.photoHoverMeta .fn,
+.photoHoverMeta .sub,
+.waPhotoHoverMeta .fn,
+.waPhotoHoverMeta .sub,
+.lightboxTitle .line1,
+.lightboxTitle .line2,
+.lightboxCounter{
+  font-size: var(--vmpix-micro-font) !important;
+  line-height: 1.2 !important;
+}
