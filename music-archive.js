@@ -1120,8 +1120,8 @@ What originally started as that, it evolved into something bigger than that. It 
 The actual process to do the project is below, along with progress markers made in green. The total amount of this that is done is marked in the Bands section.
 
 * <span style="color:#5CFF8A;">Organized shots back into region/band/show heiarchy.</span>
-* Added GPS/Location data to each individual shot to preserve location history.
-* Added "Job" data to each individual shot to highlight the "name" of the show (if any).
+* <span style="color:#5CFF8A;">Added GPS/Location data to each individual shot to preserve location history.</span>
+* <span style="color:#FFD700;">Added "Job" data to each individual shot to highlight the "name" of the show (if any).</span>
 * Added Creator flags of my name and "Voodoo Media 20XX" to each individual shot.
 * Added individual keywords of individuals to each photo (if I could, still a work in progress) to preserve individual history. 
 * Harnessed the power of AI to assist in bringing details up to modern standards in archive files
