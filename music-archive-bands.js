@@ -270,7 +270,81 @@
         text-transform: none !important;
         opacity: .80;
       }
-      .bandsLegendLine .mini{
+      
+      /* ===== Overall Archive Stats (pills) ===== */
+      .overallStatsTitle{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .88;
+        text-align:center;
+        margin-bottom: 10px;
+      }
+      .overallStatsPills{
+        width: 100%;
+        display:flex;
+        flex-wrap:wrap;
+        align-items:stretch;
+        justify-content:center;
+        gap: 10px;
+        margin: 0 auto 2px;
+      }
+      .overallStatsPill{
+        min-width: 210px;
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        display:flex;
+        flex-direction:column;
+        gap: 4px;
+        justify-content:center;
+        text-align:center;
+      }
+      .overallStatsPill .lbl{
+        font-size: 9px;
+        letter-spacing:.18em;
+        text-transform: uppercase;
+        opacity: .60;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+      }
+      .overallStatsPill .val{
+        font-size: 14px;
+        font-weight: 900;
+        opacity: .92;
+        letter-spacing: .06em;
+        line-height: 1.2;
+      }
+      .overallStatsPill .sub{
+        font-size: 10px;
+        letter-spacing: .10em;
+        opacity: .60;
+      }
+      .overallStatsPill .dot{
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        display:inline-block;
+        flex: 0 0 auto;
+        opacity: .95;
+      }
+      .overallStatsPill.good{ border-color: rgba(34,197,94,0.30); }
+      .overallStatsPill.partial{ border-color: rgba(245,158,11,0.30); }
+      .overallStatsPill.none{ border-color: rgba(148,163,184,0.26); }
+
+      @media (max-width: 520px){
+        .overallStatsPill{
+          min-width: min(92vw, 420px);
+          border-radius: 22px;
+        }
+      }
+
+.bandsLegendLine .mini{
         display:inline-flex;
         align-items:center;
         gap: 6px;
@@ -3274,173 +3348,43 @@ async function downloadZipFromServer(items, suggestedName){
       let good = 0, partial = 0, none = 0;
       (list || []).forEach((b) => {
         const cls = setsStateClass(b);
-        if (cls === "setsGood") good++;
-        else if (cls === "setsPartial") partial++;
+        if (cls === "good") good++;
+        else if (cls === "partial") partial++;
         else none++;
       });
       const total = (list || []).length;
 
       // Static overall stats line (does not change with Region/Letter clicks)
       overallEl.innerHTML = `
-	  <div style="font-size:18px; text-align:center">
-		Overall Archive Stats:<br><br>
-	  </div>
-	  <div style="font-size:14px; text-align:center">
-		Total Bands: <strong>${total}</strong><br>
-	  </div>
-		<span style="color:#22c55e"><strong>${good}</strong> Fully Upgraded (xx.xx%)</span> (coming soon)<br>
-		<span style="color:#f59e0b"><strong>${partial}</strong>  In Progress (xx.xx%)</span> (coming soon)<br>
-		<span style="color:#94a3b8"><strong>${none}</strong>  Not Worked Yet (xx.xx%)</span> (coming soon)
-	  </div>
-	  `.trim();
-    } catch(_){}
-  }
-  
-function updateLegendStats(region, letter){
-    try{
-      const totalEl = (panelRoot ? panelRoot.querySelector("#bands-total") : null) || document.getElementById("bands-total");
-      const legendLineEl = (panelRoot ? panelRoot.querySelector("#bands-legend") : null) || document.getElementById("bands-legend");
-      if (!totalEl || !legendLineEl) return;
+        <div class="overallStatsTitle">Overall Archive Stats:</div>
+        <div class="overallStatsPills">
+          <div class="overallStatsPill">
+            <div class="lbl">Total Bands</div>
+            <div class="val"><strong>${total}</strong></div>
+          </div>
 
-      const list = getBandsInScope(region, letter);
-      let good = 0, partial = 0, none = 0;
-      (list || []).forEach((b) => {
-        const cls = setsStateClass(b);
-        if (cls === "setsGood") good++;
-        else if (cls === "setsPartial") partial++;
-        else none++;
-      });
-      const total = (list || []).length;
+          <div class="overallStatsPill good">
+            <div class="lbl"><span class="dot" style="background:#22c55e"></span>Fully Upgraded</div>
+            <div class="val"><strong>${good}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
 
-      // Line 1: Total bands (own line)
-      totalEl.innerHTML = `Total Bands: <strong>${total}</strong>`;
+          <div class="overallStatsPill partial">
+            <div class="lbl"><span class="dot" style="background:#f59e0b"></span>In Progress</div>
+            <div class="val"><strong>${partial}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
 
-      // Line 2: Legend + counts (kept compact, matches your snippet)
-      legendLineEl.innerHTML = `
-	<span class="mini">
-		<span class="legend-dot" style="background:#22c55e"></span>
-		<strong>${good}</strong> Fully Upgraded
-	</span>
-	<span class="mini">
-		<span class="legend-dot" style="background:#f59e0b"></span>
-		<strong>${partial}</strong> In Progress
-	</span>
-	<span class="mini">
-		<span class="legend-dot" style="background:#94a3b8"></span>
-		<strong>${none}</strong> Not Worked Yet
-	</span>
-	`.trim();
+          <div class="overallStatsPill none">
+            <div class="lbl"><span class="dot" style="background:#94a3b8"></span>Not Worked Yet</div>
+            <div class="val"><strong>${none}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
+        </div>
+      `.trim();
     } catch(_){}
   }
 
-
-
-  function showLetter(region, letter) {
-  try { CURRENT_LETTER = letter; } catch(_) {}
-  try { updateLegendStats(region, letter); } catch(_) {}
-  if (!resultsEl) return;
-
-  // Token prevents rapid clicks from rendering out-of-order.
-  const seq = ++SHOWLETTER_SEQ;
-
-  // Leave old content in place while we animate out.
-  try { resultsEl.classList.add("is-swapping"); } catch(_) {}
-
-  // Make sure we're in the list mode immediately (so pills/legend behave)
-  try { document.body.classList.remove("inBandDetail"); } catch(_) {}
-  try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
-
-  // Small delay so the opacity/blur transition actually runs before we replace DOM.
-  window.setTimeout(() => {
-    if (!resultsEl) return;
-    if (seq !== SHOWLETTER_SEQ) return;
-
-    try { resultsEl.innerHTML = ""; } catch(_) {}
-    // crumbs removed
-    resetPanelScroll();
-
-    const bandsArr = (BANDS[region] && BANDS[region][letter]) || [];
-
-    // card grid layout (matches your script.js behavior pattern)
-    resultsEl.style.display = "grid";
-    resultsEl.style.justifyContent = "center";
-    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
-    resultsEl.style.gap = "14px";
-    resultsEl.style.width = "100%";
-    resultsEl.style.maxWidth = "none";
-    resultsEl.style.margin = "0";
-
-    if (!bandsArr.length) {
-      resultsEl.appendChild(document.createTextNode("No bands in this group."));
-      // Reveal (even if empty)
-      window.requestAnimationFrame(() => {
-        try { if (seq === SHOWLETTER_SEQ) resultsEl.classList.remove("is-swapping"); } catch(_) {}
-      });
-      return;
-    }
-
-    bandsArr.forEach((bandObj) => {
-      const card = document.createElement("div");
-      card.className = "band-card";
-
-      // background color state (green/yellow/gray) based on sets_archive vs total_sets
-      const _setsState = setsStateClass(bandObj);
-      card.classList.add(_setsState);
-
-      const row = document.createElement("div");
-      row.className = "band-row";
-
-      const img = document.createElement("img");
-      img.className = "band-logo";
-      img.alt = bandObj.name || "Band";
-      img.loading = "lazy";
-      img.src =
-        bandObj.logo_url ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
-
-      const right = document.createElement("div");
-      right.style.display = "flex";
-      right.style.flexDirection = "column";
-      right.style.gap = "2px";
-
-      const name = document.createElement("div");
-      name.className = "band-name";
-      name.textContent = bandObj.name || "";
-
-      // Show ( archived / total ) ONLY on yellow "In Progress" title="Partially processed; work ongoing" cards
-      if (_setsState === "setsPartial") {
-        const t = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
-        const a = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
-        if (t && a) {
-          const cnt = document.createElement("span");
-          cnt.className = "band-count";
-          cnt.textContent = ` ( ${a} / ${t} )`;
-          name.appendChild(cnt);
-        }
-      }
-      right.appendChild(name);
-
-      row.appendChild(img);
-      row.appendChild(right);
-      card.appendChild(row);
-
-      card.addEventListener("click", () => {
-        // Shared-element transition (logo zoom)
-        window.requestAnimationFrame(() => animateBandOpen(region, letter, bandObj, img));
-      });
-
-      resultsEl.appendChild(card);
-    });
-
-    // Reveal the new content
-    window.requestAnimationFrame(() => {
-      if (seq !== SHOWLETTER_SEQ) return;
-      try { resultsEl.classList.remove("is-swapping"); } catch(_) {}
-      resetPanelScroll();
-      window.setTimeout(() => resetPanelScroll(), 200);
-    });
-  }, 120);
-}
 
 async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
