@@ -170,9 +170,22 @@ function pulseFrame(){
   // If you want a blank line between paragraphs, just leave an empty line.
 
   const ROUTE_COPY = {
-    home: `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.
+    home: `
+	<div class="hud-copy">
 
-Also, this page at the moment is best viewed inside a browser and should go good with most devices. If you are viewing this from Facebook/Messenger webview you may see minor quirks — please open it in your browser instead.`,
+		<p class="hud-title">
+			Welcome to the landing site for Voodoo Media.
+		</p>
+
+		<p class="hud-subtitle">
+			Right now this is a placeholder for more content later, but for now please make your selection above.
+		</p>
+
+		<p class="hud-note">
+			Also, this page at the moment is best viewed inside a browser and should load with most devices. If you are viewing this from Facebook webview you likely will encounter issues. In Facebook, view by browser instead.
+       </p>
+    </div>
+	`,
 
     wrestling: "Wrestling Archives - Coming Soon",
     about: "About Me - Coming Soon",
