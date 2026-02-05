@@ -3267,7 +3267,19 @@ async function downloadZipFromServer(items, suggestedName){
   }
 
 
-
+const legendDivider = document.createElement('div');
+legendDivider.className = 'bands-legend-divider';
+legendDivider.style.cssText = `
+  height: 1px;
+  margin: 12px 0 14px 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 80, 80, 0.65),
+    transparent
+  );
+`;
+legendWrapper.appendChild(legendDivider);
 
 
   function showLetter(region, letter) {
