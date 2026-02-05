@@ -14,6 +14,10 @@
 
   const DEFAULT_COPY = `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.\n\nAlso, this page at the moment is best viewed inside a browser only and should do good with most devices. If you are viewing this from Facebook Webview (you clicked the link in Facebook), view by browser instead.`;
 
+  // TEMP: set true to disable typing and render the full copy immediately.
+  // This is useful for testing styling and layout changes.
+  const DISABLE_HOME_TYPING_EFFECT = true;
+
   let _mount = null;
 
   function ensureHomeStyles() {
@@ -35,6 +39,17 @@
 
       #homeContentRoot [data-hud-main-text]{
         white-space: pre-line;
+      }
+
+      /* When Home copy is provided as HTML, don't force pre-line (let HTML handle layout). */
+      #homeContentRoot [data-hud-main-text].is-html{
+        white-space: normal;
+      }
+
+      /* Optional: tighter + more reliable text sizing in in-app webviews */
+      html.webview #homeContentRoot{
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
       }
 
       #homeContentRoot .homeQuickRow{
@@ -81,17 +96,44 @@
   // Tiny self-contained typer so we don't depend on hud-app.js internals
   function typeInto(el, text) {
     if (!el) return;
-    const full = String(text || '').trim();
+
+    const raw = (text == null) ? '' : String(text);
+    const full = raw.trim();
+
     if (!full) {
       el.textContent = '';
+      el.classList.remove('is-html');
       return;
     }
 
+    // If the copy contains markup, render it as HTML (no typing effect).
+    const looksLikeHTML = /<\s*\w+[\s\S]*>/.test(full);
+
+    // If typing is disabled (or HTML detected), render immediately.
+    if (DISABLE_HOME_TYPING_EFFECT || looksLikeHTML) {
+      if (el._typeTimer) {
+        clearInterval(el._typeTimer);
+        el._typeTimer = null;
+      }
+      el.classList.remove('isTyping');
+
+      if (looksLikeHTML) {
+        el.classList.add('is-html');
+        el.innerHTML = full;
+      } else {
+        el.classList.remove('is-html');
+        el.textContent = full;
+      }
+      return;
+    }
+
+    // Plain-text typing mode
     if (el._typeTimer) {
       clearInterval(el._typeTimer);
       el._typeTimer = null;
     }
 
+    el.classList.remove('is-html');
     el.classList.add('isTyping');
     el.textContent = '';
 
@@ -119,7 +161,7 @@
     _mount.innerHTML = `
       <div id="homeContentRoot">
         <div>
-          <span data-hud-main-text></span>
+          <div data-hud-main-text></div>
         </div></div>
     `;
 

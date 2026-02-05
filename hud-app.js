@@ -265,7 +265,7 @@ const ROUTE_COPY = {
   },
   onEnter(){
     if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
-      HomeArchive.onEnter();
+      HomeArchive.onEnter(ROUTE_COPY.home);
       return;
     }
     // Ensure the editable HTML copy is present (no typing animation for Home).
