@@ -3289,8 +3289,8 @@ async function downloadZipFromServer(items, suggestedName){
 		Total Bands: <strong>${total}</strong><br>
 	  </div>
 		<span style="color:#22c55e"><strong>${good}</strong> Fully Upgraded (xx.xx%)</span> (coming soon)<br>
-		<span class="legend-dot" style="background:#f59e0b"></span><strong>${partial}</strong>  In Progress (xx.xx%) (coming soon)<br>
-		<span class="legend-dot" style="background:#94a3b8"></span><strong>${none}</strong>  Not Worked Yet (xx.xx%) (coming soon)
+		<span style="color:#f59e0b"><strong>${partial}</strong>  In Progress (xx.xx%)</span> (coming soon)<br>
+		<span style="color:#94a3b8"><strong>${none}</strong>  Not Worked Yet (xx.xx%)</span> (coming soon)
 	  </div>
 	  `.trim();
     } catch(_){}
