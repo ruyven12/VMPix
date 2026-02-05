@@ -178,7 +178,10 @@ function pulseFrame(){
 
         <p class="hud-subtitle" style="--homeSubtitleSize:16px;">
           Right now this is a placeholder for more content later,
-          but for now please make your selection above.
+          but for now please make your selection above.<br><br>
+		  Also, this page at the moment is best viewed inside a browser
+          and should load with most devices. If you are viewing this
+          from Facebook webview you likely will encounter issues.
         </p>
 
         <p class="hud-note" style="--homeNoteSize:13px; line-height:1.45; opacity:0.75;">
