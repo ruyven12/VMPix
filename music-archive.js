@@ -1117,9 +1117,9 @@ The kickstarter for this project really started when we lost a good friend of ou
 
 What originally started as that, it evolved into something bigger than that. It then evolved into bringing the quality of the shots to my photo standards of today, and bringing everything into one area. This will explain the bands section a bit more with colors of who's up and who's not.
 
-The actual process to do the project is below. Imagine this...times 60,000+.
+The actual process to do the project is below, along with progress markers made in green. The total amount of this that is done is marked in the Bands section.
 
-* Organized shots back into region/band/show heiarchy.
+* <span style="color:#5CFF8A;">Organized shots back into region/band/show heiarchy.</span>
 * Added GPS/Location data to each individual shot to preserve location history.
 * Added "Job" data to each individual shot to highlight the "name" of the show (if any).
 * Added Creator flags of my name and "Voodoo Media 20XX" to each individual shot.
