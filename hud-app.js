@@ -162,15 +162,23 @@ function pulseFrame(){
     const hash = location.hash || '#/home';
     return (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
   }
-
   // Keep your exact copy (same as inline)
+  // =============================
+  // EDITABLE HUD TEXT (Home + stubs)
+  // =============================
+  // Tip: This uses a template string so you can add real line breaks.
+  // If you want a blank line between paragraphs, just leave an empty line.
+
   const ROUTE_COPY = {
-    home: "Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.",
+    home: `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.
+
+Also, this page at the moment is best viewed inside a browser and should go good with most devices. If you are viewing this from Facebook/Messenger webview you may see minor quirks — please open it in your browser instead.`,
+
     wrestling: "Wrestling Archives - Coming Soon",
     about: "About Me - Coming Soon",
     pricing: "Pricing - Coming Soon",
     contact: "Contact - Coming Soon"
-};
+  };
 
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
