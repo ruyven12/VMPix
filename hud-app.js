@@ -184,13 +184,6 @@ function pulseFrame(){
           from Facebook webview you likely will encounter issues.
         </p>
 
-        <p class="hud-note" style="--homeNoteSize:13px; line-height:1.45; opacity:0.75;">
-          Also, this page at the moment is best viewed inside a browser
-          and should load with most devices. If you are viewing this
-          from Facebook webview you likely will encounter issues.
-          In Facebook, view by browser instead.
-        </p>
-
       </div>
     `,
     wrestling: "Wrestling Archives - Coming Soon",
