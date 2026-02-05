@@ -110,12 +110,24 @@ function pulseFrame(){
     window.setTimeout(() => pills.forEach(p => p.classList.remove('isPulse')), 1100);
   }
   // HUD MAIN: terminal typing (paragraph mode)
+  // TEMP: Disable typing/scrolling effect. When true, route text appears immediately.
+  // Set to false to restore the original typing animation.
+  const DISABLE_TYPING_EFFECT = true;
   function typeHudMainText(newText, el){
     const t = el || document.querySelector('[data-hud-main-text]');
     if (!t) return;
 
     const fullText = (newText ?? t.textContent ?? '').toString().trim();
     if (!fullText) return;
+
+    // If typing effect is disabled, render immediately.
+    if (typeof DISABLE_TYPING_EFFECT !== 'undefined' && DISABLE_TYPING_EFFECT){
+      if (t._typeTimer) clearInterval(t._typeTimer);
+      t._typeTimer = null;
+      t.classList.remove('isTyping');
+      t.textContent = fullText;
+      return;
+    }
 
     t.classList.add('isTyping');
     t.textContent = '';
