@@ -622,6 +622,14 @@ color: rgba(226,232,240,0.92);
         margin-bottom:10px;
       }
 
+
+/* ===== Divider above bands header block ===== */
+.bandsTopDivider{
+  width: 100%;
+  border-top: 1px solid rgba(239,68,68,0.22);
+  margin: 2px 0 8px;
+}
+
       /* region pills (match top action tabs style) */
       #region-pills{
         display:flex;
@@ -1629,12 +1637,13 @@ color: rgba(226,232,240,0.92);
     return `
       <div class="bandsWrap is-loading" id="bands-root">
         <div class="bandsTop">
-          <div id="region-pills"></div>
-          <div id="letter-groups"></div>
+          <div class="bandsTopDivider" aria-hidden="true"></div>
           <div id="status-legend">
             <div id="bands-total" class="bandsTotalLine"></div>
             <div id="bands-legend" class="bandsLegendLine"></div>
           </div>
+          <div id="region-pills"></div>
+          <div id="letter-groups"></div>
         </div>
 
         <div class="bandsLayout">
