@@ -270,6 +270,46 @@
         text-transform: none !important;
         opacity: .80;
       }
+	  
+	  .overallStatsGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px 24px;
+  margin-top: 14px;
+}
+
+.statsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statsRow {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.statsCol.values .statsRow {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Status colors */
+.statsRow.good {
+  border: 1px solid rgba(0,255,120,0.35);
+}
+
+.statsRow.partial {
+  border: 1px solid rgba(255,180,0,0.35);
+}
+
+.statsRow.none {
+  border: 1px solid rgba(255,80,80,0.35);
+}
+
       
       /* ===== Overall Archive Stats (pills) ===== */
       .overallStatsTitle{
@@ -3365,29 +3405,26 @@ async function downloadZipFromServer(items, suggestedName){
       };
 
       overallEl.innerHTML = `
-        <div class="overallStatsTitle">Overall Archive Stats:</div>
-        <div class="overallStatsPills">
-          <div class="overallStatsPill">
-            <div class="lbl">Total Bands</div>  *  
-			<div class="val"><strong>${total}</strong></div>
-          </div>
+  <div class="overallStatsTitle">Overall Archive Stats:</div>
 
-          <div class="overallStatsPill good">
-            <div class="lbl">Bands Fully Upgraded</div>
-            <div class="val"><strong>${good}</strong>  *  ${pct(good)}</div>
-          </div>
+  <div class="overallStatsGrid">
+    <!-- Labels column -->
+    <div class="statsCol labels">
+      <div class="statsRow">Total Bands</div>
+      <div class="statsRow good">Fully Upgraded</div>
+      <div class="statsRow partial">In Progress</div>
+      <div class="statsRow none">Not Worked Yet</div>
+    </div>
 
-          <div class="overallStatsPill partial">
-            <div class="lbl">Bands In Progress</div>
-            <div class="val"><strong>${partial}</strong>   *  ${pct(partial)}</div>
-          </div>
-
-          <div class="overallStatsPill none">
-            <div class="lbl">Bands Not Worked Yet</div>
-            <div class="val"><strong>${none}</strong>  *  ${pct(none)}</div>
-          </div>
-        </div>
-      `.trim();
+    <!-- Values column -->
+    <div class="statsCol values">
+      <div class="statsRow"><strong>${total}</strong></div>
+      <div class="statsRow good"><strong>${good}</strong> • ${pct(good)}</div>
+      <div class="statsRow partial"><strong>${partial}</strong> • ${pct(partial)}</div>
+      <div class="statsRow none"><strong>${none}</strong> • ${pct(none)}</div>
+    </div>
+  </div>
+`;
     } catch(_){}
   }
 
