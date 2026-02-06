@@ -288,18 +288,22 @@
         flex-wrap:wrap;
         align-items:stretch;
         justify-content:center;
-        gap: 10px;
+        gap: 12px;
         margin: 0 auto 2px;
       }
       .overallStatsPill{
         min-width: 210px;
-        border-radius: 999px;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.04);
+        min-height: 72px;
+        border-radius: 18px;
+        padding: 12px 16px;
+        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
         border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 14px 34px rgba(0,0,0,0.35);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         display:flex;
         flex-direction:column;
-        gap: 4px;
+        gap: 6px;
         justify-content:center;
         text-align:center;
       }
@@ -340,7 +344,7 @@
       @media (max-width: 520px){
         .overallStatsPill{
           min-width: min(92vw, 420px);
-          border-radius: 22px;
+          border-radius: 18px;
         }
       }
 
