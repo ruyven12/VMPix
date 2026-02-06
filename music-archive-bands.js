@@ -3377,17 +3377,17 @@ async function downloadZipFromServer(items, suggestedName){
 
           <div class="overallStatsPill good">
             <div class="lbl">Fully Upgraded</div>
-            <div class="val"><strong>${good}</strong> <span style="opacity:.65">(${pct(good)})</span></div>
+            <div class="val"><strong>${good}</strong>  *  ${pct(good)}</div>
           </div>
 
           <div class="overallStatsPill partial">
             <div class="lbl">In Progress</div>
-            <div class="val"><strong>${partial}</strong> <span style="opacity:.65">(${pct(partial)})</span></div>
+            <div class="val"><strong>${partial}</strong>   *  ${pct(partial)}</div>
           </div>
 
           <div class="overallStatsPill none">
             <div class="lbl">Not Worked Yet</div>
-            <div class="val"><strong>${none}</strong> <span style="opacity:.65">(${pct(none)})</span></div>
+            <div class="val"><strong>${none}</strong>  *  ${pct(none)}</div>
           </div>
         </div>
       `.trim();
