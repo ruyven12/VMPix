@@ -3369,9 +3369,7 @@ async function downloadZipFromServer(items, suggestedName){
         <div class="overallStatsPills">
           <div class="overallStatsPill">
             <div class="lbl">Total Bands  *  <strong>${total}</strong></div>
-            <div class="overallStatsPill good">
-            <div class="lbl">Bands Fully Upgraded</div>
-            <div class="val"><strong>${good}</strong>  *  ${pct(good)}</div>
+            <div class="lbl">Bands Fully Upgraded  * <strong>${good}</strong>  *  ${pct(good)}</div>
           </div>
 
           <div class="overallStatsPill partial">
