@@ -274,7 +274,7 @@
       /* ===== Overall Archive Stats (pills) ===== */
       .overallStatsTitle{
         font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 16px;
+        font-size: 20px;
         font-weight: 900;
         letter-spacing: .12em;
         text-transform: none !important;
@@ -307,7 +307,7 @@
         text-align:center;
       }
       .overallStatsPill .lbl{
-        font-size: 16px;
+        font-size: 14px;
         letter-spacing:.18em;
         text-transform: uppercase;
         display:flex;
