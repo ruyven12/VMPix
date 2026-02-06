@@ -3410,7 +3410,7 @@ async function downloadZipFromServer(items, suggestedName){
   <div class="overallStatsGrid">
     <!-- Labels column -->
     <div class="statsCol labels">
-      <div class="statsRow">Total Bands</div>
+      <div class="statsRow" style="text-align:center">Total Bands</div>
       <div class="statsRow good">Fully Upgraded</div>
       <div class="statsRow partial">In Progress</div>
       <div class="statsRow none">Not Worked Yet</div>
