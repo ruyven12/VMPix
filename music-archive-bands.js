@@ -295,8 +295,8 @@
         min-height: 72px;
         border-radius: 18px;
         padding: 12px 16px;
-        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255) 0%, rgba(0,0,0) 55%, rgba(0,0,0) 100%);
-        border: 1px solid rgba(255,255,255);
+        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+        border: 1px solid rgba(255,255,255,0.10);
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 14px 34px rgba(0,0,0,0.35);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -310,7 +310,6 @@
         font-size: 9px;
         letter-spacing:.18em;
         text-transform: uppercase;
-        opacity: .60;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -319,14 +318,12 @@
       .overallStatsPill .val{
         font-size: 14px;
         font-weight: 900;
-        opacity: .92;
         letter-spacing: .06em;
         line-height: 1.2;
       }
       .overallStatsPill .sub{
         font-size: 10px;
         letter-spacing: .10em;
-        opacity: .60;
       }
       .overallStatsPill .dot{
         width: 10px;
@@ -334,7 +331,6 @@
         border-radius: 999px;
         display:inline-block;
         flex: 0 0 auto;
-        opacity: .95;
       }
       .overallStatsPill.good{ border-color: rgba(34,197,94,0.30); }
       .overallStatsPill.partial{ border-color: rgba(245,158,11,0.30); }
