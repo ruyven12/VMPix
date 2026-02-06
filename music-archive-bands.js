@@ -291,8 +291,8 @@
         margin: 0 auto 2px;
       }
       .overallStatsPill{
-        min-width: 210px;
-        min-height: 72px;
+        min-width: 180px;
+        min-height: 60px;
         border-radius: 18px;
         padding: 12px 16px;
         background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
