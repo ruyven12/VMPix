@@ -288,7 +288,7 @@
         flex-wrap:wrap;
         align-items:stretch;
         justify-content:center;
-        gap: 10px;
+        gap: 12px;
         margin: 0 auto 2px;
       }
       .overallStatsPill{
@@ -296,20 +296,14 @@
         min-height: 72px;
         border-radius: 18px;
         padding: 12px 16px;
-        /* Less transparent (more solid) HUD panel */
-        background: linear-gradient(180deg,
-          rgba(55, 0, 0, 0.68) 0%,
-          rgba(18, 0, 0, 0.76) 100%
-        );
-        border: 1px solid rgba(255,255,255,0.14);
-        box-shadow:
-          inset 0 0 0 1px rgba(255,255,255,0.06),
-          0 14px 34px rgba(0,0,0,0.40);
+        background: radial-gradient(120% 160% at 0% 0%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 14px 34px rgba(0,0,0,0.35);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         display:flex;
         flex-direction:column;
-        gap: 4px;
+        gap: 6px;
         justify-content:center;
         text-align:center;
       }
@@ -350,7 +344,7 @@
       @media (max-width: 520px){
         .overallStatsPill{
           min-width: min(92vw, 420px);
-          border-radius: 22px;
+          border-radius: 18px;
         }
       }
 
@@ -3347,6 +3341,7 @@ async function downloadZipFromServer(items, suggestedName){
     }
   }
 
+  
   function renderOverallStatsOnce(){
     try{
       const overallEl =
@@ -3356,15 +3351,22 @@ async function downloadZipFromServer(items, suggestedName){
 
       const list = getAllBandsOverall();
       let good = 0, partial = 0, none = 0;
+
       (list || []).forEach((b) => {
         const cls = setsStateClass(b);
-        if (cls === "good") good++;
-        else if (cls === "partial") partial++;
+        if (cls === "setsGood") good++;
+        else if (cls === "setsPartial") partial++;
         else none++;
       });
+
       const total = (list || []).length;
 
-      // Static overall stats line (does not change with Region/Letter clicks)
+      const pct = (n) => {
+        if (!total) return "0.0%";
+        const p = (n * 100) / total;
+        return `${p.toFixed(1)}%`;
+      };
+
       overallEl.innerHTML = `
         <div class="overallStatsTitle">Overall Archive Stats:</div>
         <div class="overallStatsPills">
@@ -3374,26 +3376,138 @@ async function downloadZipFromServer(items, suggestedName){
           </div>
 
           <div class="overallStatsPill good">
-            <div class="lbl"><span class="dot" style="background:#22c55e"></span>Fully Upgraded</div>
-            <div class="val"><strong>${good}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
-            <div class="sub">(coming soon)</div>
+            <div class="lbl">Bands Fully Upgraded</div>
+            <div class="val"><strong>${good}</strong>  *  ${pct(good)}</div>
           </div>
 
           <div class="overallStatsPill partial">
-            <div class="lbl"><span class="dot" style="background:#f59e0b"></span>In Progress</div>
-            <div class="val"><strong>${partial}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
-            <div class="sub">(coming soon)</div>
+            <div class="lbl">Bands In Progress</div>
+            <div class="val"><strong>${partial}</strong>   *  ${pct(partial)}</div>
           </div>
 
           <div class="overallStatsPill none">
-            <div class="lbl"><span class="dot" style="background:#94a3b8"></span>Not Worked Yet</div>
-            <div class="val"><strong>${none}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
-            <div class="sub">(coming soon)</div>
+            <div class="lbl">Bands Not Worked Yet</div>
+            <div class="val"><strong>${none}</strong>  *  ${pct(none)}</div>
           </div>
         </div>
       `.trim();
     } catch(_){}
   }
+
+
+  function updateLegendStats(region, letter){
+    try{
+      const totalEl =
+        (panelRoot ? panelRoot.querySelector("#bands-total") : null) ||
+        document.getElementById("bands-total");
+      const legendLineEl =
+        (panelRoot ? panelRoot.querySelector("#bands-legend") : null) ||
+        document.getElementById("bands-legend");
+
+      const list = getBandsInScope(region, letter);
+      const total = (list || []).length;
+
+      let good = 0, partial = 0, none = 0;
+      (list || []).forEach((b) => {
+        const cls = setsStateClass(b);
+        if (cls === "setsGood") good++;
+        else if (cls === "setsPartial") partial++;
+        else none++;
+      });
+
+      if (totalEl) {
+        totalEl.textContent = `Total Bands — ${total}`;
+      }
+
+      const pct = (n) => {
+        if (!total) return "0.0%";
+        const p = (n * 100) / total;
+        return `${p.toFixed(1)}%`;
+      };
+
+      if (legendLineEl) {
+        legendLineEl.innerHTML = `
+          <span class="mini"><span class="legend-dot" style="background:#22c55e"></span>${good} Fully Upgraded (${pct(good)})</span>
+          <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span>${partial} In Progress (${pct(partial)})</span>
+          <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span>${none} Not Worked Yet (${pct(none)})</span>
+        `.trim();
+      }
+    } catch(_){}
+  }
+
+  function showLetter(regionKey, letter){
+    if (!resultsEl) return;
+
+    CURRENT_REGION = regionKey || CURRENT_REGION;
+    CURRENT_LETTER = letter || null;
+
+    try { updateLegendStats(CURRENT_REGION, CURRENT_LETTER); } catch(_) {}
+
+    // Transition out
+    try { resultsEl.classList.add("is-swapping"); } catch(_) {}
+
+    const doRender = () => {
+      try { resultsEl.innerHTML = ""; } catch(_) {}
+
+      const list = (BANDS && BANDS[CURRENT_REGION] && BANDS[CURRENT_REGION][letter]) ? BANDS[CURRENT_REGION][letter] : [];
+      const bands = Array.isArray(list) ? list.slice() : [];
+      bands.sort((a,b)=> String(a?.name||"").localeCompare(String(b?.name||""), undefined, { sensitivity:"base" }));
+
+      bands.forEach((bandObj) => {
+        const card = document.createElement("div");
+        card.className = `band-card ${setsStateClass(bandObj)}`;
+
+        const row = document.createElement("div");
+        row.className = "band-row";
+
+        const img = document.createElement("img");
+        img.className = "band-logo";
+        img.loading = "lazy";
+        img.alt = bandObj?.name || "Band";
+        img.src = bandObj?.logo_url || "";
+        if (!img.src) img.style.opacity = "0.20";
+
+        const right = document.createElement("div");
+
+        const nm = document.createElement("div");
+        nm.className = "band-name";
+        nm.textContent = bandObj?.name || "";
+
+        const cnt = document.createElement("span");
+        cnt.className = "band-count";
+        const t = Number(bandObj?.total_sets) || 0;
+        const a = Number(bandObj?.sets_archive) || 0;
+        // Keep this compact; adjust later if you want "Sets:" label.
+        cnt.textContent = `(${a}/${t})`;
+
+        // name line (band name + count)
+        nm.appendChild(cnt);
+
+        right.appendChild(nm);
+
+        row.appendChild(img);
+        row.appendChild(right);
+        card.appendChild(row);
+
+        card.addEventListener("click", () => {
+          animateBandOpen(CURRENT_REGION, letter, bandObj, img);
+        });
+
+        resultsEl.appendChild(card);
+      });
+
+      resetPanelScroll();
+
+      // Transition in
+      window.requestAnimationFrame(() => {
+        try { resultsEl.classList.remove("is-swapping"); } catch(_) {}
+      });
+    };
+
+    // Small delay so the "swap" class takes effect before we replace DOM
+    window.setTimeout(doRender, 120);
+  }
+
 
 
 async function showBandCard(region, letter, bandObj, opts) {
@@ -4078,6 +4192,8 @@ const grid = document.createElement("div");
       wrap.appendChild(toolbar);
     }
 
+    const albumKey = info.album?.AlbumKey || info.album?.Key || info.albumKey || "";
+
     function prettyKeyword(s) {
       const t = String(s || "").trim();
       if (!t) return "";
@@ -4128,7 +4244,7 @@ const grid = document.createElement("div");
       try { wrap.classList.remove("entering"); } catch(_) {}
     });
 
-    const albumKey = info.album?.AlbumKey || info.album?.Key;
+    // albumKey declared above (needed for keyword chips + modal context)
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
