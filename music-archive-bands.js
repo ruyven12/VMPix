@@ -307,7 +307,7 @@
         text-align:center;
       }
       .overallStatsPill .lbl{
-        font-size: 9px;
+        font-size: 16px;
         letter-spacing:.18em;
         text-transform: uppercase;
         display:flex;
