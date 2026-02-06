@@ -278,7 +278,6 @@
         font-weight: 900;
         letter-spacing: .12em;
         text-transform: none !important;
-        opacity: .88;
         text-align:center;
         margin-bottom: 10px;
       }
