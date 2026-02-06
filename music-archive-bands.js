@@ -32,6 +32,7 @@
   // ================== STATE ==================
   let BANDS = {};
   let CURRENT_REGION = "Local";
+  let CURRENT_LETTER = null;
 
   // panel-scoped DOM refs
   let panelRoot = null;
@@ -235,6 +236,120 @@
       /* ===== Band detail view: hide letter groupings + status legend ===== */
       .inBandDetail #letter-groups{ display:none !important; }
       .inBandDetail #status-legend{ display:none !important; }
+
+      /* ===== Bands stats lines (Total + Legend) ===== */
+      #status-legend{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap: 8px;
+      }
+      .bandsTotalLine{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 12px;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .85;
+      }
+      .bandsOverallLine{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 11px;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .72;
+      }
+      .bandsLegendLine{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 14px;
+        flex-wrap:wrap;
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 11px;
+        letter-spacing: .10em;
+        text-transform: none !important;
+        opacity: .80;
+      }
+      
+      /* ===== Overall Archive Stats (pills) ===== */
+      .overallStatsTitle{
+        font-family: "Orbitron", system-ui, sans-serif !important;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: .12em;
+        text-transform: none !important;
+        opacity: .88;
+        text-align:center;
+        margin-bottom: 10px;
+      }
+      .overallStatsPills{
+        width: 100%;
+        display:flex;
+        flex-wrap:wrap;
+        align-items:stretch;
+        justify-content:center;
+        gap: 10px;
+        margin: 0 auto 2px;
+      }
+      .overallStatsPill{
+        min-width: 210px;
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.10);
+        display:flex;
+        flex-direction:column;
+        gap: 4px;
+        justify-content:center;
+        text-align:center;
+      }
+      .overallStatsPill .lbl{
+        font-size: 9px;
+        letter-spacing:.18em;
+        text-transform: uppercase;
+        opacity: .60;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+      }
+      .overallStatsPill .val{
+        font-size: 14px;
+        font-weight: 900;
+        opacity: .92;
+        letter-spacing: .06em;
+        line-height: 1.2;
+      }
+      .overallStatsPill .sub{
+        font-size: 10px;
+        letter-spacing: .10em;
+        opacity: .60;
+      }
+      .overallStatsPill .dot{
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        display:inline-block;
+        flex: 0 0 auto;
+        opacity: .95;
+      }
+      .overallStatsPill.good{ border-color: rgba(34,197,94,0.30); }
+      .overallStatsPill.partial{ border-color: rgba(245,158,11,0.30); }
+      .overallStatsPill.none{ border-color: rgba(148,163,184,0.26); }
+
+      @media (max-width: 520px){
+        .overallStatsPill{
+          min-width: min(92vw, 420px);
+          border-radius: 22px;
+        }
+      }
+
+.bandsLegendLine .mini{
+        display:inline-flex;
+        align-items:center;
+        gap: 6px;
+      }
+
       .inBandDetail #region-pills{ display:none !important; }
 
       /* ===== Album photos view: center Back-to-albums + hide legend ===== */
@@ -588,7 +703,22 @@ color: rgba(226,232,240,0.92);
         margin-bottom:10px;
       }
 
-      /* region pills (match top action tabs style) */
+
+/* ===== Divider above bands header block ===== */
+.bandsTopDivider{
+  width: 100%;
+  border-top: 1px solid rgba(239,68,68,0.22);
+  margin: 2px 0 8px;
+}
+
+      /* ===== Divider between legend and region tabs ===== */
+.bandsLegendDivider{
+  width: 100%;
+  border-top: 1px solid rgba(239,68,68,0.22);
+  margin: 6px 0 10px;
+}
+
+/* region pills (match top action tabs style) */
       #region-pills{
         display:flex;
         flex-wrap:wrap;
@@ -645,8 +775,7 @@ color: rgba(226,232,240,0.92);
         color:rgba(226,232,240,0.98);
         border-bottom-color: rgba(239,68,68,0.85);
       }
-
-/* legend */
+      /* legend */
       #status-legend{
         display:flex;
         justify-content:center;
@@ -660,39 +789,29 @@ color: rgba(226,232,240,0.92);
         display:inline-block;margin-right:6px;
       }
 
-      /* overall stats pills (above region pills) */
-      #overall-stats{
-        display:flex;
-        justify-content:center;
-        flex-wrap:wrap;
-        gap:10px;
-        padding: 2px 0 6px;
-      }
-      .overall-pill{
+      /* ===== Stats inline (Dynamic) ===== */
+      .bandsStatsInline{
         display:inline-flex;
         align-items:center;
-        gap:8px;
-        padding:6px 10px;
-        border-radius:999px;
-        border:1px solid rgba(255,255,255,0.14);
-        background: rgba(15,23,42,0.35);
-        color: rgba(226,232,240,0.92);
-        font-size:12px;
-        letter-spacing:.02em;
-        white-space:nowrap;
+        gap:10px;
+        padding-left: 6px;
+        opacity: .92;
+        letter-spacing: .06em;
+        white-space: nowrap;
       }
-      .overall-pill .dot{ width:10px;height:10px;border-radius:50%; display:inline-block; }
-      .overall-pill.good  { border-color: rgba(34,197,94,0.35); }
-      .overall-pill.good  .dot{ background:#22c55e; }
-      .overall-pill.partial{ border-color: rgba(245,158,11,0.35); }
-      .overall-pill.partial .dot{ background:#f59e0b; }
-      .overall-pill.none  { border-color: rgba(148,163,184,0.30); }
-      .overall-pill.none  .dot{ background:#94a3b8; }
-      .overall-pill.total { border-color: rgba(239,68,68,0.25); }
-      .overall-pill.total .dot{ background: rgba(239,68,68,0.75); }
-      .overall-pill strong{ font-weight: 800; }
-
-      /* 2-column layout: tree + results */
+      .bandsStatsInline .mini{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+      }
+      @media (max-width: 520px){
+        .bandsStatsInline{
+          width: 100%;
+          justify-content: center;
+          white-space: normal;
+        }
+      }
+/* 2-column layout: tree + results */
       /* hide tree sidebar */
       #tree{ display:none !important; }
 
@@ -1606,14 +1725,15 @@ color: rgba(226,232,240,0.92);
     return `
       <div class="bandsWrap is-loading" id="bands-root">
         <div class="bandsTop">
-          <div id="overall-stats"></div>
+          <div class="bandsTopDivider" aria-hidden="true"></div>
+          <div id="status-legend">
+            <div id="bands-overall" class="bandsOverallLine"></div>
+            <div id="bands-total" class="bandsTotalLine"></div>
+            <div id="bands-legend" class="bandsLegendLine"></div>
+          </div>
+                    <div class="bandsLegendDivider" aria-hidden="true"></div>
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
-          <div id="status-legend">
-            <span><span class="legend-dot" style="background:#22c55e"></span>Fully Upgraded</span>
-            <span><span class="legend-dot" style="background:#f59e0b"></span>In Progress</span>
-            <span><span class="legend-dot" style="background:#94a3b8"></span>Have Not Worked Yet</span>
-          </div>
         </div>
 
         <div class="bandsLayout">
@@ -3088,6 +3208,8 @@ async function downloadZipFromServer(items, suggestedName){
         pill.classList.add("active");
 
         CURRENT_REGION = key;
+        try { CURRENT_LETTER = null; } catch(_) {}
+        try { updateLegendStats(key, null); } catch(_) {}
         resetPanelScroll();
         // Keep current results visible until the transition swaps to the next letter group
         updateLetterGroups(key, { autoSelect: true });
@@ -3179,170 +3301,90 @@ async function downloadZipFromServer(items, suggestedName){
     }
   }
 
-  // ===== Overall stats (all regions / letters) =====
-  // Prefer the CSV "status" column so counts match the sheet.
-  // Fallback to sets_archive vs total_sets when status is missing/unknown.
-  function _bandStatusBucket(bandObj){
-    try {
-      const s = String((bandObj && bandObj.status) || "").trim().toLowerCase();
-      if (s) {
-        if (s.includes("fully")) return "good";
-        if (s.includes("progress")) return "partial";
-        if (s.includes("not") || s.includes("haven't") || s.includes("have not")) return "none";
-      }
-
-      const cls = setsStateClass(bandObj);
-      if (cls === "setsGood") return "good";
-      if (cls === "setsPartial") return "partial";
-      return "none";
-    } catch (_) {
-      return "none";
+  // ===== Dynamic legend stats (counts update on Region/Letter changes) =====
+  function getBandsInScope(region, letter){
+    try{
+      const reg = (region && BANDS && BANDS[region]) ? BANDS[region] : null;
+      if (!reg) return [];
+      // If a letter is provided, use that group; otherwise combine all letters for the region.
+      if (letter && reg[letter]) return Array.isArray(reg[letter]) ? reg[letter] : [];
+      const out = [];
+      Object.keys(reg || {}).forEach((lk) => {
+        const arr = reg[lk];
+        if (Array.isArray(arr)) out.push(...arr);
+      });
+      return out;
+    } catch(_){
+      return [];
     }
   }
 
-  function computeOverallBandsStats(){
-    let good = 0, partial = 0, none = 0, total = 0;
-    try {
-      const regions = BANDS ? Object.keys(BANDS) : [];
-      regions.forEach((regionKey) => {
-        const letterMap = BANDS[regionKey] || {};
-        Object.keys(letterMap).forEach((letterKey) => {
-          const arr = letterMap[letterKey] || [];
-          arr.forEach((bandObj) => {
-            total++;
-            const b = _bandStatusBucket(bandObj);
-            if (b === "good") good++;
-            else if (b === "partial") partial++;
-            else none++;
-          });
+  
+  function getAllBandsOverall(){
+    try{
+      const out = [];
+      const regions = Object.keys(BANDS || {});
+      regions.forEach((rk) => {
+        const reg = BANDS[rk] || {};
+        Object.keys(reg || {}).forEach((lk) => {
+          const arr = reg[lk];
+          if (Array.isArray(arr)) out.push(...arr);
         });
       });
-    } catch (_) {}
-    return { good, partial, none, total };
-  }
-
-  function renderOverallStats(){
-    try {
-      const host = panelRoot ? panelRoot.querySelector("#overall-stats") : document.getElementById("overall-stats");
-      if (!host) return;
-
-      const { good, partial, none, total } = computeOverallBandsStats();
-      const pct = (n) => (total ? ((n / total) * 100).toFixed(1) : "0.0");
-
-      host.innerHTML = `
-        <span class="overall-pill good"><span class="dot"></span><strong>${good}</strong> Fully Upgraded (${pct(good)}%)</span>
-        <span class="overall-pill partial"><span class="dot"></span><strong>${partial}</strong> In Progress (${pct(partial)}%)</span>
-        <span class="overall-pill none"><span class="dot"></span><strong>${none}</strong> Not Worked Yet (${pct(none)}%)</span>
-        <span class="overall-pill total"><span class="dot"></span><strong>${total}</strong> Total Bands</span>
-      `.trim();
-    } catch (_) {}
-  }
-
-
-  function showLetter(region, letter) {
-  if (!resultsEl) return;
-
-  // Token prevents rapid clicks from rendering out-of-order.
-  const seq = ++SHOWLETTER_SEQ;
-
-  // Leave old content in place while we animate out.
-  try { resultsEl.classList.add("is-swapping"); } catch(_) {}
-
-  // Make sure we're in the list mode immediately (so pills/legend behave)
-  try { document.body.classList.remove("inBandDetail"); } catch(_) {}
-  try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
-
-  // Small delay so the opacity/blur transition actually runs before we replace DOM.
-  window.setTimeout(() => {
-    if (!resultsEl) return;
-    if (seq !== SHOWLETTER_SEQ) return;
-
-    try { resultsEl.innerHTML = ""; } catch(_) {}
-    // crumbs removed
-    resetPanelScroll();
-
-    const bandsArr = (BANDS[region] && BANDS[region][letter]) || [];
-
-    // card grid layout (matches your script.js behavior pattern)
-    resultsEl.style.display = "grid";
-    resultsEl.style.justifyContent = "center";
-    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
-    resultsEl.style.gap = "14px";
-    resultsEl.style.width = "100%";
-    resultsEl.style.maxWidth = "none";
-    resultsEl.style.margin = "0";
-
-    if (!bandsArr.length) {
-      resultsEl.appendChild(document.createTextNode("No bands in this group."));
-      // Reveal (even if empty)
-      window.requestAnimationFrame(() => {
-        try { if (seq === SHOWLETTER_SEQ) resultsEl.classList.remove("is-swapping"); } catch(_) {}
-      });
-      return;
+      return out;
+    } catch(_){
+      return [];
     }
+  }
 
-    bandsArr.forEach((bandObj) => {
-      const card = document.createElement("div");
-      card.className = "band-card";
+  function renderOverallStatsOnce(){
+    try{
+      const overallEl =
+        (panelRoot ? panelRoot.querySelector("#bands-overall") : null) ||
+        document.getElementById("bands-overall");
+      if (!overallEl) return;
 
-      // background color state (green/yellow/gray) based on sets_archive vs total_sets
-      const _setsState = setsStateClass(bandObj);
-      card.classList.add(_setsState);
-
-      const row = document.createElement("div");
-      row.className = "band-row";
-
-      const img = document.createElement("img");
-      img.className = "band-logo";
-      img.alt = bandObj.name || "Band";
-      img.loading = "lazy";
-      img.src =
-        bandObj.logo_url ||
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
-
-      const right = document.createElement("div");
-      right.style.display = "flex";
-      right.style.flexDirection = "column";
-      right.style.gap = "2px";
-
-      const name = document.createElement("div");
-      name.className = "band-name";
-      name.textContent = bandObj.name || "";
-
-      // Show ( archived / total ) ONLY on yellow "In Progress" cards
-      if (_setsState === "setsPartial") {
-        const t = (bandObj && bandObj.total_sets != null) ? String(bandObj.total_sets).trim() : "";
-        const a = (bandObj && bandObj.sets_archive != null) ? String(bandObj.sets_archive).trim() : "";
-        if (t && a) {
-          const cnt = document.createElement("span");
-          cnt.className = "band-count";
-          cnt.textContent = ` ( ${a} / ${t} )`;
-          name.appendChild(cnt);
-        }
-      }
-      right.appendChild(name);
-
-      row.appendChild(img);
-      row.appendChild(right);
-      card.appendChild(row);
-
-      card.addEventListener("click", () => {
-        // Shared-element transition (logo zoom)
-        window.requestAnimationFrame(() => animateBandOpen(region, letter, bandObj, img));
+      const list = getAllBandsOverall();
+      let good = 0, partial = 0, none = 0;
+      (list || []).forEach((b) => {
+        const cls = setsStateClass(b);
+        if (cls === "good") good++;
+        else if (cls === "partial") partial++;
+        else none++;
       });
+      const total = (list || []).length;
 
-      resultsEl.appendChild(card);
-    });
+      // Static overall stats line (does not change with Region/Letter clicks)
+      overallEl.innerHTML = `
+        <div class="overallStatsTitle">Overall Archive Stats:</div>
+        <div class="overallStatsPills">
+          <div class="overallStatsPill">
+            <div class="lbl">Total Bands</div>
+            <div class="val"><strong>${total}</strong></div>
+          </div>
 
-    // Reveal the new content
-    window.requestAnimationFrame(() => {
-      if (seq !== SHOWLETTER_SEQ) return;
-      try { resultsEl.classList.remove("is-swapping"); } catch(_) {}
-      resetPanelScroll();
-      window.setTimeout(() => resetPanelScroll(), 200);
-    });
-  }, 120);
-}
+          <div class="overallStatsPill good">
+            <div class="lbl"><span class="dot" style="background:#22c55e"></span>Fully Upgraded</div>
+            <div class="val"><strong>${good}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
+
+          <div class="overallStatsPill partial">
+            <div class="lbl"><span class="dot" style="background:#f59e0b"></span>In Progress</div>
+            <div class="val"><strong>${partial}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
+
+          <div class="overallStatsPill none">
+            <div class="lbl"><span class="dot" style="background:#94a3b8"></span>Not Worked Yet</div>
+            <div class="val"><strong>${none}</strong> <span style="opacity:.65">(xx.xx%)</span></div>
+            <div class="sub">(coming soon)</div>
+          </div>
+        </div>
+      `.trim();
+    } catch(_){}
+  }
+
 
 async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
@@ -4194,10 +4236,11 @@ const grid = document.createElement("div");
     // load data + init UI
     BANDS = await loadBandsFromCsv();
 
-    // overall stats pills (all regions)
-    try { renderOverallStats(); } catch (_) {}
+    // Static overall stats line (once)
+    renderOverallStatsOnce();
 
     initRegionPills();
+    try { updateLegendStats(CURRENT_REGION, null); } catch(_) {}
     updateLetterGroups(CURRENT_REGION);
 
     // End initial loading state (show crumbs only after data is ready)
