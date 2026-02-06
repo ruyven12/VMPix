@@ -303,8 +303,8 @@
         display:flex;
         flex-direction:column;
         gap: 6px;
-        justify-content:center;
-        text-align:center;
+		align-items: center;
+		justify-content: space-between;
       }
       .overallStatsPill .lbl{
         font-size: 14px;
@@ -313,12 +313,14 @@
         display:flex;
         align-items:center;
         justify-content:center;
+		white-space: nowrap;
         gap: 8px;
       }
       .overallStatsPill .val{
         font-size: 14px;
         font-weight: 900;
         letter-spacing: .06em;
+		white-space: nowrap;
         line-height: 1.2;
       }
       .overallStatsPill .sub{
@@ -3366,7 +3368,8 @@ async function downloadZipFromServer(items, suggestedName){
         <div class="overallStatsTitle">Overall Archive Stats:</div>
         <div class="overallStatsPills">
           <div class="overallStatsPill">
-            <div class="lbl">Total Bands</div>  *  <div class="val"><strong>${total}</strong></div>
+            <div class="lbl">Total Bands</div>  *  
+			<div class="val"><strong>${total}</strong></div>
           </div>
 
           <div class="overallStatsPill good">
