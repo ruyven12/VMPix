@@ -3376,17 +3376,17 @@ async function downloadZipFromServer(items, suggestedName){
           </div>
 
           <div class="overallStatsPill good">
-            <div class="lbl">Fully Upgraded</div>
+            <div class="lbl">Bands Fully Upgraded</div>
             <div class="val"><strong>${good}</strong>  *  ${pct(good)}</div>
           </div>
 
           <div class="overallStatsPill partial">
-            <div class="lbl">In Progress</div>
+            <div class="lbl">Bands In Progress</div>
             <div class="val"><strong>${partial}</strong>   *  ${pct(partial)}</div>
           </div>
 
           <div class="overallStatsPill none">
-            <div class="lbl">Not Worked Yet</div>
+            <div class="lbl">Bands Not Worked Yet</div>
             <div class="val"><strong>${none}</strong>  *  ${pct(none)}</div>
           </div>
         </div>
