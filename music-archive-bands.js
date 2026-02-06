@@ -3411,17 +3411,17 @@ async function downloadZipFromServer(items, suggestedName){
     <!-- Labels column -->
     <div class="statsCol labels">
       <div class="statsRow" style="text-align:center">Total Bands</div>
-      <div class="statsRow good">Fully Upgraded</div>
-      <div class="statsRow partial">In Progress</div>
-      <div class="statsRow none">Not Worked Yet</div>
+      <div class="statsRow good" style="text-align:center">Fully Upgraded</div>
+      <div class="statsRow partial" style="text-align:center">In Progress</div>
+      <div class="statsRow none" style="text-align:center">Not Worked Yet</div>
     </div>
 
     <!-- Values column -->
     <div class="statsCol values">
-      <div class="statsRow"><strong>${total}</strong></div>
-      <div class="statsRow good"><strong>${good}</strong> • ${pct(good)}</div>
-      <div class="statsRow partial"><strong>${partial}</strong> • ${pct(partial)}</div>
-      <div class="statsRow none"><strong>${none}</strong> • ${pct(none)}</div>
+      <div class="statsRow" style="text-align:center"><strong>${total}</strong></div>
+      <div class="statsRow good" style="text-align:center"><strong>${good}</strong> • ${pct(good)}</div>
+      <div class="statsRow partial" style="text-align:center"><strong>${partial}</strong> • ${pct(partial)}</div>
+      <div class="statsRow none" style="text-align:center"><strong>${none}</strong> • ${pct(none)}</div>
     </div>
   </div>
 `;
