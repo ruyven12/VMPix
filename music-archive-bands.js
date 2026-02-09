@@ -5,7 +5,15 @@
   "use strict";
 
   // ================== CONFIG (matches script.js) ==================
-  const API_BASE = "https://music-archive-31fa.onrender.com";
+  // API base (prefer same-origin when hosted on Render; fallback to the known Render API)
+  // - If you serve index.html from the SAME Render service, this auto-uses that origin.
+  // - If you embed/host elsewhere (SmugMug/GitHub/file://), it falls back to the Render API.
+  const API_BASE =
+    (typeof window !== "undefined" && typeof window.MUSIC_ARCHIVE_API_BASE === "string" && window.MUSIC_ARCHIVE_API_BASE.trim())
+      ? window.MUSIC_ARCHIVE_API_BASE.trim()
+      : ((typeof location !== "undefined" && location && typeof location.origin === "string" && location.origin !== "null" && /onrender\.com$/i.test(location.hostname))
+        ? location.origin
+        : "https://music-archive-3lfa.onrender.com");
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
   // ===== Feature flags =====
@@ -1986,8 +1994,8 @@ color: rgba(226,232,240,0.92);
   `${API_BASE}/sheet/fix-metadata`,
   `${API_BASE}/sheet/fixmetadata`,
   `${API_BASE}/sheet/fix`,
-  // NOTE: Avoid relative ("/sheet/...") endpoints here.
-  // When the page is opened via file://, relative fetches become file:///sheet/... and will always fail.
+  `/sheet/stats`,
+  `/sheet/fix_metadata`,
 ];
 
 const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v1";
@@ -2032,20 +2040,8 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
   let lastErr = null;
 
   for (let i = 0; i < list.length; i++) {
-    let url = list[i];
+    const url = list[i];
     if (!url) continue;
-
-    // Only attempt http(s) fetches. This prevents noisy failures when opened via file://
-    // where relative URLs become file:///... and are blocked.
-    const isHttp = (u) => /^https?:\/\//i.test(String(u || ""));
-    if (!isHttp(url)) {
-      try {
-        if (window.location && /^https?:$/.test(window.location.protocol)) {
-          url = String(window.location.origin || "").replace(/\/$/, "") + String(url);
-        }
-      } catch (_) {}
-    }
-    if (!isHttp(url)) continue;
     try {
       const r = await fetch(url, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
