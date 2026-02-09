@@ -256,8 +256,8 @@
 	  
 .overallStatsGrid{
   display:grid;
-  width:350px;
-  grid-template-columns: repeat(1, minmax(150px, 1fr));
+  width:500px;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
   gap: 12px;
   margin-top: 14px;
   margin:0px auto 0;
@@ -298,7 +298,36 @@
 }
 
       
-      /* ===== Overall Archive Stats (pills) ===== */
+      
+      /* ===== Loading shimmer (Fix / Metadata values) ===== */
+      @keyframes vmFixMetaShimmer {
+        0%   { transform: translateX(-120%); }
+        100% { transform: translateX(120%); }
+      }
+      .fixmetaShimmer{
+        position: relative;
+        display: inline-block;
+        min-width: 2.8em;
+        padding: 0 .15em;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+      }
+      .fixmetaShimmer::after{
+        content:"";
+        position:absolute;
+        inset:-2px;
+        background: linear-gradient(90deg,
+          rgba(255,255,255,0.00) 0%,
+          rgba(255,255,255,0.18) 45%,
+          rgba(255,255,255,0.00) 100%
+        );
+        transform: translateX(-120%);
+        animation: vmFixMetaShimmer 1.15s ease-in-out infinite;
+        pointer-events:none;
+      }
+      /* When loaded, we remove .fixmetaShimmer so the highlight stops. */
+/* ===== Overall Archive Stats (pills) ===== */
       .overallStatsTitle{
         font-family: "Orbitron", system-ui, sans-serif !important;
         font-size: 20px;
@@ -371,6 +400,58 @@
           border-radius: 18px;
         }
       }
+
+
+/* ===== Reimaging Stats: collapsible (click header to expand/collapse) ===== */
+#bands-overall .reimagingStatsHdr{
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 6px 0 2px;
+  margin: 0 auto 6px;
+  cursor: pointer;
+  color: rgba(226,232,240,0.92);
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: none !important;
+}
+#bands-overall .reimagingStatsHdr:hover{
+  color: rgba(226,232,240,0.98);
+}
+#bands-overall .reimagingStatsHdr .chev{
+  font-size: 14px;
+  opacity: .75;
+  transform: translateY(1px);
+  transition: transform 220ms ease;
+}
+#bands-overall.is-open .reimagingStatsHdr .chev{
+  transform: translateY(1px) rotate(180deg);
+}
+
+#bands-overall .reimagingStatsBody{
+  overflow: hidden;
+  max-height: 0px;
+  opacity: 0;
+  transform: translateY(-4px);
+  filter: blur(6px);
+  transition: max-height 320ms cubic-bezier(0.2, 0.85, 0.2, 1), opacity 240ms ease, transform 240ms ease, filter 240ms ease;
+  will-change: max-height, opacity, transform, filter;
+}
+#bands-overall.is-open .reimagingStatsBody{
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+@media (prefers-reduced-motion: reduce){
+  #bands-overall .reimagingStatsHdr .chev{ transition: none !important; }
+  #bands-overall .reimagingStatsBody{ transition: none !important; }
+}
 
 
 /* ===== Reimaging Stats: clean reveal + segmented bar (Option B) ===== */
@@ -1122,6 +1203,34 @@ color: rgba(226,232,240,0.92);
         cursor:pointer;
       }
 
+/* ===== Loading shimmer (album photos) ===== */
+.smug-photo-box.shimmer{
+  cursor: default;
+}
+.smug-photo-box.shimmer:hover{
+  transform:none;
+  box-shadow:none;
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+}
+.smug-photo-box.shimmer .shimmerInner{
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 37%, rgba(255,255,255,0.06) 63%);
+  background-size: 400% 100%;
+  animation: smugShimmer 1.2s ease-in-out infinite;
+}
+@keyframes smugShimmer{
+  0%{ background-position: 100% 0; }
+  100%{ background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .smug-photo-box.shimmer .shimmerInner{ animation: none !important; }
+}
+
+
       /* Stagger reveal for photos (after view mounts) */
       .smug-photo-box.tileHidden{
         opacity: 0;
@@ -1867,6 +1976,12 @@ color: rgba(226,232,240,0.92);
   const BANDS_CSV_CACHE_KEY = "vm_music_bands_csv_v1";
   const BANDS_CSV_TTL_MS = 1000 * 60 * 30; // 30 minutes
 
+	// ---- Session cache (Stats tab CSV: Fix / Metadata) ----
+	// Server provides this as /sheet/stats (and aliases). We only read values to replace the "xxx" placeholders.
+	const STATS_CSV_ENDPOINT = `${API_BASE}/sheet/stats`;
+	const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v1";
+	const STATS_CSV_TTL_MS = 1000 * 60 * 10; // 10 minutes
+
   async function fetchTextWithSessionCache(url, ttlMs, key) {
     try {
       const raw = sessionStorage.getItem(key);
@@ -1886,6 +2001,71 @@ color: rgba(226,232,240,0.92);
 
     return text;
   }
+
+	// ---- Stats (Fix / Metadata tab) loader ----
+	let _fixMetaPromise = null;
+	let _fixMetaCached = null;
+
+	function _firstNonEmpty(arr, idx) {
+	  try {
+	    const v = (arr && idx >= 0 && idx < arr.length) ? String(arr[idx] || "").trim() : "";
+	    return v;
+	  } catch (_) {
+	    return "";
+	  }
+	}
+
+	function _safeNumStr(s) {
+	  const t = String(s || "").trim();
+	  return t ? t : "—";
+	}
+
+	async function ensureFixMetadataStats() {
+	  if (_fixMetaCached) return _fixMetaCached;
+	  if (_fixMetaPromise) return _fixMetaPromise;
+
+	  _fixMetaPromise = (async () => {
+	    try {
+	      const csvText = await fetchTextWithSessionCache(STATS_CSV_ENDPOINT, STATS_CSV_TTL_MS, STATS_CSV_CACHE_KEY);
+	      const lines = String(csvText || "").split(/\r?\n/).filter((l) => String(l || "").trim());
+	      if (lines.length < 3) return null;
+
+	      // Expect:
+	      //  line 1: headers (A-E)
+	      //  line 2: numeric values
+	      //  line 3: percentages (for B-D)
+	      const row2 = parseCsvLine(lines[1] || "");
+	      const row3 = parseCsvLine(lines[2] || "");
+
+	      // Mapping from your sheet screenshot:
+	      //  Total Files  = E2
+	      //  Not Upgraded = C2
+	      //  On Site      = D2
+	      //  %            = D3
+	      const totalFiles = _firstNonEmpty(row2, 4);
+	      const notUpgraded = _firstNonEmpty(row2, 2);
+	      const onSite = _firstNonEmpty(row2, 3);
+	      const pctOnSite = _firstNonEmpty(row3, 3);
+
+	      const out = {
+	        totalFiles: _safeNumStr(totalFiles),
+	        notUpgraded: _safeNumStr(notUpgraded),
+	        onSite: _safeNumStr(onSite),
+	        pctOnSite: _safeNumStr(pctOnSite),
+	      };
+
+	      _fixMetaCached = out;
+	      return out;
+	    } catch (e) {
+	      console.warn("Fix/Metadata stats load failed:", e);
+	      return null;
+	    } finally {
+	      _fixMetaPromise = null;
+	    }
+	  })();
+
+	  return _fixMetaPromise;
+	}
 
   // ---- Folder albums cache (per region + folder) ----
   const FOLDER_ALBUMS_CACHE = new Map(); // key -> { ts, albums }
@@ -3479,7 +3659,9 @@ function animateReimagingStats(overallEl){
       };
 
       overallEl.innerHTML = `
-  <div class="overallStatsTitle">"Reimaging Project" Stats:</div>
+  <button class="reimagingStatsHdr" type="button" aria-expanded="false" aria-controls="reimagingStatsBody">"Reimaging Project" Stats:<span class="chev">▾</span></button>
+
+  <div class="reimagingStatsBody" id="reimagingStatsBody">
 
   <div class="overallStatsGrid">
     <div class="statsCol">
@@ -3489,7 +3671,10 @@ function animateReimagingStats(overallEl){
 	  <div class="statsRow none" style="text-align:center">${none}   Not Worked Yet</div>
 	</div>
 	<div class="statsCol">
-	  
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-total-files" class="fixmetaShimmer">—</strong>   Total Files</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-not-upgraded" class="fixmetaShimmer">—</strong>   Not Upgraded</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-on-site" class="fixmetaShimmer">—</strong>   On Site</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-percent" class="fixmetaShimmer">—</strong>   %</div>
 	</div>
    </div>
 
@@ -3498,8 +3683,83 @@ function animateReimagingStats(overallEl){
   <div class="seg partial" data-pct="${(total ? (partial*100/total) : 0)}"></div>
   <div class="seg none" data-pct="${(total ? (none*100/total) : 0)}"></div>
 </div>
+
+</div>
 `;
-      animateReimagingStats(overallEl);
+// Collapsible: header always visible; body expands on click.
+      try{
+        overallEl.classList.remove("is-open");
+        const hdr = overallEl.querySelector(".reimagingStatsHdr");
+        const body = overallEl.querySelector(".reimagingStatsBody");
+        if (hdr && body){
+          // start collapsed
+          hdr.setAttribute("aria-expanded", "false");
+          body.style.maxHeight = "0px";
+
+          const open = () => {
+            overallEl.classList.add("is-open");
+            hdr.setAttribute("aria-expanded", "true");
+
+            // measure + expand
+            const h = body.scrollHeight || 0;
+            body.style.maxHeight = h ? (h + "px") : "1200px";
+
+            // replay the reveal animation each time you expand
+            try{
+              if (overallEl.dataset) overallEl.dataset.reimagingAnimRan = "0";
+            } catch(_){}
+            animateReimagingStats(overallEl);
+          };
+
+          const close = () => {
+            overallEl.classList.remove("is-open");
+            hdr.setAttribute("aria-expanded", "false");
+            body.style.maxHeight = "0px";
+          };
+
+          hdr.addEventListener("click", () => {
+            const isOpen = overallEl.classList.contains("is-open");
+            if (isOpen) close();
+            else open();
+          });
+
+          // If layout changes (e.g., responsive), keep max-height in sync while open
+          window.requestAnimationFrame(() => {
+            try{
+              if (overallEl.classList.contains("is-open")){
+                const hh = body.scrollHeight || 0;
+                if (hh) body.style.maxHeight = hh + "px";
+              }
+            } catch(_){}
+          });
+        }
+      } catch(_){}
+
+      // Fill the right-side Fix / Metadata values from the Stats tab CSV
+      try{
+        ensureFixMetadataStats()
+          .then((s) => {
+            const elTotal = overallEl.querySelector("#fixmeta-total-files");
+            const elNot = overallEl.querySelector("#fixmeta-not-upgraded");
+            const elOn = overallEl.querySelector("#fixmeta-on-site");
+            const elPct = overallEl.querySelector("#fixmeta-percent");
+
+            if (!s){
+              // stop shimmer on failure/empty response
+              try{ if (elTotal) elTotal.classList.remove("fixmetaShimmer"); }catch(_){}
+              try{ if (elNot) elNot.classList.remove("fixmetaShimmer"); }catch(_){}
+              try{ if (elOn) elOn.classList.remove("fixmetaShimmer"); }catch(_){}
+              try{ if (elPct) elPct.classList.remove("fixmetaShimmer"); }catch(_){}
+              return;
+            }
+            if (elTotal) { elTotal.textContent = s.totalFiles || "—"; elTotal.classList.remove("fixmetaShimmer"); }
+            if (elNot) { elNot.textContent = s.notUpgraded || "—"; elNot.classList.remove("fixmetaShimmer"); }
+            if (elOn) { elOn.textContent = s.onSite || "—"; elOn.classList.remove("fixmetaShimmer"); }
+            if (elPct) { elPct.textContent = s.pctOnSite || "—"; elPct.classList.remove("fixmetaShimmer"); }
+          })
+          .catch(() => {});
+      } catch(_){ }
+
     } catch(_){}
   }
 
@@ -4373,6 +4633,21 @@ const grid = document.createElement("div");
     // Populate the album keyword chips now that we have albumKey
     renderAlbumKeywords();
 
+
+// ===== Loading shimmer tiles while photos are fetched =====
+// Keep this lightweight and purely visual (no logic changes).
+try {
+  const SHIMMER_COUNT = 12;
+  for (let i = 0; i < SHIMMER_COUNT; i++) {
+    const sh = document.createElement("div");
+    sh.className = "smug-photo-box shimmer";
+    const inner = document.createElement("div");
+    inner.className = "shimmerInner";
+    sh.appendChild(inner);
+    grid.appendChild(sh);
+  }
+} catch (_) {}
+
     let imgs = [];
     try {
       imgs = await fetchAllAlbumImages(albumKey);
@@ -4391,6 +4666,11 @@ const grid = document.createElement("div");
       grid.appendChild(msg);
       return;
     }
+
+
+// Remove shimmer placeholders now that we have real images
+try { grid.innerHTML = ""; } catch (_) {}
+
 
     imgs.forEach((img, idx) => {
       const box = document.createElement("div");
@@ -4477,6 +4757,26 @@ const grid = document.createElement("div");
 
     // load data + init UI
     BANDS = await loadBandsFromCsv();
+
+
+// If we couldn't load the Bands CSV (common when opening the file via file:// which has origin "null"),
+// show a clear message so the UI doesn't look broken.
+try {
+  const regions = Object.keys(BANDS || {});
+  if (!regions.length) {
+    if (resultsEl) {
+      resultsEl.innerHTML = `
+        <div class="band-card setsNone" style="cursor:default; text-align:center;">
+          <div style="font-weight:800; font-size:14px; margin-bottom:6px; opacity:.95;">Data didn’t load</div>
+          <div style="font-size:12px; opacity:.85; line-height:1.35;">
+            This usually happens when the page is opened from <strong>file://</strong> (origin "null") or when CORS blocks requests to the server.
+            <br>Open this page from a web host (GitHub Pages/SmugMug/localhost) and refresh.
+          </div>
+        </div>
+      `;
+    }
+  }
+} catch (_) {}
 
     // Static overall stats line (once)
     renderOverallStatsOnce();
