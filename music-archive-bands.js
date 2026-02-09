@@ -87,21 +87,6 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
     } catch (e) {}
   }
 
-function parseNumber(val) {
-  if (val == null) return null;
-  const cleaned = String(val).replace(/[, %]/g, '');
-  const num = Number(cleaned);
-  return Number.isFinite(num) ? num : null;
-}
-
-function formatInt(num) {
-  return Number.isFinite(num) ? num.toLocaleString() : '—';
-}
-
-function formatPercent(num) {
-  return Number.isFinite(num) ? `${num.toFixed(1)}%` : '—';
-}
-
 
   // ===== Scroll restore (mobile + webviews) =====
   // Ensures the content panel is actually scrollable again.
@@ -2155,34 +2140,104 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
 	  if (_fixMetaCached) return _fixMetaCached;
 	  if (_fixMetaPromise) return _fixMetaPromise;
 
+	  const findHeaderIdx = (headers, tests) => {
+	    try{
+	      const arr = (headers || []).map(h => String(h || "").trim().toLowerCase());
+	      for (let i = 0; i < arr.length; i++){
+	        const h = arr[i];
+	        if (!h) continue;
+	        for (const t of tests){
+	          if (t && t.test(h)) return i;
+	        }
+	      }
+	    }catch(_){}
+	    return -1;
+	  };
+
+	  const countNumericCells = (row) => {
+	    let n = 0;
+	    try{
+	      for (let i = 0; i < (row ? row.length : 0); i++){
+	        const v = parseNumber(row[i]);
+	        if (v != null) n++;
+	      }
+	    }catch(_){}
+	    return n;
+	  };
+
 	  _fixMetaPromise = (async () => {
 	    try {
-	      const csvText = await fetchTextFirstOkWithSessionCache(STATS_CSV_ENDPOINTS, STATS_CSV_TTL_MS, STATS_CSV_CACHE_KEY);
-	      const lines = String(csvText || "").split(/\r?\n/).filter((l) => String(l || "").trim());
-	      if (lines.length < 3) return null;
+	      const csvText = await fetchTextFirstOkWithSessionCache(
+	        STATS_CSV_ENDPOINTS,
+	        STATS_CSV_TTL_MS,
+	        STATS_CSV_CACHE_KEY
+	      );
 
-	      // Expect:
-	      //  line 1: headers (A-E)
-	      //  line 2: numeric values
-	      //  line 3: percentages (for B-D)
-	      const row2 = parseCsvLine(lines[1] || "");
-	      const row3 = parseCsvLine(lines[2] || "");
+	      const lines = String(csvText || "")
+	        .split(/\r?\n/)
+	        .map(l => String(l || "").trim())
+	        .filter(Boolean);
 
-	      // Mapping from your sheet screenshot:
-	      //  Total Files  = E2
-	      //  Not Upgraded = C2
-	      //  On Site      = D2
-	      //  %            = D3
-	      const totalFiles = _firstNonEmpty(row2, 4);
-	      const notUpgraded = _firstNonEmpty(row2, 2);
-	      const onSite = _firstNonEmpty(row2, 3);
-	      const pctOnSite = _firstNonEmpty(row3, 3);
+	      if (lines.length < 2) return null;
+
+	      // Header row (best effort)
+	      const headerRow = parseCsvLine(lines[0] || "");
+
+	      // Find the first "mostly numeric" row after the header
+	      let numbersRow = null;
+	      let numbersLineIdx = -1;
+	      for (let i = 1; i < lines.length; i++){
+	        const r = parseCsvLine(lines[i] || "");
+	        if (countNumericCells(r) >= 2){
+	          numbersRow = r;
+	          numbersLineIdx = i;
+	          break;
+	        }
+	      }
+	      if (!numbersRow) return null;
+
+	      // Find a percent row (optional) after the numbers row
+	      let percentRow = null;
+	      for (let i = numbersLineIdx + 1; i < lines.length; i++){
+	        const r = parseCsvLine(lines[i] || "");
+	        // percent row is also numeric, usually smaller values (<= 100)
+	        if (countNumericCells(r) >= 2){
+	          percentRow = r;
+	          break;
+	        }
+	      }
+
+	      // Column mapping by header text (preferred), with safe fallbacks
+	      const idxTotal = findHeaderIdx(headerRow, [/^total$/i, /total/i, /total\s*files/i]);
+	      const idxOnSite = findHeaderIdx(headerRow, [/on\s*site/i, /edited.*on\s*site/i, /edited\s*&\s*on\s*site/i, /edited/i]);
+	      const idxNotUp = findHeaderIdx(headerRow, [/not\s*upgraded/i, /not.*edited/i, /applied.*not.*edited/i, /applied/i]);
+
+	      const lastIdx = Math.max(0, (numbersRow.length || 1) - 1);
+	      const safeIdx = (idx, fallback) => (idx >= 0 && idx < numbersRow.length) ? idx : fallback;
+
+	      const iTotal = safeIdx(idxTotal, lastIdx);
+	      const iOn = safeIdx(idxOnSite, Math.max(0, lastIdx - 1));
+	      const iNot = safeIdx(idxNotUp, Math.max(0, lastIdx - 2));
+
+	      const totalFilesNum = parseNumber(numbersRow[iTotal]);
+	      const notUpgradedNum = parseNumber(numbersRow[iNot]);
+	      const onSiteNum = parseNumber(numbersRow[iOn]);
+
+	      let pctOnSiteNum = null;
+	      if (percentRow){
+	        const p = parseNumber(percentRow[iOn]);
+	        if (p != null) pctOnSiteNum = p;
+	      }
+	      // If sheet doesn't include a percent row, compute it
+	      if (pctOnSiteNum == null && Number.isFinite(onSiteNum) && Number.isFinite(totalFilesNum) && totalFilesNum){
+	        pctOnSiteNum = (onSiteNum * 100) / totalFilesNum;
+	      }
 
 	      const out = {
-	        totalFiles: _safeNumStr(totalFiles),
-	        notUpgraded: _safeNumStr(notUpgraded),
-	        onSite: _safeNumStr(onSite),
-	        pctOnSite: _safeNumStr(pctOnSite),
+	        totalFilesNum,
+	        notUpgradedNum,
+	        onSiteNum,
+	        pctOnSiteNum,
 	      };
 
 	      _fixMetaCached = out;
@@ -3884,10 +3939,10 @@ function animateReimagingStats(overallEl){
               try{ if (elPct) elPct.classList.remove("fixmetaShimmer"); }catch(_){}
               return;
             }
-            if (elTotal) { elTotal.textContent = s.totalFiles || "—"; elTotal.classList.remove("fixmetaShimmer"); }
-            if (elNot) { elNot.textContent = s.notUpgraded || "—"; elNot.classList.remove("fixmetaShimmer"); }
-            if (elOn) { elOn.textContent = s.onSite || "—"; elOn.classList.remove("fixmetaShimmer"); }
-            if (elPct) { elPct.textContent = s.pctOnSite || "—"; elPct.classList.remove("fixmetaShimmer"); }
+            if (elTotal) { elTotal.textContent = formatInt(s.totalFilesNum); elTotal.classList.remove("fixmetaShimmer"); }
+            if (elNot) { elNot.textContent = formatInt(s.notUpgradedNum); elNot.classList.remove("fixmetaShimmer"); }
+            if (elOn) { elOn.textContent = formatInt(s.onSiteNum); elOn.classList.remove("fixmetaShimmer"); }
+            if (elPct) { elPct.textContent = formatPercent(s.pctOnSiteNum); elPct.classList.remove("fixmetaShimmer"); }
           })
           .catch(() => {});
       } catch(_){ }
