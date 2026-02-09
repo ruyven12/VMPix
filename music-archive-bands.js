@@ -3483,15 +3483,15 @@ function animateReimagingStats(overallEl){
 
   <div class="overallStatsGrid">
     <div class="statsCol">
-      <div class="statsRow" style="text-align:center">${total} Total Bands</div>
-	  <div class="statsRow good" style="text-align:center"><div style="font-size:20px">${good}</div>Fully Upgraded</div>
+      <div class="statsRow" style="text-align:center">${total}   Total Bands</div>
+	  <div class="statsRow good" style="text-align:center">${good}   Fully Upgraded</div>
+	  <div class="statsRow partial" style="text-align:center">${partial}   In Progress</div>
+	  <div class="statsRow none" style="text-align:center">${none}   Not Worked Yet</div>
 	</div>
 	<div class="statsCol">
-	  <div class="statsRow partial" style="text-align:center"><div style="font-size:20px">${partial}</div>In Progress</div>
+	  
 	</div>
-      <div class="statsRow none" style="text-align:center"><div style="font-size:20px">${none}</div>Not Worked Yet</div>
-    </div>
-  </div>
+   </div>
 
 <div class="overallStatsBar" aria-hidden="true">
   <div class="seg good" data-pct="${(total ? (good*100/total) : 0)}"></div>
