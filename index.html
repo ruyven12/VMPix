@@ -1528,6 +1528,33 @@
     }
   })();
 </script>
+<script>
+  // Fallback boot (for "two-file" deployments):
+  // If music-archive.js / hud-app.js are not present, mount the Bands module directly
+  // into #hudMainMount by creating #musicContentPanel.
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!window.MusicArchive && window.MusicArchiveBands && typeof window.MusicArchiveBands.render === 'function') {
+        var mount = document.getElementById('hudMainMount') || document.body;
+        var panel = document.getElementById('musicContentPanel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.id = 'musicContentPanel';
+          if (mount && mount !== document.body) mount.innerHTML = '';
+          (mount || document.body).appendChild(panel);
+        }
+        panel.innerHTML = window.MusicArchiveBands.render();
+        if (typeof window.MusicArchiveBands.onMount === 'function') {
+          window.MusicArchiveBands.onMount(panel);
+        }
+      }
+    } catch (e) {
+      // Keep the shell visible even if something goes wrong
+      console.error('Bands fallback mount failed:', e);
+    }
+  });
+</script>
+
 
 
 

@@ -2662,24 +2662,30 @@ async function downloadZipFromServer(items, suggestedName){
   }
 
   function bestFullUrl(img) {
+    // Prefer the highest quality URL we have from SmugMug image payloads.
+    // Different endpoints return different field names, so include the common variants.
     const candidates = [
-      img.OriginalUrl,
-      img.OriginalImageUrl,
-      img.OriginalSizeUrl,
-      img.ArchivedSizeUrl,
-      img.ImageUrl,
-      img.X3LargeUrl,
-      img.X2LargeUrl,
-      img.LargeUrl,
-      img.Url,
-      img.MediumUrl,
-      img.SmallUrl,
-      img.ThumbnailUrl,
+      img?.OriginalUrl,
+      img?.LargestImageUrl,
+      img?.OriginalImageUrl,
+      img?.OriginalSizeUrl,
+      img?.ArchivedSizeUrl,
+      img?.ImageUrl,
+      img?.X3LargeUrl,
+      img?.X2LargeUrl,
+      img?.XLargeUrl,
+      img?.LargeUrl,
+      img?.MediumUrl,
+      img?.SmallUrl,
+      img?.ThumbnailUrl,
+      img?.TinyUrl,
+      img?.Url,
     ].filter(Boolean);
 
     if (!candidates.length) return "";
     const first = candidates[0];
 
+    // If we only got a sized SmugMug CDN URL, upgrade it to Original by swapping the size token.
     if (
       candidates.length === 1 &&
       /photos\.smugmug\.com\/.+\/(S|M|L|XL|X2|X3|Th|T)\//i.test(first)
@@ -2688,9 +2694,7 @@ async function downloadZipFromServer(items, suggestedName){
     }
     return first;
   }
-
-  
-  function ensureLightbox() {
+function ensureLightbox() {
     if (lightboxEl) return;
 
     lightboxEl = document.createElement("div");
@@ -2938,8 +2942,14 @@ async function downloadZipFromServer(items, suggestedName){
   // ================== UI BUILDERS ==================
 
   // ================== HUD TRANSITION HELPERS ==================
-  function runHudWipe(durationMs){
-    const dur = Number(durationMs) || 420;
+  function runHudWipe(targetOrDuration, opts){
+    // Backwards compatible:
+    //  - runHudWipe(420) => Promise that resolves when wipe completes
+    //  - runHudWipe(hostEl, { hold:true, minHoldMs:340 }) => controller with .remove()
+    //  - runHudWipe(420, { hold:true }) => controller with .remove()
+    const options = (opts && typeof opts === "object") ? opts : null;
+    const dur = (typeof targetOrDuration === "number") ? (Number(targetOrDuration) || 420) : 420;
+
     try {
       const existing = document.getElementById('hudWipeOverlay');
       if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
@@ -2950,17 +2960,32 @@ async function downloadZipFromServer(items, suggestedName){
     overlay.className = 'hudWipeOverlay';
     document.body.appendChild(overlay);
 
+    const startedAt = Date.now();
+
     window.requestAnimationFrame(() => {
       try { overlay.classList.add('is-on'); } catch(_) {}
     });
 
+    const doRemove = () => {
+      try { overlay.classList.remove('is-on'); } catch(_) {}
+      window.setTimeout(() => {
+        try { overlay.remove(); } catch(_) {}
+      }, 160);
+    };
+
+    // HOLD mode: caller controls when to remove (prevents blank flashes during view swaps)
+    if (options && options.hold) {
+      return {
+        _startedAt: startedAt,
+        remove: doRemove
+      };
+    }
+
+    // Default mode: auto remove after duration (classic behavior)
     return new Promise((resolve) => {
       window.setTimeout(() => {
-        try { overlay.classList.remove('is-on'); } catch(_) {}
-        window.setTimeout(() => {
-          try { overlay.remove(); } catch(_) {}
-          resolve();
-        }, 160);
+        doRemove();
+        window.setTimeout(resolve, 180);
       }, dur);
     });
   }

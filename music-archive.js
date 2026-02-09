@@ -135,7 +135,6 @@
       _contentPanelEl.style.justifyContent = 'center';
       _contentPanelEl.style.textAlign = 'center';
 
-
       if (_onResize) {
         window.removeEventListener('resize', _onResize);
         _onResize = null;
@@ -409,110 +408,75 @@
     `;
   }
 
-    function animateStripOpen(el) {
-      if (!el) return;
-      const prefersReduced =
-        window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) {
+  function animateStripOpen(el) {
+        if (!el) return;
+        const prefersReduced =
+          window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) {
+          el.style.height = 'auto';
+          el.style.opacity = '1';
+          return;
+        }
+
+        // measure target height
         el.style.height = 'auto';
-        el.style.opacity = '1';
-        return;
+        const target = el.scrollHeight || 0;
+
+        // start collapsed
+        el.style.opacity = '0';
+        el.style.height = '0px';
+        el.style.paddingTop = '0px';
+        el.style.paddingBottom = '0px';
+
+        // animate to content height, then release to auto
+        requestAnimationFrame(() => {
+          el.style.opacity = '1';
+          el.style.height = target + 'px';
+          el.style.paddingTop = '10px';
+          el.style.paddingBottom = '10px';
+        });
+
+        const onEnd = (e) => {
+          if (e && e.propertyName !== 'height') return;
+          el.style.height = 'auto';
+          el.removeEventListener('transitionend', onEnd);
+        };
+        el.addEventListener('transitionend', onEnd);
       }
 
-      // measure target height
-      el.style.height = 'auto';
-      const target = el.scrollHeight || 0;
+    function animateHudTab(tabEl) {
+      if (!tabEl) return;
 
-      // start collapsed
-      el.style.opacity = '0';
-      el.style.height = '0px';
-      el.style.paddingTop = '0px';
-      el.style.paddingBottom = '0px';
+      const strip = document.getElementById('musicInfoStrip');
+      if (!strip) return;
 
-      // animate to content height, then release to auto
-      requestAnimationFrame(() => {
-        el.style.opacity = '1';
-        el.style.height = target + 'px';
-        el.style.paddingTop = '10px';
-        el.style.paddingBottom = '10px';
-      });
+      const wasActive = tabEl.classList.contains('is-active');
 
-      const onEnd = (e) => {
-        if (e && e.propertyName !== 'height') return;
-        el.style.height = 'auto';
-        el.removeEventListener('transitionend', onEnd);
-      };
-      el.addEventListener('transitionend', onEnd);
-    }
-
-  function animateHudTab(tabEl) {
-    if (!tabEl) return;
-
-    const strip = document.getElementById('musicInfoStrip');
-    if (!strip) return;
-
-    const wasActive = tabEl.classList.contains('is-active');
-
-    strip.querySelectorAll('.hudTab').forEach((t) => {
-      t.classList.remove('sweep');
-    });
-
-    if (!wasActive) {
       strip.querySelectorAll('.hudTab').forEach((t) => {
-        t.classList.remove('is-active');
-        t.setAttribute('aria-selected', 'false');
+        t.classList.remove('sweep');
       });
-      tabEl.classList.add('is-active');
-      tabEl.setAttribute('aria-selected', 'true');
+
+      if (!wasActive) {
+        strip.querySelectorAll('.hudTab').forEach((t) => {
+          t.classList.remove('is-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tabEl.classList.add('is-active');
+        tabEl.setAttribute('aria-selected', 'true');
+      }
+
+      tabEl.classList.remove('sweep');
+      void tabEl.offsetWidth;
+      tabEl.classList.add('sweep');
+
+      strip.classList.remove('ping', 'pulse');
+      void strip.offsetWidth;
+      strip.classList.add('ping');
     }
 
-  function animateStripOpen(el) {
-    if (!el) return;
-    const prefersReduced =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) {
-      el.style.height = 'auto';
-      el.style.opacity = '1';
-      return;
-    }
+  
 
-    // measure target height
-    el.style.height = 'auto';
-    const target = el.scrollHeight || 0;
-
-    // start collapsed
-    el.style.opacity = '0';
-    el.style.height = '0px';
-    el.style.paddingTop = '0px';
-    el.style.paddingBottom = '0px';
-
-    // animate to content height, then release to auto
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-      el.style.height = target + 'px';
-      el.style.paddingTop = '10px';
-      el.style.paddingBottom = '10px';
-    });
-
-    const onEnd = (e) => {
-      if (e && e.propertyName !== 'height') return;
-      el.style.height = 'auto';
-      el.removeEventListener('transitionend', onEnd);
-    };
-    el.addEventListener('transitionend', onEnd);
-  }
-
-
-    tabEl.classList.remove('sweep');
-    void tabEl.offsetWidth;
-    tabEl.classList.add('sweep');
-
-    strip.classList.remove('ping', 'pulse');
-    void strip.offsetWidth;
-    strip.classList.add('ping');
-  }
-
-  function render(mountEl) {
+function render(mountEl) {
     if (!mountEl) return;
     _mount = mountEl;
 
@@ -703,7 +667,6 @@ if (!document.getElementById('musicContentWipeStyles')) {
           #musicContentPanel.wipe-out{ animation: musicContentWipeOut 140ms ease-out both; }
           #musicContentPanel.wipe-in{ animation: musicContentWipeIn 180ms ease-out both; }
 
-
           /* --------------------------------------------------
              OPTION 2: Title + Body blocks (Music route informational tabs)
           -------------------------------------------------- */
@@ -834,26 +797,30 @@ if (!document.getElementById('musicContentWipeStyles')) {
           #musicInfoStrip{ position:relative; overflow:hidden; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
 
           #musicInfoStrip .hudTabs{
-            display:flex;
-            flex-wrap:nowrap;              /* ✅ single row */
-            justify-content:flex-start;
-            align-items:center;
-            gap:18px;
-            user-select:none;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:18px;
+  user-select:none;
 
-            overflow-x:auto;              /* ✅ horizontal scroll */
-            overflow-y:hidden;
-            -webkit-overflow-scrolling:touch;
-            scrollbar-width:none;         /* Firefox hide scrollbar */
-            padding:0 18px;
-            width:100%;
-            box-sizing:border-box;
-            flex:1 1 auto;
-            min-width:0;
-            scroll-padding-left:18px;
-            scroll-padding-right:18px;
-            white-space:nowrap;
-          }
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+
+  padding:0 18px;
+  width:100%;
+  box-sizing:border-box;
+  white-space:nowrap;
+}
+
+/* Invisible flex spacers = centered when possible, scrollable when needed */
+#musicInfoStrip .hudTabs::before,
+#musicInfoStrip .hudTabs::after{
+  content:"";
+  flex:1 0 auto;
+}
+
           #musicInfoStrip .hudTabs::-webkit-scrollbar{ display:none; }
 
           #musicInfoStrip .hudTab{ flex:0 0 auto; }
@@ -967,33 +934,35 @@ _orangeBoxEl.style.display = 'flex';
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
     <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
 	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
-    <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
-    <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
-  </div>
+          </div>
   <div class="scanPing" aria-hidden="true"></div>
 `;
-
 
       const WIPE_OUT_MS = 140;
       const WIPE_IN_MS = 180;
       const TYPE_MS = 7;
       let _typeTimer = null;
+      let _swapToken = 0; // cancels stale wipe swaps
 
-      function wipeSwapContent(nextHtml, terminalText) {
+      function wipeSwapContent(nextHtml, terminalText, onAfterSwap) {
         if (!_contentPanelEl) return;
         const prefersReduced =
           window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReduced) {
           _contentPanelEl.innerHTML = nextHtml;
+          if (typeof onAfterSwap === 'function') onAfterSwap();
           return;
         }
+
+        const token = ++_swapToken;
 
         _contentPanelEl.classList.remove('wipe-out', 'wipe-in');
         void _contentPanelEl.offsetWidth;
         _contentPanelEl.classList.add('wipe-out');
 
         window.setTimeout(() => {
+          if (token !== _swapToken) return;
           if (terminalText) {
             _contentPanelEl.innerHTML = `
               <div class="termLine"><span class="termText"></span><span class="termCaret">▌</span></div>
@@ -1007,7 +976,10 @@ _orangeBoxEl.style.display = 'flex';
           _contentPanelEl.classList.add('wipe-in');
 
           window.setTimeout(() => {
+            if (token !== _swapToken) return;
+          if (token !== _swapToken) return;
             _contentPanelEl.classList.remove('wipe-in');
+            if (typeof onAfterSwap === 'function') onAfterSwap();
 
             if (terminalText) {
               const term = _contentPanelEl.querySelector('.termText');
@@ -1049,41 +1021,41 @@ if (tabKey === 'bands' || tabKey === 'shows' || label === 'Bands' || label === '
 
  // Bands (external module)
 if (tabKey === 'bands' || label === 'Bands') {
+  // Force a fresh mount each time Bands is selected (prevents stale deep-view state)
+  try { window.MusicArchiveBands?.destroy?.(); } catch (_) {}
+
   const html =
     window.MusicArchiveBands?.render?.() ||
     `<div style="opacity:.7">Bands module not loaded.</div>`;
 
-  wipeSwapContent(html, '');
-
-  // Optional post-mount hook (wait for wipe-in)
-  window.setTimeout(() => {
+  wipeSwapContent(html, '', () => {
     const panel = document.getElementById('musicContentPanel');
-    window.MusicArchiveBands?.onMount?.(panel);
-  }, 360);
+    if (panel) panel.scrollTop = 0;
+    try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
+  });
 
   return;
 }
 
-
  // Shows (external module)
+try { window.MusicArchiveShows?.destroy?.(); } catch (_) {}
+
 const html =
   window.MusicArchiveShows?.render?.() ||
   `<div style="opacity:.7">Shows module not loaded.</div>`;
 
-wipeSwapContent(html, '');
-
-window.setTimeout(() => {
+wipeSwapContent(html, '', () => {
   const panel = document.getElementById('musicContentPanel');
-  window.MusicArchiveShows?.onMount?.(panel);
-}, 360);
+  if (panel) panel.scrollTop = 0;
+  try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
+});
 
 return;
 
 }
 
-
           // All other tabs: revert to original auto-sizing
-          setArchiveViewportExpanded(true);
+          setArchiveViewportExpanded(false);
 
           if (tabKey === 'origins' || label === 'Origins of Music' || label === 'Origins in Music' || label === 'Origins') {
             const originsBody = `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time (which, still highlighted by seeing some national bands at the time such as Nothingface, Silent Civilian, Mushroomhead, among others). However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
@@ -1098,18 +1070,6 @@ Back then, I started to just take pictures (albeit not the best, but gotta start
             wipeSwapContent(html, '');
             return;
           }
-
-
-          if (tabKey === 'notes' || label === 'Notes') {
-            wipeSwapContent(
-              '',
-              `1: As you get further back in the Show tab, the quality of the shots does drop off as well - especially 2013 backwards.
-
-2: This is a complete work in progress and things will change throughout. If you see something that looks off, please let me know (Contact section coming soon).`
-            );
-            return;
-          }
-
           if (tabKey === 'project' || label === 'The Reimaging Project' || label === 'Reimaging Project') {
             const projectBody = `The "Reimaging" Project has been a few-year odyssey in my photography world where I have wanted to modernize the overall shot that was taken previously. When this project started in mid-2023, my organization of my entire music journey was not noted with any data on it, or in any structure on my storage devices. A lot of the data was spread across multiple drives. This changed when I started to centralize every bit of data into one specific drive. It didn't stop there.
 
@@ -1133,7 +1093,6 @@ The actual process for this project is below (with progress markers). Overall pr
 * <span style="color:#FFD700;">Removed all previous watermarks as best as I could from older photos, used one universal watermark for all shots. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
 * <span style="color:#FFD700;">Put them through my photo editor once more. A lot of the shots just needed minor touchups, but I wanted to preserve the original edits while bringing it to my standards of today. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
 * <span style="color:#FFD700;">Back up shot 3x - Web, Cloud, and Physical storages. (Being worked on as shots go into the archive - Progress is in Bands tab)</span>
-
 
 Why do this though? Why put in this much effort for a small-scale operation? Simple - in the interest of preserveration. This site will serve as the journey that I've had through the years and preserves a small chunk of Maine music history for years to come. This also is a 'love letter' of sorts to the scene that gave me so much in this life that I am grateful for. This is also giving back to those who I've photoed, met, and became lifelong friends with.
 
