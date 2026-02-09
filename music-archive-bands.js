@@ -8,13 +8,23 @@
   // API base (prefer same-origin when hosted on Render; fallback to the known Render API)
   // - If you serve index.html from the SAME Render service, this auto-uses that origin.
   // - If you embed/host elsewhere (SmugMug/GitHub/file://), it falls back to the Render API.
-  const API_BASE =
-    (typeof window !== "undefined" && typeof window.MUSIC_ARCHIVE_API_BASE === "string" && window.MUSIC_ARCHIVE_API_BASE.trim())
-      ? window.MUSIC_ARCHIVE_API_BASE.trim()
-      : ((typeof location !== "undefined" && location && typeof location.origin === "string" && location.origin !== "null" && /onrender\.com$/i.test(location.hostname))
-        ? location.origin
-        : "https://music-archive-3lfa.onrender.com");
-  const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
+  const DEFAULT_API_BASE = "https://music-archive-31fa.onrender.com";
+
+// API base
+// - If you set window.MUSIC_ARCHIVE_API_BASE in your page, we will use that.
+// - Otherwise, we always use the backend Render API (do NOT auto-assume same-origin,
+//   because the frontend may be hosted on a different Render service).
+const API_BASE =
+  (typeof window !== "undefined" &&
+    typeof window.MUSIC_ARCHIVE_API_BASE === "string" &&
+    window.MUSIC_ARCHIVE_API_BASE.trim())
+    ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, "")
+    : DEFAULT_API_BASE;
+
+const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
+
+// quick sanity log (helps confirm the app is hitting the correct server)
+try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
 
   // ===== Feature flags =====
   // Keep the ZIP/multi-select code in place, but hide the UI for now.
@@ -77,12 +87,56 @@
     } catch (e) {}
   }
 
+
+  // ===== Scroll restore (mobile + webviews) =====
+  // Ensures the content panel is actually scrollable again.
+  // Defensive against cases where a previous overlay/lightbox left overflow locked.
+  function ensurePanelScrollable() {
+    try {
+      const panel = panelRoot || document.getElementById("musicContentPanel");
+      if (panel) {
+        // Allow vertical scroll inside the panel
+        panel.style.overflowY = "auto";
+        panel.style.overflowX = "hidden";
+        panel.style.webkitOverflowScrolling = "touch";
+        panel.style.overscrollBehavior = "contain";
+
+        // Ensure the panel can grow within the viewport
+        /* Let the panel scroll to the true bottom inside whatever layout it sits in (avoids 100vh clipping). */
+        panel.style.height = "100%";
+        panel.style.minHeight = "0";
+        panel.style.maxHeight = "100%";
+      }
+
+      // If no lightbox is active, make sure page scrolling isn't locked
+      if (!lightboxEl) {
+        try { document.documentElement.style.overflow = ""; } catch (_) {}
+        try { document.body.style.overflow = ""; } catch (_) {}
+      }
+    } catch (e) {}
+  }
+
+
   // ================== STYLES ==================
   function ensureBandsStyles() {
     if (document.getElementById("musicBandsStyles")) return;
     const s = document.createElement("style");
     s.id = "musicBandsStyles";
     s.textContent = `
+
+      /* ===== Scroll restore ===== */
+      #musicContentPanel{
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
+        box-sizing: border-box;
+        padding-bottom: 28px; /* prevents last line from feeling clipped */
+      }
+
 
       /* ===== Hi-tech HUD transition: band detail -> album photos ===== */
       .hudWipeOverlay{
@@ -149,6 +203,7 @@
       .photosWrap{
         transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
       }
+      .photosWrap{ padding-bottom: 28px; box-sizing: border-box; }
       .smug-photo-box.tileHidden{
         opacity: 0;
         transform: translateY(10px);
@@ -856,6 +911,9 @@ color: rgba(226,232,240,0.92);
         margin:0;
         padding: clamp(8px, 1.2vw, 16px);
       }
+
+      /* Extra bottom breathing room so long text never looks clipped */
+      .bandsWrap{ padding-bottom: 28px; }
 
       /* top bar inside panel */
       .bandsTop{
@@ -3515,6 +3573,7 @@ function ensureLightbox() {
         try { CURRENT_LETTER = null; } catch(_) {}
         try { updateLegendStats(key, null); } catch(_) {}
         resetPanelScroll();
+        ensurePanelScrollable();
         // Keep current results visible until the transition swaps to the next letter group
         updateLetterGroups(key, { autoSelect: true });
         window.setTimeout(() => resetPanelScroll(), 200);
@@ -3910,6 +3969,7 @@ function animateReimagingStats(overallEl){
       });
 
       resetPanelScroll();
+      ensurePanelScrollable();
 
       // Transition in
       window.requestAnimationFrame(() => {
@@ -3934,6 +3994,7 @@ async function showBandCard(region, letter, bandObj, opts) {
     resultsEl.innerHTML = "";
     // crumbs removed
     resetPanelScroll();
+    ensurePanelScrollable();
 
     const wrap = document.createElement("div");
     wrap.className = "bandDetailWrap";
@@ -4304,6 +4365,7 @@ const members = document.createElement("div");
     try { document.body.classList.add("inAlbumPhotos"); } catch(_) {}
     // crumbs removed
     resetPanelScroll();
+    ensurePanelScrollable();
 
     const wrap = document.createElement("div");
     wrap.className = "photosWrap entering";
@@ -4807,6 +4869,9 @@ try { grid.innerHTML = ""; } catch (_) {}
     panelRoot = panelEl;
     if (!panelRoot) return;
 
+    // Restore scroll behavior for this panel (especially on mobile/webviews)
+    ensurePanelScrollable();
+
     // grab refs inside the panel ONLY
     resultsEl = panelRoot.querySelector("#results");
     letterGroupsEl = panelRoot.querySelector("#letter-groups");
@@ -4854,6 +4919,7 @@ try {
     // default: clear results
     if (resultsEl) resultsEl.innerHTML = "";
     resetPanelScroll();
+    ensurePanelScrollable();
     if (legendEl) legendEl.style.display = "";
   }
 
