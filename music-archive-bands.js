@@ -256,11 +256,11 @@
 	  
 .overallStatsGrid{
   display:grid;
-  width:250px;
-  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  width:350px;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
   gap: 12px;
   margin-top: 14px;
-  margin:14px auto 0;   /* 👈 centers the whole block */
+  margin:0px auto 0;
   justify-items: stretch;
   align-items: stretch;
 }
