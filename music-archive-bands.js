@@ -87,6 +87,21 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
     } catch (e) {}
   }
 
+function parseNumber(val) {
+  if (val == null) return null;
+  const cleaned = String(val).replace(/[, %]/g, '');
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : null;
+}
+
+function formatInt(num) {
+  return Number.isFinite(num) ? num.toLocaleString() : '—';
+}
+
+function formatPercent(num) {
+  return Number.isFinite(num) ? `${num.toFixed(1)}%` : '—';
+}
+
 
   // ===== Scroll restore (mobile + webviews) =====
   // Ensures the content panel is actually scrollable again.
