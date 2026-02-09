@@ -2056,7 +2056,7 @@ color: rgba(226,232,240,0.92);
   `/sheet/fix_metadata`,
 ];
 
-const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v1";
+const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v2";
 	const STATS_CSV_TTL_MS = 1000 * 60 * 10; // 10 minutes
 
 async function fetchTextWithSessionCache(url, ttlMs, key) {
@@ -2173,6 +2173,13 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
 	        STATS_CSV_CACHE_KEY
 	      );
 
+      // If we somehow got HTML or an empty response, don't try to parse it as CSV
+      const _csvPreview = String(csvText || "").trim().slice(0, 40).toLowerCase();
+      if (!_csvPreview || _csvPreview.startsWith("<!doctype") || _csvPreview.startsWith("<html") || _csvPreview.startsWith("<")) {
+        console.warn("Fix/Metadata stats: non-CSV response preview:", String(csvText || "").trim().slice(0, 120));
+        return null;
+      }
+
 	      const lines = String(csvText || "")
 	        .split(/\r?\n/)
 	        .map(l => String(l || "").trim())
@@ -2207,17 +2214,34 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
 	        }
 	      }
 
-	      // Column mapping by header text (preferred), with safe fallbacks
-	      const idxTotal = findHeaderIdx(headerRow, [/^total$/i, /total/i, /total\s*files/i]);
-	      const idxOnSite = findHeaderIdx(headerRow, [/on\s*site/i, /edited.*on\s*site/i, /edited\s*&\s*on\s*site/i, /edited/i]);
-	      const idxNotUp = findHeaderIdx(headerRow, [/not\s*upgraded/i, /not.*edited/i, /applied.*not.*edited/i, /applied/i]);
-
+	      // Column mapping:
+	      // Chris's sheet layout (ignore the first column entirely):
+	      //   Row 2:  C2 = Not Upgraded, D2 = On Site, E2 = Total Files
+	      //   Row 3:  D3 = % On Site
+	      // We still keep a header-based fallback in case the sheet order changes.
 	      const lastIdx = Math.max(0, (numbersRow.length || 1) - 1);
 	      const safeIdx = (idx, fallback) => (idx >= 0 && idx < numbersRow.length) ? idx : fallback;
 
-	      const iTotal = safeIdx(idxTotal, lastIdx);
-	      const iOn = safeIdx(idxOnSite, Math.max(0, lastIdx - 1));
-	      const iNot = safeIdx(idxNotUp, Math.max(0, lastIdx - 2));
+	      // Preferred fixed indices (0-based): C=2, D=3, E=4
+	      let iNot = 2;
+	      let iOn = 3;
+	      let iTotal = 4;
+
+	      // If the row is shorter than expected, fall back to header matching (best effort)
+	      if (numbersRow.length <= 4){
+	        const idxTotal = findHeaderIdx(headerRow, [/^total$/i, /total/i, /total\s*files/i]);
+	        const idxOnSite = findHeaderIdx(headerRow, [/on\s*site/i, /edited.*on\s*site/i, /edited\s*&\s*on\s*site/i, /edited/i]);
+	        const idxNotUp = findHeaderIdx(headerRow, [/not\s*upgraded/i, /not.*edited/i, /applied.*not.*edited/i, /applied/i]);
+
+	        iTotal = safeIdx(idxTotal, lastIdx);
+	        iOn = safeIdx(idxOnSite, Math.max(0, lastIdx - 1));
+	        iNot = safeIdx(idxNotUp, Math.max(0, lastIdx - 2));
+	      } else {
+	        // Clamp fixed indices if the row is unexpectedly short
+	        iTotal = safeIdx(iTotal, lastIdx);
+	        iOn = safeIdx(iOn, Math.max(0, lastIdx - 1));
+	        iNot = safeIdx(iNot, Math.max(0, lastIdx - 2));
+	      }
 
 	      const totalFilesNum = parseNumber(numbersRow[iTotal]);
 	      const notUpgradedNum = parseNumber(numbersRow[iNot]);
