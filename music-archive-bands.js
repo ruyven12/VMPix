@@ -36,9 +36,7 @@
 
   // panel-scoped DOM refs
   let panelRoot = null;
-  let treeEl = null;
   let resultsEl = null;
-  let crumbsEl = null;
   let letterGroupsEl = null;
   let regionPillsEl = null;
   let legendEl = null;
@@ -46,8 +44,6 @@
   let LAST_BAND_CTX = null;
   // sequence token to prevent out-of-order renders during rapid Region/Letter clicks
   let SHOWLETTER_SEQ = 0;
-
-
 
   function resetPanelScroll() {
     try {
@@ -232,7 +228,6 @@
         opacity: .80;
       }
 
-
       /* ===== Band detail view: hide letter groupings + status legend ===== */
       .inBandDetail #letter-groups{ display:none !important; }
       .inBandDetail #status-legend{ display:none !important; }
@@ -258,24 +253,14 @@
         text-transform: none !important;
         opacity: .72;
       }
-      .bandsLegendLine{
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap: 14px;
-        flex-wrap:wrap;
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 11px;
-        letter-spacing: .10em;
-        text-transform: none !important;
-        opacity: .80;
-      }
 	  
-	  .overallStatsGrid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 14px 24px;
+.overallStatsGrid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr)); /* 4 columns */
+  gap: 12px;
   margin-top: 14px;
+  justify-items: stretch;
+  align-items: stretch;
 }
 
 .statsCol {
@@ -385,11 +370,56 @@
         }
       }
 
-.bandsLegendLine .mini{
-        display:inline-flex;
-        align-items:center;
-        gap: 6px;
-      }
+
+/* ===== Reimaging Stats: clean reveal + segmented bar (Option B) ===== */
+#bands-overall .statsRow{
+  transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
+  will-change: opacity, transform, filter;
+}
+#bands-overall .statsRow.reimagingAnimHidden{
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(8px);
+}
+#bands-overall .statsRow.reimagingAnimIn{
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+#bands-overall .overallStatsBar{
+  width: min(820px, 92vw);
+  height: 10px;
+  margin: 10px auto 0;
+  display:flex;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 12px 26px rgba(0,0,0,0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items:center;
+  justify-content:space-between;
+  overflow: hidden;
+}
+#bands-overall .overallStatsBar .seg{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 620ms cubic-bezier(0.2, 0.85, 0.2, 1);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset;
+}
+#bands-overall .overallStatsBar .seg.good{ background: rgba(34,197,94,0.55); }
+#bands-overall .overallStatsBar .seg.partial{ background: rgba(245,158,11,0.55); }
+#bands-overall .overallStatsBar .seg.none{ background: rgba(148,163,184,0.40); }
+
+@media (prefers-reduced-motion: reduce){
+  #bands-overall .statsRow{ transition: none !important; }
+  #bands-overall .overallStatsBar .seg{ transition: none !important; }
+}
+
 
       .inBandDetail #region-pills{ display:none !important; }
 
@@ -744,7 +774,6 @@ color: rgba(226,232,240,0.92);
         margin-bottom:10px;
       }
 
-
 /* ===== Divider above bands header block ===== */
 .bandsTopDivider{
   width: 100%;
@@ -815,19 +844,6 @@ color: rgba(226,232,240,0.92);
       .letter-pill.active{
         color:rgba(226,232,240,0.98);
         border-bottom-color: rgba(239,68,68,0.85);
-      }
-      /* legend */
-      #status-legend{
-        display:flex;
-        justify-content:center;
-        gap:10px;
-        flex-wrap:wrap;
-        font-size:12px;
-        opacity:.9;
-      }
-      .legend-dot{
-        width:10px;height:10px;border-radius:50%;
-        display:inline-block;margin-right:6px;
       }
 
       /* ===== Stats inline (Dynamic) ===== */
@@ -957,7 +973,6 @@ color: rgba(226,232,240,0.92);
         transform: scale(1.03);
         box-shadow: 0 18px 40px rgba(0,0,0,0.35);
       }
-
 
       /* ===== Band list card status backgrounds (based on sets_archive vs total_sets) =====
          - if total_sets and sets_archive are equal (and both present) => green
@@ -1119,7 +1134,6 @@ color: rgba(226,232,240,0.92);
         border:1px solid rgba(255,255,255,0.10);
         background:rgba(255,255,255,0.04);
       }
-
 
       /* ===== Photos grid: editorial tiles (hover meta + index) ===== */
       .photosGrid{
@@ -1367,7 +1381,6 @@ color: rgba(226,232,240,0.92);
         .lightboxStrip{ padding-bottom: 10px; }
       }
 
-
       /* lightbox (legacy)
          NOTE: The site now uses the newer Lightbox v2 styles above.
          Keep these legacy styles available, but only apply them if a lightbox
@@ -1610,7 +1623,6 @@ color: rgba(226,232,240,0.92);
         gap:12px !important;
       }
 
-
       /* ===== Album row cards (match your centered poster + text layout) ===== */
       .albumRowCard{
         width:100%;
@@ -1753,7 +1765,6 @@ color: rgba(226,232,240,0.92);
 
 `;
 
-
     document.head.appendChild(s);
   }
 
@@ -1770,8 +1781,7 @@ color: rgba(226,232,240,0.92);
           <div id="status-legend">
             <div id="bands-overall" class="bandsOverallLine"></div>
             <div id="bands-total" class="bandsTotalLine"></div>
-            <div id="bands-legend" class="bandsLegendLine"></div>
-          </div>
+</div>
                     <div class="bandsLegendDivider" aria-hidden="true"></div>
           <div id="region-pills"></div>
           <div id="letter-groups"></div>
@@ -1825,7 +1835,6 @@ color: rgba(226,232,240,0.92);
       .replace(/[^a-z0-9\s-]+/gi, "")
       .replace(/\s+/g, "-")
       .toLowerCase();
-
 
   // ================== PERF HELPERS ==================
   // Goal: faster first reveal (don't block UI) + fewer repeat network calls.
@@ -1897,8 +1906,6 @@ color: rgba(226,232,240,0.92);
     FOLDER_ALBUMS_CACHE.set(key, { ts: now, albums });
     return albums;
   }
-
-
 
   // ================== SHOWS INDEX (Option C) ==================
   // Albums: show_name + show_date from album name; venue line from /sheet/shows CSV (fallback to album Description)
@@ -2028,7 +2035,6 @@ color: rgba(226,232,240,0.92);
 
     return _showsIndexPromise;
   }
-
 
   async function loadBandsFromCsv() {
     try {
@@ -2229,7 +2235,6 @@ color: rgba(226,232,240,0.92);
     return all;
   }
 
-
   async function fetchAlbumKeywords(albumKey) {
     if (!albumKey) return [];
     try {
@@ -2280,7 +2285,6 @@ color: rgba(226,232,240,0.92);
     }
   }
 
-
   
   
   // ================== "Also appears in these albums" (cross-band via Bands CSV + SmugMug album keywords) ==================
@@ -2310,7 +2314,6 @@ color: rgba(226,232,240,0.92);
   function _eh(s){
     return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
   }
-
 
   function _getAllBandEntries() {
     const out = [];
@@ -2645,7 +2648,6 @@ async function downloadZipFromServer(items, suggestedName){
     window.setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-
   // ================== LIGHTBOX (ported pattern) ==================
   let lightboxEl = null;
   let lightboxImg = null;
@@ -2826,7 +2828,6 @@ function ensureLightbox() {
     lightboxCaption = null;
   }
 
-
   
   function showAt(idx) {
     if (!currentViewList.length || !lightboxImg || !lightboxEl) return;
@@ -2896,7 +2897,6 @@ function ensureLightbox() {
       }
     } catch(_) {}
   }
-
 
   
   function openLightbox(list, idx, context) {
@@ -3134,7 +3134,6 @@ function ensureLightbox() {
     }
   }
 
-
   // Reverse transition: "logo zoom back" from detail header into the band card logo in the list.
   async function animateBandClose(region, letter, bandObj) {
     try {
@@ -3254,7 +3253,6 @@ function ensureLightbox() {
     }
   }
 
-
   function initRegionPills() {
     if (!regionPillsEl) return;
     regionPillsEl.innerHTML = "";
@@ -3332,16 +3330,6 @@ function ensureLightbox() {
     } catch (_) {}
   }
 
-  function buildTree() { /* sidebar removed */ }
-
-  function statusToColor(status) {
-    const s = String(status || "").trim().toLowerCase();
-    if (!s) return "#94a3b8"; // unknown
-    if (s.includes("active")) return "#22c55e";
-    if (s.includes("inactive")) return "#f59e0b";
-    return "#94a3b8";
-  }
-
   // ===== Band list coloring based on sets_archive vs total_sets =====
   // Rules:
   //  - if total_sets and sets_archive are equal (and both present) => green
@@ -3403,6 +3391,65 @@ function ensureLightbox() {
     }
   }
 
+// ===== Reimaging Stats: animate once per session (Option B) =====
+function animateReimagingStats(overallEl){
+  try{
+    if (!overallEl) return;
+
+    // Replay each time you enter this screen: run once per DOM mount
+    try{
+      if (overallEl.dataset && overallEl.dataset.reimagingAnimRan === "1") return;
+      if (overallEl.dataset) overallEl.dataset.reimagingAnimRan = "1";
+    } catch(_){}
+
+    // Respect reduced motion
+    try{
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+    } catch(_){}
+
+    const rows = Array.from(overallEl.querySelectorAll(".statsRow"));
+    if (rows.length){
+      // Reset state so the animation always has a clean starting point
+      rows.forEach((r) => {
+        try{
+          r.classList.remove("reimagingAnimIn");
+          r.classList.add("reimagingAnimHidden");
+        } catch(_){}
+      });
+
+      window.requestAnimationFrame(() => {
+        rows.forEach((r, i) => {
+          window.setTimeout(() => {
+            try{
+              r.classList.add("reimagingAnimIn");
+              r.classList.remove("reimagingAnimHidden");
+            } catch(_){}
+          }, Math.min(520, i * 110));
+        });
+      });
+    }
+
+    const segs = Array.from(overallEl.querySelectorAll(".overallStatsBar .seg"));
+    if (segs.length){
+      // Start collapsed, then expand to target percentages
+      segs.forEach((s) => {
+        try { s.style.width = "0%"; } catch(_){}
+      });
+
+      window.requestAnimationFrame(() => {
+        segs.forEach((s, i) => {
+          const pct = Number(s.getAttribute("data-pct")) || 0;
+          window.setTimeout(() => {
+            try { s.style.width = pct.toFixed(2) + "%"; } catch(_){}
+          }, Math.min(420, i * 90));
+        });
+      });
+    }
+  } catch(_){}
+}
+
   
   function renderOverallStatsOnce(){
     try{
@@ -3430,38 +3477,37 @@ function ensureLightbox() {
       };
 
       overallEl.innerHTML = `
-  <div class="overallStatsTitle">Overall Archive Stats:</div>
+  <div class="overallStatsTitle">"Reimaging Project" Stats:</div>
 
   <div class="overallStatsGrid">
-    <!-- Labels column -->
-    <div class="statsCol labels">
-      <div class="statsRow" style="text-align:center">Total Bands</div>
-      <div class="statsRow good" style="text-align:center">Fully Upgraded</div>
-      <div class="statsRow partial" style="text-align:center">In Progress</div>
-      <div class="statsRow none" style="text-align:center">Not Worked Yet</div>
-    </div>
-
-    <!-- Values column -->
-    <div class="statsCol values">
-      <div class="statsRow" style="text-align:center"><strong>${total}</strong></div>
-      <div class="statsRow good" style="text-align:center"><strong>${good}</strong> • ${pct(good)}</div>
-      <div class="statsRow partial" style="text-align:center"><strong>${partial}</strong> • ${pct(partial)}</div>
-      <div class="statsRow none" style="text-align:center"><strong>${none}</strong> • ${pct(none)}</div>
+    <div class="statsCol">
+      <div class="statsRow" style="text-align:center"><div style="font-size:20px">${total}</div>Total Bands</div>
+	</div>
+	<div class="statsCol">
+	  <div class="statsRow good" style="text-align:center"><div style="font-size:20px">${good}</div>Fully Upgraded</div>
+	</div>
+	<div class="statsCol">
+	  <div class="statsRow partial" style="text-align:center"><div style="font-size:20px">${partial}</div>In Progress</div>
+	</div>
+      <div class="statsRow none" style="text-align:center"><div style="font-size:20px">${none}</div>Not Worked Yet</div>
     </div>
   </div>
+
+<div class="overallStatsBar" aria-hidden="true">
+  <div class="seg good" data-pct="${(total ? (good*100/total) : 0)}"></div>
+  <div class="seg partial" data-pct="${(total ? (partial*100/total) : 0)}"></div>
+  <div class="seg none" data-pct="${(total ? (none*100/total) : 0)}"></div>
+</div>
 `;
+      animateReimagingStats(overallEl);
     } catch(_){}
   }
-
 
   function updateLegendStats(region, letter){
     try{
       const totalEl =
         (panelRoot ? panelRoot.querySelector("#bands-total") : null) ||
         document.getElementById("bands-total");
-      const legendLineEl =
-        (panelRoot ? panelRoot.querySelector("#bands-legend") : null) ||
-        document.getElementById("bands-legend");
 
       const list = getBandsInScope(region, letter);
       const total = (list || []).length;
@@ -3474,24 +3520,12 @@ function ensureLightbox() {
         else none++;
       });
 
-      if (totalEl) {
-        totalEl.textContent = `Total Bands — ${total}`;
-      }
-
       const pct = (n) => {
         if (!total) return "0.0%";
         const p = (n * 100) / total;
         return `${p.toFixed(1)}%`;
       };
-
-      if (legendLineEl) {
-        legendLineEl.innerHTML = `
-          <span class="mini"><span class="legend-dot" style="background:#22c55e"></span>${good} Fully Upgraded (${pct(good)})</span>
-          <span class="mini"><span class="legend-dot" style="background:#f59e0b"></span>${partial} In Progress (${pct(partial)})</span>
-          <span class="mini"><span class="legend-dot" style="background:#94a3b8"></span>${none} Not Worked Yet (${pct(none)})</span>
-        `.trim();
-      }
-    } catch(_){}
+} catch(_){}
   }
 
   function showLetter(regionKey, letter){
@@ -3514,7 +3548,8 @@ function ensureLightbox() {
 
       bands.forEach((bandObj) => {
         const card = document.createElement("div");
-        card.className = `band-card ${setsStateClass(bandObj)}`;
+        const stateCls = setsStateClass(bandObj);
+        card.className = `band-card ${stateCls}`;
 
         const row = document.createElement("div");
         row.className = "band-row";
@@ -3532,15 +3567,16 @@ function ensureLightbox() {
         nm.className = "band-name";
         nm.textContent = bandObj?.name || "";
 
-        const cnt = document.createElement("span");
-        cnt.className = "band-count";
-        const t = Number(bandObj?.total_sets) || 0;
-        const a = Number(bandObj?.sets_archive) || 0;
-        // Keep this compact; adjust later if you want "Sets:" label.
-        cnt.textContent = `(${a}/${t})`;
-
-        // name line (band name + count)
-        nm.appendChild(cnt);
+        // Only show the (archived/total) count when the card is "In Progress" (yellow / partial).
+        if (stateCls === "setsPartial") {
+          const cnt = document.createElement("span");
+          cnt.className = "band-count";
+          const t = Number(bandObj?.total_sets) || 0;
+          const a = Number(bandObj?.sets_archive) || 0;
+          cnt.textContent = `(${a}/${t})`;
+          // name line (band name + count)
+          nm.appendChild(cnt);
+        }
 
         right.appendChild(nm);
 
@@ -3566,8 +3602,6 @@ function ensureLightbox() {
     // Small delay so the "swap" class takes effect before we replace DOM
     window.setTimeout(doRender, 120);
   }
-
-
 
 async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
@@ -4068,7 +4102,6 @@ const grid = document.createElement("div");
     keywordBox.appendChild(kwChips);
     wrap.appendChild(keywordBox);
 
-
     // ===== Multi-select toolbar (Select mode + Download ZIP) =====
     // UI is currently hidden (feature-flagged), but code remains for later.
     let selectMode = false;
@@ -4438,7 +4471,6 @@ const grid = document.createElement("div");
 
     // grab refs inside the panel ONLY
     resultsEl = panelRoot.querySelector("#results");
-    crumbsEl = null; // breadcrumbs removed
     letterGroupsEl = panelRoot.querySelector("#letter-groups");
     regionPillsEl = panelRoot.querySelector("#region-pills");
     legendEl = panelRoot.querySelector("#status-legend");
@@ -4460,10 +4492,6 @@ const grid = document.createElement("div");
       if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
       if (root) root.classList.remove("is-loading");
     } catch (_) {}
-
-    if (crumbsEl) {
-      // crumbs removed
-    }
 
     // default: clear results
     if (resultsEl) resultsEl.innerHTML = "";
