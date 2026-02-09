@@ -8,7 +8,7 @@
   // API base (prefer same-origin when hosted on Render; fallback to the known Render API)
   // - If you serve index.html from the SAME Render service, this auto-uses that origin.
   // - If you embed/host elsewhere (SmugMug/GitHub/file://), it falls back to the Render API.
-  const DEFAULT_API_BASE = "https://music-archive-31fa.onrender.com";
+  const DEFAULT_API_BASE = "https://music-archive-3lfa.onrender.com";
 
 // API base
 // - If you set window.MUSIC_ARCHIVE_API_BASE in your page, we will use that.
