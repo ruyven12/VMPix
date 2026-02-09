@@ -5,7 +5,7 @@
   "use strict";
 
   // ================== CONFIG (matches script.js) ==================
-  const API_BASE = "https://music-archive-3lfa.onrender.com";
+  const API_BASE = "https://music-archive-31fa.onrender.com";
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
   // ===== Feature flags =====
@@ -1978,31 +1978,93 @@ color: rgba(226,232,240,0.92);
 
 	// ---- Session cache (Stats tab CSV: Fix / Metadata) ----
 	// Server provides this as /sheet/stats (and aliases). We only read values to replace the "xxx" placeholders.
-	const STATS_CSV_ENDPOINT = `${API_BASE}/sheet/stats`;
-	const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v1";
+	const STATS_CSV_ENDPOINTS = [
+  `${API_BASE}/sheet/stats`,
+  `${API_BASE}/sheet/stats/`,
+  `${API_BASE}/sheet/fix_metadata`,
+  `${API_BASE}/sheet/fix_metadata/`,
+  `${API_BASE}/sheet/fix-metadata`,
+  `${API_BASE}/sheet/fixmetadata`,
+  `${API_BASE}/sheet/fix`,
+  // NOTE: Avoid relative ("/sheet/...") endpoints here.
+  // When the page is opened via file://, relative fetches become file:///sheet/... and will always fail.
+];
+
+const STATS_CSV_CACHE_KEY = "vm_music_stats_csv_v1";
 	const STATS_CSV_TTL_MS = 1000 * 60 * 10; // 10 minutes
 
-  async function fetchTextWithSessionCache(url, ttlMs, key) {
-    try {
-      const raw = sessionStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.text && (Date.now() - (parsed.ts || 0)) < ttlMs) {
-          return String(parsed.text || "");
-        }
+async function fetchTextWithSessionCache(url, ttlMs, key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.text && (Date.now() - (parsed.ts || 0)) < ttlMs) {
+        return String(parsed.text || "");
       }
-    } catch (_) {}
+    }
+  } catch (_) {}
 
-    const text = await fetch(url, { cache: "no-store" }).then((r) => r.text());
+  const r = await fetch(url, { cache: "no-store" });
+  const text = await r.text();
 
+  // Cache regardless of status for this generic helper (used for bands CSV),
+  // but callers should validate if needed.
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
+  } catch (_) {}
+
+  return text;
+}
+
+async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
+  // Reuse the same session cache bucket, but only cache on a successful (2xx) response.
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.text && (Date.now() - (parsed.ts || 0)) < ttlMs) {
+        return String(parsed.text || "");
+      }
+    }
+  } catch (_) {}
+
+  const list = Array.isArray(urls) ? urls : [urls];
+  let lastErr = null;
+
+  for (let i = 0; i < list.length; i++) {
+    let url = list[i];
+    if (!url) continue;
+
+    // Only attempt http(s) fetches. This prevents noisy failures when opened via file://
+    // where relative URLs become file:///... and are blocked.
+    const isHttp = (u) => /^https?:\/\//i.test(String(u || ""));
+    if (!isHttp(url)) {
+      try {
+        if (window.location && /^https?:$/.test(window.location.protocol)) {
+          url = String(window.location.origin || "").replace(/\/$/, "") + String(url);
+        }
+      } catch (_) {}
+    }
+    if (!isHttp(url)) continue;
     try {
-      sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
-    } catch (_) {}
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
 
-    return text;
+      try {
+        sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
+      } catch (_) {}
+
+      return text;
+    } catch (e) {
+      lastErr = e;
+    }
   }
 
-	// ---- Stats (Fix / Metadata tab) loader ----
+  throw lastErr || new Error("No stats endpoints succeeded");
+}
+
+// ---- Stats (Fix / Metadata tab) loader ----
 	let _fixMetaPromise = null;
 	let _fixMetaCached = null;
 
@@ -2026,7 +2088,7 @@ color: rgba(226,232,240,0.92);
 
 	  _fixMetaPromise = (async () => {
 	    try {
-	      const csvText = await fetchTextWithSessionCache(STATS_CSV_ENDPOINT, STATS_CSV_TTL_MS, STATS_CSV_CACHE_KEY);
+	      const csvText = await fetchTextFirstOkWithSessionCache(STATS_CSV_ENDPOINTS, STATS_CSV_TTL_MS, STATS_CSV_CACHE_KEY);
 	      const lines = String(csvText || "").split(/\r?\n/).filter((l) => String(l || "").trim());
 	      if (lines.length < 3) return null;
 
