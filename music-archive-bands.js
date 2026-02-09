@@ -257,7 +257,7 @@
 .overallStatsGrid{
   display:grid;
   width:350px;
-  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  grid-template-columns: repeat(1, minmax(150px, 1fr));
   gap: 12px;
   margin-top: 14px;
   margin:0px auto 0;
@@ -3483,9 +3483,7 @@ function animateReimagingStats(overallEl){
 
   <div class="overallStatsGrid">
     <div class="statsCol">
-      <div class="statsRow" style="text-align:center"><div style="font-size:20px">${total}</div>Total Bands</div>
-	</div>
-	<div class="statsCol">
+      <div class="statsRow" style="text-align:center">${total} Total Bands</div>
 	  <div class="statsRow good" style="text-align:center"><div style="font-size:20px">${good}</div>Fully Upgraded</div>
 	</div>
 	<div class="statsCol">
