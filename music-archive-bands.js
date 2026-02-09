@@ -4084,8 +4084,22 @@ const grid = document.createElement("div");
     // (SmugMug shop links use /shop?nodeKey=..., not always the AlbumKey).
     (function initBuyPhotosLink() {
       const alb = info && info.album ? info.album : null;
-      const rawWeb = alb && (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url) ? (alb.WebUri || alb.webUri || alb.weburi || alb.Url || alb.url) : "";
-      const rawPath = alb && (alb.UrlPath || alb.urlPath || alb.urlpath) ? (alb.UrlPath || alb.urlPath || alb.urlpath) : "";
+
+      // Try to detect a NodeKey/NodeID directly from the album payload (fast path).
+      const directNodeKey =
+        (alb && (alb.NodeKey || alb.nodeKey || alb.NodeID || alb.nodeID || alb.NodeId || alb.nodeId)) ? String(alb.NodeKey || alb.nodeKey || alb.NodeID || alb.nodeID || alb.NodeId || alb.nodeId).trim() : "";
+
+      // Album identifiers we always have.
+      const albumKey = alb && (alb.AlbumKey || alb.Key || alb.albumKey || alb.key) ? String(alb.AlbumKey || alb.Key || alb.albumKey || alb.key).trim() : "";
+
+      // Web/URL fields vary by endpoint; be defensive.
+      const rawWeb =
+        alb && (alb.WebUri || alb.WebURL || alb.WebUrl || alb.webUri || alb.weburl || alb.webUrl || alb.Url || alb.url) ?
+        (alb.WebUri || alb.WebURL || alb.WebUrl || alb.webUri || alb.weburl || alb.webUrl || alb.Url || alb.url) : "";
+
+      const rawPath =
+        alb && (alb.UrlPath || alb.URLPath || alb.urlPath || alb.urlpath || alb.Uri || alb.URI || alb.uri) ?
+        (alb.UrlPath || alb.URLPath || alb.urlPath || alb.urlpath || alb.Uri || alb.URI || alb.uri) : "";
 
       // Prefer the current origin when already on SmugMug, otherwise default to your SmugMug domain.
       let smugOrigin = "https://vmpix.smugmug.com";
@@ -4094,13 +4108,22 @@ const grid = document.createElement("div");
         if (o && /smugmug\.com$/i.test(o)) smugOrigin = o;
       } catch (_) {}
 
+      // If we have a direct NodeKey/NodeID, go straight to the shop URL.
+      if (directNodeKey) {
+        buyBtn.href = smugOrigin.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(directNodeKey);
+        buyBtn.rel = "noopener";
+        buyBtn.target = "_blank";
+        return;
+      }
+
       let albumUrl = "";
       try {
-        if (typeof rawWeb === "string" && /^https?:\/\//i.test(rawWeb.trim())) {
-          albumUrl = rawWeb.trim();
+        if (typeof rawWeb === "string" && /^https?:\/\//i.test(String(rawWeb).trim())) {
+          albumUrl = String(rawWeb).trim();
           try { smugOrigin = new URL(albumUrl).origin; } catch (_) {}
-        } else if (typeof rawPath === "string" && rawPath.trim()) {
-          const p = rawPath.trim().startsWith("/") ? rawPath.trim() : ("/" + rawPath.trim());
+        } else if (typeof rawPath === "string" && String(rawPath).trim()) {
+          const p0 = String(rawPath).trim();
+          const p = p0.startsWith("/") ? p0 : ("/" + p0);
           albumUrl = smugOrigin.replace(/\/$/, "") + p;
         }
       } catch (_) {}
@@ -4110,21 +4133,23 @@ const grid = document.createElement("div");
       buyBtn.rel = "noopener";
       buyBtn.target = "_blank";
 
-      // Best case: resolve to /shop?nodeKey=... using the backend (same pattern as wrestling file)
-      if (!albumUrl) return;
+      // Best case: resolve to /shop?nodeKey=... using the backend.
+      // Some backend versions accept url, others accept albumKey; send both.
+      if (!albumUrl && !albumKey) return;
       (async () => {
         try {
-          const res = await fetch(
-            API_BASE + "/smug/resolve-shop-node?url=" + encodeURIComponent(albumUrl),
-          );
+          const qs = [];
+          if (albumUrl) qs.push("url=" + encodeURIComponent(albumUrl));
+          if (albumKey) qs.push("albumKey=" + encodeURIComponent(albumKey));
+          const res = await fetch(API_BASE + "/smug/resolve-shop-node?" + qs.join("&"));
           if (!res.ok) return;
           const json = await res.json();
-          const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+          const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : (json && typeof json.NodeKey === "string" ? json.NodeKey.trim() : "");
           if (!nodeKey) return;
           buyBtn.href = smugOrigin.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);
         } catch (_) {}
       })();
-    })();
+    })();;
     buyBtn.target = "_blank";
     toolbar.appendChild(buyBtn);
 
