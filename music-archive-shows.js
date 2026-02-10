@@ -415,6 +415,149 @@
       }
       .YearsMoreItem:hover{ background: rgba(255,255,255,0.08); }
       .YearsMoreItem.isActive{ background: rgba(255,255,255,0.16); }
+
+      /* ===== Focused Show Detail (Bands-style shell) ===== */
+      .showsDetail{ width:100%; }
+      .showsBackBtn{
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin: 10px auto 12px;
+        border-radius: 999px;
+        border:1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.90);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .showsBackBtn:hover{ background: rgba(255,255,255,0.10); }
+
+      .showsDetailShell{
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 18px;
+        background: rgba(255,255,255,0.04);
+        overflow: hidden;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+      }
+
+      .showsDetailTop{
+        display:grid;
+        grid-template-columns: 280px 1fr;
+        gap: 14px;
+        padding: 14px;
+        align-items: start;
+      }
+      @media (max-width: 860px){
+        .showsDetailTop{ grid-template-columns: 1fr; }
+      }
+
+      .showsDetailPosterPane{
+        border-radius: 16px;
+        border:1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.18);
+        padding: 10px;
+        display:flex;
+        justify-content:center;
+      }
+      .showsDetailImg{
+        width: 100%;
+        max-width: 320px;
+        height: auto;
+        border-radius: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.38);
+        display:block;
+      }
+
+      .showsDetailInfoPane{
+        border-radius: 16px;
+        border:1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.16);
+        padding: 12px;
+        min-width: 0;
+      }
+
+      .showsDetailKicker{
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        color: rgba(255,255,255,1);
+        opacity: .65;
+        text-align:center;
+        margin: 2px 0 8px;
+      }
+      .showsDetailTitle{
+        font-size: 16px;
+        font-weight: 800;
+        color: rgba(255,255,255,0.94);
+        text-align:center;
+        margin: 0 0 10px;
+        text-wrap: balance;
+      }
+
+      .showsDetailPills{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      @media (max-width: 520px){
+        .showsDetailPills{ grid-template-columns: 1fr; }
+      }
+
+      .showsDetailPill{
+        border-radius: 999px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        min-height: 54px;
+      }
+      .showsDetailPillLabel{
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: rgba(255,255,255,1);
+        opacity: .55;
+        margin: 0 0 3px;
+        text-align:center;
+      }
+      .showsDetailPillValue{
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255,255,255,1);
+        opacity: .92;
+        text-align:center;
+        line-height: 1.2;
+      }
+
+      .showsDetailSection{
+        padding: 0 14px 14px;
+      }
+      .showsDetailSectionTitle{
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: rgba(255,255,255,1);
+        opacity: .80;
+        margin: 10px 4px 10px;
+      }
+
+      .showsDetailBands{ margin-top: 6px; }
+      .showsDetailEmpty{
+        color: rgba(255,255,255,0.70);
+        font-size: 12px;
+        padding: 10px 6px;
+        text-align:center;
+        border: 1px dashed rgba(255,255,255,0.14);
+        border-radius: 12px;
+        background: rgba(0,0,0,0.12);
+      }
       `;
 document.head.appendChild(s);
   }
@@ -766,6 +909,8 @@ for (let n = 1; n <= 20; n++) {
   const date = (show?.prettyDate || "").trim();
   const venueLine = (show?.venueLine || "").trim();
   const posterUrl = (show?.poster_url || "").trim();
+  const bands = Array.isArray(show?.bands) ? show.bands.filter(Boolean) : [];
+  const bandCount = bands.length;
 
   const safe = (v) => String(v || "").split('"').join("&quot;");
 
@@ -773,16 +918,92 @@ for (let n = 1; n <= 20; n++) {
     <div class="showsDetail">
       <button type="button" class="showsBackBtn" data-action="back">← Back to ${year}</button>
 
-      <div class="showsDetailCard">
-        ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ""}
-        <div class="showsDetailMeta">
-          <div class="showsDetailTitle">${safe(title)}</div>
-          ${date ? `<div class="showsDetailDate">${safe(date)}</div>` : ``}
-          ${venueLine ? `<div class="showsDetailVenue">${safe(venueLine)}</div>` : ``}
+      <div class="showsDetailShell">
+        <div class="showsDetailTop">
+          <div class="showsDetailPosterPane">
+            ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ``}
+          </div>
+
+          <div class="showsDetailInfoPane">
+            <div class="showsDetailKicker">SHOW:</div>
+            <div class="showsDetailTitle">${safe(title)}</div>
+
+            <div class="showsDetailPills">
+              ${date ? `
+                <div class="showsDetailPill">
+                  <div class="showsDetailPillLabel">DATE</div>
+                  <div class="showsDetailPillValue">${safe(date)}</div>
+                </div>
+              ` : ``}
+
+              ${venueLine ? `
+                <div class="showsDetailPill">
+                  <div class="showsDetailPillLabel">VENUE</div>
+                  <div class="showsDetailPillValue">${safe(venueLine)}</div>
+                </div>
+              ` : ``}
+
+              <div class="showsDetailPill">
+                <div class="showsDetailPillLabel">BANDS</div>
+                <div class="showsDetailPillValue">${safe(String(bandCount))}</div>
+              </div>
+
+              <div class="showsDetailPill">
+                <div class="showsDetailPillLabel">YEAR</div>
+                <div class="showsDetailPillValue">${safe(String(year))}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="showsDetailSection">
+          <div class="showsDetailSectionTitle">BANDS ON THIS BILL:</div>
+          <div class="showsDetailBands bandGrid" data-detail-bands="1">
+            ${bandCount ? `` : `<div class="showsDetailEmpty">No bands listed for this show.</div>`}
+          </div>
         </div>
       </div>
     </div>
   `;
+
+  // Populate bands list in the focused view (Bands-side style: logo + name + green/red tint).
+  const bandsHost = containerEl.querySelector('[data-detail-bands="1"]');
+  if (bandsHost && bandCount) {
+    const mmddyy = toMMDDYY(show?.date);
+    bandsHost.innerHTML = "";
+
+    ensureBandsIndex().then((bandsIndex) => {
+      (bands || []).forEach((bandName) => {
+        const info = (bandsIndex && bandsIndex.get)
+          ? (bandsIndex.get(normName(bandName)) || { name: bandName })
+          : { name: bandName };
+
+        const card = document.createElement("div");
+        card.className = "bandCard";
+        card.setAttribute("data-band", bandName);
+
+        const img = document.createElement("img");
+        img.className = "bandLogo";
+        img.alt = bandName;
+        img.loading = "lazy";
+        img.src = info.logo_url || "";
+        if (!img.src) img.style.opacity = "0.25";
+
+        const nm = document.createElement("div");
+        nm.className = "bandName";
+        nm.textContent = bandName;
+
+        card.appendChild(img);
+        card.appendChild(nm);
+        bandsHost.appendChild(card);
+
+        bandHasAlbumForCode(info, mmddyy).then((has) => {
+          card.classList.toggle("isGood", !!has);
+          card.classList.toggle("isBad", !has);
+        });
+      });
+    });
+  }
 }
 
 
@@ -1215,6 +1436,7 @@ header.appendChild(posterWrap);
 	
 	let currentYearShows = [];
 	let currentYearPretty = []; // same shows but with prettyDate + venueLine
+	let currentYearPrettyById = new Map(); // showId -> pretty show data
 
 
     const persisted = loadShowsState();
@@ -1234,36 +1456,81 @@ if (!contentEl) return;
 
 // Clicking a poster toggles a dropdown inside that card (years row stays)
 
+// Clicking anywhere in the show header “bubble” (and the poster) opens the focused detail view.
+// The band accordion/dropdown behavior has been removed.
 contentEl.addEventListener("click", (e) => {
-  const toggle = e.target.closest(".bandsToggle") || e.target.closest(".showTileHeader");
-  if (!toggle) return;
+  // Back from detail view
+  const back = e.target.closest('[data-action="back"]');
+  if (back) {
+    e.preventDefault();
+    e.stopPropagation();
 
-  const tile = e.target.closest(".showTile");
+    // Restore years mount visibility immediately
+    try {
+      mountEl.classList.remove("isHidden");
+      mountEl.classList.remove("isCollapsed");
+    } catch (_) {}
+
+    const snap = contentEl._showsLastGridSnap || null;
+    handleSelectYear(activeYear);
+    if (snap) {
+      setTimeout(() => restoreScrollSnapshot(snap), 0);
+      setTimeout(() => restoreScrollSnapshot(snap), 50);
+    }
+    return;
+  }
+
+  // If the sticky year selector handled the click, do nothing here.
+  if (e.target && e.target.closest && e.target.closest('.showsYearSticky')) return;
+
+  // If we're in detail mode, ignore other clicks
+  if (contentEl.querySelector(".showsDetail")) return;
+
+  // Click on the show header bubble (including poster) -> focused detail view
+  const header = e.target.closest(".showTileHeader");
+  if (!header) return;
+
+  const tile = header.closest(".showTile");
   if (!tile) return;
 
-  // Close other open tiles (accordion behavior)
-  const openTiles = contentEl.querySelectorAll(".showTile.isOpen");
-  openTiles.forEach((t) => {
-    if (t !== tile) {
-      t.classList.remove("isOpen");
-      updateBandsButtonForTile(t);
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Save scroll so we can return to the same spot in the grid
+  contentEl._showsLastGridSnap = saveScrollSnapshot(mountEl);
+
+  // Cleanup sticky selector while in detail view (prevents orphan listeners)
+  try {
+    if (contentEl._stickyYearCleanup) {
+      contentEl._stickyYearCleanup();
+      contentEl._stickyYearCleanup = null;
     }
+  } catch (_) {}
+
+  // Hide the big years bar while focused in a show
+  try {
+    mountEl.classList.add("isCollapsed");
+    mountEl.classList.add("isHidden");
+  } catch (_) {}
+
+  const showId = tile.getAttribute("data-show-id") || "";
+  const baseShow = tile._showData || null;
+  const pretty =
+    showId && currentYearPrettyById && currentYearPrettyById.get
+      ? currentYearPrettyById.get(showId)
+      : null;
+
+  const show = pretty || Object.assign({}, baseShow || {}, {
+    venueLine: buildVenueText(baseShow || {}),
+    prettyDate: (baseShow && baseShow.date) ? String(baseShow.date) : "",
   });
 
-  tile.classList.toggle("isOpen");
+  renderPosterDetail({ year: activeYear, show, containerEl: contentEl });
 
-  const isOpen = tile.classList.contains("isOpen");
-
-  // Load bands + checks only when opened (smoother + less network)
-  if (isOpen) ensureTileBandsLoaded(tile);
-
-  // Update the caret + label
-  updateBandsButtonForTile(tile);
-
-  // Persist which show (if any) is open for the current year
-  const openId = isOpen ? tile.getAttribute("data-show-id") : "";
-  saveShowsState({ openShowId: openId });
+  // Ensure focused view starts at the top
+  try { contentEl.scrollTop = 0; } catch (_) {}
 });
+
 
     async function handleSelectYear(year) {
   // ✅ Save ALL relevant scroll containers (SmugMug often scrolls a parent wrapper)
@@ -1330,6 +1597,12 @@ currentYearPretty = (showsForYear || []).map((s) => {
     })(s.date) : "",
   };
 });
+
+	// Build lookup so focused detail view can pull the pretty fields reliably
+	currentYearPrettyById = new Map();
+	(currentYearPretty || []).forEach((ps) => {
+	  try { currentYearPrettyById.set(makeShowId(ps), ps); } catch (_) {}
+	});
 
     renderShowsGridForYear({ year, shows: showsForYear, containerEl: content });
 

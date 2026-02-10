@@ -21,6 +21,14 @@ const API_BASE =
     ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, "")
     : DEFAULT_API_BASE;
 
+  // Static Fix/Metadata Stats (not pulled from API) — source: your Stats sheet screenshot
+  const FIXMETA_STATIC = {
+    totalFilesNum: 61256,
+    notUpgradedNum: 25723,
+    onSiteNum: 33125,
+    pctOnSiteNum: 54.08,
+  };
+
 const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
 // quick sanity log (helps confirm the app is hitting the correct server)
@@ -349,15 +357,15 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
 
 /* Status colors */
 .statsRow.good {
-  border: 1px solid rgba(0,255,120,0.35);
+  border: 2px solid rgba(0,255,120,0.35);
 }
 
 .statsRow.partial {
-  border: 1px solid rgba(255,180,0,0.35);
+  border: 2px solid rgba(255,180,0,0.35);
 }
 
 .statsRow.none {
-  border: 1px solid rgba(255,80,80,0.35);
+  border: 2px solid rgba(255,80,80,0.35);
 }
 
       
@@ -566,6 +574,52 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
   #bands-overall .overallStatsBar .seg{ transition: none !important; }
 }
 
+
+
+/* --- Premium number animation + % ring (non-destructive) --- */
+#bands-overall .statsPctRow .pctWrap{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+#bands-overall .statsPctRow .pctLabel{
+  margin-left: 10px;
+  opacity: .9;
+}
+
+/* subtle circular progress ring behind the % */
+#bands-overall .pctRing{
+  width: 34px;
+  height: 34px;
+  display: inline-block;
+  filter: drop-shadow(0 0 8px rgba(255,70,70,.12));
+}
+#bands-overall .pctRing svg{
+  width: 34px;
+  height: 34px;
+  display: block;
+  transform: rotate(-90deg);
+}
+#bands-overall .pctRing circle{
+  fill: none;
+  stroke-width: 5;
+}
+#bands-overall .pctRing .pctBg{
+  stroke: rgba(255,255,255,.12);
+}
+#bands-overall .pctRing .pctFg{
+  /* circumference for r=14 is ~87.96 */
+  stroke-dasharray: 87.96;
+  stroke-dashoffset: calc(87.96 * (1 - (var(--pct, 0) / 100)));
+  stroke: rgba(255,70,70,.55);
+  transition: stroke-dashoffset 900ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* nicer numeric emphasis when animating */
+#bands-overall .statsRow strong.isCounting{
+  text-shadow: 0 0 14px rgba(255,70,70,.18);
+}
 
       .inBandDetail #region-pills{ display:none !important; }
 
@@ -2070,17 +2124,26 @@ async function fetchTextWithSessionCache(url, ttlMs, key) {
     }
   } catch (_) {}
 
-  const r = await fetch(url, { cache: "no-store" });
-  const text = await r.text();
+  const res = await fetch(url, { cache: "no-store" });
+  const text = await res.text();
 
-  // Cache regardless of status for this generic helper (used for bands CSV),
-  // but callers should validate if needed.
+  // 🚨 HARD GUARD: stop if server returned HTML instead of CSV
+  if (/<!doctype html>|<html/i.test(text)) {
+    console.error("CSV fetch failed – received HTML instead:", url);
+    console.warn("Preview:", text.slice(0, 200));
+    return ""; // ⛔ prevents bad stats + broken numbers
+  }
+
   try {
-    sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
+    sessionStorage.setItem(
+      key,
+      JSON.stringify({ ts: Date.now(), text })
+    );
   } catch (_) {}
 
   return text;
 }
+
 
 async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
   // Reuse the same session cache bucket, but only cache on a successful (2xx) response.
@@ -2104,6 +2167,17 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       const r = await fetch(url, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const text = await r.text();
+
+      // IMPORTANT: Some hosts return the app's HTML (200 OK) for unknown routes.
+      // If we accidentally treat that as CSV and cache it, stats will never parse.
+      const trimmed = String(text || "").trimStart();
+      if (
+        /^<!doctype\s+html/i.test(trimmed) ||
+        /^<html\b/i.test(trimmed) ||
+        /^<style\b/i.test(trimmed)
+      ) {
+        throw new Error("Non-CSV HTML response");
+      }
 
       try {
         sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), text }));
@@ -2137,144 +2211,8 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
 	}
 
 	async function ensureFixMetadataStats() {
-	  if (_fixMetaCached) return _fixMetaCached;
-	  if (_fixMetaPromise) return _fixMetaPromise;
-
-	  const findHeaderIdx = (headers, tests) => {
-	    try{
-	      const arr = (headers || []).map(h => String(h || "").trim().toLowerCase());
-	      for (let i = 0; i < arr.length; i++){
-	        const h = arr[i];
-	        if (!h) continue;
-	        for (const t of tests){
-	          if (t && t.test(h)) return i;
-	        }
-	      }
-	    }catch(_){}
-	    return -1;
-	  };
-
-	  const countNumericCells = (row) => {
-	    let n = 0;
-	    try{
-	      for (let i = 0; i < (row ? row.length : 0); i++){
-	        const v = parseNumber(row[i]);
-	        if (v != null) n++;
-	      }
-	    }catch(_){}
-	    return n;
-	  };
-
-	  _fixMetaPromise = (async () => {
-	    try {
-	      const csvText = await fetchTextFirstOkWithSessionCache(
-	        STATS_CSV_ENDPOINTS,
-	        STATS_CSV_TTL_MS,
-	        STATS_CSV_CACHE_KEY
-	      );
-
-      // If we somehow got HTML or an empty response, don't try to parse it as CSV
-      const _csvPreview = String(csvText || "").trim().slice(0, 40).toLowerCase();
-      if (!_csvPreview || _csvPreview.startsWith("<!doctype") || _csvPreview.startsWith("<html") || _csvPreview.startsWith("<")) {
-        console.warn("Fix/Metadata stats: non-CSV response preview:", String(csvText || "").trim().slice(0, 120));
-        return null;
-      }
-
-	      const lines = String(csvText || "")
-	        .split(/\r?\n/)
-	        .map(l => String(l || "").trim())
-	        .filter(Boolean);
-
-	      if (lines.length < 2) return null;
-
-	      // Header row (best effort)
-	      const headerRow = parseCsvLine(lines[0] || "");
-
-	      // Find the first "mostly numeric" row after the header
-	      let numbersRow = null;
-	      let numbersLineIdx = -1;
-	      for (let i = 1; i < lines.length; i++){
-	        const r = parseCsvLine(lines[i] || "");
-	        if (countNumericCells(r) >= 2){
-	          numbersRow = r;
-	          numbersLineIdx = i;
-	          break;
-	        }
-	      }
-	      if (!numbersRow) return null;
-
-	      // Find a percent row (optional) after the numbers row
-	      let percentRow = null;
-	      for (let i = numbersLineIdx + 1; i < lines.length; i++){
-	        const r = parseCsvLine(lines[i] || "");
-	        // percent row is also numeric, usually smaller values (<= 100)
-	        if (countNumericCells(r) >= 2){
-	          percentRow = r;
-	          break;
-	        }
-	      }
-
-	      // Column mapping:
-	      // Chris's sheet layout (ignore the first column entirely):
-	      //   Row 2:  C2 = Not Upgraded, D2 = On Site, E2 = Total Files
-	      //   Row 3:  D3 = % On Site
-	      // We still keep a header-based fallback in case the sheet order changes.
-	      const lastIdx = Math.max(0, (numbersRow.length || 1) - 1);
-	      const safeIdx = (idx, fallback) => (idx >= 0 && idx < numbersRow.length) ? idx : fallback;
-
-	      // Preferred fixed indices (0-based): C=2, D=3, E=4
-	      let iNot = 2;
-	      let iOn = 3;
-	      let iTotal = 4;
-
-	      // If the row is shorter than expected, fall back to header matching (best effort)
-	      if (numbersRow.length <= 4){
-	        const idxTotal = findHeaderIdx(headerRow, [/^total$/i, /total/i, /total\s*files/i]);
-	        const idxOnSite = findHeaderIdx(headerRow, [/on\s*site/i, /edited.*on\s*site/i, /edited\s*&\s*on\s*site/i, /edited/i]);
-	        const idxNotUp = findHeaderIdx(headerRow, [/not\s*upgraded/i, /not.*edited/i, /applied.*not.*edited/i, /applied/i]);
-
-	        iTotal = safeIdx(idxTotal, lastIdx);
-	        iOn = safeIdx(idxOnSite, Math.max(0, lastIdx - 1));
-	        iNot = safeIdx(idxNotUp, Math.max(0, lastIdx - 2));
-	      } else {
-	        // Clamp fixed indices if the row is unexpectedly short
-	        iTotal = safeIdx(iTotal, lastIdx);
-	        iOn = safeIdx(iOn, Math.max(0, lastIdx - 1));
-	        iNot = safeIdx(iNot, Math.max(0, lastIdx - 2));
-	      }
-
-	      const totalFilesNum = parseNumber(numbersRow[iTotal]);
-	      const notUpgradedNum = parseNumber(numbersRow[iNot]);
-	      const onSiteNum = parseNumber(numbersRow[iOn]);
-
-	      let pctOnSiteNum = null;
-	      if (percentRow){
-	        const p = parseNumber(percentRow[iOn]);
-	        if (p != null) pctOnSiteNum = p;
-	      }
-	      // If sheet doesn't include a percent row, compute it
-	      if (pctOnSiteNum == null && Number.isFinite(onSiteNum) && Number.isFinite(totalFilesNum) && totalFilesNum){
-	        pctOnSiteNum = (onSiteNum * 100) / totalFilesNum;
-	      }
-
-	      const out = {
-	        totalFilesNum,
-	        notUpgradedNum,
-	        onSiteNum,
-	        pctOnSiteNum,
-	      };
-
-	      _fixMetaCached = out;
-	      return out;
-	    } catch (e) {
-	      console.warn("Fix/Metadata stats load failed:", e);
-	      return null;
-	    } finally {
-	      _fixMetaPromise = null;
-	    }
-	  })();
-
-	  return _fixMetaPromise;
+	  // Fix/Metadata stats are currently unused. Short-circuit to avoid unnecessary network calls.
+	  return null;
 	}
 
   // ---- Folder albums cache (per region + folder) ----
@@ -3836,10 +3774,74 @@ function animateReimagingStats(overallEl){
           const pct = Number(s.getAttribute("data-pct")) || 0;
           window.setTimeout(() => {
             try { s.style.width = pct.toFixed(2) + "%"; } catch(_){}
-          }, Math.min(420, i * 90));
+          }, Math.min(420, i * 140));
         });
       });
     }
+
+    // Count-up animation for the right-side numeric values (no value changes; ends on original text)
+    try{
+      const ids = ["fixmeta-total-files","fixmeta-not-upgraded","fixmeta-on-site","fixmeta-percent"];
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+      ids.forEach((id) => {
+        const el = overallEl.querySelector("#" + id);
+        if (!el) return;
+
+        const original = (el.dataset && el.dataset.originalText) ? el.dataset.originalText : (el.textContent || "").trim();
+        try{
+          if (el.dataset) el.dataset.originalText = original;
+        } catch(_){}
+
+        // Parse numeric value
+        const raw = original.replace(/,/g, "");
+        const target = Number(raw);
+        if (!isFinite(target)) return;
+
+        const isPercent = (id === "fixmeta-percent");
+        const isInteger = !isPercent; // your file counts are integers; percent uses 2 decimals
+
+        const dur = 1400;
+        const t0 = performance.now();
+        el.classList.add("isCounting");
+
+        const tick = (now) => {
+          const t = Math.min(1, (now - t0) / dur);
+          const v = target * easeOutCubic(t);
+
+          try{
+            if (isPercent){
+              const val = Math.max(0, Math.min(target, v));
+              el.textContent = val.toFixed(2);
+              // drive the ring fill
+              const row = el.closest(".statsPctRow") || el.parentElement;
+              if (row && row.style) row.style.setProperty("--pct", String(val));
+            } else if (isInteger){
+              const val = Math.round(Math.max(0, Math.min(target, v)));
+              el.textContent = val.toLocaleString();
+            } else {
+              el.textContent = String(v);
+            }
+          } catch(_){}
+
+          if (t < 1) {
+            window.requestAnimationFrame(tick);
+          } else {
+            // End exactly on the original display text
+            try{ el.textContent = original; } catch(_){}
+            try{ el.classList.remove("isCounting"); } catch(_){}
+            try{
+              if (isPercent){
+                const row = el.closest(".statsPctRow") || el.parentElement;
+                if (row && row.style) row.style.setProperty("--pct", String(target));
+              }
+            } catch(_){}
+          }
+        };
+
+        window.requestAnimationFrame(tick);
+      });
+    } catch(_){}
   } catch(_){}
 }
 
@@ -3882,10 +3884,10 @@ function animateReimagingStats(overallEl){
 	  <div class="statsRow none" style="text-align:center">${none}   Not Worked Yet</div>
 	</div>
 	<div class="statsCol">
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-total-files" class="fixmetaShimmer">—</strong>   Total Files</div>
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-not-upgraded" class="fixmetaShimmer">—</strong>   Not Upgraded</div>
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-on-site" class="fixmetaShimmer">—</strong>   On Site</div>
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-percent" class="fixmetaShimmer">—</strong>   %</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-total-files">${Number(FIXMETA_STATIC.totalFilesNum||0).toLocaleString()}</strong>  *  Total Shots</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-not-upgraded">${Number(FIXMETA_STATIC.notUpgradedNum||0).toLocaleString()}</strong>  *  Not Upgraded</div>
+		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-on-site">${Number(FIXMETA_STATIC.onSiteNum||0).toLocaleString()}</strong>  *  On Site</div>
+		  <div class="statsRow statsPctRow" style="text-align:center"><span class="pctWrap"><span class="pctRing" aria-hidden="true"><svg viewBox="0 0 40 40" focusable="false" aria-hidden="true"><circle class="pctBg" cx="20" cy="20" r="14"></circle><circle class="pctFg" cx="20" cy="20" r="14"></circle></svg></span><span class="pctVal"><strong id="fixmeta-percent">${(typeof FIXMETA_STATIC.pctOnSiteNum === "number" ? FIXMETA_STATIC.pctOnSiteNum.toFixed(2) : "0.00")}</strong>%</span></span><span class="pctLabel"></span></div>
 	</div>
    </div>
 
@@ -3945,31 +3947,6 @@ function animateReimagingStats(overallEl){
           });
         }
       } catch(_){}
-
-      // Fill the right-side Fix / Metadata values from the Stats tab CSV
-      try{
-        ensureFixMetadataStats()
-          .then((s) => {
-            const elTotal = overallEl.querySelector("#fixmeta-total-files");
-            const elNot = overallEl.querySelector("#fixmeta-not-upgraded");
-            const elOn = overallEl.querySelector("#fixmeta-on-site");
-            const elPct = overallEl.querySelector("#fixmeta-percent");
-
-            if (!s){
-              // stop shimmer on failure/empty response
-              try{ if (elTotal) elTotal.classList.remove("fixmetaShimmer"); }catch(_){}
-              try{ if (elNot) elNot.classList.remove("fixmetaShimmer"); }catch(_){}
-              try{ if (elOn) elOn.classList.remove("fixmetaShimmer"); }catch(_){}
-              try{ if (elPct) elPct.classList.remove("fixmetaShimmer"); }catch(_){}
-              return;
-            }
-            if (elTotal) { elTotal.textContent = formatInt(s.totalFilesNum); elTotal.classList.remove("fixmetaShimmer"); }
-            if (elNot) { elNot.textContent = formatInt(s.notUpgradedNum); elNot.classList.remove("fixmetaShimmer"); }
-            if (elOn) { elOn.textContent = formatInt(s.onSiteNum); elOn.classList.remove("fixmetaShimmer"); }
-            if (elPct) { elPct.textContent = formatPercent(s.pctOnSiteNum); elPct.classList.remove("fixmetaShimmer"); }
-          })
-          .catch(() => {});
-      } catch(_){ }
 
     } catch(_){}
   }
