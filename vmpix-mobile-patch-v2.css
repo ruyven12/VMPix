@@ -46,6 +46,53 @@ html.webview, html.messenger, html.facebook, html.instagram{
   text-size-adjust: 100% !important;
 }
 
+/* =========================================================
+   MOBILE / WEBVIEW LAYOUT HARDENING
+   - Prevents "100vh" traps in iOS + in-app browsers
+   - Ensures the HUD main panel scrolls instead of clipping
+   ========================================================= */
+
+/* Use the device-aware --vh value (set in index.html + vmpix-webview.js) */
+.view{
+  min-height: calc(var(--vh) * 100) !important;
+}
+
+/* iOS notch / safe-area padding (does nothing on non-notch devices) */
+body{
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Grid scroll fix: allow the 3rd row (main content) to actually scroll */
+.hudContent{
+  min-height: 0 !important;
+  padding-top: calc(14px + env(safe-area-inset-top)) !important;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+}
+.hudStub.hudMain{
+  min-height: 0 !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* On phones, align content to the top so long lists don't feel "stuck" */
+@media (max-width: 600px){
+  .hudMainPlain{
+    place-items: start !important;
+    text-align: left !important;
+  }
+}
+
+/* Respect touch devices: reduce hover-only affordances that can "stick" after taps */
+@media (hover: none){
+  .smug-photo-box:hover .photoHoverMeta,
+  .waSmug-photo-box:hover .waPhotoHoverMeta,
+  .albumRowCard:hover{
+    /* Keep interaction stable on tap; modules can provide tap UI if desired */
+    transform: none !important;
+  }
+}
+
 /* Base readable sizing (keeps desktop unchanged, helps small screens) */
 :root{
   --vmpix-body-font: clamp(13px, 3.6vw, 16px);
