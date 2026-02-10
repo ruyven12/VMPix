@@ -2511,6 +2511,60 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
   }
 
   // ================== SMUGMUG API HELPERS ==================
+  // ----- Backend JSON fetch helper (fail-soft + avoids HTML/invalid JSON surprises) -----
+  async function fetchJsonSafe(url, opts) {
+    const o = opts || {};
+    const timeoutMs = Number(o.timeoutMs || 25000);
+    const maxRetries = Number(o.retries || 1);
+    const retryStatuses = new Set([429, 500, 502, 503, 504]);
+
+    let attempt = 0;
+    while (true) {
+      attempt++;
+      const ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, timeoutMs) : null;
+
+      try {
+        const res = await fetch(url, { signal: ac ? ac.signal : undefined, cache: "no-store" });
+        const ct = String(res.headers.get("content-type") || "").toLowerCase();
+        const bodyText = await res.text();
+
+        // Retry on transient status codes.
+        if (!res.ok) {
+          if (attempt <= maxRetries && retryStatuses.has(res.status)) {
+            const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+            await new Promise((r) => setTimeout(r, backoff));
+            continue;
+          }
+          const snippet = bodyText.slice(0, 180).replace(/\s+/g, " ").trim();
+          throw new Error(`HTTP ${res.status} ${res.statusText || ""} (${ct || "unknown"}): ${snippet}`);
+        }
+
+        // Reject HTML masquerading as JSON.
+        if (bodyText && /^[\s]*</.test(bodyText)) {
+          throw new Error(`Expected JSON but got HTML (${ct || "unknown"})`);
+        }
+
+        try {
+          return JSON.parse(bodyText || "null");
+        } catch (e) {
+          throw new Error(`Invalid JSON: ${String(e && e.message ? e.message : e)}`);
+        }
+      } catch (err) {
+        // Retry on network/timeout errors.
+        if (attempt <= maxRetries) {
+          const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          await new Promise((r) => setTimeout(r, backoff));
+          continue;
+        }
+        throw err;
+      } finally {
+        try { if (t) clearTimeout(t); } catch (_) {}
+      }
+    }
+  }
+
+
   async function fetchFolderAlbums(folderPath, region) {
     const safeFolder = cleanFolderPath(folderPath || "");
     const baseSlug = toSlug(safeFolder || "");
@@ -2520,8 +2574,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       region || "",
     )}&count=200&start=1`;
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await fetchJsonSafe(url, { retries: 1 });
     const albums =
       (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
       [];
@@ -2534,12 +2587,9 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     let more = true;
 
     while (more) {
-      const res = await fetch(
-        `${API_BASE}/smug/album/${encodeURIComponent(
+      const data = await fetchJsonSafe(`${API_BASE}/smug/album/${encodeURIComponent(
           albumKey,
-        )}?count=200&start=${start}`,
-      );
-      const data = await res.json();
+        )}?count=200&start=${start}`, { retries: 1 });
       const resp = (data && data.Response) || {};
 
       let imgs = [];
@@ -2568,14 +2618,11 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
   async function fetchAlbumKeywords(albumKey) {
     if (!albumKey) return [];
     try {
-      const metaRes = await fetch(
-        `${API_BASE}/smug/album-meta/${encodeURIComponent(albumKey)}`,
-      );
-      if (!metaRes.ok) {
+      const metaJson = await fetchJsonSafe(`${API_BASE}/smug/album-meta/${encodeURIComponent(albumKey)}`, { retries: 1 }).catch(() => null);
+      if (!metaJson) {
         // Backend can return 500 for some albums; fail-soft.
         return [];
       }
-      const metaJson = await metaRes.json();
       const album = metaJson && metaJson.Response && metaJson.Response.Album;
       if (!album) return [];
 
@@ -4625,9 +4672,8 @@ const grid = document.createElement("div");
           const qs = [];
           if (albumUrl) qs.push("url=" + encodeURIComponent(albumUrl));
           if (albumKey) qs.push("albumKey=" + encodeURIComponent(albumKey));
-          const res = await fetch(API_BASE + "/smug/resolve-shop-node?" + qs.join("&"));
-          if (!res.ok) return;
-          const json = await res.json();
+          const json = await fetchJsonSafe(API_BASE + "/smug/resolve-shop-node?" + qs.join("&"), { retries: 1 }).catch(() => null);
+          if (!json) return;
           const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : (json && typeof json.NodeKey === "string" ? json.NodeKey.trim() : "");
           if (!nodeKey) return;
           buyBtn.href = smugOrigin.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);

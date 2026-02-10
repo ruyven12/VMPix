@@ -1610,23 +1610,47 @@ redrawGrid();
   async function fetchJsonFirstOk(urls) {
     const list = Array.isArray(urls) ? urls : [];
     let lastErr = null;
+
     for (let i = 0; i < list.length; i++) {
       const u = list[i];
       if (!u) continue;
+
+      const ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, 25000) : null;
+
       try {
-        const res = await fetch(u, { cache: "no-store" });
+        const res = await fetch(u, { cache: "no-store", signal: ac ? ac.signal : undefined });
         if (!res.ok) {
           lastErr = new Error("HTTP " + res.status + " for " + u);
           continue;
         }
-        return await res.json();
+
+        const ct = String(res.headers.get("content-type") || "").toLowerCase();
+        const bodyText = await res.text();
+
+        // Skip HTML error pages masquerading as JSON
+        if (bodyText && /^[\s]*</.test(bodyText)) {
+          lastErr = new Error("Expected JSON but got HTML (" + (ct || "unknown") + ") for " + u);
+          continue;
+        }
+
+        try {
+          return JSON.parse(bodyText || "null");
+        } catch (e) {
+          lastErr = new Error("Invalid JSON for " + u + ": " + String(e && e.message ? e.message : e));
+          continue;
+        }
       } catch (e) {
         lastErr = e;
+      } finally {
+        try { if (t) clearTimeout(t); } catch (_) {}
       }
     }
+
     if (lastErr) throw lastErr;
     throw new Error("No endpoints tried");
   }
+
 
   
   // Resolve a SmugMug album URL into a SmugMug Shop NodeKey (and AlbumKey) using the wrestling backend.

@@ -915,7 +915,7 @@ function restoreScrollSnapshot(snapshot) {
   }
 
   async function loadShowsFromCsv() {
-    const res = await fetch(SHOWS_ENDPOINT);
+    const data = await fetchJsonSafe(SHOWS_ENDPOINT);
     const text = await res.text();
     if (!text || !text.trim()) return [];
 
@@ -1368,6 +1368,54 @@ async function fetchFolderAlbumsCached(folderPath, region) {
 }
 
 
+  
+// ----- Backend JSON fetch helper (fail-soft + avoids HTML/invalid JSON surprises) -----
+async function fetchJsonSafe(url, opts) {
+  const o = opts || {};
+  const timeoutMs = Number(o.timeoutMs || 25000);
+  const maxRetries = Number(o.retries || 1);
+  const retryStatuses = new Set([429, 500, 502, 503, 504]);
+
+  let attempt = 0;
+  while (true) {
+    attempt++;
+    const ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, timeoutMs) : null;
+
+    try {
+      const res = await fetch(url, { signal: ac ? ac.signal : undefined, cache: "no-store" });
+      const ct = String(res.headers.get("content-type") || "").toLowerCase();
+      const bodyText = await res.text();
+
+      if (!res.ok) {
+        if (attempt <= maxRetries && retryStatuses.has(res.status)) {
+          const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          await new Promise((r) => setTimeout(r, backoff));
+          continue;
+        }
+        const snippet = bodyText.slice(0, 180).replace(/\s+/g, " ").trim();
+        throw new Error(`HTTP ${res.status} ${res.statusText || ""} (${ct || "unknown"}): ${snippet}`);
+      }
+
+      if (bodyText && /^[\s]*</.test(bodyText)) {
+        throw new Error(`Expected JSON but got HTML (${ct || "unknown"})`);
+      }
+
+      return JSON.parse(bodyText || "null");
+    } catch (err) {
+      if (attempt <= maxRetries) {
+        const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+        await new Promise((r) => setTimeout(r, backoff));
+        continue;
+      }
+      throw err;
+    } finally {
+      try { if (t) clearTimeout(t); } catch (_) {}
+    }
+  }
+}
+
+
   // get all albums inside a SmugMug folder using the same backend pattern as script.js
   async function fetchFolderAlbums(folderPath, region) {
     const clean = cleanFolderPath(folderPath || "");
@@ -1376,9 +1424,7 @@ async function fetchFolderAlbumsCached(folderPath, region) {
     const res = await fetch(
       `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(
         clean
-      )}&region=${encodeURIComponent(region || "")}&count=200&start=1`
-    );
-    const data = await res.json();
+      )}&region=${encodeURIComponent(region || "")}&count=200&start=1`, { retries: 1 });
     const albums =
       (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
       [];
