@@ -88,6 +88,61 @@
         align-items:center;
       }
 
+
+      /* Hide/collapse the top years bar when sticky years are in use */
+      #showsYearsMount.isHidden{ display:none !important; }
+      #showsYearsMount.isCollapsed{
+        height:0 !important;
+        padding:0 !important;
+        margin:0 !important;
+        border:0 !important;
+        overflow:hidden !important;
+        opacity:0 !important;
+      }
+
+      /* Condensed years nav + menu (used by mountYearsPillsOverflow) */
+      .yearsNav{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 10px;
+        width:100%;
+      }
+      .yearsPills{
+        display:flex;
+        flex-wrap:wrap;
+        gap: 12px;
+        justify-content:center;
+        align-items:center;
+      }
+      .yearsMore{ position:relative; }
+      .yearsMenu{
+        display:none;
+        position:absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 60;
+        min-width: 170px;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      }
+      .yearsMenu.isOpen{ display:block; }
+      .yearsMenu .menuItem{
+        width:100%;
+        text-align:left;
+        cursor:pointer;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border:0;
+        background: transparent;
+        color: rgba(255,255,255,0.86);
+        font-size: 12px;
+        font-family: "Orbitron", system-ui, sans-serif;
+      }
+      .yearsMenu .menuItem:hover{ background: rgba(255,255,255,0.08); }
       /* Make the content area the scroller so cards never scroll behind the years bar */
       #showsYearContent{
         flex: 1 1 auto;
@@ -95,6 +150,25 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding-bottom: 84px; /* room for bottom nav on small screens */
+      }
+
+      /* Sticky year selector that lives INSIDE the scrollable content area */
+      .showsYearSticky{
+        position: sticky;
+        top: 0;
+        z-index: 40;
+
+        display:flex;
+        padding: 10px 10px;
+        margin: 0 auto 10px;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+
+        backdrop-filter: blur(6px);
+        background: rgba(0,0,0,0.18);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
       }
 
       .YearPill{
@@ -340,21 +414,41 @@
 
       .bandCard{
         border-radius: 12px;
-        padding: 8px 10px;
+        padding: 10px 12px;
         border: 1px solid rgba(255,255,255,0.10);
         background: rgba(0,0,0,0.16);
 
         display:flex;
         flex-direction:row;
         align-items:center;
-        justify-content:flex-start;
+        justify-content:space-between;
         gap: 10px;
 
-        min-height: 0;
+        min-height: 44px;
         text-align:left;
+
+        /* Bands on this bill are informational for now (no click behavior) */
+        cursor: default;
+        transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+        user-select: none;
       }
 
-      /* Status tint (replaces pulsing dot) */
+      .bandCard:hover{
+        transform: none;
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.16);
+        box-shadow: none;
+      }
+
+      .bandCard:active{
+        transform: none;
+      }
+
+      .bandCard:focus-visible{
+        outline: none;
+      }
+
+/* Status tint (replaces pulsing dot) */
       .bandCard.isGood{
         background: rgba(34,197,94,0.10);
         border-color: rgba(34,197,94,0.22);
@@ -379,9 +473,23 @@
         line-height: 1.15;
         word-break: break-word;
         flex: 1 1 auto;
-        text-align: center;
+        text-align: left;
+        margin-right: 6px;
       }
-      /* "More" dropdown */
+
+      .bandAction{
+        flex: 0 0 auto;
+        font-size: 14px;
+        font-weight: 900;
+        color: rgba(255,255,255,0.82);
+        opacity: 0.75;
+        letter-spacing: 0.02em;
+      }
+      .bandCard:hover .bandAction{
+        opacity: 0.95;
+      }
+
+/* "More" dropdown */
       .YearsMoreWrap{ position: relative; }
       .YearsMoreBtn{
         cursor:pointer;
@@ -484,8 +592,7 @@
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.18em;
-        color: rgba(255,255,255,1);
-        opacity: .65;
+        color: rgba(255,255,255,0.55);
         text-align:center;
         margin: 2px 0 8px;
       }
@@ -522,16 +629,14 @@
         font-size: 10px;
         font-weight: 800;
         letter-spacing: 0.12em;
-        color: rgba(255,255,255,1);
-        opacity: .55;
+        color: rgba(255,255,255,0.48);
         margin: 0 0 3px;
         text-align:center;
       }
       .showsDetailPillValue{
         font-size: 12px;
         font-weight: 700;
-        color: rgba(255,255,255,1);
-        opacity: .92;
+        color: rgba(255,255,255,0.86);
         text-align:center;
         line-height: 1.2;
       }
@@ -543,12 +648,22 @@
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.12em;
-        color: rgba(255,255,255,1);
-        opacity: .80;
+        color: rgba(255,255,255,0.62);
         margin: 10px 4px 10px;
       }
 
       .showsDetailBands{ margin-top: 6px; }
+
+/* Shows detail: 2-column band grid (premium scan) */
+.showsDetailBands.bandGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: start;
+}
+@media (max-width: 760px){
+  .showsDetailBands.bandGrid{ grid-template-columns: 1fr; }
+}
       .showsDetailEmpty{
         color: rgba(255,255,255,0.70);
         font-size: 12px;
@@ -925,33 +1040,29 @@ for (let n = 1; n <= 20; n++) {
           </div>
 
           <div class="showsDetailInfoPane">
-            <div class="showsDetailKicker">SHOW:</div>
+            <div class="showsDetailKicker">Show:</div>
             <div class="showsDetailTitle">${safe(title)}</div>
 
             <div class="showsDetailPills">
               ${date ? `
                 <div class="showsDetailPill">
-                  <div class="showsDetailPillLabel">DATE</div>
+                  <div class="showsDetailPillLabel">Date</div>
                   <div class="showsDetailPillValue">${safe(date)}</div>
                 </div>
               ` : ``}
 
               ${venueLine ? `
                 <div class="showsDetailPill">
-                  <div class="showsDetailPillLabel">VENUE</div>
+                  <div class="showsDetailPillLabel">Venue</div>
                   <div class="showsDetailPillValue">${safe(venueLine)}</div>
                 </div>
               ` : ``}
 
               <div class="showsDetailPill">
-                <div class="showsDetailPillLabel">BANDS</div>
+                <div class="showsDetailPillLabel">Band Amount</div>
                 <div class="showsDetailPillValue">${safe(String(bandCount))}</div>
               </div>
 
-              <div class="showsDetailPill">
-                <div class="showsDetailPillLabel">YEAR</div>
-                <div class="showsDetailPillValue">${safe(String(year))}</div>
-              </div>
             </div>
           </div>
         </div>
@@ -995,6 +1106,7 @@ for (let n = 1; n <= 20; n++) {
 
         card.appendChild(img);
         card.appendChild(nm);
+
         bandsHost.appendChild(card);
 
         bandHasAlbumForCode(info, mmddyy).then((has) => {
@@ -1157,6 +1269,7 @@ async function ensureBandsIndex() {
 
         card.appendChild(img);
         card.appendChild(nm);
+
         bandGrid.appendChild(card);
 
         // async album check -> tint row green/red
@@ -1433,6 +1546,10 @@ header.appendChild(posterWrap);
       2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
       2014, 2013, 2012, 2011, 2010, 2009,
     ];
+
+    // Condense the visible year pills and push the rest into a "More" menu
+    const YEARS_MAX_VISIBLE = 6;
+
 	
 	let currentYearShows = [];
 	let currentYearPretty = []; // same shows but with prettyDate + venueLine
@@ -1453,6 +1570,91 @@ header.appendChild(posterWrap);
 	
 	const contentEl = panelEl.querySelector("#showsYearContent");
 if (!contentEl) return;
+
+// ===== Sticky year selector (inside the scrollable content area) =====
+function ensureStickyYears() {
+  // Remove any existing sticky years first
+  try {
+    if (contentEl._stickyYearCleanup) {
+      contentEl._stickyYearCleanup();
+      contentEl._stickyYearCleanup = null;
+    }
+  } catch (_) {}
+
+  // If there's no years UI mounted yet, nothing to clone.
+  if (!mountEl || !mountEl.innerHTML) return;
+
+  // Build sticky container and clone the years UI HTML.
+  const sticky = document.createElement("div");
+  sticky.className = "showsYearSticky";
+  sticky.innerHTML = mountEl.innerHTML;
+
+  // Insert at top of the scrollable content.
+  contentEl.insertBefore(sticky, contentEl.firstChild);
+
+  // Delegate clicks inside sticky years UI back to the same handler.
+  const onStickyClick = (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    // Mirror behavior from mountYearsPillsOverflow
+    if (btn.dataset.yearsMore === "1") {
+      const menu = sticky.querySelector(".yearsMenu");
+      if (!menu) return;
+      const isOpen = menu.classList.contains("isOpen");
+      menu.classList.toggle("isOpen", !isOpen);
+      btn.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+      return;
+    }
+
+    const yearStr = btn.dataset.year;
+    if (!yearStr) return;
+    const year = Number(yearStr);
+    if (!Number.isFinite(year)) return;
+
+    // Close menu if open
+    try {
+      const menu = sticky.querySelector(".yearsMenu");
+      const moreBtn = sticky.querySelector('[data-years-more="1"]');
+      if (menu) menu.classList.remove("isOpen");
+      if (moreBtn) moreBtn.setAttribute("aria-expanded", "false");
+    } catch (_) {}
+
+    // Select the year
+    handleSelectYear(year);
+  };
+
+  sticky.addEventListener("click", onStickyClick);
+
+  // Close sticky menu on outside click + ESC
+  const onDocClick = (e) => {
+    const menu = sticky.querySelector(".yearsMenu");
+    if (!menu) return;
+    if (!sticky.contains(e.target)) {
+      menu.classList.remove("isOpen");
+      const moreBtn = sticky.querySelector('[data-years-more="1"]');
+      if (moreBtn) moreBtn.setAttribute("aria-expanded", "false");
+    }
+  };
+  const onDocKey = (e) => {
+    if (e.key !== "Escape") return;
+    const menu = sticky.querySelector(".yearsMenu");
+    if (!menu) return;
+    menu.classList.remove("isOpen");
+    const moreBtn = sticky.querySelector('[data-years-more="1"]');
+    if (moreBtn) moreBtn.setAttribute("aria-expanded", "false");
+  };
+
+  document.addEventListener("click", onDocClick, { capture: true });
+  document.addEventListener("keydown", onDocKey);
+
+  contentEl._stickyYearCleanup = () => {
+    try { sticky.removeEventListener("click", onStickyClick); } catch (_) {}
+    try { document.removeEventListener("click", onDocClick, { capture: true }); } catch (_) {}
+    try { document.removeEventListener("keydown", onDocKey); } catch (_) {}
+    try { sticky.remove(); } catch (_) {}
+  };
+}
 
 // Clicking a poster toggles a dropdown inside that card (years row stays)
 
@@ -1543,7 +1745,7 @@ contentEl.addEventListener("click", (e) => {
     containerEl: mountEl,
     years,
     activeYear,
-    maxVisible: years.length,
+    maxVisible: YEARS_MAX_VISIBLE,
     onSelectYear: handleSelectYear,
     pillClass,
     pillActiveClass,
@@ -1606,6 +1808,14 @@ currentYearPretty = (showsForYear || []).map((s) => {
 
     renderShowsGridForYear({ year, shows: showsForYear, containerEl: content });
 
+    // Recreate sticky year selector inside the scrollable content (so it stays visible while scrolling)
+    ensureStickyYears();
+    // Hide the top (non-sticky) years bar while browsing the grid (sticky years stays visible)
+    try {
+      mountEl.classList.add("isCollapsed");
+      mountEl.classList.add("isHidden");
+    } catch (_) {}
+
     // Restore previously-open tile (if any) after re-render
     const st = loadShowsState();
     if (st.openShowId) {
@@ -1628,7 +1838,7 @@ currentYearPretty = (showsForYear || []).map((s) => {
       containerEl: mountEl,
       years,
       activeYear,
-      maxVisible: years.length,
+      maxVisible: YEARS_MAX_VISIBLE,
       onSelectYear: handleSelectYear,
       pillClass,
       pillActiveClass,
