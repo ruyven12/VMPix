@@ -1098,7 +1098,7 @@ for (let n = 1; n <= 20; n++) {
         img.alt = bandName;
         img.loading = "lazy";
         img.src = info.logo_url || "";
-        if (!img.src) img.style.opacity = "0.25";
+        applyLogoFallback(img, bandName);
 
         const nm = document.createElement("div");
         nm.className = "bandName";
@@ -1158,7 +1158,20 @@ for (let n = 1; n <= 20; n++) {
     const norm = (text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     const lines = norm.split("\n").filter((l) => l.trim().length);
     if (!lines.length) return [];
-    const headers = splitCSVLine(lines[0]).map((h) => h.trim());
+    let headers = splitCSVLine(lines[0]).map((h) => String(h || "").trim());
+    // Guard against blank/duplicate headers (weird CSV exports).
+    const seen = {};
+    headers = headers.map((h, idx) => {
+      let key = h || `col_${idx}`;
+      if (seen[key]) {
+        seen[key] += 1;
+        key = `${key}_${seen[key]}`;
+      } else {
+        seen[key] = 1;
+      }
+      return key;
+    });
+
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
       const cols = splitCSVLine(lines[i]);
@@ -1235,7 +1248,48 @@ async function ensureBandsIndex() {
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
-  function ensureTileBandsLoaded(tile){
+  
+// ----- Logo fallback (handles missing/broken logos gracefully) -----
+function initialsFromName(name) {
+  const s = String(name || "").trim();
+  if (!s) return "?";
+  const parts = s.split(/\s+/).filter(Boolean);
+  const a = parts[0] ? parts[0][0] : "";
+  const b = parts.length > 1 ? parts[parts.length - 1][0] : (parts[0] && parts[0][1] ? parts[0][1] : "");
+  return (a + b).toUpperCase() || "?";
+}
+
+function makeLogoDataUri(name) {
+  const initials = initialsFromName(name);
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="rgba(255,255,255,0.10)"/><stop offset="1" stop-color="rgba(255,255,255,0.03)"/></linearGradient></defs>` +
+    `<rect x="0" y="0" width="256" height="256" rx="38" fill="url(#g)"/>` +
+    `<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-weight="800" font-size="96" fill="rgba(255,255,255,0.80)">${initials}</text>` +
+    `</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function applyLogoFallback(imgEl, name) {
+  if (!imgEl) return;
+  imgEl.addEventListener("error", () => {
+    try {
+      imgEl.src = makeLogoDataUri(name);
+      imgEl.style.opacity = "0.85";
+    } catch (_) {}
+  }, { once: true });
+
+  // If blank upfront, show a placeholder immediately.
+  if (!String(imgEl.src || "").trim()) {
+    try {
+      imgEl.src = makeLogoDataUri(name);
+      imgEl.style.opacity = "0.75";
+    } catch (_) {}
+  }
+}
+
+function ensureTileBandsLoaded(tile){
     if (!tile) return;
     if (tile._bandsLoaded) return;
 
@@ -1261,7 +1315,7 @@ async function ensureBandsIndex() {
         img.alt = bandName;
         img.loading = "lazy";
         img.src = info.logo_url || "";
-        if (!img.src) img.style.opacity = "0.25";
+        applyLogoFallback(img, bandName);
 
         const nm = document.createElement("div");
         nm.className = "bandName";
@@ -1389,7 +1443,21 @@ async function fetchJsonSafe(url, opts) {
 
       if (!res.ok) {
         if (attempt <= maxRetries && retryStatuses.has(res.status)) {
-          const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          // If we're being rate-limited, honor Retry-After when present.
+          let retryAfterMs = 0;
+          try {
+            if (res.status === 429) {
+              const ra = String(res.headers.get("retry-after") || "").trim();
+              // Retry-After is usually seconds; ignore invalid values.
+              const secs = Number(ra);
+              if (Number.isFinite(secs) && secs > 0) retryAfterMs = Math.min(15000, Math.round(secs * 1000));
+            }
+          } catch (_) {}
+
+          const expBackoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          const jitter = Math.floor(Math.random() * 250);
+          const backoff = Math.max(expBackoff, retryAfterMs) + jitter;
+
           await new Promise((r) => setTimeout(r, backoff));
           continue;
         }
@@ -1404,7 +1472,9 @@ async function fetchJsonSafe(url, opts) {
       return JSON.parse(bodyText || "null");
     } catch (err) {
       if (attempt <= maxRetries) {
-        const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+        const expBackoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+        const jitter = Math.floor(Math.random() * 250);
+        const backoff = expBackoff + jitter;
         await new Promise((r) => setTimeout(r, backoff));
         continue;
       }
@@ -1421,14 +1491,14 @@ async function fetchJsonSafe(url, opts) {
     const clean = cleanFolderPath(folderPath || "");
     if (!clean) return [];
     const baseSlug = toSlug(clean || "");
-    const res = await fetch(
-      `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(
-        clean
-      )}&region=${encodeURIComponent(region || "")}&count=200&start=1`, { retries: 1 });
-    const albums =
-      (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
-      [];
-    return albums;
+    const url = `${API_BASE}/smug/${encodeURIComponent(baseSlug)}?folder=${encodeURIComponent(clean)}&region=${encodeURIComponent(region || "")}&count=200&start=1`;
+
+    // Use the same hardened JSON fetch helper (handles HTML surprises + rate-limit backoff).
+    const data = await limitNet(() => fetchJsonSafe(url, { retries: 2 }));
+
+    const albumsRaw = (data && data.Response && (data.Response.Album || data.Response.Albums)) || [];
+    if (Array.isArray(albumsRaw)) return albumsRaw;
+    return albumsRaw ? [albumsRaw] : [];
   }
 
   // show-date (MMDDYY) -> album existence check

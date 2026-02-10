@@ -4,6 +4,47 @@
   // logo+name only v2
   "use strict";
 
+// ----- Logo fallback (handles missing/broken logos gracefully) -----
+function initialsFromName(name) {
+  const s = String(name || "").trim();
+  if (!s) return "?";
+  const parts = s.split(/\s+/).filter(Boolean);
+  const a = parts[0] ? parts[0][0] : "";
+  const b = parts.length > 1 ? parts[parts.length - 1][0] : (parts[0] && parts[0][1] ? parts[0][1] : "");
+  return (a + b).toUpperCase() || "?";
+}
+
+function makeLogoDataUri(name) {
+  const initials = initialsFromName(name);
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="rgba(255,255,255,0.10)"/><stop offset="1" stop-color="rgba(255,255,255,0.03)"/></linearGradient></defs>` +
+    `<rect x="0" y="0" width="256" height="256" rx="38" fill="url(#g)"/>` +
+    `<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-weight="800" font-size="96" fill="rgba(255,255,255,0.80)">${initials}</text>` +
+    `</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function applyLogoFallback(imgEl, name) {
+  if (!imgEl) return;
+  imgEl.addEventListener("error", () => {
+    try {
+      imgEl.src = makeLogoDataUri(name);
+      imgEl.style.opacity = "0.85";
+    } catch (_) {}
+  }, { once: true });
+
+  if (!String(imgEl.src || "").trim()) {
+    try {
+      imgEl.src = makeLogoDataUri(name);
+      imgEl.style.opacity = "0.75";
+    } catch (_) {}
+  }
+}
+
+
+
   // ================== CONFIG (matches script.js) ==================
   // API base (prefer same-origin when hosted on Render; fallback to the known Render API)
   // - If you serve index.html from the SAME Render service, this auto-uses that origin.
@@ -2532,7 +2573,20 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
         // Retry on transient status codes.
         if (!res.ok) {
           if (attempt <= maxRetries && retryStatuses.has(res.status)) {
-            const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+            // If we're being rate-limited, honor Retry-After when present.
+            let retryAfterMs = 0;
+            try {
+              if (res.status === 429) {
+                const ra = String(res.headers.get("retry-after") || "").trim();
+                const secs = Number(ra);
+                if (Number.isFinite(secs) && secs > 0) retryAfterMs = Math.min(15000, Math.round(secs * 1000));
+              }
+            } catch (_) {}
+
+            const expBackoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+            const jitter = Math.floor(Math.random() * 250);
+            const backoff = Math.max(expBackoff, retryAfterMs) + jitter;
+
             await new Promise((r) => setTimeout(r, backoff));
             continue;
           }
@@ -2553,7 +2607,9 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       } catch (err) {
         // Retry on network/timeout errors.
         if (attempt <= maxRetries) {
-          const backoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          const expBackoff = Math.min(1500, 250 * Math.pow(2, attempt - 1));
+          const jitter = Math.floor(Math.random() * 250);
+          const backoff = expBackoff + jitter;
           await new Promise((r) => setTimeout(r, backoff));
           continue;
         }
@@ -2574,11 +2630,10 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       region || "",
     )}&count=200&start=1`;
 
-    const data = await fetchJsonSafe(url, { retries: 1 });
-    const albums =
-      (data && data.Response && (data.Response.Album || data.Response.Albums)) ||
-      [];
-    return Array.isArray(albums) ? albums : [albums];
+    const data = await fetchJsonSafe(url, { retries: 2 });
+    const albumsRaw = (data && data.Response && (data.Response.Album || data.Response.Albums)) || [];
+    if (Array.isArray(albumsRaw)) return albumsRaw;
+    return albumsRaw ? [albumsRaw] : [];
   }
 
   async function fetchAllAlbumImages(albumKey) {
@@ -2589,7 +2644,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     while (more) {
       const data = await fetchJsonSafe(`${API_BASE}/smug/album/${encodeURIComponent(
           albumKey,
-        )}?count=200&start=${start}`, { retries: 1 });
+        )}?count=200&start=${start}`, { retries: 2 });
       const resp = (data && data.Response) || {};
 
       let imgs = [];
@@ -4054,7 +4109,7 @@ function animateReimagingStats(overallEl){
         img.loading = "lazy";
         img.alt = bandObj?.name || "Band";
         img.src = bandObj?.logo_url || "";
-        if (!img.src) img.style.opacity = "0.20";
+        applyLogoFallback(img, bandObj?.name || "");
 
         const right = document.createElement("div");
 
@@ -4159,7 +4214,7 @@ async function showBandCard(region, letter, bandObj, opts) {
     logo.alt = bandObj?.name || "Band";
     logo.loading = "lazy";
     logo.src = bandObj?.logo_url || "";
-    if (!logo.src) logo.style.opacity = "0.20";
+    applyLogoFallback(logo, bandObj?.name || "");
 
     const card = document.createElement("div");
     card.className = "bandDetailCard";
