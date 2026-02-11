@@ -4494,6 +4494,16 @@ const members = document.createElement("div");
         }, Math.min(650, (Number(i) || 0) * 45));
 
         card.addEventListener("click", async () => {
+          // Analytics: album open
+          const _yrMatch = String(showDateLine || "").match(/\b(19\d{2}|20\d{2})\b/);
+          safeTrack("album_open", {
+            band: String(bandObj && bandObj.name ? bandObj.name : ""),
+            album: String(alb?.Name || alb?.Title || ""),
+            show: String(showNameLine || ""),
+            year: _yrMatch ? _yrMatch[1] : "",
+            category: String(region || "")
+          });
+
           // Hi-tech HUD transition into the album photos view
           try { card.classList.add("is-opening-album"); } catch(_) {}
           const wipeP = runHudWipe(420);

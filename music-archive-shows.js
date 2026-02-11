@@ -2,6 +2,15 @@
 (function () {
   "use strict";
 
+  // ----- Analytics helper (never throws) -----
+  function safeTrack(event, fields) {
+    try {
+      if (typeof window.trackEvent === "function") {
+        window.trackEvent(event, fields || {});
+      }
+    } catch (_) {}
+  }
+
   // --- Shows state persistence (so tab switching doesn't reset) ---
   const SHOWS_STATE_KEY = "musicArchive_shows_state_v1";
   function loadShowsState() {
@@ -1272,6 +1281,17 @@ async function ensureShowsLoaded() {
         card.appendChild(img);
         card.appendChild(nm);
 
+        // Analytics: band click (from show detail)
+        card.addEventListener("click", (e) => {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+          safeTrack("band_click", {
+            band: String(bandName || ""),
+            show: String(title || ""),
+            year: String(year || ""),
+            category: "show_detail"
+          });
+        });
+
         bandsHost.appendChild(card);
 
         bandHasAlbumForCode(info, mmddyy).then((has) => {
@@ -2009,6 +2029,14 @@ contentEl.addEventListener("click", (e) => {
   const show = pretty || Object.assign({}, baseShow || {}, {
     venueLine: buildVenueText(baseShow || {}),
     prettyDate: (baseShow && baseShow.date) ? String(baseShow.date) : "",
+  });
+
+  // Analytics: show open
+  safeTrack("show_open", {
+    show: String(show && (show.show_name || show.name || show.title || show.event || "") ? (show.show_name || show.name || show.title || show.event || "") : ""),
+    year: String(activeYear || ""),
+    category: "shows",
+    extra: String(showId || "")
   });
 
   renderPosterDetail({ year: activeYear, show, containerEl: contentEl });
