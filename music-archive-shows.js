@@ -731,6 +731,132 @@ function restoreScrollSnapshot(snapshot) {
   }
 }
 
+  // ===== Poster -> Detail "Hero" animation (FLIP) =====
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function animatePosterHero(fromImgEl, toImgEl) {
+    try {
+      if (!fromImgEl || !toImgEl) return Promise.resolve(false);
+      if (prefersReducedMotion()) return Promise.resolve(false);
+
+      // Helper: wait until destination image has a measurable box (often 0px tall until it loads)
+      const waitForDestRect = async () => {
+        // First try a few animation frames (covers immediate layout timing)
+        for (let i = 0; i < 8; i++) {
+          const r = toImgEl.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) return r;
+          await new Promise((res) => requestAnimationFrame(res));
+        }
+
+        // If still not measurable, wait for the image to load/decode (common in webviews)
+        if (!toImgEl.complete || !toImgEl.naturalWidth) {
+          await new Promise((res) => {
+            let done = false;
+            const finish = () => {
+              if (done) return;
+              done = true;
+              try { toImgEl.removeEventListener("load", finish); } catch (_) {}
+              try { toImgEl.removeEventListener("error", finish); } catch (_) {}
+              res();
+            };
+            try { toImgEl.addEventListener("load", finish, { once: true }); } catch (_) {}
+            try { toImgEl.addEventListener("error", finish, { once: true }); } catch (_) {}
+            // Safety timeout so we never hang
+            setTimeout(finish, 1200);
+          });
+
+          // Give layout one more frame
+          await new Promise((res) => requestAnimationFrame(res));
+        }
+
+        return toImgEl.getBoundingClientRect();
+      };
+
+      const fromRect = fromImgEl.getBoundingClientRect();
+      if (!fromRect.width || !fromRect.height) return Promise.resolve(false);
+
+      return (async () => {
+        const toRect = await waitForDestRect();
+        if (!toRect.width || !toRect.height) return false;
+
+        // Build a fixed-position "ghost" image over the source poster.
+        const ghost = fromImgEl.cloneNode(true);
+        ghost.removeAttribute("loading");
+        ghost.style.position = "fixed";
+        ghost.style.top = fromRect.top + "px";
+        ghost.style.left = fromRect.left + "px";
+        ghost.style.width = fromRect.width + "px";
+        ghost.style.height = fromRect.height + "px";
+        ghost.style.margin = "0";
+        ghost.style.zIndex = "9999";
+        ghost.style.pointerEvents = "none";
+        ghost.style.transformOrigin = "top left";
+        ghost.style.willChange = "transform, opacity";
+        ghost.style.boxShadow = window.getComputedStyle(fromImgEl).boxShadow || "none";
+        ghost.style.borderRadius = window.getComputedStyle(fromImgEl).borderRadius || "0px";
+        ghost.style.objectFit = "cover";
+
+        document.body.appendChild(ghost);
+
+        // Hide the destination image until the ghost arrives (keep layout intact).
+        const prevOpacity = toImgEl.style.opacity;
+        toImgEl.style.opacity = "0";
+
+        const dx = toRect.left - fromRect.left;
+        const dy = toRect.top - fromRect.top;
+        const sx = toRect.width / fromRect.width;
+        const sy = toRect.height / fromRect.height;
+
+        const duration = 460;
+        const easing = "cubic-bezier(0.2, 0.9, 0.2, 1)";
+
+        const anim = ghost.animate(
+          [
+            { transform: "translate3d(0px,0px,0px) scale(1,1)", opacity: 1 },
+            { transform: `translate3d(${dx}px,${dy}px,0px) scale(${sx},${sy})`, opacity: 1 },
+          ],
+          { duration, easing, fill: "forwards" }
+        );
+
+        return await new Promise((resolve) => {
+          const done = () => {
+            try { ghost.remove(); } catch (_) {}
+            try { toImgEl.style.opacity = prevOpacity || ""; } catch (_) {}
+            resolve(true);
+          };
+
+          // Fade in the real destination image near the end of the move
+          const revealAt = Math.max(0, duration - 90);
+          setTimeout(() => {
+            try {
+              toImgEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, easing: "linear", fill: "forwards" });
+              toImgEl.style.opacity = "1";
+            } catch (_) {
+              toImgEl.style.opacity = "1";
+            }
+          }, revealAt);
+
+          if (anim && typeof anim.addEventListener === "function") {
+            anim.addEventListener("finish", done, { once: true });
+            anim.addEventListener("cancel", done, { once: true });
+          } else {
+            setTimeout(done, duration + 30);
+          }
+        });
+      })();
+    } catch (_) {
+      return Promise.resolve(false);
+    }
+  }
+
+
+
 
 
   function mountYearsPillsOverflow({
@@ -915,70 +1041,109 @@ function restoreScrollSnapshot(snapshot) {
   }
 
   async function loadShowsFromCsv() {
-    const data = await fetchJsonSafe(SHOWS_ENDPOINT);
-    const text = await res.text();
-    if (!text || !text.trim()) return [];
+  // /sheet/shows may return CSV, JSON, or (in some cases) a JS-ish object string.
+  // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
+  const res = await fetch(SHOWS_ENDPOINT, { cache: "no-store" });
+  const ct = String(res.headers.get("content-type") || "").toLowerCase();
+  const text = await res.text();
+  if (!text || !text.trim()) return [];
 
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  const raw = text.trim();
 
-    const headerLine = lines.shift();
-    if (!headerLine) return [];
+  // ---- Try JSON first if it looks like JSON ----
+  if (ct.includes("application/json") || /^[\s]*[\[{]/.test(raw)) {
+    try {
+      const parsed = JSON.parse(raw);
+      // Normalize: accept either { rows: [...] } or a direct array
+      const rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.rows) ? parsed.rows : null);
+      if (rows && Array.isArray(rows)) return rows;
+      // If it's an object but not in the expected shape, fall through to CSV parsing.
+    } catch (e) {
+      // Some backends accidentally send JS object literals (unquoted keys, single quotes).
+      // We'll do a conservative "best effort" conversion rather than hard-crashing.
+      try {
+        let fixed = raw;
 
-    const header = parseCsvLine(headerLine).map((h) => h.trim());
-    const headerLower = header.map((h) => h.toLowerCase());
+        // Quote bare keys: { show_name: ... } -> { "show_name": ... }
+        fixed = fixed.replace(/([{,]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":');
 
-    const nameIdx =
-      headerLower.indexOf("show_name") !== -1
-        ? headerLower.indexOf("show_name")
-        : headerLower.indexOf("title");
+        // Convert single-quoted strings to double-quoted strings: 'x' -> "x"
+        // (keeps escaped quotes reasonably safe for our purposes)
+        fixed = fixed.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, (_m, g1) => {
+          const inner = String(g1).replace(/"/g, '\\"');
+          return `"${inner}"`;
+        });
 
-    const urlIdx =
-      headerLower.indexOf("show_url") !== -1
-        ? headerLower.indexOf("show_url")
-        : headerLower.indexOf("poster_url");
-
-    const dateIdx =
-      headerLower.indexOf("show_date") !== -1
-        ? headerLower.indexOf("show_date")
-        : headerLower.indexOf("date");
-
-    const venueIdx = headerLower.indexOf("show_venue");
-    const cityIdx =
-      headerLower.indexOf("show_city") !== -1
-        ? headerLower.indexOf("show_city")
-        : headerLower.indexOf("city");
-    const stateIdx =
-      headerLower.indexOf("show_state") !== -1
-        ? headerLower.indexOf("show_state")
-        : headerLower.indexOf("state");
-
-const bandIdxs = [];
-for (let n = 1; n <= 20; n++) {
-  bandIdxs.push(headerLower.indexOf(`band_${n}`));
-}
-
-    const rows = [];
-
-    for (const line of lines) {
-      const cols = parseCsvLine(line);
-
-      const row = {
-        title: nameIdx !== -1 ? (cols[nameIdx] || "").trim() : "",
-        poster_url: urlIdx !== -1 ? (cols[urlIdx] || "").trim() : "",
-        date: dateIdx !== -1 ? (cols[dateIdx] || "").trim() : "",
-        venue: venueIdx !== -1 ? (cols[venueIdx] || "").trim() : "",
-        city: cityIdx !== -1 ? (cols[cityIdx] || "").trim() : "",
-        state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
-        bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || "").trim() : "")).filter(Boolean),
-      };
-
-      rows.push(row);
+        const parsed2 = JSON.parse(fixed);
+        const rows2 = Array.isArray(parsed2) ? parsed2 : (Array.isArray(parsed2?.rows) ? parsed2.rows : null);
+        if (rows2 && Array.isArray(rows2)) return rows2;
+      } catch (_e2) {
+        // Fall through to CSV parsing below.
+      }
     }
-
-    return rows;
   }
 
-  async function ensureShowsLoaded() {
+  // ---- Otherwise treat as CSV ----
+  const lines = raw.split(/\r?\n/).filter((l) => l.trim());
+  const headerLine = lines.shift();
+  if (!headerLine) return [];
+
+  const header = parseCsvLine(headerLine).map((h) => h.trim());
+  const headerLower = header.map((h) => h.toLowerCase());
+
+  const nameIdx =
+    headerLower.indexOf("show_name") !== -1
+      ? headerLower.indexOf("show_name")
+      : headerLower.indexOf("title");
+
+  const urlIdx =
+    headerLower.indexOf("show_url") !== -1
+      ? headerLower.indexOf("show_url")
+      : headerLower.indexOf("poster_url");
+
+  const dateIdx =
+    headerLower.indexOf("show_date") !== -1
+      ? headerLower.indexOf("show_date")
+      : headerLower.indexOf("date");
+
+  const venueIdx = headerLower.indexOf("show_venue");
+  const cityIdx =
+    headerLower.indexOf("show_city") !== -1
+      ? headerLower.indexOf("show_city")
+      : headerLower.indexOf("city");
+  const stateIdx =
+    headerLower.indexOf("show_state") !== -1
+      ? headerLower.indexOf("show_state")
+      : headerLower.indexOf("state");
+
+  const bandIdxs = [];
+  for (let n = 1; n <= 20; n++) bandIdxs.push(headerLower.indexOf(`band_${n}`));
+
+  const rows = [];
+  for (const line of lines) {
+    const cols = parseCsvLine(line);
+
+    const row = {
+      title: nameIdx !== -1 ? (cols[nameIdx] || "").trim() : "",
+      poster_url: urlIdx !== -1 ? (cols[urlIdx] || "").trim() : "",
+      date: dateIdx !== -1 ? (cols[dateIdx] || "").trim() : "",
+      venue: venueIdx !== -1 ? (cols[venueIdx] || "").trim() : "",
+      city: cityIdx !== -1 ? (cols[cityIdx] || "").trim() : "",
+      state: stateIdx !== -1 ? (cols[stateIdx] || "").trim() : "",
+      bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || "").trim() : "")).filter(Boolean),
+    };
+
+    // Skip fully-empty rows (common in Sheets exports)
+    if (row.title || row.poster_url || row.date || row.venue || row.city || row.state || row.bands.length) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
+}
+
+async function ensureShowsLoaded() {
+
     if (Array.isArray(SHOWS_CACHE)) return SHOWS_CACHE;
     if (SHOWS_LOADING) return SHOWS_LOADING;
 
@@ -1811,6 +1976,9 @@ contentEl.addEventListener("click", (e) => {
   const tile = header.closest(".showTile");
   if (!tile) return;
 
+  // Source poster image for hero animation (may be null if no poster)
+  const _heroFromPosterEl = header.querySelector("img.showPoster");
+
   e.preventDefault();
   e.stopPropagation();
 
@@ -1847,6 +2015,19 @@ contentEl.addEventListener("click", (e) => {
 
   // Ensure focused view starts at the top
   try { contentEl.scrollTop = 0; } catch (_) {}
+
+  // Hero animation: clicked poster -> focused detail poster (FLIP)
+  // Run after the detail DOM is painted so we can measure the destination rect.
+  if (_heroFromPosterEl) {
+    try {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const toImg = contentEl.querySelector(".showsDetailImg");
+          if (toImg) animatePosterHero(_heroFromPosterEl, toImg);
+        });
+      });
+    } catch (_) {}
+  }
 });
 
 

@@ -57,7 +57,7 @@
         <div class="wa-results-head" style="text-align:center; padding:2px 4px 10px;">
           <div id="waCrumbs"
                style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;">
-            NOTE: This is a work in progress - bear with me as it gets coded.
+            NOTE: Loading - this takes about 30 seconds to complete as the server goes into sleep mode after 15 minutes. This will be fixed soon!
           </div>
 
           <div id="waYearGroups"

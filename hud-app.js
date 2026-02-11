@@ -387,9 +387,65 @@ function prefersReducedMotion(){
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
+
+
+// Premium polish helpers (surgical): route sheen + "settle in" for new content.
+// - No continuous motion.
+// - Runs only on route changes.
+// - Honors prefers-reduced-motion.
+function ensureSheenLayer(){
+  if (document.getElementById('hudRouteSheen')) return;
+  const hudEl = document.getElementById('hud');
+  if (!hudEl) return;
+
+  const s = document.createElement('div');
+  s.id = 'hudRouteSheen';
+  // Keep it inside the HUD box; CSS handles visuals.
+  hudEl.appendChild(s);
+}
+
+function triggerRouteSheen(){
+  const hudEl = document.getElementById('hud');
+  if (!hudEl) return;
+
+  ensureSheenLayer();
+
+  // Restart CSS animation by toggling a class.
+  hudEl.classList.remove('route-sheen');
+  void hudEl.offsetWidth; // force reflow
+  hudEl.classList.add('route-sheen');
+
+  window.setTimeout(() => {
+    hudEl.classList.remove('route-sheen');
+  }, 520);
+}
+
+function runEnterSettle(durationMs){
+  if (prefersReducedMotion()) return;
+
+  const m = mount();
+  if (!m) return;
+
+  // Avoid stacking animations
+  try { if (m._enterAnim) m._enterAnim.cancel(); } catch(_){}
+
+  try{
+    const anim = m.animate(
+      [
+        { transform: 'translate3d(0,6px,0)', filter: 'blur(1px)', opacity: 0.98 },
+        { transform: 'translate3d(0,0,0)', filter: 'blur(0px)', opacity: 1 }
+      ],
+      { duration: Math.max(220, durationMs || 320), easing: 'cubic-bezier(.2,.85,.2,1)', fill: 'both' }
+    );
+    m._enterAnim = anim;
+    anim.finished.finally(() => { try{ m._enterAnim = null; } catch(_){} });
+  }catch(_){
+    // If WAAPI isn't supported, skip quietly.
+  }
+}
 // Tunables (requested)
 const DIM_OUT_MS  = 180;  // dim-to-black
-const WIPE_MS     = 500;  // wipe speed (about half-speed vs your prior 250ms)
+const WIPE_MS     = 0;    // disabled: no continuous diagonal wipe
 const DIM_IN_MS   = 180;  // fade back in
 const SWAP_SETTLE_RAFS = 2; // settle frames while fully black
 
@@ -612,12 +668,14 @@ async function transitionTo(route){
   await new Promise(r => window.requestAnimationFrame(r));
 
   // 3) DIAGONAL WIPE (on top of blackout) — slower
-  if (!reduce){
+  if (!reduce && WIPE_MS > 0){
     await runDiagonalWipe(WIPE_MS);
   }
 
   // 4) Fade back in immediately after wipe (no extra hold)
   pulseFrame();
+  triggerRouteSheen();
+  runEnterSettle(DIM_IN_MS + 160);
   if (!reduce){
     await fadeDim(0, DIM_IN_MS);
   }

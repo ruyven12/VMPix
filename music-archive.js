@@ -176,11 +176,11 @@
   const ORANGE_BOX_X_OFFSET = '0px';
   const ORANGE_BOX_Y_OFFSET = '0px';
 
-  const ORANGE_BOX_BORDER = '1px solid rgba(255, 70, 90, 0.35)';
+  const ORANGE_BOX_BORDER = '0 0 0 1px rgba(255,70,110,0.50) inset, 0 0 10px rgba(255,70,110,0.50)';
   const ORANGE_BOX_RADIUS = '10px';
   const ORANGE_BOX_BG = 'rgba(0,0,0,0.12)';
   const ORANGE_BOX_GLOW =
-    'inset 0 0 0 1px rgba(255, 70, 90, 0.08), 0 0 14px rgba(255, 40, 60, 0.12)';
+    '0 0 0 1px rgba(255,70,110,0.50) inset, 0 0 10px rgba(255,70,110,0.50)';
   // ORANGE BOX text styling (match the small HUD instruction text vibe)
   const ORANGE_BOX_TEXT_SIZE = '11px';
   const ORANGE_BOX_TEXT_TRACKING = '.12em';
@@ -589,7 +589,7 @@ function render(mountEl) {
       }
 
       hudMain.style.position = 'relative';
-      hudMain.style.padding = '0 18px 18px'; // strip moved above content panel
+      hudMain.style.padding = '0px'; // strip moved above content panel
 
       // Ensure hudMain has a reliable height context for our “green box” sizing
       hudMain.style.boxSizing = 'border-box';
@@ -908,7 +908,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       _orangeBoxEl.style.height = 'auto';
 	  _orangeBoxEl.style.minHeight = 'unset';
-	  _orangeBoxEl.style.paddingTop = '10px';
+	  _orangeBoxEl.style.paddingTop = '0px';
 	  _orangeBoxEl.style.paddingBottom = '10px';
 	  _orangeBoxEl.style.paddingLeft = '14px';
 	  _orangeBoxEl.style.paddingRight = '14px';
@@ -919,11 +919,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
       _orangeBoxEl.style.left = '';
       _orangeBoxEl.style.bottom = '';
       _orangeBoxEl.style.transform = '';
-      _orangeBoxEl.style.margin = '12px auto 10px';
+      _orangeBoxEl.style.margin = '0px auto 5px';
       // --- RED GLOW BORDER (Music tabs strip) ---
       _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
       _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
-_orangeBoxEl.style.display = 'flex';
+	  _orangeBoxEl.style.display = 'flex';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
       _orangeBoxEl.style.textAlign = 'center';

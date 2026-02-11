@@ -65,7 +65,6 @@
       radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.10), transparent 60%),
       radial-gradient(900px 500px at 30% 80%, rgba(0,170,255,0.10), transparent 55%),
       linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.72)),
-      url("https://photos.smugmug.com/photos/i-S6VqGNm/0/M45NqwbQtnVS2NJd9435Lw5xwsQsCXbqmGF8RBTH7/X2/i-S6VqGNm-X2.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center, center, center, center;
     background-repeat: no-repeat;
@@ -572,7 +571,7 @@
     filter: blur(18px);
     opacity: .95;
     transform: translate3d(0,0,0);
-    animation: fogDrift 10s ease-in-out infinite;
+    animation: fogDrift 10s ease-in-out infinite, hudBreath 12s ease-in-out infinite;
     z-index: 0;
     pointer-events:none;
   }
@@ -619,7 +618,7 @@
     filter: blur(18px);
     opacity: .95;
     transform: translate3d(0,0,0);
-    animation: fogDrift 10s ease-in-out infinite;
+    animation: fogDrift 10s ease-in-out infinite, hudBreath 12s ease-in-out infinite;
     pointer-events:none;
   }
   .hudFilm{
@@ -982,6 +981,11 @@
     6%{ opacity: .55; }
     12%{ opacity: .0; }
     100%{ transform: translateY(140%); opacity: 0; }
+  }
+
+@keyframes hudBreath{
+    0%,100%{ opacity: .90; filter: brightness(1) saturate(1); }
+    50%{ opacity: .98; filter: brightness(1.06) saturate(1.03); }
   }
 
   @keyframes hudBootIn{
@@ -1425,6 +1429,47 @@
   }
 }
 
+
+
+
+  /* =============================
+   ROUTE POLISH (premium):
+   - One-time sheen on route change (no looping)
+   - Driven by JS toggling #hud.route-sheen
+   ============================= */
+  #hudRouteSheen{
+    position:absolute;
+    inset:-30%;
+    pointer-events:none;
+    opacity: 0;
+    z-index: 3; /* above atmosphere, below content */
+    background: linear-gradient(115deg,
+      rgba(0,0,0,0) 0%,
+      rgba(255,140,170,0.00) 38%,
+      rgba(255,140,170,0.22) 48%,
+      rgba(0,200,255,0.14) 56%,
+      rgba(255,140,170,0.00) 64%,
+      rgba(0,0,0,0) 100%);
+    transform: translateX(-120%) rotate(-12deg);
+    mix-blend-mode: screen;
+    filter: blur(0.6px) saturate(1.25);
+    will-change: transform, opacity;
+  }
+
+  #hud.route-sheen #hudRouteSheen{
+    opacity: 1;
+    animation: routeSheenSweep 520ms ease-out 1;
+  }
+
+  @keyframes routeSheenSweep{
+    0%   { transform: translateX(-120%) rotate(-12deg); opacity: 0; }
+    12%  { opacity: 1; }
+    100% { transform: translateX(120%)  rotate(-12deg); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #hudRouteSheen{ display:none !important; }
+  }
 
 </style>
 

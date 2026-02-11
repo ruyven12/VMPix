@@ -74,8 +74,8 @@
 
   // ORANGE STRIP tuning
   const ORANGE_BOX_HEIGHT = '56px';
-  const ORANGE_BOX_BOTTOM = '12px';
-  const ORANGE_BOX_SAFE_GAP = '16px';
+  const ORANGE_BOX_BOTTOM = '25px';
+  const ORANGE_BOX_SAFE_GAP = '20px';
   const ORANGE_BOX_MAX_WIDTH = '96%';
 
   const ORANGE_BOX_X_OFFSET = '0px';
@@ -91,7 +91,7 @@
   const GREEN_BOX_DESKTOP_MIN_HEIGHT = '0px';
   const GREEN_BOX_MOBILE_MIN_HEIGHT = '520px';
 
-  const GREEN_BOX_MARGIN_TOP = '14px';
+  const GREEN_BOX_MARGIN_TOP = '20px';
   const GREEN_BOX_PADDING = '18px 18px';
 
   const GREEN_BOX_ALIGN_ITEMS = 'center';
@@ -108,7 +108,7 @@
   // Expanded viewport used for Shows
   function sizeContentPanelToHud() {
     const ARCHIVES_TOP_OFFSET_PX = 115;
-    const ARCHIVES_BOTTOM_OFFSET_PX = 15;
+    const ARCHIVES_BOTTOM_OFFSET_PX = 10;
 
     if (!_contentPanelEl) return;
 
@@ -607,8 +607,8 @@
 
     _contentPanelEl.innerHTML = `
       <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-        <strong>Welcome to the Wrestling section for this page.</strong><br><br>
-        Please make your selection below.
+        <strong>Welcome to the Wrestling section for this page.</strong><br>
+        Please make your selection above.
       </div>
     `;
 
@@ -625,10 +625,12 @@
       _orangeBoxEl.style.top = ORANGE_BOX_BOTTOM;
       _orangeBoxEl.style.bottom = '';
       _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
-      _orangeBoxEl.style.border = 'none';
+      _orangeBoxEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
-      _orangeBoxEl.style.background = ORANGE_BOX_BG;
-      _orangeBoxEl.style.boxShadow = 'none';
+      _orangeBoxEl.style.background = 'rgba(0,0,0,0.10)';
+      _orangeBoxEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.50) inset, 0 0 10px rgba(255,70,110,0.50)';
+      _orangeBoxEl.style.boxSizing = 'border-box';
+      _orangeBoxEl.style.padding = '0 12px';
       _orangeBoxEl.style.display = 'flex';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
@@ -640,8 +642,6 @@
         <div class="hudTabs" role="tablist" aria-label="Wrestling sections">
           <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
           <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
-          <div class="hudTab" data-tab="notes" role="tab" aria-selected="false">Notes</div>
-          <div class="hudTab" data-tab="updates" role="tab" aria-selected="false">Updates</div>
         </div>
         <div class="scanPing" aria-hidden="true"></div>
       `;
