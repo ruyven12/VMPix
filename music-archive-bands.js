@@ -4496,7 +4496,7 @@ const members = document.createElement("div");
         card.addEventListener("click", async () => {
           // Analytics: album open
           const _yrMatch = String(showDateLine || "").match(/\b(19\d{2}|20\d{2})\b/);
-          safeTrack("album_open", {
+          if (window.trackEvent) window.trackEvent("album_open", {
             band: String(bandObj && bandObj.name ? bandObj.name : ""),
             album: String(alb?.Name || alb?.Title || ""),
             show: String(showNameLine || ""),
