@@ -4,6 +4,17 @@
   // logo+name only v2
   "use strict";
 
+  // ----- Analytics alias -----
+  // Some handlers call `safetrack(...)` (lowercase). Ensure it exists so clicks don't throw.
+  function safetrack(eventName, payload) {
+    try {
+      if (typeof window.trackEvent === "function") {
+        return window.trackEvent(String(eventName || ""), payload || {});
+      }
+    } catch (_) {}
+  }
+
+
 // ----- Logo fallback (handles missing/broken logos gracefully) -----
 function initialsFromName(name) {
   const s = String(name || "").trim();
@@ -42,7 +53,6 @@ function applyLogoFallback(imgEl, name) {
     } catch (_) {}
   }
 }
-
 
 
   // ================== CONFIG (matches script.js) ==================
@@ -614,7 +624,6 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
   #bands-overall .statsRow{ transition: none !important; }
   #bands-overall .overallStatsBar .seg{ transition: none !important; }
 }
-
 
 
 /* --- Premium number animation + % ring (non-destructive) --- */
@@ -4494,16 +4503,6 @@ const members = document.createElement("div");
         }, Math.min(650, (Number(i) || 0) * 45));
 
         card.addEventListener("click", async () => {
-          // Analytics: album open
-          const _yrMatch = String(showDateLine || "").match(/\b(19\d{2}|20\d{2})\b/);
-          if (window.trackEvent) window.trackEvent("album_open", {
-            band: String(bandObj && bandObj.name ? bandObj.name : ""),
-            album: String(alb?.Name || alb?.Title || ""),
-            show: String(showNameLine || ""),
-            year: _yrMatch ? _yrMatch[1] : "",
-            category: String(region || "")
-          });
-
           // Hi-tech HUD transition into the album photos view
           try { card.classList.add("is-opening-album"); } catch(_) {}
           const wipeP = runHudWipe(420);
