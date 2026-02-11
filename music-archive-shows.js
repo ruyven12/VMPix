@@ -6,7 +6,25 @@
   function safeTrack(event, fields) {
     try {
       if (typeof window.trackEvent === "function") {
-        window.trackEvent(event, fields || {});
+        const inferredRoute = (() => {
+          try {
+            const h = String(window.location.hash || '').trim();
+            if (h) return h.replace(/^#/, '').split('?')[0];
+            return String(window.location.pathname || '').trim();
+          } catch (_) {
+            return '';
+          }
+        })();
+
+        const merged = Object.assign(
+          {
+            route: inferredRoute || '',
+            view: 'shows',
+            source: 'music_shows'
+          },
+          fields || {}
+        );
+        window.trackEvent(event, merged);
       }
     } catch (_) {}
   }

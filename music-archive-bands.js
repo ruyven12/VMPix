@@ -9,7 +9,25 @@
   function safetrack(eventName, payload) {
     try {
       if (typeof window.trackEvent === "function") {
-        return window.trackEvent(String(eventName || ""), payload || {});
+        const inferredRoute = (() => {
+          try {
+            const h = String(window.location.hash || '').trim();
+            if (h) return h.replace(/^#/, '').split('?')[0];
+            return String(window.location.pathname || '').trim();
+          } catch (_) {
+            return '';
+          }
+        })();
+
+        const merged = Object.assign(
+          {
+            route: inferredRoute || '',
+            view: 'bands',
+            source: 'music_bands'
+          },
+          (payload && typeof payload === 'object') ? payload : {}
+        );
+        return window.trackEvent(String(eventName || ""), merged);
       }
     } catch (_) {}
   }
@@ -3305,7 +3323,19 @@ function ensureLightbox() {
     const band = String(currentAlbumContext?.band || "").trim();
     const album = String(currentAlbumContext?.album || "").trim();
     const show = String(currentAlbumContext?.show || "").trim();
-    const fn = String(img.FileName || "").trim();
+    const fn = String(img.FileName || '').trim();
+
+    // Analytics: individual photo view
+    try {
+      safetrack('photo_open', {
+        band: band,
+        show: show,
+        album: album,
+        photo: fn || String(url || ''),
+        category: 'lightbox',
+        extra: { index: idx + 1, total: currentViewList.length }
+      });
+    } catch (_) {}
 
     const line1Parts = [];
     if (band) line1Parts.push(band);
@@ -3353,6 +3383,17 @@ function ensureLightbox() {
     }
 
     ensureLightbox();
+
+    // Analytics: opening the viewer for this album
+    try {
+      safetrack('album_open', {
+        band: String(currentAlbumContext?.band || ''),
+        show: String(currentAlbumContext?.show || ''),
+        album: String(currentAlbumContext?.album || ''),
+        category: 'lightbox',
+        photo: ''
+      });
+    } catch (_) {}
 
     // Build filmstrip (thumbnails) once per open
     try {
@@ -4144,6 +4185,12 @@ function animateReimagingStats(overallEl){
         card.appendChild(row);
 
         card.addEventListener("click", () => {
+          // Analytics: band click
+          safetrack('band_click', {
+            band: String(bandObj?.name || ''),
+            category: String(CURRENT_REGION || ''),
+            year: '',
+          });
           animateBandOpen(CURRENT_REGION, letter, bandObj, img);
         });
 
@@ -4503,6 +4550,14 @@ const members = document.createElement("div");
         }, Math.min(650, (Number(i) || 0) * 45));
 
         card.addEventListener("click", async () => {
+          // Analytics: album open
+          safetrack('album_open', {
+            band: String(bandObj?.name || ''),
+            show: String(alb?.Name || alb?.Title || alb?.NiceName || ''),
+            album: String(alb?.AlbumKey || alb?.Key || alb?.Uri || alb?.Name || alb?.Title || ''),
+            year: '',
+            category: String(region || ''),
+          });
           // Hi-tech HUD transition into the album photos view
           try { card.classList.add("is-opening-album"); } catch(_) {}
           const wipeP = runHudWipe(420);
