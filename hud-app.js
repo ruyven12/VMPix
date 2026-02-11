@@ -701,47 +701,68 @@ function navigate(route){
 }
 
 
+  
   // ============================================================
-  // Mobile Back-Button / History Hardening (requested)
-  // - Hash routes (#/music, #/wrestling, etc.) normally add history entries.
-  // - In mobile webviews, the back button can feel confusing because it walks
-  //   through prior in-app hashes instead of exiting the webview.
-  // - We "replace" the hash on navigation clicks so in-app navigation does NOT
-  //   stack history entries (back exits the page instead of stepping hashes).
+  // Mobile Back-Button / History Behavior (updated)
+  // Goal:
+  //  - Back button should move to the last in-site view (hash route)
+  //  - Avoid accidentally dropping out of the site when a hash is cleared
+  // How:
+  //  - Persist last non-empty hash in sessionStorage
+  //  - If a navigation/back results in an empty hash, restore the last hash
   // ============================================================
-  function setHashRoute(href){
-    if (!href) return;
-    const h = String(href).trim();
-    if (!h) return;
-    const target = h.startsWith('#') ? h : ('#/' + h.replace(/^\/+/, ''));
-    try { location.replace(target); } catch(_){ location.hash = target; }
+  const LAST_HASH_KEY = 'vmpix:lastHash';
+  let _restoringHash = false;
+
+  function normalizeHash(h){
+    const s = (h || '').trim();
+    if (!s) return '';
+    if (s === '#') return '';
+    if (s.startsWith('#/')) return s;
+    if (s.startsWith('#')) return '#/' + s.slice(1).replace(/^\/+/, '');
+    return '#/' + s.replace(/^\/+/, '');
   }
 
-  // Capture route-link clicks and replace the hash instead of pushing history.
-  document.addEventListener('click', function(e){
-    const t = e && e.target ? e.target : null;
-    const a = t && t.closest ? t.closest('a') : null;
-    if (!a) return;
+  function getLastHash(){
+    try { return normalizeHash(sessionStorage.getItem(LAST_HASH_KEY) || ''); } catch(_){ return ''; }
+  }
 
-    const href = a.getAttribute('href') || '';
-    if (!href) return;
+  function setLastHash(h){
+    const nh = normalizeHash(h);
+    if (!nh) return;
+    try { sessionStorage.setItem(LAST_HASH_KEY, nh); } catch(_){}
+  }
 
-    // Only intercept in-app hash routes.
-    if (!/^#\/?/.test(href)) return;
+  function restoreHash(){
+    if (_restoringHash) return;
+    _restoringHash = true;
+    const last = getLastHash() || '#/home';
+    // Use normal assignment so the user can still back out if they choose.
+    location.hash = last;
+    window.setTimeout(() => { _restoringHash = false; }, 0);
+  }
 
-    // Respect normal browser behaviors (new tab, context menu, etc.)
-    if (e.defaultPrevented) return;
-    if (typeof e.button === 'number' && e.button !== 0) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
-    e.preventDefault();
-    setHashRoute(href);
-  }, true);
-
-  window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
+  window.addEventListener('hashchange', () => {
+    const h = normalizeHash(location.hash || '');
+    if (!h){
+      // A back/navigation cleared the hash — restore last in-site route.
+      restoreHash();
+      return;
+    }
+    setLastHash(h);
+    navigate(routeKeyFromHash());
+  });
 
   (function(){
-    if (!location.hash) { try { location.replace('#/home'); } catch(_){ location.hash = '#/home'; } }
+    // On first entry (no hash), resume where the visitor last was (session),
+    // otherwise default to home.
+    if (!location.hash){
+      const last = getLastHash() || '#/home';
+      location.hash = last;
+      return; // hashchange will drive navigation
+    }
+    setLastHash(location.hash);
     navigate(routeKeyFromHash());
   })();
   // =============================
