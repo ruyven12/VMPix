@@ -700,10 +700,48 @@ function navigate(route){
   transitionTo(route);
 }
 
+
+  // ============================================================
+  // Mobile Back-Button / History Hardening (requested)
+  // - Hash routes (#/music, #/wrestling, etc.) normally add history entries.
+  // - In mobile webviews, the back button can feel confusing because it walks
+  //   through prior in-app hashes instead of exiting the webview.
+  // - We "replace" the hash on navigation clicks so in-app navigation does NOT
+  //   stack history entries (back exits the page instead of stepping hashes).
+  // ============================================================
+  function setHashRoute(href){
+    if (!href) return;
+    const h = String(href).trim();
+    if (!h) return;
+    const target = h.startsWith('#') ? h : ('#/' + h.replace(/^\/+/, ''));
+    try { location.replace(target); } catch(_){ location.hash = target; }
+  }
+
+  // Capture route-link clicks and replace the hash instead of pushing history.
+  document.addEventListener('click', function(e){
+    const t = e && e.target ? e.target : null;
+    const a = t && t.closest ? t.closest('a') : null;
+    if (!a) return;
+
+    const href = a.getAttribute('href') || '';
+    if (!href) return;
+
+    // Only intercept in-app hash routes.
+    if (!/^#\/?/.test(href)) return;
+
+    // Respect normal browser behaviors (new tab, context menu, etc.)
+    if (e.defaultPrevented) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    e.preventDefault();
+    setHashRoute(href);
+  }, true);
+
   window.addEventListener('hashchange', () => navigate(routeKeyFromHash()));
 
   (function(){
-    if (!location.hash) location.hash = '#/home';
+    if (!location.hash) { try { location.replace('#/home'); } catch(_){ location.hash = '#/home'; } }
     navigate(routeKeyFromHash());
   })();
   // =============================
