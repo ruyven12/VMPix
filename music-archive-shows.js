@@ -1261,6 +1261,7 @@ async function ensureShowsLoaded() {
 
         <div class="showsDetailSection">
           <div class="showsDetailSectionTitle">BANDS ON THIS BILL:</div>
+		  <div class="showsDetailSectionTitle">(Heads up, these are just placeholders, check the Bands section for the individual band shots. This will be fixed later.)</div>
           <div class="showsDetailBands bandGrid" data-detail-bands="1">
             ${bandCount ? `` : `<div class="showsDetailEmpty">No bands listed for this show.</div>`}
           </div>
