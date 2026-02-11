@@ -765,13 +765,88 @@ function navigate(route){
       const dt = Math.min(40, now - t0);
       t0 = now;
 
+      // Smooth 2s plasma pulse (avoids fast flame flicker)
+      const pulse = 0.82 + 0.18 * Math.sin((now / 2000) * Math.PI * 2);
+
       ctx.clearRect(0,0,w,h);
 
       const g = ctx.createRadialGradient(w*0.5,h*0.55, 10, w*0.5,h*0.55, Math.max(w,h)*0.75);
-      g.addColorStop(0, 'rgba(255,40,60,0.08)');
+      g.addColorStop(0, 'rgba(0,255,255,0.07)');
+      g.addColorStop(0.35, 'rgba(160,70,255,0.06)');
       g.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0,0,w,h);
+
+      // Reactor "plasma tongue" wisps + base glow (sci‑fi upgrade)
+      const prevComp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'lighter';
+
+      // Base reactor glow (subtle, anchored near bottom-center)
+      {
+        const cx = w * 0.5;
+        const cy = h * 0.90;
+        const rx = Math.max(80, w * 0.26);
+        const ry = Math.max(28, h * 0.06);
+
+        const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
+        bg.addColorStop(0, `rgba(0,255,255,${0.10 * pulse})`);
+        bg.addColorStop(0.45, `rgba(160,70,255,${0.08 * pulse})`);
+        bg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = bg;
+
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Plasma ribbons (controlled, engineered motion — not chaotic flame flicker)
+      const RIBBONS = 7;
+      for (let r = 0; r < RIBBONS; r++){
+        const phase = (now / 1550) + (r * 2.15);
+        const mid = (RIBBONS - 1) * 0.5;
+        const spread = (r - mid) / (mid || 1); // -1..1
+        const x0 = w * (0.50 + spread * 0.18 + 0.018 * Math.sin(phase * 0.78));
+        const y0 = h * 0.95;
+
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+
+        const steps = 22;
+        for (let s = 1; s <= steps; s++){
+          const t = s / steps;
+
+          const driftX = Math.sin(phase + t * 3.35) * (w * 0.11) * Math.pow(1 - t, 0.85);
+          const wiggle = Math.cos((phase * 1.18) + t * 4.2) * (h * 0.018);
+
+          const x = x0 + driftX;
+          const y = y0 - (t * h * 0.78) + wiggle;
+
+          ctx.lineTo(x, y);
+        }
+
+        // Two-pass stroke for "core + halo"
+        const wght = 1 - Math.min(1, Math.abs(spread) * 0.55);
+        const coreA = (0.10 + r * 0.012) * pulse * wght;
+        const haloA = (0.06 + r * 0.010) * pulse * wght;
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.strokeStyle = `rgba(255,255,255,${coreA * 0.55})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.strokeStyle = `rgba(0,255,255,${coreA})`;
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+
+        ctx.strokeStyle = `rgba(160,70,255,${haloA})`;
+        ctx.lineWidth = 5.4;
+        ctx.stroke();
+      }
+
+      ctx.globalCompositeOperation = prevComp;
+
 
       for (let i=0; i<particles.length; i++){
         const p = particles[i];
@@ -781,19 +856,37 @@ function navigate(route){
 
         if (p.y < -30 || p.x < -60 || p.x > w + 60) spawn(i);
 
-        const flick = 0.65 + 0.35*Math.sin(p.ph);
-        const alpha = p.a * flick;
+        const flick = 0.78 + 0.22*Math.sin(p.ph);
+        const alpha = p.a * flick * pulse;
 
         ctx.beginPath();
-        ctx.fillStyle = `rgba(255,110,140,${alpha})`;
+        ctx.fillStyle = `rgba(0,255,255,${alpha})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
         ctx.fill();
 
+        // Subtle chromatic aberration (sci‑fi split)
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(255,60,80,${alpha*0.65})`;
+        ctx.fillStyle = `rgba(160,70,255,${alpha*0.55})`;
+        ctx.arc(p.x + 1.6, p.y, p.r * 0.98, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(0,200,255,${alpha*0.45})`;
+        ctx.arc(p.x - 1.4, p.y, p.r * 0.92, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(0,255,255,${alpha*0.55})`;
         ctx.lineWidth = 1;
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x - p.vx*14, p.y + p.vy*16);
+        ctx.stroke();
+
+        // Secondary plasma tint streak
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(160,70,255,${alpha*0.32})`;
+        ctx.lineWidth = 1;
+        ctx.moveTo(p.x + 1.2, p.y);
+        ctx.lineTo(p.x + 1.2 - p.vx*12, p.y + p.vy*14);
         ctx.stroke();
       }
 
