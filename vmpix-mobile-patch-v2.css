@@ -41,7 +41,7 @@ html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
-html.webview, html.messenger, html.facebook, html.instagram{
+html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.x{
   -webkit-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
 }
@@ -65,8 +65,14 @@ body{
 /* Grid scroll fix: allow the 3rd row (main content) to actually scroll */
 .hudContent{
   min-height: 0 !important;
-  padding-top: calc(14px + env(safe-area-inset-top)) !important;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  /*
+    Device-aware top/bottom insets:
+    - safe-area-* handles iOS notches
+    - --vv-top/--vv-bottom (set via visualViewport in index.html) handles
+      in-app browser UI overlap (Instagram/X/FB, etc.)
+  */
+  padding-top: calc(14px + env(safe-area-inset-top) + var(--vv-top, 0px)) !important;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom) + var(--vv-bottom, 0px)) !important;
 }
 .hudStub.hudMain{
   min-height: 0 !important;

@@ -5,15 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Voodoo Media</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap">
-
   <style>
   /* =============================
    IMPORTS
-   ============================= *//* =============================
+   ============================= */
+  @import url('https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+
+  /* =============================
    THEME TOKENS
    ============================= */
   :root {
@@ -1615,7 +1614,7 @@
           <div class="hudContent">
             <div class="hudTopbar">
               <a class="hudBrandLink" href="#/home">
-                <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/M/i-BsRTsVG-M.png" alt="Voodoo Media" width="184" height="100" loading="eager" decoding="async" fetchpriority="high" />
+                <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
               </a>
             </div>
             <div class="hudStub">
@@ -1645,21 +1644,21 @@
 <!-- App modules (keep HUD markup/logic identical; logic moved to separate files) -->
 
 <!-- Analytics (must load before app modules) -->
-<script src="https://music-archive-3lfa.onrender.com/analytics.js?v=1"></script defer></script>
+<script src="https://music-archive-3lfa.onrender.com/analytics.js?v=1"></script>
 
 <!-- Music sub-modules FIRST -->
-<script src="music-archive-bands.js"></script defer></script>
-<script src="music-archive-shows.js"></script defer></script>
+<script src="music-archive-bands.js" defer></script>
+<script src="music-archive-shows.js" defer></script>
 
 <!-- Music router LAST -->
-<script src="music-archive.js"></script defer></script>
+<script src="music-archive.js" defer></script>
 
-<script src="wrestling-archive.js"></script defer></script>
-<script src="about-archive.js"></script defer></script>
-<script src="pricing.js"></script defer></script>
-<script src="contact.js"></script defer></script>
-<script src="home.js"></script defer></script>
-<script src="hud-app.js"></script defer></script>
+<script src="wrestling-archive.js" defer></script>
+<script src="about-archive.js" defer></script>
+<script src="pricing.js" defer></script>
+<script src="contact.js" defer></script>
+<script src="home.js" defer></script>
+<script src="hud-app.js" defer></script>
 
 
 
@@ -1671,8 +1670,13 @@
     function setVh() {
       var vv = window.visualViewport;
       var h = vv && vv.height ? vv.height : window.innerHeight;
+      var top = vv && typeof vv.offsetTop === 'number' ? vv.offsetTop : 0;
+      var bottom = vv && typeof vv.offsetTop === 'number' && vv.height ? Math.max(0, (window.innerHeight - (vv.height + vv.offsetTop))) : 0;
       // 1% of the visible viewport height (in px)
       document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+      // VisualViewport offsets (helps avoid top UI overlap in in-app browsers)
+      document.documentElement.style.setProperty('--vv-top', top + 'px');
+      document.documentElement.style.setProperty('--vv-bottom', bottom + 'px');
     }
     setVh();
 
@@ -1719,5 +1723,6 @@
     }
   });
 </script>
+
 </body>
 </html>
