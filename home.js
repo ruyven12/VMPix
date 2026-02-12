@@ -16,7 +16,7 @@
   // Set to false to restore the original typer.
   const DISABLE_HOME_TYPING_EFFECT = true;
 
-  const DEFAULT_COPY = `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.\n\nAlso, this page at the moment is best viewed inside a browser only and should do good with most devices. If you are viewing this from Facebook Webview (you clicked the link in Facebook), view by browser instead.`;
+  const DEFAULT_COPY = `Welcome to the landing site for Voodoo Media. Right now this is a placeholder for more content later but for now, please make your selection above.\n\nAlso, this page at the moment is best viewed inside a browser only and should do good with most devices. If you clicked the photo from before to get here, view by browser instead - this is an ongoing bug I will fix soon.`;
 
   let _mount = null;
 
