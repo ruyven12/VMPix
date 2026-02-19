@@ -33,11 +33,10 @@
   })();
 
   // ================== CONFIG ==================
-  // Match Music section behavior: prefer explicit override(s) if present.
+  // Wrestling should NOT inherit the Music API base.
+  // If you need to override for staging/local, set:
+  //   window.WRESTLING_ARCHIVE_API_BASE = "https://your-backend.example.com"
   const API_BASE = (function () {
-    // Revert: Wrestling should use its own backend by default.
-    // Allow an explicit override via window.WRESTLING_ARCHIVE_API_BASE (if you ever set it),
-    // otherwise always fall back to the wrestling server.
     try {
       const w = window;
       const v = String((w && w.WRESTLING_ARCHIVE_API_BASE) || "").trim();
