@@ -2095,6 +2095,371 @@ function renderPhotoGrid(gridEl, images, opts) {
     });
   }
 
+
+  // ================== KEYWORD SEARCH MODAL (ALBUM KEYWORDS) ==================
+  // Used when clicking "People in this album" chips on match albums.
+  // Searches other albums by ALBUM keyword (server must implement one of the endpoints below).
+  let _waKwModal = null;
+  let _waKwModalBody = null;
+  let _waKwModalTitle = null;
+  let _waKwModalCount = null;
+
+  function ensureWrestlingKeywordSearchStyles() {
+    if (document.getElementById("waKeywordSearchStyles")) return;
+    const s = document.createElement("style");
+    s.id = "waKeywordSearchStyles";
+    s.textContent = `
+/* Keyword search modal (scoped global, unique class prefix) */
+.waKwOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.68);
+}
+.waKwModal{
+  width: min(980px, 96vw);
+  max-height: min(78vh, 760px);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: radial-gradient(120% 140% at 0% 0%, rgba(200,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.40) 100%);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+}
+.waKwTopbar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+.waKwTitleWrap{ min-width:0; }
+.waKwTitle{
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  letter-spacing: .08em;
+  font-size: 14px;
+  font-weight: 900;
+  margin: 0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.waKwSub{
+  font-size: 12px;
+  letter-spacing: .10em;
+  opacity: .80;
+  margin-top: 6px;
+}
+.waKwClose{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(226,232,240,0.92);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: "Orbitron", system-ui, sans-serif !important;
+  font-size: 11px;
+  letter-spacing: .10em;
+  cursor: pointer;
+}
+.waKwClose:hover{ border-color: rgba(200,0,0,0.55); }
+.waKwBody{
+  padding: 14px 16px 16px;
+  overflow: auto;
+  max-height: calc(min(78vh, 760px) - 64px);
+}
+.waKwStatus{
+  text-align:center;
+  font-size: 12px;
+  letter-spacing: .10em;
+  opacity: .82;
+  padding: 14px 0;
+}
+.waKwItem{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(15, 23, 42, 0.22);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  margin-bottom: 10px;
+}
+.waKwItem:hover{
+  background: rgba(30, 41, 59, 0.35);
+  border-color: rgba(255,255,255,0.14);
+  transform: translateY(-1px);
+}
+.waKwThumb{
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow:hidden;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+}
+.waKwThumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.waKwText{ min-width:0; display:flex; flex-direction:column; gap: 4px; }
+.waKwLine1{ font-size: 13px; font-weight: 900; }
+.waKwLine2{ font-size: 11px; opacity: .82; letter-spacing: .06em; }
+`;
+    document.head.appendChild(s);
+  }
+
+  function ensureWrestlingKeywordSearchModal() {
+    if (_waKwModal) return;
+    ensureWrestlingKeywordSearchStyles();
+
+    const overlay = document.createElement("div");
+    overlay.className = "waKwOverlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+
+    const modal = document.createElement("div");
+    modal.className = "waKwModal";
+
+    const topbar = document.createElement("div");
+    topbar.className = "waKwTopbar";
+
+    const titleWrap = document.createElement("div");
+    titleWrap.className = "waKwTitleWrap";
+
+    const title = document.createElement("div");
+    title.className = "waKwTitle";
+    title.textContent = "";
+
+    const sub = document.createElement("div");
+    sub.className = "waKwSub";
+    sub.textContent = "Also appears in these albums:";
+
+    titleWrap.appendChild(title);
+    titleWrap.appendChild(sub);
+
+    const close = document.createElement("button");
+    close.className = "waKwClose";
+    close.type = "button";
+    close.textContent = "Close";
+
+    topbar.appendChild(titleWrap);
+    topbar.appendChild(close);
+
+    const body = document.createElement("div");
+    body.className = "waKwBody";
+
+    modal.appendChild(topbar);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const destroy = function () { closeWrestlingKeywordSearchModal(); };
+    close.addEventListener("click", destroy);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) destroy(); });
+
+    const onKey = function (e) {
+      if (!_waKwModal) return;
+      if (e.key === "Escape") { e.preventDefault(); destroy(); }
+    };
+    window.addEventListener("keydown", onKey);
+
+    overlay._onKey = onKey;
+    _waKwModal = overlay;
+    _waKwModalBody = body;
+    _waKwModalTitle = title;
+    _waKwModalCount = sub;
+
+    try { document.documentElement.style.overflow = "hidden"; } catch (_) {}
+  }
+
+  function closeWrestlingKeywordSearchModal() {
+    if (!_waKwModal) return;
+    try {
+      const onKey = _waKwModal._onKey;
+      if (onKey) window.removeEventListener("keydown", onKey);
+    } catch (_) {}
+    try { document.documentElement.style.overflow = ""; } catch (_) {}
+    try { _waKwModal.remove(); } catch (_) {}
+    _waKwModal = null;
+    _waKwModalBody = null;
+    _waKwModalTitle = null;
+    _waKwModalCount = null;
+  }
+
+  function setKwBodyStatus(text) {
+    if (!_waKwModalBody) return;
+    _waKwModalBody.innerHTML = "";
+    const st = document.createElement("div");
+    st.className = "waKwStatus";
+    st.textContent = text;
+    _waKwModalBody.appendChild(st);
+  }
+
+  // Attempt multiple possible backend endpoints (fail-soft). Expected to return a list of albums.
+  async function fetchAlbumsByKeywordFromServer(keyword) {
+    const kw = String(keyword || "").trim();
+    if (!kw) return [];
+
+    const candidates = [
+      `${API_BASE}/smug/albums-by-keyword?keyword=${encodeURIComponent(kw)}`,
+      `${API_BASE}/smug/search-albums-by-keyword?keyword=${encodeURIComponent(kw)}`,
+      `${API_BASE}/smug/search-albums?keyword=${encodeURIComponent(kw)}`,
+      `${API_BASE}/smug/keyword-search?keyword=${encodeURIComponent(kw)}`,
+      `${API_BASE}/keyword-search?keyword=${encodeURIComponent(kw)}`,
+    ];
+
+    const json = await fetchJsonFirstOk(candidates);
+
+    // Accept common shapes:
+    //  - { albums: [...] }
+    //  - { results: [...] }
+    //  - { data: [...] }
+    //  - { Response: { Album: [...] } }
+    if (json && Array.isArray(json.albums)) return json.albums;
+    if (json && Array.isArray(json.results)) return json.results;
+    if (json && Array.isArray(json.data)) return json.data;
+    if (json && json.Response) {
+      const r = json.Response;
+      if (Array.isArray(r.Album)) return r.Album;
+      if (r.Album) return Array.isArray(r.Album) ? r.Album : [r.Album];
+    }
+
+    // If server returns a raw array
+    if (Array.isArray(json)) return json;
+    return [];
+  }
+
+  // Best-effort getters across possible album result shapes
+  function albumTitleFromResult(a) {
+    return String(
+      (a && (a.title || a.Title || a.name || a.Name || a.albumTitle || a.AlbumTitle)) ||
+      ""
+    ).trim();
+  }
+  function albumDateFromResult(a) {
+    const raw = String((a && (a.date || a.Date || a.show_date || a.ShowDate)) || "").trim();
+    return raw;
+  }
+  function albumThumbFromResult(a) {
+    return String(
+      (a && (a.thumb || a.thumbnail || a.ThumbnailUrl || a.ThumbUrl || a.thumbUrl || a.thumbnailUrl)) ||
+      ""
+    ).trim();
+  }
+  function albumUrlFromResult(a) {
+    return String(
+      (a && (a.url || a.Url || a.webUrl || a.WebUrl || a.permalink || a.Permalink)) ||
+      ""
+    ).trim();
+  }
+  function albumKeyFromResult(a) {
+    return String((a && (a.albumKey || a.AlbumKey || a.Key)) || "").trim();
+  }
+
+  // Exposed handler for keyword chips
+  async function openWrestlingKeywordSearchModal(keyword) {
+    const kw = String(keyword || "").trim();
+    if (!kw) return;
+
+    ensureWrestlingKeywordSearchModal();
+    if (_waKwModalTitle) _waKwModalTitle.textContent = kw;
+    if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums: Searching…";
+    setKwBodyStatus("Searching albums…");
+
+    let albums = [];
+    try {
+      albums = await fetchAlbumsByKeywordFromServer(kw);
+    } catch (e) {
+      console.warn("Keyword search failed", e);
+      if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums:";
+      setKwBodyStatus("Search unavailable (server endpoint not configured yet).");
+      return;
+    }
+
+    const list = (albums || []).filter(Boolean);
+    if (_waKwModalCount) {
+      _waKwModalCount.textContent = `Also appears in these albums: ${list.length} album${list.length === 1 ? "" : "s"} found`;
+    }
+
+    if (!_waKwModalBody) return;
+    _waKwModalBody.innerHTML = "";
+
+    if (!list.length) {
+      setKwBodyStatus("No albums found.");
+      return;
+    }
+
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i];
+      const title = albumTitleFromResult(a) || "(Untitled album)";
+      const date = albumDateFromResult(a);
+      const thumb = albumThumbFromResult(a);
+      const url = albumUrlFromResult(a);
+      const albumKey = albumKeyFromResult(a);
+
+      const item = document.createElement("div");
+      item.className = "waKwItem";
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+
+      const th = document.createElement("div");
+      th.className = "waKwThumb";
+      if (thumb) {
+        const im = document.createElement("img");
+        im.loading = "lazy";
+        im.alt = "";
+        im.src = thumb;
+        th.appendChild(im);
+      }
+
+      const tx = document.createElement("div");
+      tx.className = "waKwText";
+      const l1 = document.createElement("div");
+      l1.className = "waKwLine1";
+      l1.textContent = title;
+      const l2 = document.createElement("div");
+      l2.className = "waKwLine2";
+      l2.textContent = date || "";
+      tx.appendChild(l1);
+      if (date) tx.appendChild(l2);
+
+      item.appendChild(th);
+      item.appendChild(tx);
+
+      const open = function () {
+        // Prefer URL from server; otherwise, if we have an AlbumKey we can open by key.
+        if (url) {
+          try { window.open(url, "_blank", "noopener"); } catch (_) {}
+          return;
+        }
+        if (albumKey) {
+          try { window.open(SMUG_ORIGIN.replace(/\/$/, "") + "/gallery/" + encodeURIComponent(albumKey), "_blank", "noopener"); } catch (_) {}
+        }
+      };
+
+      item.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        open();
+      });
+      item.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          open();
+        }
+      });
+
+      _waKwModalBody.appendChild(item);
+    }
+  }
+
   // ================== EXPORT ==================
   window.WrestlingArchiveShows = {
     render,
