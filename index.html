@@ -522,6 +522,49 @@
   font-size: 12px;
 }
 
+  /* =============================
+   NAV STUB (TOP MENU): wrap + content-sized pills
+   - WebViews (FB/IG/X) sometimes report wider layout widths, so we must not
+     rely on max-width breakpoints to prevent pill pinch/cutoff.
+   - Keep HUD MAIN panel styling untouched (.hudStub.hudMain)
+   ============================= */
+  .hudContent > .hudStub:not(.hudMain){
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(8px, 2.2vw, 12px);
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  /* Make pills size to their text (no forced widths) */
+  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
+    flex: 0 0 auto;
+    padding: 6px 14px;
+    font-size: clamp(11px, 2.6vw, 13px);
+    line-height: 1.05;
+  }
+
+  /* Disable ch-based typing width on touch + WebViews (prevents clipped labels) */
+  @media (hover: none) and (pointer: coarse){
+    .hudIntroType{
+      width: auto !important;
+      overflow: visible !important;
+      animation: none !important;
+    }
+  }
+
+  body.webview .hudIntroType,
+  body.facebook .hudIntroType,
+  body.instagram .hudIntroType,
+  body.twitter .hudIntroType,
+  body.x .hudIntroType{
+    width: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
 
   .hudStub.hudMain{
   border: 1px solid rgba(255,60,60,.32);
@@ -1590,51 +1633,6 @@
   @media (prefers-reduced-motion: reduce){
     #hudRouteSheen{ display:none !important; }
   }
-
-
-  /* =============================
-   NAV RESPONSIVE (A + D):
-   - Allow pills to wrap on small screens
-   - Let pills size to their content (no truncation)
-   - Disable ch-based typing width on small screens (iOS/webviews can clip)
-   ============================= */
-  .hudContent > .hudStub:not(.hudMain){
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    text-align: center;
-  }
-
-  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    max-width: 100%;
-    min-height: 34px;
-    padding: 6px 12px;
-    line-height: 1;
-    white-space: nowrap;
-    font-size: clamp(12px, 2.8vw, 14px);
-  }
-
-  @media (max-width: 520px){
-    .hudContent > .hudStub:not(.hudMain){
-      gap: 8px;
-      padding: 6px 8px;
-    }
-
-    /* Kill ch-based typing clip on mobile/webviews */
-    .hudContent > .hudStub:not(.hudMain) .hudIntroType{
-      width: auto !important;
-      overflow: visible !important;
-      animation: none !important;
-    }
-  }
-
 
 </style>
 
