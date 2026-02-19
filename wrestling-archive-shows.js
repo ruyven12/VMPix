@@ -1534,7 +1534,7 @@ meta.textContent = images.length + " photo" + (images.length === 1 ? "" : "s");
 const selected = new Set();
 let selectMode = false;
 
-const albumNameForZip = (albumTitle || headerText || "album").trim() || "album";
+const albumNameForZip = (albumTitle || matchTitle || matchId || "album").trim() || "album";
 const albumCtx = { title: albumNameForZip, url: matchUrl || "" };
 
 function updateSelectUI() {
