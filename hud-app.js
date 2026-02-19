@@ -653,6 +653,12 @@ async function transitionTo(route){
   setActiveTopNav(next);
   stopAllTyping();
 
+  // IMPORTANT: clean up the previous route before mounting the next one.
+  // This prevents cross-route modules (ex: Music) from staying mounted on Wrestling.
+  if (currentRoute && modules[currentRoute] && typeof modules[currentRoute].onLeave === 'function'){
+    try { modules[currentRoute].onLeave(); } catch(_){ }
+  }
+
   modules[next].render();
   currentRoute = next;
 
