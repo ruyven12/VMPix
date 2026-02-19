@@ -287,7 +287,7 @@
       .waDetailHeader{
         width:100%;
         display:grid;
-        grid-template-columns: 360px 1fr;
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
         gap: 18px;
         align-items:center;
         border-top: 2px solid rgba(200,0,0,0.22);
@@ -848,8 +848,13 @@
     }
 
     resultsEl.style.display = "grid";
-    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(420px, 1fr))";
+    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(280px, 1fr))";
     resultsEl.style.gap = "16px";
+
+    // Mobile/webview safety: prevent horizontal clipping inside parent panels
+    resultsEl.style.boxSizing = "border-box";
+    resultsEl.style.padding = "0 4px";
+    resultsEl.style.minWidth = "0";
     resultsEl.style.width = "100%";
     resultsEl.style.maxWidth = "1200px";
     resultsEl.style.margin = "0 auto";
@@ -898,6 +903,7 @@
       }
 
       const right = document.createElement("div");
+      right.style.minWidth = "0";
       right.style.display = "flex";
       right.style.flexDirection = "column";
       right.style.gap = "6px";
