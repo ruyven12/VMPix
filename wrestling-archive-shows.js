@@ -215,6 +215,16 @@
   font-size: 11px;
   letter-spacing: .08em;
   opacity:.92;
+  cursor: pointer;
+  user-select: none;
+}
+#waShowsRoot .waAlbumKeywordChip:hover{
+  border-color: rgba(200,0,0,0.55);
+  background: rgba(0,0,0,0.26);
+}
+#waShowsRoot .waAlbumKeywordChip:focus-visible{
+  outline: 2px solid rgba(200,0,0,0.55);
+  outline-offset: 2px;
 }
 #waShowsRoot .waAlbumKeywordEmpty{
   font-size: 12px;
@@ -1461,6 +1471,27 @@ const meta = document.createElement("div");
                 const chip = document.createElement("div");
                 chip.className = "waAlbumKeywordChip";
                 chip.textContent = list[i];
+
+                // Make chips clickable (keyword search modal)
+                chip.setAttribute("role", "button");
+                chip.setAttribute("tabindex", "0");
+                chip.title = "Search albums for " + list[i];
+
+                const kw = list[i];
+                const openKw = function () { openWrestlingKeywordSearchModal(kw); };
+
+                chip.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openKw();
+                });
+                chip.addEventListener("keydown", function (e) {
+                  if (e.key === "Enter" || e.key === " " ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openKw();
+                  }
+                });
                 if (kwChips) kwChips.appendChild(chip);
               }
             } else {
