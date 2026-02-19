@@ -67,7 +67,10 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
   justify-content: center;
   align-items: center;
   gap: clamp(8px, 2.2vw, 12px);
-  padding: 10px 12px;
+  /* extra top padding so pill borders/glow never clip in IG/FB webviews */
+  padding: 14px 12px 12px;
+  /* override base .hudStub overflow:hidden so pill corners/glow aren't cut off */
+  overflow: visible !important;
 }
 
 /* Make pill text scale down gracefully and never clip */
