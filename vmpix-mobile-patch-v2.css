@@ -135,6 +135,22 @@ body{
   overscroll-behavior: contain;
 }
 
+/*
+  In IG/FB/Messenger webviews, the main panel's top frame line can visually
+  "connect" into the nav pills when the nav wraps to 2 rows. Give the main
+  panel a little breathing room on touch/mobile so the line sits below the pills.
+*/
+@media (hover: none){
+  .hudStub.hudMain{
+    margin-top: 10px !important;
+  }
+}
+@media (max-width: 900px){
+  .hudStub.hudMain{
+    margin-top: 10px !important;
+  }
+}
+
 /* On phones, align content to the top so long lists don't feel "stuck" */
 @media (max-width: 600px){
   .hudMainPlain{
