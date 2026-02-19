@@ -33,7 +33,30 @@
   })();
 
   // ================== CONFIG ==================
-  const API_BASE = "https://wrestling-archive.onrender.com";
+  // IMPORTANT:
+  // This module must work both:
+  //  - inside SmugMug (origin = vmpix.smugmug.com)
+  //  - in local/dev contexts
+  //  - and it must match whatever backend your working Music/Bands module is using.
+  //
+  // Prefer an explicit override when present, otherwise fall back to the same base used elsewhere.
+  // (We keep the old hardcoded default as a last resort.)
+  const API_BASE = (function () {
+    try {
+      const w = window;
+      const v = String((w && (w.WRESTLING_ARCHIVE_API_BASE || w.MUSIC_ARCHIVE_API_BASE)) || "").trim();
+      if (v) return v.replace(/\/$/, "");
+    } catch (_) {}
+
+    // When running locally (not on SmugMug), prefer same-origin.
+    try {
+      const o = String((window.location && window.location.origin) || "").trim();
+      if (o && !/smugmug\.com$/i.test(o)) return o.replace(/\/$/, "");
+    } catch (_) {}
+
+    return "https://wrestling-archive.onrender.com";
+  })();
+
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
   // Only show 2021–2026 (your current behavior)
@@ -1524,7 +1547,9 @@ meta.textContent = images.length + " photo" + (images.length === 1 ? "" : "s");
 const selected = new Set();
 let selectMode = false;
 
-const albumNameForZip = (albumTitle || headerText || "album").trim() || "album";
+// NOTE: headerText was a stray reference (would throw and break the modal / album view).
+// Use the matchTitle we already have.
+const albumNameForZip = (albumTitle || matchTitle || "album").trim() || "album";
 const albumCtx = { title: albumNameForZip, url: matchUrl || "" };
 
 function updateSelectUI() {
