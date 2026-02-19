@@ -2333,19 +2333,126 @@ function renderPhotoGrid(gridEl, images, opts) {
   }
 
   // Attempt multiple possible backend endpoints (fail-soft). Expected to return a list of albums.
+  
+  // POST helper for keyword searches (some backends only accept POST).
+  async function postJsonFirstOk(urls, payload) {
+    const list = Array.isArray(urls) ? urls : [];
+    let lastErr = null;
+
+    for (let i = 0; i < list.length; i++) {
+      const u = list[i];
+      if (!u) continue;
+
+      const ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, 25000) : null;
+
+      try {
+        const res = await fetch(u, {
+          method: "POST",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload || {}),
+          signal: ac ? ac.signal : undefined
+        });
+
+        if (!res.ok) {
+          lastErr = new Error("HTTP " + res.status + " for " + u);
+          continue;
+        }
+
+        const bodyText = await res.text();
+
+        // Skip HTML error pages masquerading as JSON
+        if (bodyText && /^[\s]*</.test(bodyText)) {
+          lastErr = new Error("Expected JSON but got HTML for " + u);
+          continue;
+        }
+
+        try {
+          return JSON.parse(bodyText || "null");
+        } catch (e) {
+          lastErr = new Error("Invalid JSON for " + u + ": " + String(e && e.message ? e.message : e));
+          continue;
+        }
+      } catch (e) {
+        lastErr = e;
+      } finally {
+        try { if (t) clearTimeout(t); } catch (_) {}
+      }
+    }
+
+    if (lastErr) throw lastErr;
+    throw new Error("No endpoints tried");
+  }
+
   async function fetchAlbumsByKeywordFromServer(keyword) {
     const kw = String(keyword || "").trim();
     if (!kw) return [];
 
-    const candidates = [
-      `${API_BASE}/smug/albums-by-keyword?keyword=${encodeURIComponent(kw)}`,
-      `${API_BASE}/smug/search-albums-by-keyword?keyword=${encodeURIComponent(kw)}`,
-      `${API_BASE}/smug/search-albums?keyword=${encodeURIComponent(kw)}`,
-      `${API_BASE}/smug/keyword-search?keyword=${encodeURIComponent(kw)}`,
-      `${API_BASE}/keyword-search?keyword=${encodeURIComponent(kw)}`,
+    // Some backends scope searches by folder/section; include best-effort scope hints.
+    const scopeParams = [
+      "", // plain
+      "&scope=wrestling",
+      "&section=wrestling",
+      "&base=Wrestling",
+      "&folder=Wrestling",
+      "&path=%2FWrestling",
     ];
 
-    const json = await fetchJsonFirstOk(candidates);
+    // Try multiple endpoint + param name variants (server may differ from music side).
+    const endpoints = [
+      "/smug/albums-by-keyword",
+      "/smug/search-albums-by-keyword",
+      "/smug/search-albums",
+      "/smug/keyword-search",
+      "/keyword-search",
+      "/smug/albumsByKeyword",
+      "/smug/search",
+      "/search-albums-by-keyword",
+      "/albums-by-keyword",
+    ];
+
+    const params = [
+      (k) => `keyword=${encodeURIComponent(k)}`,
+      (k) => `kw=${encodeURIComponent(k)}`,
+      (k) => `q=${encodeURIComponent(k)}`,
+      (k) => `term=${encodeURIComponent(k)}`,
+      (k) => `name=${encodeURIComponent(k)}`,
+    ];
+
+    const candidates = [];
+    for (let i = 0; i < endpoints.length; i++) {
+      for (let j = 0; j < params.length; j++) {
+        for (let s = 0; s < scopeParams.length; s++) {
+          candidates.push(`${API_BASE}${endpoints[i]}?${params[j](kw)}${scopeParams[s]}`);
+        }
+      }
+    }
+
+    let json = null;
+    try {
+      json = await fetchJsonFirstOk(candidates);
+    } catch (_) {
+      json = null;
+    }
+
+    // If GET candidates didn't work, try POST (some servers only accept POST for searches).
+    if (!json) {
+      try {
+        json = await postJsonFirstOk(
+          [
+            `${API_BASE}/smug/albums-by-keyword`,
+            `${API_BASE}/smug/search-albums-by-keyword`,
+            `${API_BASE}/smug/search-albums`,
+            `${API_BASE}/smug/keyword-search`,
+            `${API_BASE}/keyword-search`,
+          ],
+          { keyword: kw, scope: "wrestling", section: "wrestling" }
+        );
+      } catch (_) {
+        json = null;
+      }
+    }
 
     // Accept common shapes:
     //  - { albums: [...] }
@@ -2361,11 +2468,14 @@ function renderPhotoGrid(gridEl, images, opts) {
       if (r.Album) return Array.isArray(r.Album) ? r.Album : [r.Album];
     }
 
+    // Some servers respond with {items:[...]} or {Albums:[...]}
+    if (json && Array.isArray(json.items)) return json.items;
+    if (json && Array.isArray(json.Albums)) return json.Albums;
+
     // If server returns a raw array
     if (Array.isArray(json)) return json;
     return [];
   }
-
   // Best-effort getters across possible album result shapes
   function albumTitleFromResult(a) {
     return String(
