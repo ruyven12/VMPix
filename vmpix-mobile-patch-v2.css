@@ -47,6 +47,57 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
 }
 
 /* =========================================================
+   NAV "BUBBLE" LABEL FIT (HOME / MUSIC / WRESTLING / ...)
+   - Fixes truncated labels like "HOM", "MUS", "WRESTL" on mobile/webviews.
+   - Root cause: pill label uses a width-in-"ch" typing animation; "ch" can
+     under-measure Orbitron/letter-spacing so the last characters clip.
+   - On small screens + in-app webviews, prefer stable, always-visible labels.
+   ========================================================= */
+
+:root{
+  --vmpix-nav-font: clamp(11px, 3.3vw, 13px);
+  --vmpix-nav-pad-y: clamp(5px, 1.2vw, 7px);
+  --vmpix-nav-pad-x: clamp(10px, 2.4vw, 14px);
+}
+
+/* Only the NAV stub (the 2nd child inside .hudContent). Avoid touching .hudMain. */
+.hudContent > .hudStub:not(.hudMain){
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(8px, 2.2vw, 12px);
+  padding: 10px 12px;
+}
+
+/* Make pill text scale down gracefully and never clip */
+.hudIntroText{
+  font-size: var(--vmpix-nav-font) !important;
+  padding: var(--vmpix-nav-pad-y) var(--vmpix-nav-pad-x) !important;
+}
+
+/* Kill the "width: ch" typing clip on smaller screens / webviews */
+@media (max-width: 760px){
+  .hudIntroType{
+    width: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+    white-space: nowrap;
+  }
+}
+
+html.webview .hudIntroType,
+html.messenger .hudIntroType,
+html.facebook .hudIntroType,
+html.instagram .hudIntroType,
+html.twitter .hudIntroType,
+html.x .hudIntroType{
+  width: auto !important;
+  overflow: visible !important;
+  animation: none !important;
+}
+
+/* =========================================================
    MOBILE / WEBVIEW LAYOUT HARDENING
    - Prevents "100vh" traps in iOS + in-app browsers
    - Ensures the HUD main panel scrolls instead of clipping
