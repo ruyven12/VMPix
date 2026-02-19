@@ -1591,6 +1591,51 @@
     #hudRouteSheen{ display:none !important; }
   }
 
+
+  /* =============================
+   NAV RESPONSIVE (A + D):
+   - Allow pills to wrap on small screens
+   - Let pills size to their content (no truncation)
+   - Disable ch-based typing width on small screens (iOS/webviews can clip)
+   ============================= */
+  .hudContent > .hudStub:not(.hudMain){
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    max-width: 100%;
+    min-height: 34px;
+    padding: 6px 12px;
+    line-height: 1;
+    white-space: nowrap;
+    font-size: clamp(12px, 2.8vw, 14px);
+  }
+
+  @media (max-width: 520px){
+    .hudContent > .hudStub:not(.hudMain){
+      gap: 8px;
+      padding: 6px 8px;
+    }
+
+    /* Kill ch-based typing clip on mobile/webviews */
+    .hudContent > .hudStub:not(.hudMain) .hudIntroType{
+      width: auto !important;
+      overflow: visible !important;
+      animation: none !important;
+    }
+  }
+
+
 </style>
 
   <link rel="stylesheet" href="vmpix-mobile-patch-v2.css?v=2">
