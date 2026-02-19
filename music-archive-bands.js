@@ -2192,7 +2192,7 @@ async function fetchTextWithSessionCache(url, ttlMs, key) {
     }
   } catch (_) {}
 
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url);
   const text = await res.text();
 
   // 🚨 HARD GUARD: stop if server returned HTML instead of CSV
@@ -2232,7 +2232,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     const url = list[i];
     if (!url) continue;
     try {
-      const r = await fetch(url, { cache: "no-store" });
+      const r = await fetch(url);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const text = await r.text();
 
@@ -2357,7 +2357,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     if (_showsByDate) return _showsByDate;
     if (_showsIndexPromise) return _showsIndexPromise;
 
-    _showsIndexPromise = fetch(SHOWS_ENDPOINT, { cache: "no-store" })
+    _showsIndexPromise = fetch(SHOWS_ENDPOINT)
       .then((r) => r.text())
       .then((txt) => {
         if (!txt || !txt.trim()) return [];
@@ -2593,7 +2593,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, timeoutMs) : null;
 
       try {
-        const res = await fetch(url, { signal: ac ? ac.signal : undefined, cache: "no-store" });
+        const res = await fetch(url, { signal: ac ? ac.signal : undefined });
         const ct = String(res.headers.get("content-type") || "").toLowerCase();
         const bodyText = await res.text();
 

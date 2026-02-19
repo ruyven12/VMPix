@@ -1070,7 +1070,7 @@ function restoreScrollSnapshot(snapshot) {
   async function loadShowsFromCsv() {
   // /sheet/shows may return CSV, JSON, or (in some cases) a JS-ish object string.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
-  const res = await fetch(SHOWS_ENDPOINT, { cache: "no-store" });
+  const res = await fetch(SHOWS_ENDPOINT);
   const ct = String(res.headers.get("content-type") || "").toLowerCase();
   const text = await res.text();
   if (!text || !text.trim()) return [];
@@ -1641,7 +1641,7 @@ async function fetchJsonSafe(url, opts) {
     const t = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, timeoutMs) : null;
 
     try {
-      const res = await fetch(url, { signal: ac ? ac.signal : undefined, cache: "no-store" });
+      const res = await fetch(url, { signal: ac ? ac.signal : undefined });
       const ct = String(res.headers.get("content-type") || "").toLowerCase();
       const bodyText = await res.text();
 
