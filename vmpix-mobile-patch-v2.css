@@ -220,3 +220,41 @@ html.webview .neonFrameTextInner .hudMainType{
   font-size: var(--vmpix-micro-font) !important;
   line-height: 1.2 !important;
 }
+
+/* =========================================================
+   WRESTLING SHOW DETAIL (INDIVIDUAL SHOW VIEW) – MOBILE FIT
+   - In IG/FB/X webviews the detail header can feel "clipped" because:
+     * poster uses aspect-ratio + object-fit: cover (crops poster)
+     * header padding/gaps + 3-up info row increase height
+   - These overrides make the detail view fit the viewport better and
+     avoid cropping poster edges on narrow screens.
+   ========================================================= */
+
+@media (max-width: 920px){
+  .waDetailWrap{
+    padding: 6px 10px 24px !important; /* extra bottom room so content never kisses the frame */
+    box-sizing: border-box;
+  }
+
+  .waDetailHeader{
+    padding: 12px 8px !important;
+    gap: 12px !important;
+    box-sizing: border-box;
+  }
+
+  /* Make posters show fully (no crop) and scale down nicely */
+  .waDetailPoster{
+    width: min(92vw, 420px) !important;
+    max-width: 92vw !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Reduce title pill + info pills height so everything fits better */
+  .waDetailNamePill{ padding: 12px 14px !important; }
+  .waDetailNamePill .name{ font-size: clamp(16px, 5.0vw, 20px) !important; }
+
+  /* Stack info pills when space is tight (prevents cramped/clip look) */
+  .waInfoRow{ grid-template-columns: 1fr !important; }
+}
