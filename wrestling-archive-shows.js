@@ -160,7 +160,105 @@
   }
 
 
-  // ================== PANEL SCROLL HELPERS ==================
+  
+  // ================== CINEMATIC TRANSITION (NEON SHUTTER WIPE) ==================
+  // Surgical: only used inside this module when swapping major views (list <-> show <-> match album).
+  // Uses a lightweight overlay appended to the module panel (not full screen). No routing changes.
+  let _waShutterEl = null;
+  let _waShutterBusy = false;
+
+  function ensureWAShutterOverlay(containerEl) {
+    if (_waShutterEl) return _waShutterEl;
+
+    // Scope the shutter to the module panel (NOT full screen).
+    // This keeps the cinematic wipe inside the wrestling content area only.
+    const host =
+      containerEl ||
+      _panel ||
+      document.getElementById("wrestlingContentPanel") ||
+      document.getElementById("waShowsRoot") ||
+      document.body;
+
+    try {
+      // Ensure the host can anchor an absolutely-positioned overlay.
+      try {
+        const cs = window.getComputedStyle ? window.getComputedStyle(host) : null;
+        if (cs && cs.position === "static") host.style.position = "relative";
+      } catch (_) {}
+
+      const el = document.createElement("div");
+      el.id = "waNeonShutter";
+      el.setAttribute("aria-hidden", "true");
+      el.innerHTML = '<div class="waNeonCurtain"></div><div class="waNeonEdge"></div>';
+
+      host.appendChild(el);
+      _waShutterEl = el;
+    } catch (_) {
+      _waShutterEl = null;
+    }
+    return _waShutterEl;
+  }
+
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function runNeonShutterTransition(doSwap) {
+    // doSwap: function that performs the DOM swap
+    try {
+      if (typeof doSwap !== "function") return Promise.resolve();
+      if (prefersReducedMotion()) { doSwap(); return Promise.resolve(); }
+      if (_waShutterBusy) { doSwap(); return Promise.resolve(); }
+    } catch (_) {
+      try { doSwap(); } catch (_) {}
+      return Promise.resolve();
+    }
+
+    const el = ensureWAShutterOverlay(_panel);
+    if (!el) {
+      try { doSwap(); } catch (_) {}
+      return Promise.resolve();
+    }
+
+    _waShutterBusy = true;
+
+    return new Promise((resolve) => {
+      let swapped = false;
+      const DURATION = 560; // total ms
+      const MIDPOINT = 280; // ms (swap happens when curtain is fully closed)
+
+      // Ensure starting state is clean
+      try { el.classList.remove("active"); } catch (_) {}
+      try { el.style.display = "block"; } catch (_) {}
+
+      // Kick animation on next frame
+      requestAnimationFrame(() => {
+        try { el.classList.add("active"); } catch (_) {}
+
+        // Swap at midpoint
+        window.setTimeout(() => {
+          if (swapped) return;
+          swapped = true;
+          try { doSwap(); } catch (_) {}
+        }, MIDPOINT);
+
+        // End
+        window.setTimeout(() => {
+          try { el.classList.remove("active"); } catch (_) {}
+          try { el.style.display = "none"; } catch (_) {}
+          _waShutterBusy = false;
+          resolve();
+        }, DURATION);
+      });
+    });
+  }
+
+
+// ================== PANEL SCROLL HELPERS ==================
   function resetPanelScroll() {
     try {
       const panel = _panel || document.getElementById("wrestlingContentPanel");
@@ -184,6 +282,60 @@
     const s = document.createElement("style");
     s.id = "waShowsStyles";
     s.textContent = `
+
+/* ===== Neon shutter wipe (module transition) ===== */
+#waNeonShutter{
+  position: absolute;
+  inset: 0;
+  z-index: 999997;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+  display: none;
+}
+#waNeonShutter .waNeonCurtain{
+  position:absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(200,0,0,0.18) 0%, rgba(0,0,0,0.70) 55%, rgba(0,0,0,0.78) 100%);
+  transform: scaleX(0);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+#waNeonShutter .waNeonEdge{
+  position:absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 24px;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(255,60,60,0.0) 0%, rgba(255,60,60,0.55) 55%, rgba(255,255,255,0.22) 100%);
+  filter: blur(0.2px);
+  will-change: transform, opacity;
+}
+#waNeonShutter.active .waNeonCurtain{
+  animation: waNeonShutterCurtain 560ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+#waNeonShutter.active .waNeonEdge{
+  animation: waNeonShutterEdge 560ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes waNeonShutterCurtain{
+  0%   { transform: scaleX(0); transform-origin: 0% 50%; opacity: 0; }
+  10%  { opacity: 1; }
+  50%  { transform: scaleX(1); transform-origin: 0% 50%; opacity: 1; }
+  60%  { transform: scaleX(1); transform-origin: 100% 50%; opacity: 1; }
+  100% { transform: scaleX(0); transform-origin: 100% 50%; opacity: 0; }
+}
+@keyframes waNeonShutterEdge{
+  0%   { transform: translateX(-24px); opacity: 0; }
+  18%  { opacity: .85; }
+  50%  { transform: translateX(calc(100% - 24px)); opacity: .95; }
+  60%  { transform: translateX(calc(100% - 24px)); opacity: .85; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+
 /* === SURGICAL: hide ZIP / select UI in album photo view (keep code intact) === */
 /* Keep the Buy Photos link visible (it's an <a>), but hide the select/zip buttons + hint/status. */
 #waShowsRoot .waSelectBar button.waSelectBtn,
@@ -954,7 +1106,7 @@
       posterBox.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        showShowDetail(r, year);
+        runNeonShutterTransition(function () { showShowDetail(r, year); });
       });
       card.appendChild(posterBox);
       card.appendChild(right);
@@ -1011,6 +1163,7 @@
     backBtn.type = "button";
     backBtn.textContent = "← Back to shows";
     backBtn.addEventListener("click", () => {
+      runNeonShutterTransition(function () {
       // Restore list view for the year we came from
       try { if (yearRow) yearRow.style.display = ""; } catch (_) {}
       try { if (crumbsEl) crumbsEl.style.display = ""; } catch (_) {}
@@ -1031,7 +1184,9 @@
         clearResults();
       }
       resetPanelScroll();
-    });
+    
+      });
+});
 
     topbar.appendChild(backBtn);
     wrap.appendChild(topbar);
@@ -1268,7 +1423,7 @@
       // Click / keyboard: open the match album INSIDE the HUD (Bands-style grid)
       if (matchUrl) {
         const go = function () {
-          openMatchAlbumInPanel(matchUrl, headerLabel, matchId, row);
+          runNeonShutterTransition(function () { openMatchAlbumInPanel(matchUrl, headerLabel, matchId, row); });
         };
         box.addEventListener("click", function (e) {
           e.preventDefault();
@@ -1321,10 +1476,13 @@
     backBtn.type = "button";
     backBtn.textContent = "← Back to show";
     backBtn.addEventListener("click", function () {
+      runNeonShutterTransition(function () {
       // Re-render the show detail (keeps all styles consistent)
       showShowDetail(showRow, (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null);
       resetPanelScroll();
-    });
+    
+      });
+});
 
     topbar.appendChild(backBtn);
     wrap.appendChild(topbar);

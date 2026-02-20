@@ -58,7 +58,40 @@
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
 
-    // Pointer-follow glow hotspot (desktop only; harmless on touch)
+    // Nav underline rail (single element that slides between pills)
+    const navStub = document.querySelector('.hudContent > .hudStub:not(.hudMain)') || null;
+    let underline = null;
+
+    function ensureUnderline(){
+      if (!navStub) return null;
+      if (underline && underline.parentNode) return underline;
+      underline = document.createElement('div');
+      underline.className = 'hudNavUnderline';
+      underline.setAttribute('aria-hidden', 'true');
+      navStub.appendChild(underline);
+      return underline;
+    }
+
+    function moveUnderlineTo(el){
+      const u = ensureUnderline();
+      if (!u || !navStub || !el) return;
+
+      const r = el.getBoundingClientRect();
+      const nr = navStub.getBoundingClientRect();
+      const left = Math.max(0, (r.left - nr.left));
+      const w = Math.max(10, r.width);
+
+      u.style.setProperty('--ux', left + 'px');
+      u.style.width = w + 'px';
+      u.classList.add('is-on');
+    }
+
+    function clearUnderline(){
+      if (!underline) return;
+      underline.classList.remove('is-on');
+    }
+
+    // Pointer-follow glow hotspot + magnetic micro-motion (desktop only; harmless on touch)
     pills.forEach(pill => {
       pill.addEventListener('pointermove', (e) => {
         const r = pill.getBoundingClientRect();
@@ -66,11 +99,29 @@
         const y = (e.clientY - r.top);
         pill.style.setProperty('--mx', x + 'px');
         pill.style.setProperty('--my', y + 'px');
+
+        // magnetic: tiny, premium (cap to ~4px)
+        const nx = (x / Math.max(1, r.width)) - 0.5;
+        const ny = (y / Math.max(1, r.height)) - 0.5;
+        const tx = Math.max(-4, Math.min(4, nx * 8));
+        const ty = Math.max(-3, Math.min(3, ny * 6));
+        pill.style.setProperty('--tx', tx.toFixed(2) + 'px');
+        pill.style.setProperty('--ty', ty.toFixed(2) + 'px');
+
+        // underline tracks hover
+        moveUnderlineTo(pill);
       }, { passive: true });
 
       pill.addEventListener('pointerleave', () => {
         pill.style.removeProperty('--mx');
         pill.style.removeProperty('--my');
+        pill.style.removeProperty('--tx');
+        pill.style.removeProperty('--ty');
+
+        // snap underline back to active
+        const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+        if (active) moveUnderlineTo(active);
+        else clearUnderline();
       }, { passive: true });
 
       // Quick "press" pulse
@@ -80,6 +131,18 @@
         pill.classList.add('is-press');
         window.setTimeout(() => pill.classList.remove('is-press'), 260);
       });
+    });
+
+    // Expose a tiny hook for the router to reposition underline on route change
+    window.__hudMoveNavUnderline = function(){
+      const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+      if (active) moveUnderlineTo(active);
+    };
+
+    // Initial underline placement (after first layout)
+    window.requestAnimationFrame(() => {
+      const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+      if (active) moveUnderlineTo(active);
     });
   })();
 
@@ -156,6 +219,11 @@ function pulseFrame(){
     document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
       a.classList.toggle('is-active', a.getAttribute('data-nav') === route);
     });
+
+    // Cinematic nav underline: keep it pinned to the active pill
+    try{
+      if (typeof window.__hudMoveNavUnderline === 'function') window.__hudMoveNavUnderline();
+    }catch(_){ }
   }
 
   function routeKeyFromHash(){
