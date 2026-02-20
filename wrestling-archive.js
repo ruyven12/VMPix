@@ -134,7 +134,7 @@
     if (!_contentPanelEl) return;
 
     if (isExpanded) {
-      _contentPanelEl.style.marginTop = '40px';
+      _contentPanelEl.style.marginTop = '0px';
       sizeContentPanelToHud();
 
       if (!_onResize) {
@@ -158,7 +158,7 @@
     if (!_contentPanelEl) return;
 
     if (mode === 'shows') {
-      _contentPanelEl.style.display = 'block';
+      _contentPanelEl.style.display = 'flex';
       _contentPanelEl.style.alignItems = '';
       _contentPanelEl.style.justifyContent = '';
       _contentPanelEl.style.textAlign = 'left';
@@ -580,7 +580,7 @@
     if (!_contentPanelEl) {
       _contentPanelEl = document.createElement('div');
       _contentPanelEl.id = 'wrestlingContentPanel';
-
+	  _contentPanelEl.style.display = 'none';
       _contentPanelEl.style.width = '100%';
       _contentPanelEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _contentPanelEl.style.margin = `${GREEN_BOX_MARGIN_TOP} auto 0`;
@@ -588,7 +588,7 @@
       _contentPanelEl.style.borderRadius = '10px';
       _contentPanelEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
       _contentPanelEl.style.background = 'rgba(0,0,0,0.10)';
-      _contentPanelEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.08) inset';
+      _contentPanelEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.50) inset, 0 0 10px rgba(255,70,110,0.50)';
       _contentPanelEl.style.boxSizing = 'border-box';
       _contentPanelEl.style.padding = GREEN_BOX_PADDING;
       _contentPanelEl.style.overflowY = GREEN_BOX_OVERFLOW_Y;
