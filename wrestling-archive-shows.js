@@ -276,10 +276,6 @@
   // Remember last list context so "Back" restores the same year view cleanly.
   let LAST_LIST_CTX = { year: null };
 
-  // Cache resolved SmugMug shop URLs (nodeKey) per album URL to avoid re-resolving and to handle early clicks.
-  const WA_SHOP_URL_CACHE = new Map();
-
-
   // ================== STYLES (SCOPED TO THIS MODULE) ==================
   function ensureShowsStyles() {
     if (document.getElementById("waShowsStyles")) return;
@@ -1456,7 +1452,7 @@
   }
 
   // ================== MATCH ALBUM (Bands-style photos grid inside HUD) ==================
-  async function openMatchAlbumInPanel(matchUrl, matchTitle, matchId, showRow) {
+  async function openMatchAlbumInPanel(matchUrl, matchTitle, matchId, showRow, backToAlbumCtx) {
     const resultsEl = getResultsEl();
     const yearRow = getYearGroupsEl();
     const crumbsEl = getCrumbsEl();
@@ -1478,15 +1474,27 @@
     const backBtn = document.createElement("button");
     backBtn.className = "waBackBtn";
     backBtn.type = "button";
-    backBtn.textContent = "← Back to show";
-    backBtn.addEventListener("click", function () {
-      runNeonShutterTransition(function () {
-      // Re-render the show detail (keeps all styles consistent)
-      showShowDetail(showRow, (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null);
-      resetPanelScroll();
-    
+
+    // If we navigated here from a keyword-search result, go back to the prior album.
+    if (backToAlbumCtx && backToAlbumCtx.matchUrl) {
+      backBtn.textContent = "← Back";
+      backBtn.addEventListener("click", function () {
+        const prev = backToAlbumCtx;
+        runNeonShutterTransition(function () {
+          openMatchAlbumInPanel(prev.matchUrl, prev.matchTitle, prev.matchId, prev.showRow, null);
+          resetPanelScroll();
+        });
       });
-});
+    } else {
+      backBtn.textContent = "← Back to show";
+      backBtn.addEventListener("click", function () {
+        runNeonShutterTransition(function () {
+          // Re-render the show detail (keeps all styles consistent)
+          showShowDetail(showRow, (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null);
+          resetPanelScroll();
+        });
+      });
+    }
 
     topbar.appendChild(backBtn);
     wrap.appendChild(topbar);
@@ -1538,52 +1546,6 @@ buyPhotos.textContent = "Buy Photos";
 buyPhotos.href = matchUrl || "#";
 buyPhotos.target = "_blank";
 buyPhotos.rel = "noopener";
-
-// If the Shop NodeKey hasn't resolved yet, intercept the click and resolve on-demand.
-// This avoids the "early click" race where the href is still the album URL.
-
-buyPhotos.addEventListener("click", function (e) {
-  try {
-    const hrefNow = String(buyPhotos.getAttribute("href") || buyPhotos.href || "").trim();
-    const alreadyShop = /\/shop\?nodeKey=/i.test(hrefNow);
-
-    // If already resolved, allow normal <a> behavior.
-    if (alreadyShop) return;
-
-    if (!matchUrl) return;
-
-    // Intercept early clicks: open a placeholder window immediately (avoids popup blockers),
-    // then redirect it once we have a nodeKey shop URL.
-    e.preventDefault();
-    e.stopPropagation();
-
-    let win = null;
-    try { win = window.open("about:blank", "_blank", "noopener"); } catch (_) { win = null; }
-
-    (async function () {
-      // Try to resolve a shop URL (cached -> resolver -> album-meta NodeID). Fail-soft to album URL.
-      let dest = "";
-      try {
-        dest = await ensureShopUrlForAlbumUrl(matchUrl);
-      } catch (_) {
-        dest = "";
-      }
-      if (!dest) dest = matchUrl;
-
-      // Update the button href for subsequent clicks (best-effort).
-      try {
-        if (dest && /\/shop\?nodeKey=/i.test(dest)) buyPhotos.href = dest;
-      } catch (_) {}
-
-      try {
-        if (win && win.location) win.location.href = dest;
-        else window.open(dest, "_blank", "noopener");
-      } catch (_) {
-        try { window.open(matchUrl, "_blank", "noopener"); } catch (_) {}
-      }
-    })();
-  } catch (_) {}
-});
 
 const selectToggle = document.createElement("button");
 selectToggle.className = "waSelectBtn";
@@ -1667,17 +1629,6 @@ const meta = document.createElement("div");
         const album = metaJson && metaJson.Response && metaJson.Response.Album;
         if (album && typeof album.Title === "string") albumTitle = album.Title;
 
-        // Prefer NodeID/NodeKey from album meta for Buy Photos (more reliable than resolver in some cases)
-        try {
-          const nodeKey = (album && typeof album.NodeID === "string" && album.NodeID.trim()) ? album.NodeID.trim() :
-            (album && typeof album.NodeKey === "string" && album.NodeKey.trim()) ? album.NodeKey.trim() : "";
-          if (nodeKey) {
-            buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);
-            try { WA_SHOP_URL_CACHE.set(matchUrl, buyPhotos.href); } catch (_) {}
-          }
-        } catch (_) {}
-
-
         // Keywords (People in this album)
         try {
           const rawKw =
@@ -1707,7 +1658,16 @@ const meta = document.createElement("div");
                 chip.title = "Search albums for " + list[i];
 
                 const kw = list[i];
-                const openKw = function () { openWrestlingKeywordSearchModal(kw, { showRow: showRow || null, year: (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null }); };
+                const openKw = function () {
+                  // Remember where we launched from so keyword results can open in-panel.
+                  _waKwLaunchCtx = {
+                    matchUrl: matchUrl,
+                    matchTitle: matchTitle,
+                    matchId: matchId,
+                    showRow: showRow
+                  };
+                  openWrestlingKeywordSearchModal(kw);
+                };
 
                 chip.addEventListener("click", function (e) {
                   e.preventDefault();
@@ -1931,85 +1891,16 @@ redrawGrid();
 
     try {
       const json = await fetchJsonFirstOk(candidates);
-
-      // Accept multiple possible response shapes / casing.
-      const pickStr = function (obj, keys) {
-        for (let i = 0; i < keys.length; i++) {
-          const k = keys[i];
-          if (!k) continue;
-          const v = obj && obj[k];
-          if (typeof v === "string" && v.trim()) return v.trim();
-        }
-        return "";
-      };
-
-      // Some servers wrap fields under Response or data.
-      const root = (json && (json.Response || json.response || json.data)) ? (json.Response || json.response || json.data) : json;
-
-      const nodeKey = pickStr(root, ["nodeKey", "NodeKey", "nodekey", "Nodekey"]);
-      const albumKey =
-        pickStr(root, ["albumKey", "AlbumKey", "albumkey", "Key"]) ||
-        pickStr(json, ["albumKey", "AlbumKey", "albumkey", "Key"]);
-
-      // Prefer a server-provided final shop URL if available.
-      let finalUrl = pickStr(root, ["finalUrl", "FinalUrl", "finalURL", "FinalURL", "shopUrl", "ShopUrl", "url", "Url"]);
-      if (finalUrl && finalUrl.indexOf("/shop") === -1 && nodeKey) {
-        finalUrl = "";
-      }
-      if (!finalUrl && nodeKey) {
-        finalUrl = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);
-      }
-
+      const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+      const albumKey = (json && typeof json.albumKey === "string") ? json.albumKey.trim()
+                    : (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim()
+                    : "";
+      const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim() : "";
       return { nodeKey, albumKey, finalUrl };
     } catch (_) {
       return { nodeKey: "", albumKey: "", finalUrl: "" };
     }
   }
-
-// Ensure we can produce a /shop?nodeKey= URL for a given public album URL.
-// Prefer cached values; then try resolve-shop-node; then fall back to AlbumKey -> album-meta NodeID.
-async function ensureShopUrlForAlbumUrl(albumUrl) {
-  const u = String(albumUrl || "").trim();
-  if (!u) return "";
-  try {
-    const cached = WA_SHOP_URL_CACHE.get(u);
-    if (cached) return cached;
-  } catch (_) {}
-
-  // 1) Preferred: server resolver (fastest if available)
-  try {
-    const info = await resolveShopNodeFromUrl(u);
-    const url1 = (info && info.finalUrl) ? String(info.finalUrl).trim() : "";
-    const nk1 = (info && info.nodeKey) ? String(info.nodeKey).trim() : "";
-    const shop1 = (url1 && /\/shop\?nodeKey=/i.test(url1)) ? url1 :
-      (nk1 ? (SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nk1)) : "");
-    if (shop1) {
-      try { WA_SHOP_URL_CACHE.set(u, shop1); } catch (_) {}
-      return shop1;
-    }
-  } catch (_) {}
-
-  // 2) Fallback: resolve AlbumKey, then read album meta for NodeID (node key)
-  try {
-    const albumKey = await resolveAlbumKeyFromUrl(u);
-    if (albumKey) {
-      const metaJson = await fetchJsonFirstOk([API_BASE + "/smug/album-meta/" + encodeURIComponent(albumKey)]);
-      const album = metaJson && metaJson.Response && metaJson.Response.Album;
-      const nodeKey =
-        (album && typeof album.NodeID === "string" && album.NodeID.trim()) ? album.NodeID.trim() :
-        (album && typeof album.NodeKey === "string" && album.NodeKey.trim()) ? album.NodeKey.trim() :
-        "";
-      if (nodeKey) {
-        const shop2 = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(nodeKey);
-        try { WA_SHOP_URL_CACHE.set(u, shop2); } catch (_) {}
-        return shop2;
-      }
-    }
-  } catch (_) {}
-
-  return "";
-}
-
 
 // Resolve a SmugMug album URL into an AlbumKey using the wrestling backend (endpoint names may vary).
   async function resolveAlbumKeyFromUrl(albumUrl) {
@@ -2310,14 +2201,9 @@ function renderPhotoGrid(gridEl, images, opts) {
     } catch(_) {}
 
     const open = function () {
-      // Default photo click: open the lightbox (or whatever the caller provided).
-      if (onOpen) { onOpen(i); return; }
-
-      // Fail-soft fallback: open the best available image URL in a new tab.
-      const dest = full || thumb || "";
-      if (dest) {
-        try { window.open(dest, "_blank", "noopener"); } catch (_) {}
-      }
+      if (onOpen) return onOpen(i, img, imgs);
+      if (!full) return;
+      try { window.open(full, "_blank", "noopener"); } catch (_) {}
     };
 
     const toggle = function () {
@@ -2437,8 +2323,10 @@ function renderPhotoGrid(gridEl, images, opts) {
   let _waKwModalBody = null;
   let _waKwModalTitle = null;
   let _waKwModalCount = null;
-  // Context for opening albums inside HUD (set when modal opened from a match album)
-  let _waKwCtx = { showRow: null, year: null };
+
+  // Capture where the keyword modal was launched from so results can open in-panel
+  // and allow a clean Back to the prior album.
+  let _waKwLaunchCtx = null;
 
   function ensureWrestlingKeywordSearchStyles() {
     if (document.getElementById("waKeywordSearchStyles")) return;
@@ -2454,7 +2342,12 @@ function renderPhotoGrid(gridEl, images, opts) {
   align-items: center;
   justify-content: center;
   padding: 18px;
-  background: rgba(0,0,0,0.68);
+  /* Cinematic vignette + subtle spotlight */
+  background:
+    radial-gradient(120% 140% at 50% 40%, rgba(200,0,0,0.14) 0%, rgba(0,0,0,0.55) 48%, rgba(0,0,0,0.80) 100%),
+    rgba(0,0,0,0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .waKwModal{
   width: min(980px, 96vw);
@@ -2462,10 +2355,63 @@ function renderPhotoGrid(gridEl, images, opts) {
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.12);
-  background: radial-gradient(120% 140% at 0% 0%, rgba(200,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.40) 100%);
-  box-shadow: 0 30px 70px rgba(0,0,0,0.55);
-  backdrop-filter: blur(10px);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(200,0,0,0.32) 0%, rgba(0,0,0,0.58) 55%, rgba(0,0,0,0.42) 100%);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,0.58),
+    0 0 0 1px rgba(255,255,255,0.06) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  transform: translateY(10px) scale(0.985);
+  opacity: 0;
 }
+.waKwModal::before{
+  /* Soft top highlight + thin neon hairline */
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height: 84px;
+  background:
+    radial-gradient(140% 120% at 0% 0%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.00) 70%),
+    linear-gradient(90deg, rgba(200,0,0,0.00) 0%, rgba(200,0,0,0.22) 42%, rgba(255,255,255,0.10) 55%, rgba(200,0,0,0.00) 100%);
+  opacity: .85;
+  pointer-events:none;
+}
+.waKwModal::after{
+  content:"";
+  position:absolute;
+  left: 14px;
+  right: 14px;
+  top: 62px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(200,0,0,0.00) 0%, rgba(200,0,0,0.55) 40%, rgba(255,255,255,0.14) 55%, rgba(200,0,0,0.00) 100%);
+  opacity: .95;
+  pointer-events:none;
+}
+
+.waKwOverlay.waKwOpen .waKwModal{
+  animation: waKwPopIn 220ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+.waKwOverlay.waKwOpen{
+  animation: waKwFadeIn 200ms ease forwards;
+}
+
+@keyframes waKwFadeIn{
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes waKwPopIn{
+  0%   { transform: translateY(10px) scale(0.985); opacity: 0; filter: blur(1.5px); }
+  60%  { opacity: 1; filter: blur(0.4px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .waKwOverlay.waKwOpen .waKwModal{ animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .waKwOverlay.waKwOpen{ animation: none !important; }
+}
+
 .waKwTopbar{
   display:flex;
   align-items:flex-start;
@@ -2473,6 +2419,8 @@ function renderPhotoGrid(gridEl, images, opts) {
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.10);
+  position: relative;
+  z-index: 1;
 }
 .waKwTitleWrap{ min-width:0; }
 .waKwTitle{
@@ -2502,12 +2450,22 @@ function renderPhotoGrid(gridEl, images, opts) {
   font-size: 11px;
   letter-spacing: .10em;
   cursor: pointer;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.26);
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
-.waKwClose:hover{ border-color: rgba(200,0,0,0.55); }
+.waKwClose:hover{
+  border-color: rgba(200,0,0,0.55);
+  background: rgba(0,0,0,0.30);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.34);
+}
+.waKwClose:active{ transform: translateY(0px); }
 .waKwBody{
   padding: 14px 16px 16px;
   overflow: auto;
   max-height: calc(min(78vh, 760px) - 64px);
+  position: relative;
+  z-index: 1;
 }
 .waKwStatus{
   text-align:center;
@@ -2525,13 +2483,41 @@ function renderPhotoGrid(gridEl, images, opts) {
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(15, 23, 42, 0.22);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
 }
 .waKwItem:hover{
   background: rgba(30, 41, 59, 0.35);
-  border-color: rgba(255,255,255,0.14);
-  transform: translateY(-1px);
+  border-color: rgba(200,0,0,0.32);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(0,0,0,0.34);
+}
+.waKwItem::after{
+  /* Subtle “scan sheen” on hover */
+  content:"";
+  position:absolute;
+  top:-20%; bottom:-20%;
+  width: 44%;
+  left: -52%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.00) 100%);
+  transform: skewX(-18deg);
+  opacity: 0;
+  pointer-events:none;
+}
+.waKwItem:hover::after{
+  opacity: 1;
+  animation: waKwSheen 520ms ease forwards;
+}
+@keyframes waKwSheen{
+  0% { left: -52%; }
+  100% { left: 112%; }
+}
+.waKwItem:focus-visible{
+  outline: none;
+  border-color: rgba(200,0,0,0.55);
+  box-shadow: 0 0 0 2px rgba(200,0,0,0.22);
 }
 .waKwThumb{
   width: 44px;
@@ -2595,6 +2581,13 @@ function renderPhotoGrid(gridEl, images, opts) {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
+    // Cinematic open animation (class-only, no layout/routing changes)
+    try {
+      requestAnimationFrame(function () {
+        try { overlay.classList.add("waKwOpen"); } catch (_) {}
+      });
+    } catch (_) {}
+
     const destroy = function () { closeWrestlingKeywordSearchModal(); };
     close.addEventListener("click", destroy);
     overlay.addEventListener("click", function (e) { if (e.target === overlay) destroy(); });
@@ -2621,6 +2614,7 @@ function renderPhotoGrid(gridEl, images, opts) {
       if (onKey) window.removeEventListener("keydown", onKey);
     } catch (_) {}
     try { document.documentElement.style.overflow = ""; } catch (_) {}
+    try { _waKwModal.classList.remove("waKwOpen"); } catch (_) {}
     try { _waKwModal.remove(); } catch (_) {}
     _waKwModal = null;
     _waKwModalBody = null;
@@ -2788,55 +2782,67 @@ function renderPhotoGrid(gridEl, images, opts) {
       ""
     ).trim();
   }
-  function albumDateFromResult(a) {
-    // Prefer explicit date fields from the server (if present)
-    const raw = String((a && (a.date || a.Date || a.show_date || a.ShowDate)) || "").trim();
-    if (raw) return raw;
 
-    // Fallback: derive from UriPath / URL using your folder convention:
-    //   /Wrestling/<Fed>/<MMDDYY>/...
+  // Derive a pretty show date from UriPath/WebUri when the server doesn't provide one.
+  // Expected pattern: /Wrestling/<Fed>/<MMDDYY>/...
+  function prettyDateFromMMDDYY(mmddyy) {
+    const s = String(mmddyy || "").trim();
+    if (!/^\d{6}$/.test(s)) return "";
+
+    const mm = Number(s.slice(0, 2));
+    const dd = Number(s.slice(2, 4));
+    const yy = Number(s.slice(4, 6));
+
+    if (!(mm >= 1 && mm <= 12) || !(dd >= 1 && dd <= 31) || !(yy >= 0 && yy <= 99)) return "";
+    const year = 2000 + yy;
+    const date = new Date(year, mm - 1, dd);
+    if (isNaN(date.getTime())) return "";
+
+    const monthName = date.toLocaleString("en-US", { month: "long" });
+    const day = dd;
+    const suffix =
+      day % 10 === 1 && day !== 11
+        ? "st"
+        : day % 10 === 2 && day !== 12
+        ? "nd"
+        : day % 10 === 3 && day !== 13
+        ? "rd"
+        : "th";
+
+    return `${monthName} ${day}${suffix}, ${year}`;
+  }
+
+  function derivePrettyDateFromAlbumResult(a) {
+    // Prefer an explicit uriPath first
     let p = String((a && (a.uriPath || a.UriPath || a.uripath)) || "").trim();
 
+    // If we only have a URL, derive pathname
     if (!p) {
-      const u = albumUrlFromResult(a);
+      const u = String(
+        (a && (a.url || a.Url || a.webUrl || a.WebUrl || a.WebUri || a.permalink || a.Permalink)) ||
+          ""
+      ).trim();
       if (u) {
         try {
-          // URL() handles absolute URLs; for relative, fall back to raw
-          p = (new URL(u, SMUG_ORIGIN)).pathname || "";
+          const parsed = new URL(u, SMUG_ORIGIN);
+          p = String(parsed.pathname || "");
         } catch (_) {
-          p = u;
+          // fall through
+          p = "";
         }
       }
     }
 
-    const mmddyy = (function () {
-      const s = String(p || "");
-      if (!s) return "";
-      // Only trust segments that clearly include /Wrestling/ somewhere
-      if (s.toLowerCase().indexOf("/wrestling/") === -1) return "";
-      const m = s.match(/\/(\d{6})(?:\/|$)/);
-      return m ? String(m[1]) : "";
-    })();
+    if (!p) return "";
+    const m = p.match(/\/Wrestling\/[^\/]+\/(\d{6})(?:\/|$)/i);
+    if (!m) return "";
+    return prettyDateFromMMDDYY(m[1]);
+  }
 
-    if (!mmddyy) return "";
-
-    const mm = Number(mmddyy.slice(0, 2));
-    const dd = Number(mmddyy.slice(2, 4));
-    const yy = Number(mmddyy.slice(4, 6));
-    if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yy)) return "";
-    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return "";
-
-    const year = 2000 + yy;
-    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const monthName = monthNames[mm - 1] || "";
-    if (!monthName) return "";
-
-    const suffix =
-      dd % 10 === 1 && dd !== 11 ? "st" :
-      dd % 10 === 2 && dd !== 12 ? "nd" :
-      dd % 10 === 3 && dd !== 13 ? "rd" : "th";
-
-    return `${monthName} ${dd}${suffix}, ${year}`;
+  function albumDateFromResult(a) {
+    const raw = String((a && (a.date || a.Date || a.show_date || a.ShowDate)) || "").trim();
+    if (raw) return raw;
+    return derivePrettyDateFromAlbumResult(a);
   }
   function albumThumbFromResult(a) {
     return String(
@@ -2855,14 +2861,9 @@ function renderPhotoGrid(gridEl, images, opts) {
   }
 
   // Exposed handler for keyword chips
-  async function openWrestlingKeywordSearchModal(keyword, ctx) {
+  async function openWrestlingKeywordSearchModal(keyword) {
     const kw = String(keyword || "").trim();
     if (!kw) return;
-
-    // Remember context if provided so clicks can open inside the HUD
-    if (ctx && typeof ctx === "object") {
-      _waKwCtx = { showRow: ctx.showRow || null, year: (ctx.year != null ? ctx.year : null) };
-    }
 
     ensureWrestlingKeywordSearchModal();
     if (_waKwModalTitle) _waKwModalTitle.textContent = kw;
@@ -2930,21 +2931,26 @@ function renderPhotoGrid(gridEl, images, opts) {
       item.appendChild(tx);
 
       const open = function () {
-        // Prefer URL from server; otherwise, if we have an AlbumKey we can open by key.
-        const dest = url ? url :
-          (albumKey ? (SMUG_ORIGIN.replace(/\/$/, "") + "/gallery/" + encodeURIComponent(albumKey)) : "");
+        // Open INSIDE the wrestling HUD (no new window/tab).
+        // Prefer URL from server; otherwise, if we have an AlbumKey we can build a best-effort URL.
+        const targetUrl = url || (albumKey ? (SMUG_ORIGIN.replace(/\/$/, "") + "/gallery/" + encodeURIComponent(albumKey)) : "");
+        if (!targetUrl) return;
 
-        // If the modal was opened from a match album in the HUD, navigate inside the panel (music-side feel).
-        if (dest && _waKwCtx && _waKwCtx.showRow) {
-          closeWrestlingKeywordSearchModal();
-          runNeonShutterTransition(function () { openMatchAlbumInPanel(dest, title, "kw-album", _waKwCtx.showRow); });
+        // Close modal first for clean focus.
+        try { closeWrestlingKeywordSearchModal(); } catch (_) {}
+
+        // If we have launch context, open the album in-panel and let Back return to the prior album.
+        if (_waKwLaunchCtx && _waKwLaunchCtx.matchUrl) {
+          const prev = _waKwLaunchCtx;
+          runNeonShutterTransition(function () {
+            openMatchAlbumInPanel(targetUrl, title, "kw-album", prev.showRow, prev);
+            resetPanelScroll();
+          });
           return;
         }
 
-        // Fallback: open in a new tab (legacy behavior)
-        if (dest) {
-          try { window.open(dest, "_blank", "noopener"); } catch (_) {}
-        }
+        // Fail-soft: if launched without context, navigate same-tab (still not a new window)
+        try { window.location.href = targetUrl; } catch (_) {}
       };
 
       item.addEventListener("click", function (e) {
