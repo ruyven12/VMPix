@@ -2651,9 +2651,67 @@ function renderPhotoGrid(gridEl, images, opts) {
       ""
     ).trim();
   }
+
+  // Derive a pretty show date from UriPath/WebUri when the server doesn't provide one.
+  // Expected pattern: /Wrestling/<Fed>/<MMDDYY>/...
+  function prettyDateFromMMDDYY(mmddyy) {
+    const s = String(mmddyy || "").trim();
+    if (!/^\d{6}$/.test(s)) return "";
+
+    const mm = Number(s.slice(0, 2));
+    const dd = Number(s.slice(2, 4));
+    const yy = Number(s.slice(4, 6));
+
+    if (!(mm >= 1 && mm <= 12) || !(dd >= 1 && dd <= 31) || !(yy >= 0 && yy <= 99)) return "";
+    const year = 2000 + yy;
+    const date = new Date(year, mm - 1, dd);
+    if (isNaN(date.getTime())) return "";
+
+    const monthName = date.toLocaleString("en-US", { month: "long" });
+    const day = dd;
+    const suffix =
+      day % 10 === 1 && day !== 11
+        ? "st"
+        : day % 10 === 2 && day !== 12
+        ? "nd"
+        : day % 10 === 3 && day !== 13
+        ? "rd"
+        : "th";
+
+    return `${monthName} ${day}${suffix}, ${year}`;
+  }
+
+  function derivePrettyDateFromAlbumResult(a) {
+    // Prefer an explicit uriPath first
+    let p = String((a && (a.uriPath || a.UriPath || a.uripath)) || "").trim();
+
+    // If we only have a URL, derive pathname
+    if (!p) {
+      const u = String(
+        (a && (a.url || a.Url || a.webUrl || a.WebUrl || a.WebUri || a.permalink || a.Permalink)) ||
+          ""
+      ).trim();
+      if (u) {
+        try {
+          const parsed = new URL(u, SMUG_ORIGIN);
+          p = String(parsed.pathname || "");
+        } catch (_) {
+          // fall through
+          p = "";
+        }
+      }
+    }
+
+    if (!p) return "";
+    const m = p.match(/\/Wrestling\/[^\/]+\/(\d{6})(?:\/|$)/i);
+    if (!m) return "";
+    return prettyDateFromMMDDYY(m[1]);
+  }
+
   function albumDateFromResult(a) {
     const raw = String((a && (a.date || a.Date || a.show_date || a.ShowDate)) || "").trim();
-    return raw;
+    if (raw) return raw;
+    return derivePrettyDateFromAlbumResult(a);
   }
   function albumThumbFromResult(a) {
     return String(
