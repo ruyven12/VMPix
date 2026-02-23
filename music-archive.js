@@ -932,6 +932,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
   <div class="hudTabs" role="tablist" aria-label="Music sections">
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
+	<div class="hudTab" data-tab="people" role="tab" aria-selected="false">People (Coming Soon)</div>
     <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
 	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
           </div>
@@ -1015,45 +1016,94 @@ if (!document.getElementById('musicContentWipeStyles')) {
           // Use data-tab as the stable routing key (text can change)
           const tabKey = (tab.getAttribute('data-tab') || '').trim();
 
-          // Bands + Shows are the driven UI now (use the expanded green viewport)
-if (tabKey === 'bands' || tabKey === 'shows' || label === 'Bands' || label === 'Shows') {
-  setArchiveViewportExpanded(true);
+                    // Bands + Shows + People are the driven UI now (use the expanded green viewport)
+                    if (tabKey === 'bands' || tabKey === 'shows' || tabKey === 'people' || label === 'Bands' || label === 'Shows' || label === 'People') {
+                      setArchiveViewportExpanded(true);
+          
+                      // Bands (external module)
+                      if (tabKey === 'bands' || label === 'Bands') {
+                        // Force a fresh mount each time Bands is selected (prevents stale deep-view state)
+                        try { window.MusicArchiveBands?.destroy?.(); } catch (_) {}
+          
+                        const html =
+                          window.MusicArchiveBands?.render?.() ||
+                          `<div style="opacity:.7">Bands module not loaded.</div>`;
+          
+                        wipeSwapContent(html, '', () => {
+                          const panel = document.getElementById('musicContentPanel');
+                          if (panel) panel.scrollTop = 0;
+                          try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
+                        });
+          
+                        return;
+                      }
+          
+                      // People (Phase 2: on-demand module; fail-soft to placeholder)
+                      if (tabKey === 'people' || label === 'People') {
+                        const mountPeople = () => {
+                          const html =
+                            window.MusicArchivePeople?.render?.() ||
+                            `<div style="opacity:.8; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">People – Coming Soon</div>`;
 
- // Bands (external module)
-if (tabKey === 'bands' || label === 'Bands') {
-  // Force a fresh mount each time Bands is selected (prevents stale deep-view state)
-  try { window.MusicArchiveBands?.destroy?.(); } catch (_) {}
+                          wipeSwapContent(html, '', () => {
+                            const panel = document.getElementById('musicContentPanel');
+                            if (panel) panel.scrollTop = 0;
+                            try { window.MusicArchivePeople?.onMount?.(panel, { fresh: true }); } catch (_) {}
+                          });
+                        };
 
-  const html =
-    window.MusicArchiveBands?.render?.() ||
-    `<div style="opacity:.7">Bands module not loaded.</div>`;
+                        if (window.MusicArchivePeople && typeof window.MusicArchivePeople.render === 'function') {
+                          mountPeople();
+                          return;
+                        }
 
-  wipeSwapContent(html, '', () => {
-    const panel = document.getElementById('musicContentPanel');
-    if (panel) panel.scrollTop = 0;
-    try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
-  });
+                        // Try to load the module once.
+                        try {
+                          const existing = document.querySelector('script[data-music-archive-people="1"]');
+                          if (existing) {
+                            existing.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
+                            existing.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
+                            wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                            return;
+                          }
 
-  return;
-}
-
- // Shows (external module)
-try { window.MusicArchiveShows?.destroy?.(); } catch (_) {}
-
-const html =
-  window.MusicArchiveShows?.render?.() ||
-  `<div style="opacity:.7">Shows module not loaded.</div>`;
-
-wipeSwapContent(html, '', () => {
-  const panel = document.getElementById('musicContentPanel');
-  if (panel) panel.scrollTop = 0;
-  try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
-});
-
-return;
-
-}
-
+                          const s = document.createElement('script');
+                          s.src = 'music-archive-people.js';
+                          s.async = true;
+                          s.setAttribute('data-music-archive-people', '1');
+                          s.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
+                          s.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
+                          document.head.appendChild(s);
+                          wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                          return;
+                        } catch (_) {
+                          mountPeople();
+                          return;
+                        }
+                      }
+          
+                      // Shows (external module)
+                      if (tabKey === 'shows' || label === 'Shows') {
+                        try { window.MusicArchiveShows?.destroy?.(); } catch (_) {}
+          
+                        const html =
+                          window.MusicArchiveShows?.render?.() ||
+                          `<div style="opacity:.7">Shows module not loaded.</div>`;
+          
+                        wipeSwapContent(html, '', () => {
+                          const panel = document.getElementById('musicContentPanel');
+                          if (panel) panel.scrollTop = 0;
+                          try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
+                        });
+          
+                        return;
+                      }
+          
+                      // Fallback safety (shouldn't hit)
+                      wipeSwapContent(`<div style="opacity:.7">Section not available.</div>`, '');
+                      return;
+                    }
+          
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
 

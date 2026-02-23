@@ -225,6 +225,11 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
         opacity: 0;
         transition: opacity 120ms ease;
       }
+      /* Contained (panel-only) HUD wipe: bounded to a host element */
+      .hudWipeOverlay.is-contained{
+        position: absolute;
+        inset: 0;
+      }
       .hudWipeOverlay.is-on{ opacity: 1; }
       .hudWipeOverlay::before{
         content:"";
@@ -244,8 +249,18 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
         transform: translateY(-70vh);
         opacity: .92;
       }
+      .hudWipeOverlay.is-contained::before{
+        left: -20%;
+        right: -20%;
+        top: -30%;
+        height: 48%;
+        transform: translateY(-70%);
+      }
       .hudWipeOverlay.is-on::before{
         animation: hudSweep 420ms cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+      }
+      .hudWipeOverlay.is-contained.is-on::before{
+        animation: hudSweepContained 420ms cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
       }
       .hudWipeOverlay::after{
         content:"";
@@ -264,6 +279,10 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
       @keyframes hudSweep{
         0%{ transform: translateY(-70vh); }
         100%{ transform: translateY(140vh); }
+      }
+      @keyframes hudSweepContained{
+        0%{ transform: translateY(-70%); }
+        100%{ transform: translateY(140%); }
       }
 
       .albumRowCard.is-opening-album{
@@ -3431,6 +3450,10 @@ function ensureLightbox() {
     //  - runHudWipe(420, { hold:true }) => controller with .remove()
     const options = (opts && typeof opts === "object") ? opts : null;
     const dur = (typeof targetOrDuration === "number") ? (Number(targetOrDuration) || 420) : 420;
+    // If the first arg is an Element, treat it as the host container to keep the wipe local.
+    const hostEl = (targetOrDuration && typeof targetOrDuration === "object" && targetOrDuration.nodeType === 1)
+      ? targetOrDuration
+      : (options && options.hostEl && options.hostEl.nodeType === 1 ? options.hostEl : null);
 
     try {
       const existing = document.getElementById('hudWipeOverlay');
@@ -3440,7 +3463,20 @@ function ensureLightbox() {
     const overlay = document.createElement('div');
     overlay.id = 'hudWipeOverlay';
     overlay.className = 'hudWipeOverlay';
-    document.body.appendChild(overlay);
+
+    // Mount strategy:
+    // - Default: fixed full-screen overlay on <body> (existing behavior)
+    // - Contained: absolute overlay inside a provided host element (panel-only behavior)
+    let mount = document.body;
+    if (hostEl) {
+      mount = hostEl;
+      overlay.classList.add('is-contained');
+      try {
+        const cs = window.getComputedStyle(mount);
+        if (cs && cs.position === 'static') mount.style.position = 'relative';
+      } catch (_) {}
+    }
+    mount.appendChild(overlay);
 
     const startedAt = Date.now();
 
@@ -4560,7 +4596,9 @@ const members = document.createElement("div");
           });
           // Hi-tech HUD transition into the album photos view
           try { card.classList.add("is-opening-album"); } catch(_) {}
-          const wipeP = runHudWipe(420);
+          // Option 1: Keep the HUD wipe contained to the content panel (not full-screen)
+          const hudHost = panelRoot || document.getElementById("musicContentPanel") || resultsEl || document.body;
+          const wipeP = runHudWipe(hudHost, { hold: false });
 
           // small lead-in so the user feels the click before we swap views
           await new Promise((r) => window.setTimeout(r, 120));
