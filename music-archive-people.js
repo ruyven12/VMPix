@@ -1,7 +1,8 @@
 // music-archive-people.js
-// Step 2 (People tab): build a People index (album counts only) from SmugMug album keywords.
-// - On-demand: work begins only when People tab mounts.
-// - Fail-soft: if any album/folder fails, continue.
+// Step 2-3 (People tab):
+// - Build a People index (album counts only) from SmugMug album keywords (on-demand).
+// - Step 3: Click a person to view the albums they appear in (album-level drill-in).
+// - Fail-soft: if any album/folder/meta fails, continue.
 // - Surgical: does not touch Bands/Shows modules or Buy Photos behavior.
 
 (function () {
@@ -29,7 +30,20 @@
   // ================== STATE ==================
   let panelRoot = null;
   let _buildPromise = null;
-  let _peopleIndex = null; // Map(name -> Set(albumKey))
+
+  // People index: Map(personName -> Set(albumKey))
+  let _peopleIndex = null;
+
+  // Album stub cache: Map(albumKey -> { title?, url?, urlPath?, niceUrl? })
+  let _albumStubByKey = new Map();
+
+  // Album meta cache: Map(albumKey -> { title, url })
+  let _albumMetaByKey = new Map();
+
+  // View state
+  let _view = { mode: 'list', person: '', albumKeys: [] };
+
+  // Re-render token to avoid stale async writes
   let _lastRenderToken = 0;
 
   // ================== UTIL ==================
@@ -77,6 +91,44 @@
     return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
+  function _coerceArray(x) {
+    if (!x) return [];
+    if (Array.isArray(x)) return x;
+    return [x];
+  }
+
+  function _safeTrim(x) {
+    return String(x || '').trim();
+  }
+
+  function _pickFirst(obj, keys) {
+    for (const k of keys) {
+      if (!obj) continue;
+      const v = obj[k];
+      if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+    return '';
+  }
+
+  function _resolveAlbumUrlFromMeta(album) {
+    if (!album) return '';
+    const direct = _pickFirst(album, ['WebUri', 'Url', 'URL', 'Uri', 'AlbumUri', 'AlbumURL']);
+    if (direct) return direct;
+
+    const urlPath = _pickFirst(album, ['UrlPath', 'URLPath', 'Path', 'WebPath']);
+    if (urlPath) {
+      // If it's a full URL already
+      if (/^https?:\/\//i.test(urlPath)) return urlPath;
+      // If it looks like a SmugMug path starting with '/'
+      if (urlPath[0] === '/') {
+        // If the page already runs on a SmugMug domain, relative is fine.
+        return urlPath;
+      }
+    }
+
+    return '';
+  }
+
   // ---- Concurrency limiter (prevents request stampede) ----
   function pLimit(max) {
     let active = 0;
@@ -100,6 +152,7 @@
       });
   }
 
+  // Keep conservative to avoid bursts in webviews
   const limitNet = pLimit(2);
 
   // ---- Session cache (Bands CSV) ----
@@ -240,6 +293,29 @@
     }
   }
 
+  async function fetchAlbumMetaLight(albumKey) {
+    if (!albumKey) return null;
+    if (_albumMetaByKey.has(albumKey)) return _albumMetaByKey.get(albumKey);
+
+    try {
+      const metaJson = await fetchJsonSafe(`${API_BASE}/smug/album-meta/${encodeURIComponent(albumKey)}`, { retries: 1 }).catch(
+        () => null
+      );
+      const album = metaJson && metaJson.Response && metaJson.Response.Album;
+      if (!album) return null;
+
+      const title = _pickFirst(album, ['Title', 'Name', 'AlbumName']) || `Album ${albumKey}`;
+      const url = _resolveAlbumUrlFromMeta(album);
+
+      const out = { title, url, albumKey };
+      _albumMetaByKey.set(albumKey, out);
+      return out;
+    } catch (err) {
+      console.warn('[people] fetchAlbumMetaLight failed', albumKey, err);
+      return null;
+    }
+  }
+
   // ================== PEOPLE INDEX BUILD ==================
   async function loadBandFoldersFromCsv() {
     const text = await fetchTextWithSessionCache(CSV_ENDPOINT, PEOPLE_BANDS_CSV_TTL_MS, PEOPLE_BANDS_CSV_CACHE_KEY);
@@ -270,9 +346,31 @@
     return out;
   }
 
+  function _rememberAlbumStub(albumKey, albumObj) {
+    if (!albumKey || !albumObj) return;
+    if (_albumStubByKey.has(albumKey)) return;
+
+    const title = _pickFirst(albumObj, ['Title', 'Name', 'AlbumName']);
+    const urlPath = _pickFirst(albumObj, ['UrlPath', 'URLPath', 'Path']);
+    const url = _pickFirst(albumObj, ['WebUri', 'Url', 'URL', 'Uri']);
+
+    const stub = {
+      albumKey,
+      title: title || '',
+      url: url || '',
+      urlPath: urlPath || '',
+    };
+
+    // Best-effort resolved URL (relative paths are OK on SmugMug domain)
+    stub.niceUrl = stub.url || (stub.urlPath ? stub.urlPath : '');
+
+    _albumStubByKey.set(albumKey, stub);
+  }
+
   function renderPeopleList(indexMap) {
-    const listEl = panelRoot && panelRoot.querySelector('#peopleList');
-    const metaEl = panelRoot && panelRoot.querySelector('#peopleMeta');
+    if (!panelRoot) return;
+    const listEl = panelRoot.querySelector('#peopleList');
+    const metaEl = panelRoot.querySelector('#peopleMeta');
     if (!listEl) return;
 
     const entries = Array.from(indexMap.entries()).map(([name, set]) => ({ name, albums: set.size }));
@@ -281,20 +379,140 @@
     if (metaEl) metaEl.textContent = `${entries.length} people indexed`;
 
     if (!entries.length) {
-      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. (This uses album keywords for now.)</div>`;
+      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. (Curated mode: requires album keyword + photo-level match.)</div>`;
       return;
     }
 
     listEl.innerHTML = entries
       .map(
         (p) => `
-        <div class="peopleCard" style="padding:10px 12px; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; margin:8px 0;">
+        <button type="button" class="peopleCard" data-person="${_eh(p.name)}"
+          style="width:100%; text-align:left; cursor:pointer; padding:10px 12px; border:0; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; margin:8px 0;">
           <div style="font-weight:800; font-size:13px; letter-spacing:.02em;">${_eh(p.name)}</div>
           <div style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;">Albums: ${p.albums}</div>
-        </div>
+        </button>
       `
       )
       .join('');
+  }
+
+  function renderPersonAlbumsShell(personName) {
+    if (!panelRoot) return;
+    const listEl = panelRoot.querySelector('#peopleList');
+    const metaEl = panelRoot.querySelector('#peopleMeta');
+    if (metaEl) metaEl.textContent = 'Person';
+
+    if (!listEl) return;
+
+    listEl.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
+        <button type="button" id="peopleBackBtn"
+          style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:10px; padding:8px 10px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase;">
+          ← Back
+        </button>
+        <div style="flex:1; min-width:0; text-align:right;">
+          <div style="font-weight:900; font-size:13px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${_eh(personName)}
+          </div>
+          <div id="peopleAlbumCount" style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;"></div>
+        </div>
+      </div>
+
+      <div id="peopleAlbumsList"></div>
+    `;
+  }
+
+  function renderPersonAlbumsList(items) {
+    if (!panelRoot) return;
+    const albumsEl = panelRoot.querySelector('#peopleAlbumsList');
+    const countEl = panelRoot.querySelector('#peopleAlbumCount');
+    if (countEl) countEl.textContent = `Albums: ${items.length}`;
+
+    if (!albumsEl) return;
+
+    if (!items.length) {
+      albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No albums found for this person.</div>`;
+      return;
+    }
+
+    // Keep this simple and safe: title + open link (if available)
+    albumsEl.innerHTML = items
+      .map((a) => {
+        const title = _eh(a.title || `Album ${a.albumKey}`);
+        const href = a.url ? _eh(a.url) : '';
+        const openBtn = href
+          ? `<a href="${href}" target="_blank" rel="noopener noreferrer"
+                style="text-decoration:none; display:inline-block; margin-top:8px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;">
+                Open
+              </a>`
+          : `<div style="opacity:.6; font-size:11px; margin-top:8px;">Album key: ${_eh(a.albumKey)}</div>`;
+
+        return `
+          <div class="peopleAlbumCard"
+            style="padding:12px; border-radius:12px; background:rgba(0,0,0,0.14); box-shadow:0 0 0 1px rgba(255,70,110,0.20) inset; margin:10px 0;">
+            <div style="font-weight:900; font-size:13px; letter-spacing:.02em;">${title}</div>
+            ${openBtn}
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  async function showPerson(personName, token) {
+    if (!_peopleIndex) return;
+    const set = _peopleIndex.get(personName);
+    const albumKeys = set ? Array.from(set.values()) : [];
+    _view = { mode: 'person', person: personName, albumKeys };
+
+    renderPersonAlbumsShell(personName);
+
+    const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
+    const albumsEl = panelRoot && panelRoot.querySelector('#peopleAlbumsList');
+
+    if (statusEl) statusEl.textContent = 'Loading albums…';
+    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">Loading…</div>`;
+
+    // Build album list using stubs when available; fetch meta when needed.
+    const items = [];
+    let done = 0;
+
+    for (const k of albumKeys) {
+      if (token !== _lastRenderToken) return;
+
+      const key = _safeTrim(k);
+      if (!key) continue;
+
+      // Start with stub (if we saw it during folder scan)
+      const stub = _albumStubByKey.get(key);
+      let title = stub && stub.title ? stub.title : '';
+      let url = stub && stub.niceUrl ? stub.niceUrl : '';
+
+      // If missing title/url, fetch meta (light)
+      if (!title || !url) {
+        const meta = await limitNet(() => fetchAlbumMetaLight(key));
+        if (meta) {
+          title = title || meta.title || '';
+          url = url || meta.url || '';
+        }
+      }
+
+      // Normalize URL: if it's a relative path and we are not on SmugMug domain, leave it as-is;
+      // if it's missing, we just omit the link.
+      items.push({ albumKey: key, title: title || `Album ${key}`, url: url || '' });
+
+      done += 1;
+      if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
+        statusEl.textContent = `Loading albums… ${done}/${albumKeys.length}`;
+      }
+    }
+
+    if (token !== _lastRenderToken) return;
+
+    // Sort albums by title for now (stable + predictable)
+    items.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+
+    if (statusEl) statusEl.textContent = '';
+    renderPersonAlbumsList(items);
   }
 
   async function buildPeopleIndex(onProgress) {
@@ -317,7 +535,8 @@
       const region = String(f.region || '').trim();
 
       const albums = await limitNet(() => fetchFolderAlbums(folderPath, region).catch(() => []));
-      const arr = (albums || []).filter(Boolean);
+      const arr = _coerceArray(albums).filter(Boolean);
+
       if (typeof onProgress === 'function') {
         onProgress({ phase: 'folders', folderDone, folderTotal: folderList.length, albumDone });
       }
@@ -325,6 +544,8 @@
       for (const a of arr) {
         const albumKey = (a && (a.AlbumKey || a.Key || a.albumKey)) ? String(a.AlbumKey || a.Key || a.albumKey).trim() : '';
         if (!albumKey) continue;
+
+        _rememberAlbumStub(albumKey, a);
 
         if (!albumKeyToKeywords.has(albumKey)) {
           const kws = await limitNet(() => fetchAlbumKeywords(albumKey).catch(() => []));
@@ -353,6 +574,52 @@
     return people;
   }
 
+  // ================== EVENTS ==================
+  function bindEvents() {
+    if (!panelRoot) return;
+
+    // Delegated click handler
+    panelRoot.addEventListener('click', onRootClick);
+  }
+
+  function unbindEvents() {
+    if (!panelRoot) return;
+    panelRoot.removeEventListener('click', onRootClick);
+  }
+
+  function onRootClick(e) {
+    const t = e && e.target ? e.target : null;
+    if (!t || !panelRoot) return;
+
+    // Back button
+    const backBtn = t.closest ? t.closest('#peopleBackBtn') : null;
+    if (backBtn) {
+      e.preventDefault();
+      _view = { mode: 'list', person: '', albumKeys: [] };
+      const statusEl = panelRoot.querySelector('#peopleStatus');
+      if (statusEl) statusEl.textContent = '';
+      if (_peopleIndex) renderPeopleList(_peopleIndex);
+      return;
+    }
+
+    // Person card
+    const card = t.closest ? t.closest('[data-person]') : null;
+    if (card) {
+      const name = _safeTrim(card.getAttribute('data-person'));
+      if (!name) return;
+      e.preventDefault();
+
+      // Token guard for async render
+      const token = ++_lastRenderToken;
+
+      // Keep header stable
+      const statusEl = panelRoot.querySelector('#peopleStatus');
+      if (statusEl) statusEl.textContent = '';
+
+      showPerson(name, token);
+    }
+  }
+
   // ================== PUBLIC MODULE API ==================
   function render() {
     return `
@@ -372,18 +639,28 @@
 
   function onMount(panelEl) {
     panelRoot = panelEl || document.getElementById('musicContentPanel') || document.body;
-    const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
 
+    // Ensure events only bound once per mount
+    unbindEvents();
+    bindEvents();
+
+    const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const token = ++_lastRenderToken;
 
-    // If we already built it, just render.
+    // If we already built it, render immediately.
     if (_peopleIndex) {
       if (token !== _lastRenderToken) return;
       if (statusEl) statusEl.textContent = '';
-      renderPeopleList(_peopleIndex);
+      if (_view && _view.mode === 'person' && _view.person) {
+        // Restore detail view (fast path)
+        showPerson(_view.person, token);
+      } else {
+        renderPeopleList(_peopleIndex);
+      }
       return;
     }
 
+    // Build on demand
     if (!_buildPromise) {
       if (statusEl) statusEl.textContent = 'Building…';
       _buildPromise = buildPeopleIndex((p) => {
@@ -422,7 +699,8 @@
   }
 
   function destroy() {
-    // Soft reset only. (We keep the built cache in memory for fast return.)
+    // Soft reset only. (We keep built caches in memory for fast return.)
+    unbindEvents();
     panelRoot = null;
     _lastRenderToken += 1;
   }
