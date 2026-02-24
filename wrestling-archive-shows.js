@@ -2523,7 +2523,7 @@ function renderPhotoGrid(gridEl, images, opts) {
 
     const sub = document.createElement("div");
     sub.className = "waKwSub";
-    sub.textContent = "Also appears in these albums:";
+    sub.textContent = "Also appears in these albums (Note: This is broken at the moment, will just bring you back to the same album. It will be fixed soon):";
 
     titleWrap.appendChild(title);
     titleWrap.appendChild(sub);
