@@ -160,6 +160,44 @@
   }
 
 
+// ================== YEAR PILLS (SHOWS LIST NAV) ==================
+function renderYearBubbles(years) {
+  const rowEl = getYearGroupsEl();
+  if (!rowEl) return;
+
+  rowEl.innerHTML = "";
+
+  const ys = Array.isArray(years) ? years : [];
+  for (let i = 0; i < ys.length; i++) {
+    const y = ys[i];
+    if (y == null) continue;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "letter-pill";
+    btn.textContent = String(y);
+
+    btn.addEventListener("click", function (e) {
+      try { e.preventDefault(); } catch (_) {}
+      try { e.stopPropagation(); } catch (_) {}
+
+      // Visual active state
+      try {
+        const btns = Array.prototype.slice.call(rowEl.querySelectorAll(".letter-pill"));
+        btns.forEach((b) => b.classList.toggle("active", b === btn));
+      } catch (_) {}
+
+      const yr = Number(y);
+      setCrumbs("Shows for " + String(yr));
+      renderShowsCards(getShowsForYear(yr), yr);
+      resetPanelScroll();
+    });
+
+    rowEl.appendChild(btn);
+  }
+}
+
+
   
   // ================== CINEMATIC TRANSITION (NEON SHUTTER WIPE) ==================
   // Surgical: only used inside this module when swapping major views (list <-> show <-> match album).
@@ -2249,31 +2287,39 @@ function renderPhotoGrid(gridEl, images, opts) {
     // Selection state (if provided)
     try {
       if (isSelected) box.classList.toggle("selected", !!isSelected(i));
-    } catch(_) {}
+    } catch (_) {}
 
-    const open = function () {
-        // TEMPORARY: Disabled keyword modal item navigation (do nothing on click)
+    const act = function () {
+      // If selection mode is enabled, toggle selection; otherwise open lightbox.
+      if (onToggleSelect) {
+        try { onToggleSelect(i, img, imgs, box); } catch (_) {}
         return;
-      };
+      }
+      if (onOpen) {
+        try { onOpen(i); } catch (_) {}
+      }
+    };
 
-      item.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        open();
-      });
-      item.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          e.stopPropagation();
-          open();
-        }
-      });
+    box.addEventListener("click", function (e) {
+      try { e.preventDefault(); } catch (_) {}
+      try { e.stopPropagation(); } catch (_) {}
+      act();
+    });
 
-      _waKwModalBody.appendChild(item);
-    }
+    box.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        try { e.preventDefault(); } catch (_) {}
+        try { e.stopPropagation(); } catch (_) {}
+        act();
+      }
+    });
+
+    gridEl.appendChild(box);
   }
+}
 
   // ================== EXPORT ==================
+
   window.WrestlingArchiveShows = {
     render,
     onMount,
