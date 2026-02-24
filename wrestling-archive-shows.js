@@ -2854,7 +2854,7 @@ function renderPhotoGrid(gridEl, images, opts) {
       l2.textContent = parts.join(" – ");
 
       tx.appendChild(l1);
-      if (date) tx.appendChild(l2);
+      if (parts.length) tx.appendChild(l2);
 
       item.appendChild(th);
       item.appendChild(tx);
