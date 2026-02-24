@@ -1596,7 +1596,16 @@ const meta = document.createElement("div");
     // Load images (resolve URL -> AlbumKey -> images) using the wrestling backend
     try {
       // Resolve URL -> Shop NodeKey (SmugMug /shop expects a NodeKey, not always the AlbumKey)
-      let albumKey = "";
+      const albumKeyHint = (function () {
+        const v = String(matchId || "").trim();
+        if (!v) return "";
+        // match list uses "match-#", keyword modal previously used "kw-#"
+        if (v.indexOf("match-") === 0 || v.indexOf("kw-") === 0) return "";
+        // SmugMug AlbumKey is typically a short alphanumeric token (often 6 chars)
+        if (/^[A-Za-z0-9]{6,}$/.test(v)) return v;
+        return "";
+      })();
+      let albumKey = albumKeyHint || "";
       // Prefer a canonical URL returned by the resolver (prevents "wrong buy link" on redirected albums)
       let canonicalAlbumUrl = String(matchUrl || "").trim();
 
@@ -1620,8 +1629,9 @@ const meta = document.createElement("div");
           buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#");
         }
 
-        if (shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
-      } catch (_) {
+        if (!albumKey && shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
+if (!albumKey && albumKeyHint) albumKey = albumKeyHint;
+} catch (_) {
         // Keep the default album link if shop resolution fails
         try { buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#"); } catch (_) {}
       }
@@ -2842,21 +2852,28 @@ function renderPhotoGrid(gridEl, images, opts) {
       l1.className = "waKwLine1";
       l1.textContent = title;
       const l2 = document.createElement("div");
-      l2.className = "waKwLine2";
-      const company = albumCompanyFromResult(a);
+      l2.className = "waKwLine2";      const company = albumCompanyFromResult(a);
       const showName = albumShowNameFromResult(a);
 
-      // Desired format: Company – Show Name – Date (best-effort; omit blanks cleanly)
-      const parts = [];
-      if (company) parts.push(company);
-      if (showName) parts.push(showName);
-      if (date) parts.push(date);
-      l2.textContent = parts.join(" – ");
+      // Desired format: company "show name" - show date (best-effort; omit blanks cleanly)
+      let meta = "";
+      if (company && showName) {
+        meta = company + ' "' + showName + '"';
+      } else if (company) {
+        meta = company;
+      } else if (showName) {
+        meta = '"' + showName + '"';
+      }
+
+      if (date) {
+        meta = meta ? (meta + " - " + date) : date;
+      }
+
+      l2.textContent = meta;
 
       tx.appendChild(l1);
-      if (parts.length) tx.appendChild(l2);
-
-      item.appendChild(th);
+      if (meta) tx.appendChild(l2);
+item.appendChild(th);
       item.appendChild(tx);
 
       const open = function () {
@@ -2872,7 +2889,7 @@ function renderPhotoGrid(gridEl, images, opts) {
         if (_waKwCtx && _waKwCtx.showRow) {
           try { closeWrestlingKeywordSearchModal(); } catch (_) {}
           runNeonShutterTransition(function () {
-            openMatchAlbumInPanel(targetUrl, title, "kw-" + String(i + 1), _waKwCtx.showRow);
+            openMatchAlbumInPanel(targetUrl, title, (albumKey || ("kw-" + String(i + 1))), _waKwCtx.showRow);
           });
           return;
         }
