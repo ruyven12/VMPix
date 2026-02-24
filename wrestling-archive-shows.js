@@ -1318,8 +1318,26 @@
         const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
         if (base) return base;
 
-        // 2) preferred: build from show_date using your known structure:
-        //    https://vmpix.smugmug.com/Wrestling/Limitless/<mmddyy>
+        // 2) preferred: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
+        // This is more reliable than assuming a fixed company folder from date alone.
+        const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
+        if (poster) {
+          try {
+            const u = new URL(poster);
+            const parts = String(u.pathname || "").split("/").filter(Boolean);
+
+            // Find the "Wrestling/<fed>/<mmddyy>" triple anywhere in the path
+            for (let i = 0; i < parts.length - 2; i++) {
+              if (String(parts[i]).toLowerCase() === "wrestling" && /^\d{6}$/.test(parts[i + 2])) {
+                return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(i, i + 3).join("/");
+              }
+            }
+          } catch (_) {}
+        }
+
+        // 3) build from show_date using your known structure:
+        //    https://vmpix.smugmug.com/Wrestling/<Company>/<mmddyy>
+        // NOTE: we avoid hardcoding the company folder when possible.
         const rawDate = String((r && (r.show_date || r.date)) || "").trim();
 
         const mmddyy = (function () {
@@ -1343,27 +1361,28 @@
         })();
 
         if (mmddyy) {
-          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/Limitless/" + mmddyy;
+          // Try to infer the company folder from the sheet, falling back to "Limitless"
+          const fedFolder = (function () {
+            const raw =
+              String((r && (r.show_folder || r.fed || r.promotion || r.company || r.show_company || r.showCompany)) || "").trim();
+            if (!raw) return "";
+            // Drop the word "Wrestling" and keep the first token as a safe folder guess.
+            let t = raw.replace(/wrestling/ig, " ").trim();
+            // If there are separators, keep the left side
+            t = t.split(/[-–—|]/)[0].trim();
+            // Prefer the first word (folder names are typically short)
+            t = t.split(/\s+/)[0].trim();
+            // Keep URL-safe characters
+            t = t.replace(/[^A-Za-z0-9]/g, "");
+            return t;
+          })();
+
+          return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + (fedFolder || "Limitless") + "/" + mmddyy;
         }
 
-        // 3) fallback: infer from show_poster URL *only if* it contains /Wrestling/<fed>/<mmddyy> somewhere
-        const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
-        if (!poster) return "";
-        try {
-          const u = new URL(poster);
-          const parts = String(u.pathname || "").split("/").filter(Boolean);
-
-          // Find the "Wrestling/<fed>/<mmddyy>" triple anywhere in the path
-          for (let i = 0; i < parts.length - 2; i++) {
-            if (String(parts[i]).toLowerCase() === "wrestling" && /^\d{6}$/.test(parts[i + 2])) {
-              return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(i, i + 3).join("/");
-            }
-          }
-        } catch (_) {}
         return "";
       }
-
-      const base2 = inferShowBaseUrl(showRow);
+const base2 = inferShowBaseUrl(showRow);
       if (base2) return base2.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
 
       // Last resort: still return the raw string (keeps the UI from crashing)
@@ -1596,43 +1615,19 @@ const meta = document.createElement("div");
     // Load images (resolve URL -> AlbumKey -> images) using the wrestling backend
     try {
       // Resolve URL -> Shop NodeKey (SmugMug /shop expects a NodeKey, not always the AlbumKey)
-      // IMPORTANT: When keyword search provides an AlbumKey, we should trust it for loading the correct album.
-      const albumKeyHint = (function () {
-        const s = String(matchId || "").trim();
-        // SmugMug AlbumKey is typically a short-ish token; reject our internal ids like "match-3" / "kw-3"
-        if (!s) return "";
-        if (/^(match-|kw-)/i.test(s)) return "";
-        // Allow alnum only to keep this safe
-        if (!/^[A-Za-z0-9]+$/.test(s)) return "";
-        return s;
-      })();
-
-      let albumKey = albumKeyHint || "";
-
+      let albumKey = "";
       // Prefer a canonical URL returned by the resolver (prevents "wrong buy link" on redirected albums)
       let canonicalAlbumUrl = String(matchUrl || "").trim();
-try {
+
+      try {
         const shopInfo = await resolveShopNodeFromUrl(matchUrl);
 
         // Some resolver implementations return a finalUrl (canonical album URL) and/or shopUrl directly.
         if (shopInfo && shopInfo.finalUrl) {
-          // Guard: some resolvers may return a canonical URL for a *different* album.
-          // Only accept finalUrl if it matches the requested album path (best-effort).
-          const candidate = String(shopInfo.finalUrl || "").trim();
-          if (candidate) {
-            try {
-              const reqPath = String(new URL(String(matchUrl || "").trim()).pathname || "").replace(/\/+$/, "");
-              const candPath = String(new URL(candidate).pathname || "").replace(/\/+$/, "");
-              if (reqPath && candPath && reqPath === candPath) {
-                canonicalAlbumUrl = candidate;
-              }
-            } catch (_) {
-              // ignore
-            }
-          }
+          canonicalAlbumUrl = String(shopInfo.finalUrl || "").trim() || canonicalAlbumUrl;
         }
 
-const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl || "").trim() : "";
+        const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl || "").trim() : "";
         const hasDirectShop = directShopUrl && /\/shop\?/i.test(directShopUrl);
 
         if (hasDirectShop) {
@@ -1644,8 +1639,8 @@ const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl |
           buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#");
         }
 
-        if (!albumKey && shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
-} catch (_) {
+        if (shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
+      } catch (_) {
         // Keep the default album link if shop resolution fails
         try { buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#"); } catch (_) {}
       }
@@ -1705,6 +1700,7 @@ const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl |
                     showRow: showRow,
                     // Best-effort context for analytics/debugging; not required for routing.
                     fromAlbumUrl: matchUrl,
+                    fromAlbumKey: albumKey,
                     fromAlbumTitle: (albumTitle || matchTitle || matchId || "").trim()
                   });
                 };
@@ -2809,6 +2805,25 @@ function renderPhotoGrid(gridEl, images, opts) {
     // Store context so clicking a result can open INSIDE the HUD (no new window).
     _waKwCtx = (ctx && typeof ctx === "object") ? ctx : null;
 
+    // Normalize URLs/paths for comparisons (strip origin, query/hash, trailing slash)
+    function _waNormPath(u) {
+      const v = String(u || "").trim();
+      if (!v) return "";
+      try {
+        if (/^https?:\/\//i.test(v)) {
+          const p = (new URL(v)).pathname || "";
+          return String(p).replace(/\/+$/, "").toLowerCase();
+        }
+      } catch (_) {}
+      // Treat as path
+      return String(v)
+        .replace(/^[A-Za-z]+:\/\//, "")
+        .replace(/\?.*$/, "")
+        .replace(/#.*$/, "")
+        .replace(/\/+$/, "")
+        .toLowerCase();
+    }
+
     ensureWrestlingKeywordSearchModal();
     if (_waKwModalTitle) _waKwModalTitle.textContent = kw;
     if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums: Searching…";
@@ -2824,7 +2839,31 @@ function renderPhotoGrid(gridEl, images, opts) {
       return;
     }
 
-    const list = (albums || []).filter(Boolean);
+    let list = (albums || []).filter(Boolean);
+
+    // If invoked from within a match album, exclude that same album from the result list.
+    // This prevents a click loop where the top result re-opens the current album.
+    try {
+      const fromKey = _waKwCtx && _waKwCtx.fromAlbumKey ? String(_waKwCtx.fromAlbumKey).trim() : "";
+      const fromPath = _waKwCtx && _waKwCtx.fromAlbumUrl ? _waNormPath(_waKwCtx.fromAlbumUrl) : "";
+      if (fromKey || fromPath) {
+        list = list.filter(function (a) {
+          if (!a) return false;
+          if (fromKey) {
+            const k = albumKeyFromResult(a);
+            if (k && k === fromKey) return false;
+          }
+          if (fromPath) {
+            const u = albumUrlFromResult(a);
+            if (u && _waNormPath(u) === fromPath) return false;
+
+            const uriPath = String((a && (a.uriPath || a.UriPath || a.uripath)) || "").trim();
+            if (uriPath && _waNormPath(uriPath) === fromPath) return false;
+          }
+          return true;
+        });
+      }
+    } catch (_) {}
     if (_waKwModalCount) {
       _waKwModalCount.textContent = `Also appears in these albums: ${list.length} album${list.length === 1 ? "" : "s"} found`;
     }
@@ -2866,28 +2905,21 @@ function renderPhotoGrid(gridEl, images, opts) {
       l1.className = "waKwLine1";
       l1.textContent = title;
       const l2 = document.createElement("div");
-      l2.className = "waKwLine2";      const company = albumCompanyFromResult(a);
+      l2.className = "waKwLine2";
+      const company = albumCompanyFromResult(a);
       const showName = albumShowNameFromResult(a);
 
-      // Desired format: company "show name" - show date (best-effort; omit blanks cleanly)
-      let meta = "";
-      if (company && showName) {
-        meta = company + ' "' + showName + '"';
-      } else if (company) {
-        meta = company;
-      } else if (showName) {
-        meta = '"' + showName + '"';
-      }
-
-      if (date) {
-        meta = meta ? (meta + " - " + date) : date;
-      }
-
-      l2.textContent = meta;
+      // Desired format: Company – Show Name – Date (best-effort; omit blanks cleanly)
+      const parts = [];
+      if (company) parts.push(company);
+      if (showName) parts.push(showName);
+      if (date) parts.push(date);
+      l2.textContent = parts.join(" – ");
 
       tx.appendChild(l1);
-      if (meta) tx.appendChild(l2);
-item.appendChild(th);
+      if (parts.length) tx.appendChild(l2);
+
+      item.appendChild(th);
       item.appendChild(tx);
 
       const open = function () {
@@ -2903,10 +2935,7 @@ item.appendChild(th);
         if (_waKwCtx && _waKwCtx.showRow) {
           try { closeWrestlingKeywordSearchModal(); } catch (_) {}
           runNeonShutterTransition(function () {
-            const hintId = (albumKey && /^[A-Za-z0-9]+$/.test(albumKey))
-  ? albumKey
-  : ("kw-" + String(i + 1));
-openMatchAlbumInPanel(targetUrl, title, hintId, _waKwCtx.showRow);
+            openMatchAlbumInPanel(targetUrl, title, ((albumKey && /^[A-Za-z0-9]+$/.test(albumKey)) ? albumKey : ("kw-" + String(i + 1))), _waKwCtx.showRow);
           });
           return;
         }
