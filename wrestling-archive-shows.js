@@ -2754,6 +2754,13 @@ function renderPhotoGrid(gridEl, images, opts) {
       "th";
     return `${monthName} ${dd}${suffix}, ${year}`;
   }
+  function albumCompanyFromResult(a) {
+    return String((a && (a.company || a.Company)) || "").trim();
+  }
+  function albumShowNameFromResult(a) {
+    return String((a && (a.showName || a.ShowName || a.show_name || a["show_name"])) || "").trim();
+  }
+
   function albumThumbFromResult(a) {
     return String(
       (a && (a.thumb || a.thumbnail || a.ThumbnailUrl || a.ThumbUrl || a.thumbUrl || a.thumbnailUrl)) ||
@@ -2836,7 +2843,16 @@ function renderPhotoGrid(gridEl, images, opts) {
       l1.textContent = title;
       const l2 = document.createElement("div");
       l2.className = "waKwLine2";
-      l2.textContent = date || "";
+      const company = albumCompanyFromResult(a);
+      const showName = albumShowNameFromResult(a);
+
+      // Desired format: Company – Show Name – Date (best-effort; omit blanks cleanly)
+      const parts = [];
+      if (company) parts.push(company);
+      if (showName) parts.push(showName);
+      if (date) parts.push(date);
+      l2.textContent = parts.join(" – ");
+
       tx.appendChild(l1);
       if (date) tx.appendChild(l2);
 
