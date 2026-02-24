@@ -2837,7 +2837,7 @@ function renderPhotoGrid(gridEl, images, opts) {
 
     ensureWrestlingKeywordSearchModal();
     if (_waKwModalTitle) _waKwModalTitle.textContent = kw;
-    if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums: Searching…";
+    if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums (Note: This is broken at the moment, will just bring you back to the same album. It will be fixed soon): Searching…";
     setKwBodyStatus("Searching albums…");
 
     let albums = [];
@@ -2845,7 +2845,7 @@ function renderPhotoGrid(gridEl, images, opts) {
       albums = await fetchAlbumsByKeywordFromServer(kw);
     } catch (e) {
       console.warn("Keyword search failed", e);
-      if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums:";
+      if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums (Note: This is broken at the moment, will just bring you back to the same album. It will be fixed soon):";
       setKwBodyStatus("Search unavailable (server endpoint not configured yet).");
       return;
     }
