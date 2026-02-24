@@ -1597,17 +1597,38 @@ const meta = document.createElement("div");
     try {
       // Resolve URL -> Shop NodeKey (SmugMug /shop expects a NodeKey, not always the AlbumKey)
       let albumKey = "";
+      // Prefer a canonical URL returned by the resolver (prevents "wrong buy link" on redirected albums)
+      let canonicalAlbumUrl = String(matchUrl || "").trim();
+
       try {
         const shopInfo = await resolveShopNodeFromUrl(matchUrl);
-        if (shopInfo && shopInfo.nodeKey) {
-          buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
-        }
-        if (shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
-      } catch (_) {}
 
-      // Still need AlbumKey to load images (fail-soft)
+        // Some resolver implementations return a finalUrl (canonical album URL) and/or shopUrl directly.
+        if (shopInfo && shopInfo.finalUrl) {
+          canonicalAlbumUrl = String(shopInfo.finalUrl || "").trim() || canonicalAlbumUrl;
+        }
+
+        const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl || "").trim() : "";
+        const hasDirectShop = directShopUrl && /\/shop\?/i.test(directShopUrl);
+
+        if (hasDirectShop) {
+          buyPhotos.href = directShopUrl;
+        } else if (shopInfo && shopInfo.nodeKey) {
+          buyPhotos.href = SMUG_ORIGIN.replace(/\/$/, "") + "/shop?nodeKey=" + encodeURIComponent(shopInfo.nodeKey);
+        } else {
+          // Fail-soft: at least open the album itself
+          buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#");
+        }
+
+        if (shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
+      } catch (_) {
+        // Keep the default album link if shop resolution fails
+        try { buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#"); } catch (_) {}
+      }
+
+      // Still need AlbumKey to load images (fail-soft) (fail-soft)
       if (!albumKey) {
-        albumKey = await resolveAlbumKeyFromUrl(matchUrl);
+        albumKey = await resolveAlbumKeyFromUrl(canonicalAlbumUrl || matchUrl);
       }
 
       if (!albumKey) {
@@ -1878,7 +1899,7 @@ redrawGrid();
   // This supports SmugMug's shop URL format: /shop?nodeKey=<NodeKey>
   async function resolveShopNodeFromUrl(albumUrl) {
     const u = String(albumUrl || "").trim();
-    if (!u) return { nodeKey: "", albumKey: "", finalUrl: "" };
+    if (!u) return { nodeKey: "", albumKey: "", finalUrl: "", shopUrl: "" };
 
     const candidates = [
       API_BASE + "/smug/resolve-shop-node?url=" + encodeURIComponent(u),
@@ -1886,14 +1907,22 @@ redrawGrid();
 
     try {
       const json = await fetchJsonFirstOk(candidates);
-      const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim() : "";
+      const nodeKey = (json && typeof json.nodeKey === "string") ? json.nodeKey.trim()
+                    : (json && typeof json.NodeKey === "string") ? json.NodeKey.trim()
+                    : (json && typeof json.nodekey === "string") ? json.nodekey.trim()
+                    : "";
       const albumKey = (json && typeof json.albumKey === "string") ? json.albumKey.trim()
                     : (json && typeof json.AlbumKey === "string") ? json.AlbumKey.trim()
                     : "";
-      const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim() : "";
-      return { nodeKey, albumKey, finalUrl };
+      const finalUrl = (json && typeof json.finalUrl === "string") ? json.finalUrl.trim()
+                    : (json && typeof json.FinalUrl === "string") ? json.FinalUrl.trim()
+                    : "";
+      const shopUrl = (json && typeof json.shopUrl === "string") ? json.shopUrl.trim()
+                    : (json && typeof json.ShopUrl === "string") ? json.ShopUrl.trim()
+                    : "";
+      return { nodeKey, albumKey, finalUrl, shopUrl };
     } catch (_) {
-      return { nodeKey: "", albumKey: "", finalUrl: "" };
+      return { nodeKey: "", albumKey: "", finalUrl: "", shopUrl: "" };
     }
   }
 
