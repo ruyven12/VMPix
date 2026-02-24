@@ -2876,7 +2876,7 @@ function renderPhotoGrid(gridEl, images, opts) {
       }
     } catch (_) {}
     if (_waKwModalCount) {
-      _waKwModalCount.textContent = `Also appears in these albums: ${list.length} album${list.length === 1 ? "" : "s"} found`;
+      _waKwModalCount.textContent = `Also appears in these albums ((Note: This is broken at the moment, will just bring you back to the same album. It will be fixed soon)): ${list.length} album${list.length === 1 ? "" : "s"} found`;
     }
 
     if (!_waKwModalBody) return;
