@@ -2935,7 +2935,7 @@ function renderPhotoGrid(gridEl, images, opts) {
         if (_waKwCtx && _waKwCtx.showRow) {
           try { closeWrestlingKeywordSearchModal(); } catch (_) {}
           runNeonShutterTransition(function () {
-            openMatchAlbumInPanel(targetUrl, title, ((albumKey && /^[A-Za-z0-9]+$/.test(albumKey)) ? albumKey : ("kw-" + String(i + 1))), _waKwCtx.showRow);
+			return; // disabled
           });
           return;
         }
