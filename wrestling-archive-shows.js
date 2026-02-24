@@ -1596,28 +1596,43 @@ const meta = document.createElement("div");
     // Load images (resolve URL -> AlbumKey -> images) using the wrestling backend
     try {
       // Resolve URL -> Shop NodeKey (SmugMug /shop expects a NodeKey, not always the AlbumKey)
+      // IMPORTANT: When keyword search provides an AlbumKey, we should trust it for loading the correct album.
       const albumKeyHint = (function () {
-        const v = String(matchId || "").trim();
-        if (!v) return "";
-        // match list uses "match-#", keyword modal previously used "kw-#"
-        if (v.indexOf("match-") === 0 || v.indexOf("kw-") === 0) return "";
-        // SmugMug AlbumKey is typically a short alphanumeric token (often 6 chars)
-        if (/^[A-Za-z0-9]{6,}$/.test(v)) return v;
-        return "";
+        const s = String(matchId || "").trim();
+        // SmugMug AlbumKey is typically a short-ish token; reject our internal ids like "match-3" / "kw-3"
+        if (!s) return "";
+        if (/^(match-|kw-)/i.test(s)) return "";
+        // Allow alnum only to keep this safe
+        if (!/^[A-Za-z0-9]+$/.test(s)) return "";
+        return s;
       })();
+
       let albumKey = albumKeyHint || "";
+
       // Prefer a canonical URL returned by the resolver (prevents "wrong buy link" on redirected albums)
       let canonicalAlbumUrl = String(matchUrl || "").trim();
-
-      try {
+try {
         const shopInfo = await resolveShopNodeFromUrl(matchUrl);
 
         // Some resolver implementations return a finalUrl (canonical album URL) and/or shopUrl directly.
         if (shopInfo && shopInfo.finalUrl) {
-          canonicalAlbumUrl = String(shopInfo.finalUrl || "").trim() || canonicalAlbumUrl;
+          // Guard: some resolvers may return a canonical URL for a *different* album.
+          // Only accept finalUrl if it matches the requested album path (best-effort).
+          const candidate = String(shopInfo.finalUrl || "").trim();
+          if (candidate) {
+            try {
+              const reqPath = String(new URL(String(matchUrl || "").trim()).pathname || "").replace(/\/+$/, "");
+              const candPath = String(new URL(candidate).pathname || "").replace(/\/+$/, "");
+              if (reqPath && candPath && reqPath === candPath) {
+                canonicalAlbumUrl = candidate;
+              }
+            } catch (_) {
+              // ignore
+            }
+          }
         }
 
-        const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl || "").trim() : "";
+const directShopUrl = (shopInfo && shopInfo.shopUrl) ? String(shopInfo.shopUrl || "").trim() : "";
         const hasDirectShop = directShopUrl && /\/shop\?/i.test(directShopUrl);
 
         if (hasDirectShop) {
@@ -1630,7 +1645,6 @@ const meta = document.createElement("div");
         }
 
         if (!albumKey && shopInfo && shopInfo.albumKey) albumKey = String(shopInfo.albumKey || "").trim();
-if (!albumKey && albumKeyHint) albumKey = albumKeyHint;
 } catch (_) {
         // Keep the default album link if shop resolution fails
         try { buyPhotos.href = canonicalAlbumUrl || (matchUrl || "#"); } catch (_) {}
@@ -2889,7 +2903,10 @@ item.appendChild(th);
         if (_waKwCtx && _waKwCtx.showRow) {
           try { closeWrestlingKeywordSearchModal(); } catch (_) {}
           runNeonShutterTransition(function () {
-            openMatchAlbumInPanel(targetUrl, title, (albumKey || ("kw-" + String(i + 1))), _waKwCtx.showRow);
+            const hintId = (albumKey && /^[A-Za-z0-9]+$/.test(albumKey))
+  ? albumKey
+  : ("kw-" + String(i + 1));
+openMatchAlbumInPanel(targetUrl, title, hintId, _waKwCtx.showRow);
           });
           return;
         }
