@@ -74,7 +74,7 @@
 
   // ORANGE STRIP tuning
   const ORANGE_BOX_HEIGHT = '56px';
-  const ORANGE_BOX_BOTTOM = '25px';
+  const ORANGE_BOX_BOTTOM = '12px';
   const ORANGE_BOX_SAFE_GAP = '20px';
   const ORANGE_BOX_MAX_WIDTH = '96%';
 
@@ -91,7 +91,7 @@
   const GREEN_BOX_DESKTOP_MIN_HEIGHT = '0px';
   const GREEN_BOX_MOBILE_MIN_HEIGHT = '520px';
 
-  const GREEN_BOX_MARGIN_TOP = '20px';
+  const GREEN_BOX_MARGIN_TOP = '8px';
   const GREEN_BOX_PADDING = '18px 18px';
 
   const GREEN_BOX_ALIGN_ITEMS = 'center';
@@ -572,7 +572,7 @@
     if (_prevHudMainPadding === null) _prevHudMainPadding = hudMain.style.padding || '';
 
     hudMain.style.position = 'relative';
-    hudMain.style.padding = `calc(${ORANGE_BOX_HEIGHT} + ${ORANGE_BOX_BOTTOM} + ${ORANGE_BOX_SAFE_GAP}) 18px 0`;
+    hudMain.style.padding = `calc(${ORANGE_BOX_HEIGHT} + 18px) 18px 0`;
     hudMain.style.boxSizing = 'border-box';
     hudMain.style.overflow = 'hidden';
 
