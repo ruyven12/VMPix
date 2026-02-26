@@ -380,6 +380,8 @@
 
   /* Sliding underline rail (element is injected by JS into the nav stub) */
   .hudNavUnderline{
+    /* Disabled (user request: remove underline). Kept for easy re-enable later. */
+    display: none !important;
     position: absolute;
     left: 0;
     top: 100%;
@@ -414,7 +416,8 @@
     will-change: transform;
   }
   .hudIntroText:hover{
-    transform: translate3d(var(--tx, 0px), calc(var(--ty, 0px) - 1px), 0);
+    /* subtle hover lift */
+    transform: translate3d(var(--tx, 0px), calc(var(--ty, 0px) - 2px), 0);
   }
   .hudIntroText:active{
     transform: translate3d(0px, 1px, 0);
@@ -436,6 +439,44 @@
     filter: brightness(1.06);
     animation: hudPillActivate 220ms ease-out;
   }
+  /* Keep pill content above any glow layers */
+  .hudIntroText > *{
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Active pill: subtle animated glow (premium, restrained) */
+  .hudIntroText.is-active::before{
+    content:"";
+    position:absolute;
+    inset:-6px;
+    border-radius: inherit;
+    pointer-events:none;
+    z-index: 1;
+    background:
+      radial-gradient(70% 120% at 50% 35%, rgba(255,60,60,0.28), transparent 60%),
+      radial-gradient(90% 140% at 20% 80%, rgba(0,210,255,0.14), transparent 62%);
+    filter: blur(12px);
+    opacity: 0.0;
+    transform: scale(0.98);
+    will-change: opacity, transform;
+    animation: hudPillGlow 2.8s ease-in-out infinite;
+  }
+
+  @keyframes hudPillGlow{
+    0%   { opacity: 0.16; transform: scale(0.985); }
+    50%  { opacity: 0.34; transform: scale(1.015); }
+    100% { opacity: 0.20; transform: scale(0.995); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .hudIntroText.is-active::before{
+      animation: none !important;
+      opacity: 0.22;
+      transform: none;
+    }
+  }
+
 
   .hudIntroText:active{ transform: translateY(1px); }
 

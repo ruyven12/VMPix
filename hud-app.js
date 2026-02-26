@@ -59,10 +59,14 @@
     if (!pills.length) return;
 
     // Nav underline rail (single element that slides between pills)
+    // NOTE: Disabled for now (user request: kill underline). Keep code path in place
+    // so it can be re-enabled later with a single toggle.
+    const ENABLE_NAV_UNDERLINE = false;
     const navStub = document.querySelector('.hudContent > .hudStub:not(.hudMain)') || null;
     let underline = null;
 
     function ensureUnderline(){
+      if (!ENABLE_NAV_UNDERLINE) return null;
       if (!navStub) return null;
       if (underline && underline.parentNode) return underline;
       underline = document.createElement('div');
@@ -73,6 +77,7 @@
     }
 
     function moveUnderlineTo(el){
+      if (!ENABLE_NAV_UNDERLINE) return;
       const u = ensureUnderline();
       if (!u || !navStub || !el) return;
 
@@ -87,6 +92,7 @@
     }
 
     function clearUnderline(){
+      if (!ENABLE_NAV_UNDERLINE) return;
       if (!underline) return;
       underline.classList.remove('is-on');
     }
@@ -108,8 +114,8 @@
         pill.style.setProperty('--tx', tx.toFixed(2) + 'px');
         pill.style.setProperty('--ty', ty.toFixed(2) + 'px');
 
-        // underline tracks hover
-        moveUnderlineTo(pill);
+        // underline tracks hover (disabled)
+        // moveUnderlineTo(pill);
       }, { passive: true });
 
       pill.addEventListener('pointerleave', () => {
@@ -118,10 +124,10 @@
         pill.style.removeProperty('--tx');
         pill.style.removeProperty('--ty');
 
-        // snap underline back to active
-        const active = document.querySelector('.hudStub [data-nav].is-active') || null;
-        if (active) moveUnderlineTo(active);
-        else clearUnderline();
+        // snap underline back to active (disabled)
+        // const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+        // if (active) moveUnderlineTo(active);
+        // else clearUnderline();
       }, { passive: true });
 
       // Quick "press" pulse
@@ -135,12 +141,14 @@
 
     // Expose a tiny hook for the router to reposition underline on route change
     window.__hudMoveNavUnderline = function(){
+      if (!ENABLE_NAV_UNDERLINE) return;
       const active = document.querySelector('.hudStub [data-nav].is-active') || null;
       if (active) moveUnderlineTo(active);
     };
 
     // Initial underline placement (after first layout)
     window.requestAnimationFrame(() => {
+      if (!ENABLE_NAV_UNDERLINE) return;
       const active = document.querySelector('.hudStub [data-nav].is-active') || null;
       if (active) moveUnderlineTo(active);
     });
