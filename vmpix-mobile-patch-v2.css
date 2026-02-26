@@ -87,6 +87,19 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
     animation: none !important;
     white-space: nowrap;
   }
+
+  /* Fix mobile overlap: base grid row is shorter than the logo image.
+     Let rows size naturally and scale logo down on small screens. */
+  .hudContent{
+    grid-template-rows: auto auto 1fr !important;
+  }
+  .hudTopbar{
+    padding: 10px 12px !important;
+  }
+  .hudBrandImg{
+    height: 72px !important;
+    max-width: 100% !important;
+  }
 }
 
 html.webview .hudIntroType,
