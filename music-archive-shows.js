@@ -1037,6 +1037,115 @@ function restoreScrollSnapshot(snapshot) {
   const API_BASE = "https://music-archive-3lfa.onrender.com";
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
+  // ================================
+  // SERVER-SLEEP HARDENING (shared pattern)
+  // - Warm the backend once per session
+  // - Retry/timeout fetches so a cold Render instance doesn't look "broken"
+  // ================================
+
+  const _WAKE_KEY = `vm_wake_${String(API_BASE).replace(/[^a-z0-9]/gi, '_')}_v1`;
+  const _WAKE_TTL_MS = 1000 * 60 * 10; // 10 minutes
+  let _wakePromise = null;
+
+  const _sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function _fetchWithTimeout(url, opts) {
+    const timeoutMs = Number(opts && opts.timeoutMs) || 20000;
+    const options = Object.assign({}, opts || {});
+    delete options.timeoutMs;
+
+    // Best-effort abort (older browsers may not support AbortController)
+    let ac = null;
+    let t = null;
+    try {
+      if (typeof AbortController !== "undefined") {
+        ac = new AbortController();
+        options.signal = options.signal || ac.signal;
+        t = setTimeout(() => {
+          try { ac.abort(); } catch (_) {}
+        }, timeoutMs);
+      }
+    } catch (_) {}
+
+    try {
+      const res = await fetch(url, options);
+      return res;
+    } finally {
+      if (t) clearTimeout(t);
+    }
+  }
+
+  async function _wakeBackendOnce() {
+    try {
+      // If we've warmed recently, skip.
+      const raw = sessionStorage.getItem(_WAKE_KEY);
+      if (raw) {
+        const ts = Number(raw);
+        if (Number.isFinite(ts) && (Date.now() - ts) < _WAKE_TTL_MS) return;
+      }
+    } catch (_) {}
+
+    if (_wakePromise) return _wakePromise;
+
+    _wakePromise = (async () => {
+      const candidates = [
+        `${API_BASE}/health`,
+        `${API_BASE}/ping`,
+        `${API_BASE}/`,
+        `${API_BASE}/sheet/stats`,
+      ];
+
+      // Fire a few quick pings. Cold starts can take longer than a single request.
+      // We don't hard-fail the UI if these miss.
+      for (let i = 0; i < candidates.length; i++) {
+        const u = candidates[i];
+        try {
+          await _fetchWithTimeout(u, { method: "GET", cache: "no-store", timeoutMs: 6000 });
+          break;
+        } catch (_) {
+          // small delay between pings to avoid a tight loop
+          await _sleep(250);
+        }
+      }
+
+      try { sessionStorage.setItem(_WAKE_KEY, String(Date.now())); } catch (_) {}
+    })().finally(() => {
+      _wakePromise = null;
+    });
+
+    return _wakePromise;
+  }
+
+  async function _fetchWithRetry(url, opts) {
+    const attempts = Math.max(1, Number(opts && opts.attempts) || 3);
+    const timeoutMs = Number(opts && opts.timeoutMs) || 25000;
+    const baseDelayMs = Number(opts && opts.baseDelayMs) || 700;
+    const options = Object.assign({}, opts && opts.fetchOptions ? opts.fetchOptions : {});
+
+    // Warm the backend in the background (helps cold starts)
+    try { _wakeBackendOnce(); } catch (_) {}
+
+    let lastErr = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const res = await _fetchWithTimeout(url, Object.assign({}, options, { timeoutMs }));
+        // Retry on common cold-start / proxy errors
+        if (res && (res.status === 502 || res.status === 503 || res.status === 504)) {
+          lastErr = new Error(`HTTP ${res.status}`);
+        } else {
+          return res;
+        }
+      } catch (e) {
+        lastErr = e;
+      }
+      if (i < attempts - 1) {
+        const backoff = baseDelayMs * Math.pow(1.6, i);
+        await _sleep(Math.min(3500, backoff));
+      }
+    }
+    throw lastErr || new Error("fetch failed");
+  }
+
   
   // ---- Session cache (Shows CSV) ----
   const MUSIC_SHOWS_CSV_CACHE_KEY = 'vm_music_shows_csv_v1';
@@ -1054,7 +1163,13 @@ function restoreScrollSnapshot(snapshot) {
       }
     } catch (_) {}
 
-    const res = await fetch(url);
+    // Note: use retry/timeout to handle Render cold starts gracefully.
+    const res = await _fetchWithRetry(url, {
+      attempts: 3,
+      timeoutMs: 25000,
+      baseDelayMs: 750,
+      fetchOptions: { cache: "no-store" }
+    });
     const ct = String(res.headers.get('content-type') || '').toLowerCase();
     const txt = await res.text();
     try {
@@ -1884,6 +1999,9 @@ header.appendChild(posterWrap);
 
   function onMount(panelEl) {
     if (!panelEl) return;
+
+    // Start waking the backend ASAP (Render cold start)
+    try { _wakeBackendOnce(); } catch (_) {}
 
     const years = [
       2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
