@@ -285,6 +285,61 @@ function pulseFrame(){
   const HomeArchive = window.HomeArchive;
 
   // Route modules: keep behavior identical, but allow upgrades via external JS later
+
+  // =============================
+  // Backend Warm-up (prevents first-click cold-start delay)
+  // =============================
+  const __VM_WARM_KEY = '__vm_backend_warm_v1';
+
+  function _vmTryGetSession(key){
+    try { return sessionStorage.getItem(key); } catch(_){ return null; }
+  }
+  function _vmTrySetSession(key, val){
+    try { sessionStorage.setItem(key, val); } catch(_){}
+  }
+
+  function warmUpBackendsOnce(){
+    try{
+      if (_vmTryGetSession(__VM_WARM_KEY)) return;
+      _vmTrySetSession(__VM_WARM_KEY, String(Date.now()));
+
+      const musicBase =
+        (typeof window !== 'undefined' && typeof window.MUSIC_ARCHIVE_API_BASE === 'string' && window.MUSIC_ARCHIVE_API_BASE.trim())
+          ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+          : 'https://music-archive-3lfa.onrender.com';
+
+      const wrestleBase =
+        (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+          ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+          : 'https://wrestling-archive.onrender.com';
+
+      const targets = [
+        musicBase + '/sheet/bands',
+        wrestleBase + '/sheet/shows'
+      ];
+
+      targets.forEach((url) => {
+        try{
+          const ctrl = (window.AbortController) ? new AbortController() : null;
+          const sig = ctrl ? ctrl.signal : undefined;
+
+          // Short timeout: we only need to wake the server, not download full payloads.
+          const to = window.setTimeout(() => { try{ ctrl && ctrl.abort(); }catch(_){ } }, 8000);
+
+          fetch(url, { method: 'GET', signal: sig, cache: 'no-store' })
+            .then((res) => {
+              // Cancel body ASAP to avoid wasting bandwidth.
+              try{
+                if (res && res.body && typeof res.body.cancel === 'function') res.body.cancel();
+              }catch(_){ }
+            })
+            .catch(() => {})
+            .finally(() => { try{ window.clearTimeout(to); }catch(_){ } });
+        }catch(_){}
+      });
+    }catch(_){}
+  }
+
   const modules = {
     home: {
   render(){
@@ -303,6 +358,8 @@ function pulseFrame(){
     }
   },
   onEnter(){
+    // Warm backend services ASAP so the first heavy route click is fast.
+    warmUpBackendsOnce();
     if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
       // Pass the editable Home copy through so home.js can render it (HTML or plain text).
       HomeArchive.onEnter(ROUTE_COPY.home);
@@ -837,14 +894,14 @@ function navigate(route){
   });
 
   (function(){
-    // On first entry (no hash), resume where the visitor last was (session),
-    // otherwise default to home.
-    if (!location.hash){
-      const last = getLastHash() || '#/home';
-      location.hash = last;
+    // On first entry (no hash), ALWAYS default to Home.
+    // This prevents an accidental session resume to a heavy route (Music/Wrestling) that can trigger a cold-start delay.
+    const nh = normalizeHash(location.hash || '');
+    if (!nh){
+      location.hash = '#/home';
       return; // hashchange will drive navigation
     }
-    setLastHash(location.hash);
+    setLastHash(nh);
     navigate(routeKeyFromHash());
   })();
   // =============================
