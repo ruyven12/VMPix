@@ -1037,7 +1037,32 @@ function restoreScrollSnapshot(snapshot) {
   const API_BASE = "https://music-archive-3lfa.onrender.com";
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
-  let SHOWS_CACHE = null;
+  
+  // ---- Session cache (Shows CSV) ----
+  const MUSIC_SHOWS_CSV_CACHE_KEY = 'vm_music_shows_csv_v1';
+  const MUSIC_SHOWS_CSV_TTL_MS = 1000 * 60 * 30;
+
+  async function fetchTextWithSessionCache(url, ttlMs, cacheKey) {
+    try {
+      const now = Date.now();
+      const raw = sessionStorage.getItem(cacheKey);
+      if (raw) {
+        const obj = JSON.parse(raw);
+        if (obj && obj.t && obj.v && now - obj.t < ttlMs) {
+          return { text: String(obj.v), ct: String(obj.ct || '') };
+        }
+      }
+    } catch (_) {}
+
+    const res = await fetch(url);
+    const ct = String(res.headers.get('content-type') || '').toLowerCase();
+    const txt = await res.text();
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), v: txt, ct }));
+    } catch (_) {}
+    return { text: txt, ct };
+  }
+let SHOWS_CACHE = null;
   let SHOWS_LOADING = null;
 
   function parseCsvLine(line) {
@@ -1070,9 +1095,7 @@ function restoreScrollSnapshot(snapshot) {
   async function loadShowsFromCsv() {
   // /sheet/shows may return CSV, JSON, or (in some cases) a JS-ish object string.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
-  const res = await fetch(SHOWS_ENDPOINT);
-  const ct = String(res.headers.get("content-type") || "").toLowerCase();
-  const text = await res.text();
+  const { text, ct } = await fetchTextWithSessionCache(SHOWS_ENDPOINT, MUSIC_SHOWS_CSV_TTL_MS, MUSIC_SHOWS_CSV_CACHE_KEY);
   if (!text || !text.trim()) return [];
 
   const raw = text.trim();
