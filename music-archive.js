@@ -391,38 +391,55 @@
   }
 
   // ------------------------------------------------------------
-  // ARCHIVES HEADER UI (Bands / Shows selector)
-  // This renders ONLY inside the Archive content panel
-  // All spacing, sizing, glow, and layout values are adjustable below
+  // ARCHIVES MODE TOGGLE UI (Bands / Shows selector)
+  // Option A: render this inside the Music info strip area (top rail),
+  // not inside the main content panel.
   // ------------------------------------------------------------
 
   function renderArchiveHeaderUI() {
     return `
       <div class="archiveHeaderWrap">
-        <!-- Bands / Shows toggle -->
-        <div class="archiveModeToggle">
-          <button class="archiveModeBtn is-active" data-mode="bands">Bands</button>
-          <button class="archiveModeBtn" data-mode="shows">Shows</button>
+        <!-- Section toggle (Bands / Shows / Origins / Project) -->
+        <div class="archiveModeToggle" role="tablist" aria-label="Music sections (quick)">
+          <button class="archiveModeBtn is-active" data-mode="bands" role="tab" aria-selected="true">Bands</button>
+          <button class="archiveModeBtn" data-mode="shows" role="tab" aria-selected="false">Shows</button>
+          <button class="archiveModeBtn" data-mode="origins" role="tab" aria-selected="false">Origins of Music</button>
+          <button class="archiveModeBtn" data-mode="project" role="tab" aria-selected="false">Reimaging Project</button>
         </div>
       </div>
     `;
   }
-
-// Wrap Bands/Shows content with the shared archive mode header
+// Wrap Bands/Shows content (toggle is mounted in the info strip, not here)
 function wrapArchiveModeUI(activeMode, innerHtml) {
-  const header = renderArchiveHeaderUI();
-  return `${header}<div id="musicArchiveInner">${innerHtml || ''}</div>`;
+  return `<div id="musicArchiveInner">${innerHtml || ''}</div>`;
+}
+
+function mountArchiveModeToggle(activeMode) {
+  const host = document.getElementById('archiveModeToggleMount');
+  if (!host) return;
+  host.innerHTML = renderArchiveHeaderUI();
+  try { bindArchiveModeToggle(activeMode); } catch (_) {}
+}
+
+function clearArchiveModeToggle() {
+  const host = document.getElementById('archiveModeToggleMount');
+  if (!host) return;
+  host.innerHTML = '';
 }
 
 // Bind the Bands/Shows toggle buttons in the shared header
 function bindArchiveModeToggle(activeMode) {
-  const panel = document.getElementById('musicContentPanel');
-  if (!panel) return;
+  const host = document.getElementById('archiveModeToggleMount');
+  const scope = host || document.getElementById('musicContentPanel');
+  if (!scope) return;
 
-  const btns = panel.querySelectorAll('.archiveModeBtn[data-mode]');
+  const btns = scope.querySelectorAll('.archiveModeBtn[data-mode]');
   btns.forEach((b) => {
     const m = (b.getAttribute('data-mode') || '').toLowerCase();
-    b.classList.toggle('is-active', m === (activeMode || '').toLowerCase());
+    const isOn = m === (activeMode || '').toLowerCase();
+    b.classList.toggle('is-active', isOn);
+    // keep aria-selected in sync for assistive tech (safe no-op if roles differ)
+    try { b.setAttribute('aria-selected', isOn ? 'true' : 'false'); } catch (_) {}
   });
 
   btns.forEach((b) => {
@@ -744,12 +761,14 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .archiveHeaderWrap{
             width:100%;
             display:flex;
-            justify-content:flex-start;
-            margin-bottom:26px; /* space below header */
+            justify-content:center;
+            margin:10px 0 0;
           }
 
           .archiveModeToggle{
             display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
             gap:10px; /* spacing between buttons */
             padding:6px;
             border-radius:999px;
@@ -760,8 +779,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
 
           .archiveModeBtn{
-            min-width:96px; /* button width */
-            padding:8px 18px; /* vertical / horizontal padding */
+            min-width:84px; /* button width */
+            padding:8px 14px; /* vertical / horizontal padding */
             border-radius:999px;
             border:none;
             background:transparent;
@@ -830,9 +849,31 @@ if (!document.getElementById('musicContentWipeStyles')) {
         const style = document.createElement('style');
         style.id = 'musicInfoStripStyles';
         style.textContent = `
-          #musicInfoStrip{ position:relative; overflow:hidden; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
+          /*
+            Allow the archive mode pills (Bands/Shows) glow to render fully.
+            The strip previously used overflow:hidden for the scan ping effect,
+            but that clips box-shadows on the pills.
+          */
+          #musicInfoStrip{ position:relative; overflow:visible; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
+
+          /* Mount area for the Bands/Shows pills (kept separate from the main tab row) */
+          #archiveModeToggleMount{
+            width:100%;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:10px 0 10px;
+            box-sizing:border-box;
+          }
+
+          #archiveModeToggleMount .archiveHeaderWrap{
+            justify-content:center;
+            margin-bottom:0;
+          }
 
           #musicInfoStrip .hudTabs{
+
+  display:none !important; /* hide legacy top tab row; pills are primary */
   display:flex;
   flex-wrap:nowrap;
   align-items:center;
@@ -960,6 +1001,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
       _orangeBoxEl.style.border = ORANGE_BOX_BORDER;
       _orangeBoxEl.style.boxShadow = ORANGE_BOX_GLOW;
 	  _orangeBoxEl.style.display = 'flex';
+      _orangeBoxEl.style.flexDirection = 'column';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
       _orangeBoxEl.style.textAlign = 'center';
@@ -971,6 +1013,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
     <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
 	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
           </div>
+  <div id="archiveModeToggleMount" aria-live="polite">
+    ${renderArchiveHeaderUI()}
+  </div>
   <div class="scanPing" aria-hidden="true"></div>
 `;
 
@@ -1069,7 +1114,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
                 wipeSwapContent(html, '', () => {
                   const panel = document.getElementById('musicContentPanel');
                   if (panel) panel.scrollTop = 0;
-                  try { bindArchiveModeToggle('bands'); } catch (_) {}
+                  try { mountArchiveModeToggle('bands'); } catch (_) {}
                   try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
                 });
 
@@ -1078,6 +1123,7 @@ return;
           
                       // People (Phase 2: on-demand module; fail-soft to placeholder)
                       if (tabKey === 'people' || label === 'People') {
+                        try { clearArchiveModeToggle(); } catch (_) {}
                         const mountPeople = () => {
                           const html =
                             window.MusicArchivePeople?.render?.() ||
@@ -1133,7 +1179,7 @@ return;
                 wipeSwapContent(html, '', () => {
                   const panel = document.getElementById('musicContentPanel');
                   if (panel) panel.scrollTop = 0;
-                  try { bindArchiveModeToggle('shows'); } catch (_) {}
+                  try { mountArchiveModeToggle('shows'); } catch (_) {}
                   try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
                 });
 
@@ -1147,6 +1193,13 @@ return;
           
           // All other tabs: revert to original auto-sizing
           setArchiveViewportExpanded(false);
+
+          // Keep the quick-toggle visible for Origins/Project as well (unifies the experience).
+          if (tabKey === 'origins' || tabKey === 'project') {
+            try { mountArchiveModeToggle(tabKey); } catch (_) {}
+          } else {
+            try { clearArchiveModeToggle(); } catch (_) {}
+          }
 
           if (tabKey === 'origins' || label === 'Origins of Music' || label === 'Origins in Music' || label === 'Origins') {
             const originsBody = `Personally, I've been always a concert goer throughout my life (with my first ever music-related show was Korn, Disturbed and Sev (the Pop Sucks 2 Tour) back in 2001 when they visited Maine. From there, my shows were fewer and far between for a stretch of time (which, still highlighted by seeing some national bands at the time such as Nothingface, Silent Civilian, Mushroomhead, among others). However, the music project really ramped up in mid-2011 when I checked out a set from 3 bands - Dark Rain, Fifth Freedom and 13 High - at a local bar and thoroughly enjoyed the music. Flash forward a couple months to Sept 2011, where I was invited to check out 13 High once more. Their sound was definitely I was grooving to at that time - in which after helping with equipment load in and out for my buddy Eric at the time (had an injury), it evolved into going another, and another, and another.....until it became what it is today.
@@ -1210,6 +1263,8 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
       } else {
         hudMain.appendChild(_orangeBoxEl);
       }
+
+      bindArchiveModeToggle('');
 
       animateStripOpen(_orangeBoxEl);
 
@@ -1297,8 +1352,12 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
   
 // Programmatically switch between Bands/Shows without returning to the Music landing view
 function setMode(mode) {
-  const m = String(mode || '').toLowerCase();
-  const key = (m === 'shows') ? 'shows' : 'bands';
+  const m = String(mode || '').toLowerCase().trim();
+  const key =
+    (m === 'bands' || m === 'shows' || m === 'origins' || m === 'project')
+      ? m
+      : 'bands';
+
   try {
     const tab =
       (_orangeBoxEl && _orangeBoxEl.querySelector(`.hudTab[data-tab="${key}"]`)) ||
