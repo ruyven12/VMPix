@@ -65,10 +65,19 @@
     return `
       <div id="waShowsRoot" style="width:100%; max-width:1200px; margin:0 auto;">
         <div class="wa-results-head" style="text-align:center; padding:2px 4px 10px;">
-          <div id="waCrumbs"
-               style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;">
-            NOTE: Loading - this takes about 30 seconds to complete as the server goes into sleep mode after 15 minutes. This will be fixed soon!
+          <div id="waBootPanel" class="vmpixBootPanel" role="status" aria-live="polite" style="margin-top:8px;">
+            <div class="vmpixBootRow">
+              <div class="vmpixSpinner" aria-hidden="true"></div>
+              <div class="vmpixBootText">
+                <div class="vmpixBootTitle">Waking the archive…</div>
+                <div class="vmpixBootSub">If this is the first visit, the server may need a moment to wake.</div>
+              </div>
+            </div>
+            <div class="vmpixShimmer" aria-hidden="true"></div>
           </div>
+
+          <div id="waCrumbs"
+               style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;"></div>
 
           <div id="waYearGroups"
                style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
@@ -99,6 +108,13 @@
     // Load shows CSV → build year bubbles from real data
     SHOWS = await loadShowsFromCsv();
     YEARS = extractYearsFromShows(SHOWS);
+
+    // Hide the boot panel once we have real data.
+    try {
+      const bp = _panel ? _panel.querySelector("#waBootPanel") : null;
+      if (bp && bp.parentNode) bp.parentNode.removeChild(bp);
+    } catch (_) {}
+
 
     const filtered = YEARS
       .filter((y) => y >= MIN_YEAR && y <= MAX_YEAR)
@@ -328,6 +344,78 @@
     const s = document.createElement("style");
     s.id = "waShowsStyles";
     s.textContent = `
+
+      /* ===== Shared boot/loading panel ===== */
+      .vmpixBootPanel{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        padding: 18px 12px 10px;
+        box-sizing:border-box;
+        border-radius: 14px;
+        background: rgba(0,0,0,0.20);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.30) inset;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      .vmpixBootRow{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        width:100%;
+      }
+      .vmpixSpinner{
+        width:18px; height:18px;
+        border-radius:999px;
+        border: 2px solid rgba(226,232,240,0.25);
+        border-top-color: rgba(226,232,240,0.85);
+        animation: vmpixSpin 900ms linear infinite;
+        flex: 0 0 auto;
+      }
+      @keyframes vmpixSpin{ to{ transform: rotate(360deg); } }
+      .vmpixBootText{
+        text-align:center;
+        line-height:1.2;
+      }
+      .vmpixBootTitle{
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        opacity:.90;
+      }
+      .vmpixBootSub{
+        margin-top:4px;
+        font-size:12px;
+        opacity:.75;
+        letter-spacing:.02em;
+      }
+      .vmpixShimmer{
+        width:min(520px, 92%);
+        height:10px;
+        border-radius:999px;
+        overflow:hidden;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      .vmpixShimmer:before{
+        content:"";
+        display:block;
+        width:60%;
+        height:100%;
+        transform: translateX(-80%);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+        animation: vmpixShimmer 1200ms ease-in-out infinite;
+      }
+      @keyframes vmpixShimmer{
+        0%{ transform: translateX(-80%); }
+        100%{ transform: translateX(180%); }
+      }
+
 
 /* ===== Neon shutter wipe (module transition) ===== */
 #waNeonShutter{

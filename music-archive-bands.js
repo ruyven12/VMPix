@@ -114,7 +114,7 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
 
   // Loading message shown while the Bands CSV is being fetched.
   // Edit this string to whatever you want displayed.
-  const BANDS_LOADING_TEXT = "Loading the machine, takes about 30 seconds to load up. This is a server-related thing for it puts it in sleep mode after a bit. This will be fixed soon!";
+  const BANDS_LOADING_TEXT = "Waking the archive…";
 
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
@@ -201,7 +201,80 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
     s.id = "musicBandsStyles";
     s.textContent = `
 
-      /* ===== Scroll restore ===== */
+      
+
+      /* ===== Shared boot/loading panel ===== */
+      .vmpixBootPanel{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        padding: 18px 12px 10px;
+        box-sizing:border-box;
+        border-radius: 14px;
+        background: rgba(0,0,0,0.20);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.30) inset;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      .vmpixBootRow{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        width:100%;
+      }
+      .vmpixSpinner{
+        width:18px; height:18px;
+        border-radius:999px;
+        border: 2px solid rgba(226,232,240,0.25);
+        border-top-color: rgba(226,232,240,0.85);
+        animation: vmpixSpin 900ms linear infinite;
+        flex: 0 0 auto;
+      }
+      @keyframes vmpixSpin{ to{ transform: rotate(360deg); } }
+      .vmpixBootText{
+        text-align:center;
+        line-height:1.2;
+      }
+      .vmpixBootTitle{
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        opacity:.90;
+      }
+      .vmpixBootSub{
+        margin-top:4px;
+        font-size:12px;
+        opacity:.75;
+        letter-spacing:.02em;
+      }
+      .vmpixShimmer{
+        width:min(520px, 92%);
+        height:10px;
+        border-radius:999px;
+        overflow:hidden;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      .vmpixShimmer:before{
+        content:"";
+        display:block;
+        width:60%;
+        height:100%;
+        transform: translateX(-80%);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+        animation: vmpixShimmer 1200ms ease-in-out infinite;
+      }
+      @keyframes vmpixShimmer{
+        0%{ transform: translateX(-80%); }
+        100%{ transform: translateX(180%); }
+      }
+
+/* ===== Scroll restore ===== */
       #musicContentPanel{
         overflow-y: auto;
         overflow-x: hidden;
@@ -2107,7 +2180,18 @@ color: rgba(226,232,240,0.92);
 
         <div class="bandsLayout">
           <div>
-            <div class="bandsLoading" id="bands-loading">${BANDS_LOADING_TEXT}<span class="dot"></span></div>
+            <div class="bandsLoading" id="bands-loading">
+              <div class="vmpixBootPanel" role="status" aria-live="polite">
+                <div class="vmpixBootRow">
+                  <div class="vmpixSpinner" aria-hidden="true"></div>
+                  <div class="vmpixBootText">
+                    <div class="vmpixBootTitle">${BANDS_LOADING_TEXT}</div>
+                    <div class="vmpixBootSub">If this is the first visit, the server may need a moment to wake.</div>
+                  </div>
+                </div>
+                <div class="vmpixShimmer" aria-hidden="true"></div>
+              </div>
+            </div>
             <div id="results"></div>
           </div>
         </div>
