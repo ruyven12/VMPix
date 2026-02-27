@@ -408,6 +408,42 @@
     `;
   }
 
+// Wrap Bands/Shows content with the shared archive mode header
+function wrapArchiveModeUI(activeMode, innerHtml) {
+  const header = renderArchiveHeaderUI();
+  return `${header}<div id="musicArchiveInner">${innerHtml || ''}</div>`;
+}
+
+// Bind the Bands/Shows toggle buttons in the shared header
+function bindArchiveModeToggle(activeMode) {
+  const panel = document.getElementById('musicContentPanel');
+  if (!panel) return;
+
+  const btns = panel.querySelectorAll('.archiveModeBtn[data-mode]');
+  btns.forEach((b) => {
+    const m = (b.getAttribute('data-mode') || '').toLowerCase();
+    b.classList.toggle('is-active', m === (activeMode || '').toLowerCase());
+  });
+
+  btns.forEach((b) => {
+    // ensure we don't double-bind if the panel swaps rapidly
+    b.onclick = null;
+    b.addEventListener(
+      'click',
+      (e) => {
+        e.preventDefault();
+        const targetMode = (b.getAttribute('data-mode') || '').toLowerCase();
+        if (!targetMode) return;
+        try {
+          window.MusicArchive?.setMode?.(targetMode);
+        } catch (_) {}
+      },
+      { passive: false }
+    );
+  });
+}
+
+
   function animateStripOpen(el) {
         if (!el) return;
         const prefersReduced =
@@ -1024,17 +1060,20 @@ if (!document.getElementById('musicContentWipeStyles')) {
                         // Force a fresh mount each time Bands is selected (prevents stale deep-view state)
                         try { window.MusicArchiveBands?.destroy?.(); } catch (_) {}
           
-                        const html =
-                          window.MusicArchiveBands?.render?.() ||
-                          `<div style="opacity:.7">Bands module not loaded.</div>`;
-          
-                        wipeSwapContent(html, '', () => {
-                          const panel = document.getElementById('musicContentPanel');
-                          if (panel) panel.scrollTop = 0;
-                          try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
-                        });
-          
-                        return;
+                        const inner =
+                  window.MusicArchiveBands?.render?.() ||
+                  `<div style="opacity:.7">Bands module not loaded.</div>`;
+
+                const html = wrapArchiveModeUI('bands', inner);
+
+                wipeSwapContent(html, '', () => {
+                  const panel = document.getElementById('musicContentPanel');
+                  if (panel) panel.scrollTop = 0;
+                  try { bindArchiveModeToggle('bands'); } catch (_) {}
+                  try { window.MusicArchiveBands?.onMount?.(panel, { fresh: true }); } catch (_) {}
+                });
+
+return;
                       }
           
                       // People (Phase 2: on-demand module; fail-soft to placeholder)
@@ -1085,17 +1124,20 @@ if (!document.getElementById('musicContentWipeStyles')) {
                       if (tabKey === 'shows' || label === 'Shows') {
                         try { window.MusicArchiveShows?.destroy?.(); } catch (_) {}
           
-                        const html =
-                          window.MusicArchiveShows?.render?.() ||
-                          `<div style="opacity:.7">Shows module not loaded.</div>`;
-          
-                        wipeSwapContent(html, '', () => {
-                          const panel = document.getElementById('musicContentPanel');
-                          if (panel) panel.scrollTop = 0;
-                          try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
-                        });
-          
-                        return;
+                        const inner =
+                  window.MusicArchiveShows?.render?.() ||
+                  `<div style="opacity:.7">Shows module not loaded.</div>`;
+
+                const html = wrapArchiveModeUI('shows', inner);
+
+                wipeSwapContent(html, '', () => {
+                  const panel = document.getElementById('musicContentPanel');
+                  if (panel) panel.scrollTop = 0;
+                  try { bindArchiveModeToggle('shows'); } catch (_) {}
+                  try { window.MusicArchiveShows?.onMount?.(panel, { fresh: true }); } catch (_) {}
+                });
+
+return;
                       }
           
                       // Fallback safety (shouldn't hit)
@@ -1252,5 +1294,18 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
     }
   }
 
-  window.MusicArchive = { render, onEnter, destroy };
+  
+// Programmatically switch between Bands/Shows without returning to the Music landing view
+function setMode(mode) {
+  const m = String(mode || '').toLowerCase();
+  const key = (m === 'shows') ? 'shows' : 'bands';
+  try {
+    const tab =
+      (_orangeBoxEl && _orangeBoxEl.querySelector(`.hudTab[data-tab="${key}"]`)) ||
+      document.querySelector(`.hudTab[data-tab="${key}"]`);
+    if (tab) tab.click();
+  } catch (_) {}
+}
+
+window.MusicArchive = { render, onEnter, destroy, setMode };
 })();
