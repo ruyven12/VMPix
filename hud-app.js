@@ -263,6 +263,7 @@ function pulseFrame(){
       </div>
     `,
     wrestling: "Wrestling Archives - Coming Soon",
+    calendar: "Calendar - Coming Soon",
     about: "About Me - Coming Soon",
     pricing: "Pricing - Coming Soon",
     contact: "Contact - Coming Soon"
@@ -277,6 +278,7 @@ function pulseFrame(){
   // Module adapters (optional external files)
   const MusicArchive = window.MusicArchive;
   const WrestlingArchive = window.WrestlingArchive;
+  const CalendarArchive = window.CalendarArchive;
   const AboutArchive = window.AboutArchive;
   const Pricing = window.Pricing;
   const Contact = window.Contact;
@@ -421,6 +423,31 @@ music: {
       onLeave(){
         if (WrestlingArchive && typeof WrestlingArchive.destroy === 'function'){
           WrestlingArchive.destroy();
+        }
+      }
+    },
+
+    calendar: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        if (CalendarArchive && typeof CalendarArchive.render === 'function'){
+          CalendarArchive.render(m);
+        } else {
+          renderTypedShell(m);
+        }
+      },
+      onEnter(){
+        if (CalendarArchive && typeof CalendarArchive.onEnter === 'function'){
+          CalendarArchive.onEnter();
+          return;
+        }
+        const el = document.querySelector('[data-hud-main-text]');
+        typeHudMainText(ROUTE_COPY.calendar, el);
+      },
+      onLeave(){
+        if (CalendarArchive && typeof CalendarArchive.destroy === 'function'){
+          CalendarArchive.destroy();
         }
       }
     },
@@ -780,7 +807,7 @@ async function transitionTo(route){
     try { modules[currentRoute].onLeave(); } catch(e) {}
   }
 
-  document.body.classList.remove('route-home','route-music','route-wrestling','route-about','route-pricing','route-contact');
+  document.body.classList.remove('route-home','route-music','route-wrestling','route-calendar','route-about','route-pricing','route-contact');
   document.body.classList.add(`route-${next}`);
 
   setActiveTopNav(next);
