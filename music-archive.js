@@ -1376,21 +1376,14 @@ if (hudMain) {
 }
 _prevHudMainPadding = null;
 
-// Restore page-level overflowX
+// Restore page-level overflowX (only if we changed it)
 const htmlEl = document.documentElement;
 const bodyEl = document.body;
-if (htmlEl) htmlEl.style.overflowX = _prevHtmlOverflowX || '';
-if (bodyEl) bodyEl.style.overflowX = _prevBodyOverflowX || '';
+if (htmlEl && _prevHtmlOverflowX !== null) htmlEl.style.overflowX = _prevHtmlOverflowX || '';
+if (bodyEl && _prevBodyOverflowX !== null) bodyEl.style.overflowX = _prevBodyOverflowX || '';
 _prevHtmlOverflowX = null;
 _prevBodyOverflowX = null;
 
-    // Restore page horizontal overflow (Music-only)
-    const _html = document.documentElement;
-    const _body = document.body;
-    if (_html && _prevHtmlOverflowX !== null) _html.style.overflowX = _prevHtmlOverflowX;
-    if (_body && _prevBodyOverflowX !== null) _body.style.overflowX = _prevBodyOverflowX;
-    _prevHtmlOverflowX = null;
-    _prevBodyOverflowX = null;
 
     restoreFrameVisibility();
 
