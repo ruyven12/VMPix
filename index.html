@@ -1803,8 +1803,8 @@
 
 <!-- App modules (keep HUD markup/logic identical; logic moved to separate files) -->
 
-<!-- Analytics (must load before app modules) -->
-<script defer src="https://music-archive-3lfa.onrender.com/analytics.js?v=1"></script>
+<!-- Analytics (NON-BLOCKING): this MUST NOT prevent the site from loading if the backend is cold/down. -->
+<script async src="https://music-archive-3lfa.onrender.com/analytics.js?v=1"></script>
 
 <!-- Music sub-modules FIRST -->
 <script src="music-archive-bands.js" defer></script>
