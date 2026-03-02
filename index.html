@@ -1819,6 +1819,15 @@
 <script src="pricing.js" defer></script>
 <script src="contact.js" defer></script>
 <script src="home.js" defer></script>
+
+<!-- Calendar config (must be defined before calendar.js loads) -->
+<script>
+  // Public Google Calendar ICS URL (Settings → Integrate calendar → Public address in iCal format)
+  window.VMPIX_CALENDAR_ICS_URL = 'https://calendar.google.com/calendar/ical/f94c8ef1cb0b3c7e3185134a306540e3b9f3847f3a595d166ca0e4c9b01014a3%40group.calendar.google.com/public/basic.ics';
+  window.VMPIX_CALENDAR_TITLE = 'Calendar';
+  // Helps if Google blocks CORS for the ICS feed
+  window.VMPIX_CALENDAR_ICS_FALLBACK_JINA = true;
+</script>
 <script src="calendar.js" defer></script>
 <script src="hud-app.js" defer></script>
 
