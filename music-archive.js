@@ -20,6 +20,10 @@
   let _orangeBoxEl = null;
   let _prevHudMainPadding = null;
 
+  // page horizontal overflow restore (Music route only)
+  let _prevHtmlOverflowX = null;
+  let _prevBodyOverflowX = null;
+
   // GREEN BOX (main changing content area) — Music route only
   let _contentPanelEl = null;
 
@@ -67,8 +71,17 @@
 
     if (!_contentPanelEl) return;
 
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (!hudMain) return;
+const hudMain = document.querySelector('.hudStub.hudMain');
+if (!hudMain) return;
+
+// Music route: prevent horizontal overflow (webviews / 100vw quirks / animated layers).
+// Keep vertical overflow visible so nothing is visually clipped.
+const htmlEl = document.documentElement;
+const bodyEl = document.body;
+if (htmlEl && _prevHtmlOverflowX === null) _prevHtmlOverflowX = htmlEl.style.overflowX || '';
+if (bodyEl && _prevBodyOverflowX === null) _prevBodyOverflowX = bodyEl.style.overflowX || '';
+if (htmlEl) htmlEl.style.overflowX = 'hidden';
+if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
     // IMPORTANT:
     // hudMain.clientHeight INCLUDES padding, and we intentionally add a big padding-bottom
@@ -533,6 +546,14 @@ function render(mountEl) {
     if (!mountEl) return;
     _mount = mountEl;
 
+    // Music-only: prevent any accidental horizontal overflow (blank space to the right)
+    const _html = document.documentElement;
+    const _body = document.body;
+    if (_html && _prevHtmlOverflowX === null) _prevHtmlOverflowX = _html.style.overflowX || '';
+    if (_body && _prevBodyOverflowX === null) _prevBodyOverflowX = _body.style.overflowX || '';
+    if (_html) _html.style.overflowX = 'hidden';
+    if (_body) _body.style.overflowX = 'hidden';
+
     // Music-only: remove HUD main container fill; keep the 1px border
     const hudMainBox = document.querySelector('.hudStub.hudMain');
     if (hudMainBox) {
@@ -591,8 +612,17 @@ function render(mountEl) {
       The World of Music
     </span>`;
 
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (!hudMain) return;
+const hudMain = document.querySelector('.hudStub.hudMain');
+if (!hudMain) return;
+
+// Music route: prevent horizontal overflow (webviews / 100vw quirks / animated layers).
+// Keep vertical overflow visible so nothing is visually clipped.
+const htmlEl = document.documentElement;
+const bodyEl = document.body;
+if (htmlEl && _prevHtmlOverflowX === null) _prevHtmlOverflowX = htmlEl.style.overflowX || '';
+if (bodyEl && _prevBodyOverflowX === null) _prevBodyOverflowX = bodyEl.style.overflowX || '';
+if (htmlEl) htmlEl.style.overflowX = 'hidden';
+if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
     // If you don't want the translucent panels on the Music landing view, skip creating them.
     if (!SHOW_MUSIC_PANELS){
@@ -608,7 +638,8 @@ function render(mountEl) {
       hudMain.style.position = 'relative';
       hudMain.style.padding = '18px 18px';
       hudMain.style.boxSizing = 'border-box';
-      hudMain.style.overflow = 'hidden';
+      hudMain.style.overflow = 'visible';
+      hudMain.style.overflowX = 'hidden';
 
       // Simple landing copy (no boxes)
       // Simple landing copy (no boxes)
@@ -646,7 +677,8 @@ function render(mountEl) {
 
       // Ensure hudMain has a reliable height context for our “green box” sizing
       hudMain.style.boxSizing = 'border-box';
-      hudMain.style.overflow = 'hidden';
+      hudMain.style.overflow = 'visible';
+      hudMain.style.overflowX = 'hidden';
 
       if (!_contentPanelEl) {
         _contentPanelEl = document.createElement('div');
@@ -786,8 +818,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
             background:transparent;
             color:rgba(255,190,200,0.75);
             font-size:13px;
+			font-family: Orbitron;
             letter-spacing:.12em;
-            text-transform:uppercase;
+            text-transform:none;
             cursor:pointer;
             transition:all 160ms ease;
           }
@@ -802,7 +835,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
               rgba(255,120,140,0.95),
               rgba(255,70,90,0.85)
             );
-            color:#120306;
+            color:#010306;
             box-shadow:
               0 0 0 1px rgba(255,255,255,0.45) inset,
               0 0 26px rgba(255,90,120,0.75);
@@ -950,9 +983,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
           #musicInfoStrip .scanPing{
             pointer-events:none;
             position:absolute;
-            left:-30%;
+            left:0;
             top:0;
-            width:30%;
+            width:100%;
             height:100%;
             opacity:0;
             background:linear-gradient(
@@ -961,15 +994,18 @@ if (!document.getElementById('musicContentWipeStyles')) {
               rgba(255,255,255,.10) 45%,
               rgba(255,255,255,0) 100%
             );
+            /* Keep the ping’s box *within* the strip so it can’t create horizontal scroll */
+            background-size:200% 100%;
+            background-position:-100% 0;
             filter:blur(.2px);
             transform:skewX(-18deg);
           }
 
           @keyframes hudScanPing{
-            0%{ transform:translateX(0) skewX(-18deg); opacity:0; }
+            0%{ opacity:0; background-position:-100% 0; }
             10%{ opacity:.65; }
             60%{ opacity:.35; }
-            100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
+            100%{ opacity:0; background-position:200% 0; }
           }
           #musicInfoStrip.ping .scanPing{ animation:hudScanPing 320ms ease-out both; }
 
@@ -1330,11 +1366,31 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
     const landingCopy = document.getElementById('musicLandingCopy');
     if (landingCopy && landingCopy.parentNode) landingCopy.parentNode.removeChild(landingCopy);
 
-    const hudMain = document.querySelector('.hudStub.hudMain');
-    if (hudMain) {
-      hudMain.style.padding = _prevHudMainPadding || '';
-    }
-    _prevHudMainPadding = null;
+const hudMain = document.querySelector('.hudStub.hudMain');
+if (hudMain) {
+  hudMain.style.padding = _prevHudMainPadding || '';
+  // reset any Music-only overflow overrides
+  hudMain.style.overflow = '';
+  hudMain.style.overflowX = '';
+  hudMain.style.overflowY = '';
+}
+_prevHudMainPadding = null;
+
+// Restore page-level overflowX
+const htmlEl = document.documentElement;
+const bodyEl = document.body;
+if (htmlEl) htmlEl.style.overflowX = _prevHtmlOverflowX || '';
+if (bodyEl) bodyEl.style.overflowX = _prevBodyOverflowX || '';
+_prevHtmlOverflowX = null;
+_prevBodyOverflowX = null;
+
+    // Restore page horizontal overflow (Music-only)
+    const _html = document.documentElement;
+    const _body = document.body;
+    if (_html && _prevHtmlOverflowX !== null) _html.style.overflowX = _prevHtmlOverflowX;
+    if (_body && _prevBodyOverflowX !== null) _body.style.overflowX = _prevBodyOverflowX;
+    _prevHtmlOverflowX = null;
+    _prevBodyOverflowX = null;
 
     restoreFrameVisibility();
 
