@@ -63,31 +63,22 @@
   }
 
   function sizeContentPanelToHud() {
-    // ARCHIVES VIEWPORT TUNING
-    // Top offset pulls the panel DOWN
-    // Bottom offset pulls the panel UP
-    const ARCHIVES_TOP_OFFSET_PX = 115;   // move down from the frame
-    const ARCHIVES_BOTTOM_OFFSET_PX = 15; // lift up from the bottom strip
-
+    // Reduce fragile layout magic numbers:
+    // Compute the scrollable "green box" height from real DOM geometry,
+    // so changes to paddings/strips/titles don't require re-tuning pixel offsets.
     if (!_contentPanelEl) return;
 
-const hudMain = document.querySelector('.hudStub.hudMain');
-if (!hudMain) return;
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (!hudMain) return;
 
-// Music route: prevent horizontal overflow (webviews / 100vw quirks / animated layers).
-// Keep vertical overflow visible so nothing is visually clipped.
-const htmlEl = document.documentElement;
-const bodyEl = document.body;
-if (htmlEl && _prevHtmlOverflowX === null) _prevHtmlOverflowX = htmlEl.style.overflowX || '';
-if (bodyEl && _prevBodyOverflowX === null) _prevBodyOverflowX = bodyEl.style.overflowX || '';
-if (htmlEl) htmlEl.style.overflowX = 'hidden';
-if (bodyEl) bodyEl.style.overflowX = 'hidden';
-
-    // IMPORTANT:
-    // hudMain.clientHeight INCLUDES padding, and we intentionally add a big padding-bottom
-    // to reserve space for the pinned bottom strip.
-    // So we size the panel to the *inner content box* (clientHeight minus paddings)
-    // and let the reserved padding-bottom keep us clear of the strip.
+    // Music route: prevent horizontal overflow (webviews / 100vw quirks / animated layers).
+    // Keep vertical overflow visible so nothing is visually clipped.
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+    if (htmlEl && _prevHtmlOverflowX === null) _prevHtmlOverflowX = htmlEl.style.overflowX || '';
+    if (bodyEl && _prevBodyOverflowX === null) _prevBodyOverflowX = bodyEl.style.overflowX || '';
+    if (htmlEl) htmlEl.style.overflowX = 'hidden';
+    if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
     const hudH = hudMain.clientHeight || 0;
     const cs = window.getComputedStyle ? window.getComputedStyle(hudMain) : null;
@@ -98,13 +89,40 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
     // Inner content area height (green box region)
     const innerH = Math.max(0, hudH - padTop - padBottom);
 
-    // Account for the panel's top margin so it doesn't push past the reserved area
-    const topGap = pxToNum(GREEN_BOX_MARGIN_TOP);
-    const avail = Math.max(
-      0,
-      innerH - topGap - ARCHIVES_TOP_OFFSET_PX - ARCHIVES_BOTTOM_OFFSET_PX
-    );
+    // Derive the available height based on where the content panel starts and
+    // where the pinned info strip (orange box) begins.
+    // Fallback to the previous behavior if geometry isn't available yet.
+    try {
+      const hudRect = hudMain.getBoundingClientRect();
+      const panelRect = _contentPanelEl.getBoundingClientRect();
 
+      if (hudRect && panelRect && Number.isFinite(hudRect.top) && Number.isFinite(panelRect.top)) {
+        const panelTopInner = Math.max(0, (panelRect.top - hudRect.top) - padTop);
+
+        // If the orange strip exists, reserve everything from its top down (plus a safe gap).
+        // Otherwise, allow the panel to use the full inner height.
+        let orangeTopInner = innerH;
+        if (_orangeBoxEl) {
+          const oRect = _orangeBoxEl.getBoundingClientRect();
+          if (oRect && Number.isFinite(oRect.top)) {
+            orangeTopInner = Math.max(0, (oRect.top - hudRect.top) - padTop);
+          }
+        }
+
+        const safeGap = pxToNum(ORANGE_BOX_SAFE_GAP);
+        const avail = Math.max(0, orangeTopInner - safeGap - panelTopInner);
+
+        _contentPanelEl.style.height = `${avail}px`;
+        _contentPanelEl.style.maxHeight = `${avail}px`;
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback (legacy tuning knobs)
+    const topGap = pxToNum(GREEN_BOX_MARGIN_TOP);
+    const ARCHIVES_TOP_OFFSET_PX = 115;
+    const ARCHIVES_BOTTOM_OFFSET_PX = 15;
+    const avail = Math.max(0, innerH - topGap - ARCHIVES_TOP_OFFSET_PX - ARCHIVES_BOTTOM_OFFSET_PX);
     _contentPanelEl.style.height = `${avail}px`;
     _contentPanelEl.style.maxHeight = `${avail}px`;
   }
