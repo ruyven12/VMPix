@@ -56,6 +56,7 @@
 
   // typing timer
   let _typeTimer = null;
+  let _showsMountTimer = null;
 
   function pxToNum(v) {
     const n = parseFloat(String(v || '').replace('px', ''));
@@ -168,7 +169,11 @@
       _contentPanelEl.style.justifyContent = GREEN_BOX_JUSTIFY_CONTENT;
       _contentPanelEl.style.textAlign = GREEN_BOX_TEXT_ALIGN;
     }
-  }
+  
+
+    // track mode for stale async guards
+    try { _contentPanelEl.dataset.mode = mode || 'default'; } catch (_) {}
+}
 
   // ✅ Same-origin lazy loader (script tag injection)
   function ensureWrestlingShowsLoaded() {
@@ -650,6 +655,12 @@
         tab.addEventListener('click', async () => {
           animateHudTab(tab);
 
+          // prevent stale Shows mounts from firing after tab switches
+          if (_showsMountTimer) {
+            window.clearTimeout(_showsMountTimer);
+            _showsMountTimer = null;
+          }
+
           const label = tab.textContent.trim();
 
           if (label === 'Shows') {
@@ -673,8 +684,15 @@
             const html = window.WrestlingArchiveShows?.render?.() || '';
             wipeSwapContent(html, '');
 
-            window.setTimeout(() => {
+            _showsMountTimer = window.setTimeout(() => {
               const panel = document.getElementById('wrestlingContentPanel');
+              if (!panel) return;
+
+              // Guard: only mount if Shows is still the active panel + skeleton is present
+              const mode = (panel.dataset && panel.dataset.mode) ? panel.dataset.mode : null;
+              if (mode && mode !== 'shows') return;
+              if (!panel.querySelector('#waShowsRoot')) return;
+
               window.WrestlingArchiveShows?.onMount?.(panel);
             }, 360);
 

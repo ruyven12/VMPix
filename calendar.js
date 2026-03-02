@@ -83,11 +83,11 @@
       .vmCalItem{
         --accent: rgba(255,60,60,0.55);
         position: relative;
-        border: 1px solid rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,0.03);
         background: rgba(0,0,0,.18);
         border-radius: 16px;
         padding: 14px 14px 12px;
-        box-shadow: 0 12px 28px rgba(0,0,0,0.34);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.25);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         overflow: hidden;

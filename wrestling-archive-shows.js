@@ -156,6 +156,7 @@
 
   // Mounted DOM + handlers
   let _panel = null;
+  let _mountToken = 0;
   let _root = null;
 
   // ================== RENDER (HTML SKELETON) ==================
@@ -197,10 +198,19 @@
   async function onMount(panelEl) {
     ensureShowsStyles();
     _panel = panelEl || document.getElementById("wrestlingContentPanel") || document.body;
+
+    // Guard: ignore stale mounts when Shows isn't the active panel
+    const _mode = (_panel && _panel.dataset) ? _panel.dataset.mode : null;
+    if (_mode && _mode !== 'shows') return;
+
+    const _myMountToken = ++_mountToken;
+
     _root = _panel.querySelector("#waShowsRoot");
 
     if (!_root) {
       // If someone calls onMount without render() having run, create the skeleton anyway.
+      if ((_panel && _panel.dataset && _panel.dataset.mode) && _panel.dataset.mode !== 'shows') return;
+      if (_myMountToken !== _mountToken) return;
       _panel.innerHTML = render();
       _root = _panel.querySelector("#waShowsRoot");
     }
@@ -210,9 +220,12 @@
 
     // Load shows CSV → build year bubbles from real data
     SHOWS = await loadShowsFromCsv();
+    if (_myMountToken !== _mountToken) return;
+    if ((_panel && _panel.dataset && _panel.dataset.mode) && _panel.dataset.mode !== 'shows') return;
     YEARS = extractYearsFromShows(SHOWS);
 
     // Hide the boot panel once we have real data.
+    if (_myMountToken !== _mountToken) return;
     try {
       const bp = _panel ? _panel.querySelector("#waBootPanel") : null;
       if (bp && bp.parentNode) bp.parentNode.removeChild(bp);
