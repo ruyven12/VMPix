@@ -475,7 +475,8 @@
         <div class="archiveModeToggle" role="tablist" aria-label="Music sections (quick)">
           <button class="archiveModeBtn is-active" data-mode="bands" role="tab" aria-selected="true">Bands</button>
           <button class="archiveModeBtn" data-mode="shows" role="tab" aria-selected="false">Shows</button>
-          <button class="archiveModeBtn" data-mode="origins" role="tab" aria-selected="false">Origins of Music</button>
+                    <button class="archiveModeBtn" data-mode="people" role="tab" aria-selected="false">People</button>
+<button class="archiveModeBtn" data-mode="origins" role="tab" aria-selected="false">Origins of Music</button>
           <button class="archiveModeBtn" data-mode="project" role="tab" aria-selected="false">Reimaging Project</button>
         </div>
       </div>
@@ -1089,7 +1090,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
   <div class="hudTabs" role="tablist" aria-label="Music sections">
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
-    <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
+        <div class="hudTab" data-tab="people" role="tab" aria-selected="false">People</div>
+<div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins of Music</div>	
 	<div class="hudTab" data-tab="project" role="tab" aria-selected="false">The Reimaging Project</div>
           </div>
   <div id="archiveModeToggleMount" aria-live="polite">
@@ -1202,7 +1204,6 @@ return;
           
                       // People (Phase 2: on-demand module; fail-soft to placeholder)
                       if (tabKey === 'people' || label === 'People') {
-                        try { clearArchiveModeToggle(); } catch (_) {}
                         const mountPeople = () => {
                           const html =
                             window.MusicArchivePeople?.render?.() ||
@@ -1211,6 +1212,7 @@ return;
                           wipeSwapContent(html, '', () => {
                             const panel = document.getElementById('musicContentPanel');
                             if (panel) panel.scrollTop = 0;
+                            try { mountArchiveModeToggle('people'); } catch (_) {}
                             try { window.MusicArchivePeople?.onMount?.(panel, { fresh: true }); } catch (_) {}
                           });
                         };
@@ -1456,7 +1458,7 @@ _prevBodyOverflowX = null;
 function setMode(mode) {
   const m = String(mode || '').toLowerCase().trim();
   const key =
-    (m === 'bands' || m === 'shows' || m === 'origins' || m === 'project')
+    (m === 'bands' || m === 'shows' || m === 'people' || m === 'origins' || m === 'project')
       ? m
       : 'bands';
 

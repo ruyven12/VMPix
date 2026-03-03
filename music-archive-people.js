@@ -40,6 +40,8 @@
   // Album meta cache: Map(albumKey -> { title, url })
   let _albumMetaByKey = new Map();
 
+  // When using the server-side people index, we seed this cache up-front.
+
   // View state
   let _view = { mode: 'list', person: '', albumKeys: [] };
 
@@ -159,6 +161,53 @@
   const PEOPLE_BANDS_CSV_CACHE_KEY = 'vm_music_people_bands_csv_v1';
   const PEOPLE_BANDS_CSV_TTL_MS = 1000 * 60 * 30;
 
+  // ---- Session cache (People index) ----
+  // Stores a compact mapping: { personName: [albumKey, ...], ... }
+  // Keeps rebuilds from happening on every People click.
+  const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v1';
+  const PEOPLE_INDEX_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
+
+  function loadPeopleIndexFromSession() {
+    try {
+      const now = Date.now();
+      const raw = sessionStorage.getItem(PEOPLE_INDEX_CACHE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || !obj.t || !obj.v) return null;
+      if (now - Number(obj.t) > PEOPLE_INDEX_TTL_MS) return null;
+
+      const v = obj.v;
+      if (!v || typeof v !== 'object') return null;
+
+      const map = new Map();
+      for (const [person, keys] of Object.entries(v)) {
+        const p = String(person || '').trim();
+        if (!p) continue;
+        const arr = Array.isArray(keys) ? keys : [];
+        const set = new Set(arr.map((k) => String(k || '').trim()).filter(Boolean));
+        if (set.size) map.set(p, set);
+      }
+      return map.size ? map : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function savePeopleIndexToSession(map) {
+    try {
+      if (!map || typeof map.forEach !== 'function') return;
+      const v = {};
+      map.forEach((set, person) => {
+        const p = String(person || '').trim();
+        if (!p) return;
+        const arr = Array.from(set || []).map((k) => String(k || '').trim()).filter(Boolean);
+        if (arr.length) v[p] = arr;
+      });
+      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v }));
+    } catch (_) {}
+  }
+
+
   async function fetchTextWithSessionCache(url, ttlMs, cacheKey) {
     try {
       const now = Date.now();
@@ -252,46 +301,112 @@
     return albumsRaw ? [albumsRaw] : [];
   }
 
-  async function fetchAlbumKeywords(albumKey) {
-    if (!albumKey) return [];
+  // ================== PEOPLE CAPTION PARSING (photo-level) ==================
+  // We read semicolon-delimited names from *photo Caption* metadata.
+  // Example caption: "Rich Yanok; Box Rox"
+  function parsePeopleCaption(caption) {
+    const raw = String(caption || '').trim();
+    if (!raw) return [];
+    const parts = raw.split(';').map(s => String(s || '').trim()).filter(Boolean);
+    // Deduplicate case-insensitively while preserving first seen casing
+    const seen = new Set();
+    const out = [];
+    for (const p of parts) {
+      const k = p.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(p);
+    }
+    return out;
+  }
+
+  async function fetchAlbumImagesPage(albumKey, count, start) {
+    if (!albumKey) return null;
+    const c = count || 200;
+    const s = start || 1;
+    const url = `${API_BASE}/smug/album/${encodeURIComponent(albumKey)}?count=${encodeURIComponent(c)}&start=${encodeURIComponent(s)}`;
+    return fetchJsonSafe(url, { retries: 2 });
+  }
+
+  function extractAlbumImagesFromPage(pageJson) {
+    const resp = pageJson && pageJson.Response ? pageJson.Response : pageJson;
+    const raw = (resp && (resp.AlbumImage || resp.AlbumImages)) ? (resp.AlbumImage || resp.AlbumImages) : [];
+    if (Array.isArray(raw)) return raw;
+    return raw ? [raw] : [];
+  }
+
+  function extractImageKeyFromAlbumImage(albumImage) {
+    if (!albumImage) return '';
+    const k = albumImage.ImageKey || (albumImage.Image && albumImage.Image.ImageKey) || albumImage.imageKey;
+    return String(k || '').trim();
+  }
+
+  function extractCaptionFromAlbumImage(albumImage) {
+    // Try a few common shapes. Some payloads may not include Caption unless expanded.
+    return _pickFirst(albumImage, ['Caption', 'caption', 'Description', 'description']) ||
+      _pickFirst(albumImage && albumImage.Image, ['Caption', 'caption', 'Description', 'description']) ||
+      '';
+  }
+
+  // Fallback (heavier): fetch full image detail to read Caption if the album-image payload didn't include it.
+  async function fetchImageCaptionByKey(imageKey) {
+    if (!imageKey) return '';
     try {
-      const metaJson = await fetchJsonSafe(`${API_BASE}/smug/album-meta/${encodeURIComponent(albumKey)}`, { retries: 1 }).catch(
-        () => null
-      );
-      if (!metaJson) return [];
-      const album = metaJson && metaJson.Response && metaJson.Response.Album;
-      if (!album) return [];
-
-      let ak = [];
-      if (Array.isArray(album.KeywordArray) && album.KeywordArray.length) {
-        ak = album.KeywordArray
-          .map((k) => {
-            if (!k) return '';
-            if (typeof k === 'string') return k;
-            if (typeof k === 'object' && typeof k.Name === 'string') return k.Name;
-            if (typeof k === 'object' && typeof k.value === 'string') return k.value;
-            return '';
-          })
-          .filter(Boolean);
-      } else if (typeof album.Keywords === 'string' && album.Keywords.trim()) {
-        ak = album.Keywords.split(/[,;]+/).map((k) => k.trim()).filter(Boolean);
-      }
-
-      const norm = ak.map((k) => String(k || '').trim()).filter(Boolean);
-      const seen = new Set();
-      const out = [];
-      for (const k of norm) {
-        const key = k.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(k);
-      }
-      return out;
-    } catch (err) {
-      console.warn('[people] fetchAlbumKeywords failed', albumKey, err);
-      return [];
+      const detail = await fetchJsonSafe(`${API_BASE}/smug/image/${encodeURIComponent(imageKey)}`, { retries: 1 });
+      const resp = detail && detail.Response ? detail.Response : detail;
+      const img = resp && resp.Image ? resp.Image : (resp && resp.Response && resp.Response.Image ? resp.Response.Image : null);
+      if (!img) return '';
+      return _pickFirst(img, ['Caption', 'caption', 'Description', 'description']) || '';
+    } catch (_) {
+      return '';
     }
   }
+
+  async function fetchPeopleFromAlbumByCaptions(albumKey, opts) {
+    const o = opts || {};
+    const maxPages = Math.max(1, Number(o.maxPages || 2));                 // safety cap
+    const maxDetailFetches = Math.max(0, Number(o.maxDetailFetches || 40)); // safety cap
+    const count = Math.max(50, Math.min(200, Number(o.pageSize || 200)));
+
+    const people = new Set();
+    let start = 1;
+    let page = 0;
+    let detailUsed = 0;
+
+    while (page < maxPages) {
+      page += 1;
+
+      const pageJson = await limitNet(() => fetchAlbumImagesPage(albumKey, count, start).catch(() => null));
+      if (!pageJson) break;
+
+      const images = extractAlbumImagesFromPage(pageJson);
+      if (!images.length) break;
+
+      for (const it of images) {
+        const directCaption = extractCaptionFromAlbumImage(it);
+        let caption = directCaption;
+
+        // If caption isn't present in this payload, optionally do a limited number of detail fetches.
+        if (!caption && detailUsed < maxDetailFetches) {
+          const imageKey = extractImageKeyFromAlbumImage(it);
+          if (imageKey) {
+            detailUsed += 1;
+            caption = await limitNet(() => fetchImageCaptionByKey(imageKey));
+          }
+        }
+
+        const names = parsePeopleCaption(caption);
+        for (const n of names) people.add(n);
+      }
+
+      // Pagination: stop if fewer than requested (last page)
+      if (images.length < count) break;
+      start += count;
+    }
+
+    return Array.from(people.values());
+  }
+
 
   async function fetchAlbumMetaLight(albumKey) {
     if (!albumKey) return null;
@@ -379,7 +494,7 @@
     if (metaEl) metaEl.textContent = `${entries.length} people indexed`;
 
     if (!entries.length) {
-      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. (Curated mode: requires album keyword + photo-level match.)</div>`;
+      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. Add semicolon-delimited names to photo captions (e.g., "Rich Yanok; Box Rox").</div>`;
       return;
     }
 
@@ -522,11 +637,11 @@
       ? folders
       : Object.keys(REGION_FOLDER_BASE).map((r) => ({ folder: REGION_FOLDER_BASE[r], region: r }));
 
-    const albumKeyToKeywords = new Map();
     const people = new Map();
 
     let folderDone = 0;
     let albumDone = 0;
+    let albumsWithPeople = 0;
 
     for (const f of folderList) {
       folderDone += 1;
@@ -538,7 +653,7 @@
       const arr = _coerceArray(albums).filter(Boolean);
 
       if (typeof onProgress === 'function') {
-        onProgress({ phase: 'folders', folderDone, folderTotal: folderList.length, albumDone });
+        onProgress({ phase: 'folders', folderDone, folderTotal: folderList.length, albumDone, albumsWithPeople });
       }
 
       for (const a of arr) {
@@ -547,28 +662,32 @@
 
         _rememberAlbumStub(albumKey, a);
 
-        if (!albumKeyToKeywords.has(albumKey)) {
-          const kws = await limitNet(() => fetchAlbumKeywords(albumKey).catch(() => []));
-          albumKeyToKeywords.set(albumKey, kws || []);
-        }
-
         albumDone += 1;
-        const kws = albumKeyToKeywords.get(albumKey) || [];
-        for (const raw of kws) {
-          const name = String(raw || '').trim();
-          if (!name) continue;
-          if (!people.has(name)) people.set(name, new Set());
-          people.get(name).add(albumKey);
+
+        // Phase 1 (debug): read semicolon-delimited people names from photo captions in the album.
+        const names = await fetchPeopleFromAlbumByCaptions(albumKey, {
+          maxPages: 10,         // Phase 2: scan deeper per album (still bounded)
+          pageSize: 200,
+          maxDetailFetches: 200 // Phase 2: higher cap for fallback detail lookups
+        }).catch(() => []);
+
+        const clean = _coerceArray(names).map((x) => String(x || '').trim()).filter(Boolean);
+        if (clean.length) {
+          albumsWithPeople += 1;
+          for (const nm of clean) {
+            if (!people.has(nm)) people.set(nm, new Set());
+            people.get(nm).add(albumKey);
+          }
         }
 
-        if (typeof onProgress === 'function' && (albumDone % 10 === 0)) {
-          onProgress({ phase: 'albums', folderDone, folderTotal: folderList.length, albumDone });
+        if (typeof onProgress === 'function' && (albumDone % 5 === 0)) {
+          onProgress({ phase: 'albums', folderDone, folderTotal: folderList.length, albumDone, albumsWithPeople });
         }
       }
     }
 
     if (typeof onProgress === 'function') {
-      onProgress({ phase: 'done', folderDone, folderTotal: folderList.length, albumDone });
+      onProgress({ phase: 'done', folderDone, folderTotal: folderList.length, albumDone, albumsWithPeople });
     }
 
     return people;
@@ -590,6 +709,39 @@
   function onRootClick(e) {
     const t = e && e.target ? e.target : null;
     if (!t || !panelRoot) return;
+
+    // Rebuild index (server-side, force)
+    const rebuildBtn = t.closest ? t.closest('#peopleRebuildBtn') : null;
+    if (rebuildBtn) {
+      e.preventDefault();
+      const token = ++_lastRenderToken;
+      const statusEl = panelRoot.querySelector('#peopleStatus');
+      if (statusEl) statusEl.textContent = 'Rebuilding…';
+
+      // Reset view to list on rebuild
+      _view = { mode: 'list', person: '', albumKeys: [] };
+      _peopleIndex = null;
+      _albumMetaByKey = new Map();
+
+      try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
+
+      loadPeopleIndexFromServer({ force: true, token })
+        .then((idx) => {
+          if (token !== _lastRenderToken) return;
+          if (statusEl) statusEl.textContent = '';
+          _peopleIndex = idx || new Map();
+          try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
+          renderPeopleList(_peopleIndex);
+        })
+        .catch((err) => {
+          console.warn('[people] rebuild failed:', err);
+          if (token !== _lastRenderToken) return;
+          if (statusEl) statusEl.textContent = '';
+          _peopleIndex = new Map();
+          renderPeopleList(_peopleIndex);
+        });
+      return;
+    }
 
     // Back button
     const backBtn = t.closest ? t.closest('#peopleBackBtn') : null;
@@ -620,6 +772,54 @@
     }
   }
 
+  async function loadPeopleIndexFromServer({ force = false, token } = {}) {
+    if (!panelRoot) return new Map();
+
+    const metaEl = panelRoot.querySelector('#peopleMeta');
+    const statusEl = panelRoot.querySelector('#peopleStatus');
+
+    if (metaEl) metaEl.textContent = 'Server index';
+    if (statusEl) statusEl.textContent = force ? 'Rebuilding…' : 'Loading…';
+
+    const url = `${API_BASE}/index/people${force ? '?force=1' : ''}`;
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if (token && token !== _lastRenderToken) return new Map();
+
+    const peopleArr = Array.isArray(data?.people) ? data.people : [];
+
+    const idx = new Map();
+    _albumMetaByKey = new Map();
+
+    for (const p of peopleArr) {
+      const name = _safeTrim(p?.name);
+      if (!name) continue;
+      const albums = Array.isArray(p?.albums) ? p.albums : [];
+      const set = new Set();
+      for (const a of albums) {
+        const k = _safeTrim(a?.albumKey);
+        if (!k) continue;
+        set.add(k);
+        // Seed meta cache so person drill-in is instant.
+        _albumMetaByKey.set(k, { title: a?.title || '', url: a?.url || '' });
+      }
+      if (set.size) idx.set(name, set);
+    }
+
+    const gen = data?.generatedAt ? String(data.generatedAt) : '';
+    const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
+    if (metaEl) {
+      const left = `${idx.size} people indexed`;
+      const extra = scanned !== null ? ` • albums scanned: ${scanned}` : '';
+      const right = gen ? ` • ${gen.replace('T', ' ').replace('Z', '')}` : '';
+      metaEl.textContent = `${left}${extra}${right}`;
+    }
+    if (statusEl) statusEl.textContent = '';
+
+    return idx;
+  }
+
   // ================== PUBLIC MODULE API ==================
   function render() {
     return `
@@ -629,7 +829,13 @@
             <div style="font-weight:900; font-size:14px; letter-spacing:.14em; text-transform:uppercase;">People</div>
             <div id="peopleMeta" style="opacity:.7; font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:4px;">On-demand index</div>
           </div>
-          <div id="peopleStatus" style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; white-space:nowrap;"></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" id="peopleRebuildBtn"
+              style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:10px; padding:8px 10px; font-weight:900; font-size:10px; letter-spacing:.14em; text-transform:uppercase;">
+              Rebuild
+            </button>
+            <div id="peopleStatus" style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; white-space:nowrap;"></div>
+          </div>
         </div>
 
         <div id="peopleList"></div>
@@ -647,6 +853,11 @@
     const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const token = ++_lastRenderToken;
 
+    // Fast path: session-cached index (prevents rebuilds on every click)
+    if (!_peopleIndex) {
+      try { _peopleIndex = loadPeopleIndexFromSession(); } catch (_) {}
+    }
+
     // If we already built it, render immediately.
     if (_peopleIndex) {
       if (token !== _lastRenderToken) return;
@@ -660,35 +871,22 @@
       return;
     }
 
-    // Build on demand
+    // Phase 2: load server-cached people index (fast)
     if (!_buildPromise) {
-      if (statusEl) statusEl.textContent = 'Building…';
-      _buildPromise = buildPeopleIndex((p) => {
-        if (token !== _lastRenderToken) return;
-        if (!statusEl) return;
-        if (!p) return;
-        if (p.phase === 'folders') {
-          statusEl.textContent = `Scanning folders… ${p.folderDone}/${p.folderTotal}`;
-        } else if (p.phase === 'albums') {
-          statusEl.textContent = `Indexing albums… ${p.albumDone}`;
-        } else if (p.phase === 'done') {
-          statusEl.textContent = '';
-        }
-      })
+      _buildPromise = loadPeopleIndexFromServer({ force: false, token })
         .then((idx) => {
           _peopleIndex = idx || new Map();
+          try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
           return _peopleIndex;
         })
         .catch((err) => {
-          console.warn('[people] build failed:', err);
+          console.warn('[people] server index failed:', err);
           _peopleIndex = new Map();
           return _peopleIndex;
         })
         .finally(() => {
           _buildPromise = null;
         });
-    } else {
-      if (statusEl) statusEl.textContent = 'Building…';
     }
 
     _buildPromise.then((idx) => {
