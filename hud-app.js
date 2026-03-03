@@ -909,7 +909,39 @@ function navigate(route){
   }
 
 
-  window.addEventListener('hashchange', () => {
+  
+  // ============================================================
+  // Back-button trap (Option #1): keep navigation inside the app
+  // ============================================================
+  // NOTE: Browsers do not allow truly disabling Back, but we can keep the user
+  // inside this single-page experience by ensuring there's always a "guard"
+  // history entry to land on. When Back is pressed, popstate fires and we
+  // immediately push the guard state again, then restore/navigate in-app.
+  const __VM_BACK_GUARD_STATE = { __vmpixBackGuard: true };
+
+  function installBackGuard(){
+    if (installBackGuard._installed) return;
+    installBackGuard._installed = true;
+
+    // Seed a guard entry so the first Back press doesn't jump out of the app.
+    try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
+
+    window.addEventListener('popstate', () => {
+      // Re-seed the guard so repeated Back presses stay in-app.
+      try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
+
+      const h = normalizeHash(location.hash || '');
+      if (!h){
+        restoreHash();
+        return;
+      }
+      // If we got here with a valid hash, keep app state consistent.
+      setLastHash(h);
+      navigate(routeKeyFromHash());
+    });
+  }
+
+window.addEventListener('hashchange', () => {
     const h = normalizeHash(location.hash || '');
     if (!h){
       // A back/navigation cleared the hash — restore last in-site route.
@@ -921,6 +953,7 @@ function navigate(route){
   });
 
   (function(){
+    installBackGuard();
     // On first entry (no hash), ALWAYS default to Home.
     // This prevents an accidental session resume to a heavy route (Music/Wrestling) that can trigger a cold-start delay.
     const nh = normalizeHash(location.hash || '');
