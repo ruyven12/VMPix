@@ -10,34 +10,6 @@
   "use strict";
 
   
-// --- Device-aware full-height handling ---
-// IMPORTANT: Use visualViewport when available so in-app browsers (Messenger/FB/IG)
-// don't "jump" when their URL/tool bars expand/collapse.
-(function(){
-  function setVH(){
-    var vv = window.visualViewport;
-    var h = (vv && vv.height) ? vv.height : window.innerHeight;
-    document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-  }
-  setVH();
-
-  // Debounce via rAF to avoid thrash on mobile UI changes
-  var raf = 0;
-  function onResize(){
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(setVH);
-  }
-
-  window.addEventListener('resize', onResize, { passive: true });
-  window.addEventListener('orientationchange', onResize, { passive: true });
-  window.addEventListener('pageshow', onResize, { passive: true });
-
-  if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', onResize, { passive: true });
-    window.visualViewport.addEventListener('scroll', onResize, { passive: true });
-  }
-})();
-
   // Auto-set --intro-chars based on the text inside .hudIntroType
   document.querySelectorAll('.hudIntroText').forEach(el => {
     const alreadySet = el.style.getPropertyValue('--intro-chars');

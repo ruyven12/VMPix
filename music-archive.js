@@ -16,6 +16,14 @@
   let _prevWrapMinHeight = null;
   let _prevWrapHeight = null;
   let _prevHudMainBg = null;
+
+  // HUD main flex auto-height restore (Music route only)
+  // NOTE: These are referenced by setArchiveViewportExpanded(); they must exist
+  // before any route logic runs (prevents ReferenceError in webviews).
+  let _prevHudMainDisplay = null;
+  let _prevHudMainFlexDirection = null;
+  let _prevHudMainAlignItems = null;
+  let _prevHudMainJustifyContent = null;
   // ORANGE BOX (info strip) restore — Music route only
   let _orangeBoxEl = null;
   let _prevHudMainPadding = null;
@@ -289,8 +297,6 @@
   const SHOW_MUSIC_PANELS = true;
 
   // Debug outlines (keep OFF for production)
-  const DEBUG_BORDERS = false;
-
   // Ensure neon frame is visible on Music route
   function ensureFrameVisibleForMusic() {
     const wrap = document.querySelector('.neonFrameWrap');
@@ -780,22 +786,6 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
       // styles injected (content wipe + strip)
       
-if (DEBUG_BORDERS && !document.getElementById('musicDebugBorders')) {
-  const dbg = document.createElement('style');
-  dbg.id = 'musicDebugBorders';
-  dbg.textContent = `
-/* === DEBUG BORDERS: MUSIC LANDING TOP GAP === */
-.hudStub.hudMain{ outline:1px solid rgba(0,255,255,.9); }
-.neonFrameWrap{ outline:1px solid rgba(255,0,0,.9); }
-.neonFrame{ outline:1px solid rgba(255,255,0,.9); }
-.hudOrn{ outline:1px solid rgba(0,255,0,.9); }
-#musicInfoStrip{ outline:1px solid rgba(255,0,255,.9); }
-#musicContentPanel{ outline:1px solid rgba(0,180,255,.9); }
-/* ======================================== */
-`;
-  document.head.appendChild(dbg);
-}
-
 if (!document.getElementById('musicContentWipeStyles')) {
 
         const cs = document.createElement('style');

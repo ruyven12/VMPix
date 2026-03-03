@@ -27,21 +27,37 @@
   // Mark touch devices to disable hover-only patterns if you choose later
   if (matchMedia("(hover: none)").matches) html.classList.add("touch");
 
-  // NOTE: You already set --vh via visualViewport in index.html.
-  // Keeping this here as a fallback in case any page omits that script.
-  function setVh() {
-    const vh = window.innerHeight * 0.01;
-    html.style.setProperty("--vh", `${vh}px`);
-    // Provide best-effort VisualViewport offsets for in-app browsers.
+  // Viewport sizing helpers for in-app browsers:
+// --vh: 1% of the *visible* viewport height (uses VisualViewport when available)
+// --vv-top/--vv-bottom: VisualViewport offsets (helps avoid top/bottom UI overlap)
+  function setViewportVars() {
     const vv = window.visualViewport;
-    const top = vv && typeof vv.offsetTop === "number" ? vv.offsetTop : 0;
-    const bottom = vv && typeof vv.offsetTop === "number" && vv.height
+    const h = (vv && vv.height) ? vv.height : window.innerHeight;
+    const top = (vv && typeof vv.offsetTop === "number") ? vv.offsetTop : 0;
+    const bottom = (vv && typeof vv.offsetTop === "number" && vv.height)
       ? Math.max(0, (window.innerHeight - (vv.height + vv.offsetTop)))
       : 0;
+
+    html.style.setProperty("--vh", `${(h * 0.01)}px`);
     html.style.setProperty("--vv-top", `${top}px`);
     html.style.setProperty("--vv-bottom", `${bottom}px`);
   }
-  setVh();
-  window.addEventListener("resize", setVh, { passive: true });
-  window.addEventListener("orientationchange", setVh, { passive: true });
+
+  setViewportVars();
+
+  // Debounce via rAF to avoid thrash on mobile UI changes
+  let raf = 0;
+  function onResize() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(setViewportVars);
+  }
+
+  window.addEventListener("resize", onResize, { passive: true });
+  window.addEventListener("orientationchange", onResize, { passive: true });
+  window.addEventListener("pageshow", onResize, { passive: true });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", onResize, { passive: true });
+    window.visualViewport.addEventListener("scroll", onResize, { passive: true });
+  }
 })();
