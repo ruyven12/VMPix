@@ -99,13 +99,17 @@
       if (hudRect && panelRect && Number.isFinite(hudRect.top) && Number.isFinite(panelRect.top)) {
         const panelTopInner = Math.max(0, (panelRect.top - hudRect.top) - padTop);
 
-        // If the orange strip exists, reserve everything from its top down (plus a safe gap).
-        // Otherwise, allow the panel to use the full inner height.
+        // If the orange strip exists *below* the panel (pinned/footer style), reserve everything
+        // from its top down (plus a safe gap). If the strip is above the panel (header style),
+        // do NOT reserve it.
         let orangeTopInner = innerH;
         if (_orangeBoxEl) {
           const oRect = _orangeBoxEl.getBoundingClientRect();
-          if (oRect && Number.isFinite(oRect.top)) {
-            orangeTopInner = Math.max(0, (oRect.top - hudRect.top) - padTop);
+          if (oRect && Number.isFinite(oRect.top) && Number.isFinite(panelRect.top)) {
+            // Only reserve space if the strip starts BELOW the panel top.
+            if (oRect.top > panelRect.top + 1) {
+              orangeTopInner = Math.max(0, (oRect.top - hudRect.top) - padTop);
+            }
           }
         }
 
@@ -146,11 +150,25 @@
       _contentPanelEl.style.justifyContent = '';
       _contentPanelEl.style.textAlign = '';
 
-      sizeContentPanelToHud();
-      if (!_onResize) {
-        _onResize = () => window.requestAnimationFrame(sizeContentPanelToHud);
-        window.addEventListener('resize', _onResize, { passive: true });
+      // Prefer true auto-height via flex (Music route only) so the panel naturally
+      // fills the remaining HUD height without fragile pixel math.
+      const hudMain = document.querySelector('.hudStub.hudMain');
+      if (hudMain) {
+        if (_prevHudMainDisplay === null) _prevHudMainDisplay = hudMain.style.display || '';
+        if (_prevHudMainFlexDirection === null) _prevHudMainFlexDirection = hudMain.style.flexDirection || '';
+        if (_prevHudMainAlignItems === null) _prevHudMainAlignItems = hudMain.style.alignItems || '';
+        if (_prevHudMainJustifyContent === null) _prevHudMainJustifyContent = hudMain.style.justifyContent || '';
+
+        hudMain.style.display = 'flex';
+        hudMain.style.flexDirection = 'column';
+        hudMain.style.alignItems = 'center';
+        hudMain.style.justifyContent = 'flex-start';
       }
+
+      _contentPanelEl.style.flex = '1 1 auto';
+      _contentPanelEl.style.minHeight = '0px';
+      _contentPanelEl.style.height = '';
+      _contentPanelEl.style.maxHeight = '';
     } else {
       // revert to original behavior
       _contentPanelEl.style.marginTop = '';
@@ -165,6 +183,23 @@
       _contentPanelEl.style.alignItems = 'center';
       _contentPanelEl.style.justifyContent = 'center';
       _contentPanelEl.style.textAlign = 'center';
+
+      // Revert flex auto-height behavior
+      _contentPanelEl.style.flex = '';
+      _contentPanelEl.style.minHeight = '';
+
+      const hudMain = document.querySelector('.hudStub.hudMain');
+      if (hudMain) {
+        if (_prevHudMainDisplay !== null) hudMain.style.display = _prevHudMainDisplay || '';
+        if (_prevHudMainFlexDirection !== null) hudMain.style.flexDirection = _prevHudMainFlexDirection || '';
+        if (_prevHudMainAlignItems !== null) hudMain.style.alignItems = _prevHudMainAlignItems || '';
+        if (_prevHudMainJustifyContent !== null) hudMain.style.justifyContent = _prevHudMainJustifyContent || '';
+      }
+
+      _prevHudMainDisplay = null;
+      _prevHudMainFlexDirection = null;
+      _prevHudMainAlignItems = null;
+      _prevHudMainJustifyContent = null;
 
       if (_onResize) {
         window.removeEventListener('resize', _onResize);
@@ -1391,8 +1426,18 @@ if (hudMain) {
   hudMain.style.overflow = '';
   hudMain.style.overflowX = '';
   hudMain.style.overflowY = '';
+
+  // Restore any Music-only flex layout used for auto-height archives.
+  if (_prevHudMainDisplay !== null) hudMain.style.display = _prevHudMainDisplay || '';
+  if (_prevHudMainFlexDirection !== null) hudMain.style.flexDirection = _prevHudMainFlexDirection || '';
+  if (_prevHudMainAlignItems !== null) hudMain.style.alignItems = _prevHudMainAlignItems || '';
+  if (_prevHudMainJustifyContent !== null) hudMain.style.justifyContent = _prevHudMainJustifyContent || '';
 }
 _prevHudMainPadding = null;
+_prevHudMainDisplay = null;
+_prevHudMainFlexDirection = null;
+_prevHudMainAlignItems = null;
+_prevHudMainJustifyContent = null;
 
 // Restore page-level overflowX (only if we changed it)
 const htmlEl = document.documentElement;
