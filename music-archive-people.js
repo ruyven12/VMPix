@@ -34,6 +34,9 @@
   // People index: Map(personName -> Set(albumKey))
   let _peopleIndex = null;
 
+  // Photo counts: Map(personName -> number)
+  let _peoplePhotoCounts = new Map();
+
   // Album stub cache: Map(albumKey -> { title?, url?, urlPath?, niceUrl? })
   let _albumStubByKey = new Map();
 
@@ -164,7 +167,8 @@
   // ---- Session cache (People index) ----
   // Stores a compact mapping: { personName: [albumKey, ...], ... }
   // Keeps rebuilds from happening on every People click.
-  const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v1';
+  // v2 stores per-person { albums:[], photos:n }
+  const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v2';
   const PEOPLE_INDEX_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
 
   function loadPeopleIndexFromSession() {
@@ -180,13 +184,25 @@
       if (!v || typeof v !== 'object') return null;
 
       const map = new Map();
-      for (const [person, keys] of Object.entries(v)) {
+      const counts = new Map();
+      for (const [person, val] of Object.entries(v)) {
         const p = String(person || '').trim();
         if (!p) continue;
-        const arr = Array.isArray(keys) ? keys : [];
-        const set = new Set(arr.map((k) => String(k || '').trim()).filter(Boolean));
+
+        // Back-compat: val may be [albumKey,...]
+        const albumsArr = Array.isArray(val)
+          ? val
+          : (val && Array.isArray(val.albums) ? val.albums : []);
+        const photosNum = (!Array.isArray(val) && val && val.photos != null) ? Number(val.photos) : 0;
+
+        const set = new Set((albumsArr || []).map((k) => String(k || '').trim()).filter(Boolean));
         if (set.size) map.set(p, set);
+        if (Number.isFinite(photosNum) && photosNum > 0) counts.set(p, photosNum);
       }
+
+      // Seed global counts cache
+      _peoplePhotoCounts = counts;
+
       return map.size ? map : null;
     } catch (_) {
       return null;
@@ -201,7 +217,10 @@
         const p = String(person || '').trim();
         if (!p) return;
         const arr = Array.from(set || []).map((k) => String(k || '').trim()).filter(Boolean);
-        if (arr.length) v[p] = arr;
+        if (!arr.length) return;
+
+        const photos = Number(_peoplePhotoCounts && _peoplePhotoCounts.get ? _peoplePhotoCounts.get(p) : 0) || 0;
+        v[p] = { albums: arr, photos: photos > 0 ? photos : 0 };
       });
       sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v }));
     } catch (_) {}
@@ -488,7 +507,11 @@
     const metaEl = panelRoot.querySelector('#peopleMeta');
     if (!listEl) return;
 
-    const entries = Array.from(indexMap.entries()).map(([name, set]) => ({ name, albums: set.size }));
+    const entries = Array.from(indexMap.entries()).map(([name, set]) => ({
+      name,
+      albums: set.size,
+      photos: Number(_peoplePhotoCounts && _peoplePhotoCounts.get ? _peoplePhotoCounts.get(name) : 0) || 0
+    }));
     entries.sort((a, b) => a.name.localeCompare(b.name));
 
     if (metaEl) metaEl.textContent = `${entries.length} people indexed`;
@@ -504,7 +527,7 @@
         <button type="button" class="peopleCard" data-person="${_eh(p.name)}"
           style="width:100%; text-align:left; cursor:pointer; padding:10px 12px; border:0; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; margin:8px 0;">
           <div style="font-weight:800; color:#ff466e; font-size:13px; letter-spacing:.02em;">${_eh(p.name)}</div>
-          <div style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;">Albums: ${p.albums}</div>
+          <div style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;">Albums: ${p.albums} • Photos: ${p.photos}</div>
         </button>
       `
       )
@@ -601,6 +624,16 @@
       const stub = _albumStubByKey.get(key);
       let title = stub && stub.title ? stub.title : '';
       let url = stub && stub.niceUrl ? stub.niceUrl : '';
+
+      // If we loaded the server index, it may have already provided title/url.
+      // Use it before hitting the network.
+      try {
+        const cached = _albumMetaByKey && typeof _albumMetaByKey.get === 'function' ? _albumMetaByKey.get(key) : null;
+        if (cached) {
+          title = title || cached.title || '';
+          url = url || cached.url || '';
+        }
+      } catch (_) {}
 
       // If missing title/url, fetch meta (light)
       if (!title || !url) {
@@ -782,7 +815,9 @@
     if (metaEl) metaEl.textContent = 'Server index';
     if (statusEl) statusEl.textContent = force ? 'Rebuilding…' : 'Loading…';
 
-    const url = `${API_BASE}/index/people?force=1`;
+    // IMPORTANT: only force rebuild when explicitly requested.
+    // Otherwise, we want the server's memory/disk cache for speed.
+    const url = `${API_BASE}/index/people${force ? '?force=1' : ''}`;
     const r = await fetch(url);
     const data = await r.json();
 
@@ -802,6 +837,7 @@
 
     const idx = new Map();
     _albumMetaByKey = new Map();
+    _peoplePhotoCounts = new Map();
 
     for (const p of peopleArr) {
       const name = _safeTrim(p?.name);
@@ -816,6 +852,9 @@
         _albumMetaByKey.set(k, { title: a?.title || '', url: a?.url || '' });
       }
       if (set.size) idx.set(name, set);
+
+      const pc = Number(p?.photoCount || 0);
+      if (Number.isFinite(pc) && pc > 0) _peoplePhotoCounts.set(name, pc);
     }
 
     const gen = data?.generatedAt ? String(data.generatedAt) : '';
