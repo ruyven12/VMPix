@@ -8,6 +8,10 @@
 (function () {
   'use strict';
 
+  // UI safety: hide destructive controls from public UI.
+  // Keep rebuild logic in-place for easy re-enable later.
+  const SHOW_REBUILD_BUTTON = false;
+
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
   const API_BASE =
@@ -42,10 +46,16 @@
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
 
+  // Header totals (computed client-side)
+  let _peopleTotals = { people: 0, photos: 0, albums: 0 };
+
   // When using the server-side people index, we seed this cache up-front.
 
   // View state
   let _view = { mode: 'list', person: '', albumKeys: [] };
+
+  // Letter filter (A-Z). null = All
+  let _peopleLetter = null;
 
   // Re-render token to avoid stale async writes
   let _lastRenderToken = 0;
@@ -133,6 +143,124 @@
     return '';
   }
 
+  function _fmtInt(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return '0';
+    try { return Math.round(x).toLocaleString(); } catch (_) { return String(Math.round(x)); }
+  }
+
+
+  function _letterForName(name) {
+    const s = String(name || '').trim();
+    if (!s) return '#';
+    const ch = s[0].toUpperCase();
+    return (ch >= 'A' && ch <= 'Z') ? ch : '#';
+  }
+
+  function _setPeopleLetter(letter) {
+    const v = String(letter || '').trim().toUpperCase();
+    _peopleLetter = (!v || v === 'ALL') ? null : v;
+  }
+
+  function _getPeopleLetter() {
+    return _peopleLetter || null;
+  }
+
+  function renderPeopleLetterNav(indexMap) {
+    if (!panelRoot) return;
+    const navEl = panelRoot.querySelector('#peopleLetterNav');
+    if (!navEl) return;
+
+    // Only show on list view
+    try {
+      navEl.style.display = (_view && _view.mode === 'person') ? 'none' : '';
+    } catch (_) {}
+
+    const counts = {};
+    for (let i = 65; i <= 90; i++) counts[String.fromCharCode(i)] = 0;
+    counts['#'] = 0;
+
+    try {
+      if (indexMap && typeof indexMap.forEach === 'function') {
+        indexMap.forEach((_set, name) => {
+          const L = _letterForName(name);
+          if (!(L in counts)) counts[L] = 0;
+          counts[L] += 1;
+        });
+      }
+    } catch (_) {}
+
+    const active = _getPeopleLetter();
+    const btn = (label, key, disabled) => {
+      const isActive = (!key && !active) || (key && active === key);
+      const dis = !!disabled;
+      return `
+        <button type="button"
+          class="peopleLetterBtn${isActive ? ' is-active' : ''}${dis ? ' is-disabled' : ''}"
+          data-letter="${_eh(key || 'ALL')}"
+          ${dis ? 'disabled' : ''}>
+          ${_eh(label)}
+        </button>
+      `;
+    };
+
+    const parts = [];
+    parts.push(btn('ALL', 'ALL', false));
+    for (let i = 65; i <= 90; i++) {
+      const L = String.fromCharCode(i);
+      parts.push(btn(L, L, counts[L] === 0));
+    }
+    parts.push(btn('#', '#', counts['#'] === 0));
+
+    navEl.innerHTML = parts.join('');
+  }
+
+  function _renderPeopleFilterMeta(totalCount, shownCount) {
+    if (!panelRoot) return;
+    const el = panelRoot.querySelector('#peopleFilterMeta');
+    if (!el) return;
+    const t = Number(totalCount) || 0;
+    const s = Number(shownCount) || 0;
+    const L = _getPeopleLetter();
+    if (!L) {
+      el.textContent = '';
+      return;
+    }
+    el.textContent = `Showing ${_fmtInt(s)} of ${_fmtInt(t)} (${L})`;
+  }
+  function _computePeopleTotals(indexMap) {
+    const idx = indexMap && typeof indexMap.forEach === 'function' ? indexMap : new Map();
+    const albumSet = new Set();
+    let photos = 0;
+    let people = 0;
+    try {
+      idx.forEach((set, name) => {
+        people += 1;
+        try {
+          const v = _photoCountByPerson && _photoCountByPerson.has(name) ? Number(_photoCountByPerson.get(name)) : 0;
+          if (Number.isFinite(v)) photos += v;
+        } catch (_) {}
+        try {
+          if (set && typeof set.forEach === 'function') {
+            set.forEach((k) => {
+              const kk = String(k || '').trim();
+              if (kk) albumSet.add(kk);
+            });
+          }
+        } catch (_) {}
+      });
+    } catch (_) {}
+    return { people, photos, albums: albumSet.size };
+  }
+
+  function _renderPeopleTotals(totals) {
+    if (!panelRoot) return;
+    const el = panelRoot.querySelector('#peopleTotals');
+    if (!el) return;
+    const t = totals || { people: 0, photos: 0, albums: 0 };
+    el.textContent = `${_fmtInt(t.people)} PEOPLE \u2022 ${_fmtInt(t.photos)} PHOTOS \u2022 ${_fmtInt(t.albums)} ALBUMS`;
+  }
+
   // ---- Concurrency limiter (prevents request stampede) ----
   function pLimit(max) {
     let active = 0;
@@ -164,8 +292,14 @@
   const PEOPLE_BANDS_CSV_TTL_MS = 1000 * 60 * 30;
 
   // ---- Session cache (People index) ----
-  // Stores a compact mapping: { personName: [albumKey, ...], ... }
-  // Keeps rebuilds from happening on every People click.
+  // Stores a compact mapping:
+  //   {
+  //     t: <timestamp>,
+  //     v: { personName: [albumKey, ...], ... },
+  //     p: { personName: <photoCount>, ... }   // optional (new)
+  //   }
+  // Keeps rebuilds from happening on every People click, AND preserves photo counts
+  // so the header totals don't fall back to 0 after a refresh.
   const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v1';
   const PEOPLE_INDEX_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
 
@@ -190,25 +324,27 @@
         if (set.size) map.set(p, set);
       }
 
-      // Optional: restore photo counts if present (newer cache shape).
+      // Restore photo counts if present (newer cache schema)
       try {
-        const pc = obj && obj.pc && typeof obj.pc === 'object' ? obj.pc : null;
-        if (pc && _photoCountByPerson && typeof _photoCountByPerson.set === 'function') {
-          for (const [name, n] of Object.entries(pc)) {
-            const nm = String(name || '').trim();
-            if (!nm) continue;
-            const num = Number(n);
-            if (Number.isFinite(num)) _photoCountByPerson.set(nm, num);
+        const pObj = obj.p && typeof obj.p === 'object' ? obj.p : null;
+        if (pObj) {
+          _photoCountByPerson = new Map();
+          for (const [person, cnt] of Object.entries(pObj)) {
+            const name = String(person || '').trim();
+            if (!name) continue;
+            const n = Number(cnt);
+            _photoCountByPerson.set(name, Number.isFinite(n) ? n : 0);
           }
         }
       } catch (_) {}
+
       return map.size ? map : null;
     } catch (_) {
       return null;
     }
   }
 
-  function savePeopleIndexToSession(map) {
+  function savePeopleIndexToSession(map, photoMap) {
     try {
       if (!map || typeof map.forEach !== 'function') return;
       const v = {};
@@ -219,19 +355,21 @@
         if (arr.length) v[p] = arr;
       });
 
-      // Also persist photo counts when available so the list doesn't degrade to "—" on reload.
-      const pc = {};
+      // Persist photo counts too (if available) so totals remain correct after refresh.
+      const pm = (photoMap && typeof photoMap.forEach === 'function') ? photoMap : _photoCountByPerson;
+      const p = {};
       try {
-        if (_photoCountByPerson && typeof _photoCountByPerson.forEach === 'function') {
-          _photoCountByPerson.forEach((num, name) => {
-            const nm = String(name || '').trim();
-            const n = Number(num);
-            if (nm && Number.isFinite(n)) pc[nm] = n;
+        if (pm && typeof pm.forEach === 'function') {
+          pm.forEach((cnt, name) => {
+            const k = String(name || '').trim();
+            if (!k) return;
+            const n = Number(cnt);
+            p[k] = Number.isFinite(n) ? n : 0;
           });
         }
       } catch (_) {}
 
-      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, pc }));
+      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, p }));
     } catch (_) {}
   }
 
@@ -516,7 +654,103 @@ function ensurePeopleStyles() {
   const s = document.createElement('style');
   s.id = 'musicPeopleStyles';
   s.textContent = `
-    /* People list: row layout (name left, counts right) */
+    /* People header (clean, centered) */
+    .peopleHeaderTop{
+      position: relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      margin: 0 0 8px 0;
+      width: 100%;
+    }
+    .peopleHeaderTitle{
+      font-weight:900;
+      font-size:16px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      text-align:center;
+    }
+    .peopleHeaderStatus{
+      position:absolute;
+      right:0;
+      top:50%;
+      transform: translateY(-50%);
+      opacity:.75;
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      pointer-events:none;
+    }
+    .peopleTotalsRow{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      margin: 0 0 10px 0;
+    }
+
+    
+    .peopleLetterRow{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      margin: 0 0 8px 0;
+    }
+    .peopleLetterNav{
+      width: min(980px, 96%);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.14);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .peopleLetterBtn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.12);
+      color: rgba(226,232,240,0.90);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase !important;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease, opacity 180ms ease;
+    }
+    .peopleLetterBtn:hover{
+      border-color: rgba(255,70,110,0.45);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.14), 0 0 18px rgba(255,70,110,0.12);
+      filter: brightness(1.04);
+    }
+    .peopleLetterBtn:active{ transform: translateY(1px); }
+    .peopleLetterBtn.is-active{
+      border-color: rgba(255,70,110,0.70);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.18), 0 0 22px rgba(255,70,110,0.18);
+    }
+    .peopleLetterBtn.is-disabled{
+      opacity: .28;
+      filter: saturate(.6);
+      cursor: default;
+      pointer-events: none;
+    }
+    .peopleFilterMeta{
+      width:100%;
+      text-align:center;
+      font-size: 11px;
+      letter-spacing: .12em;
+      opacity: .70;
+      text-transform: uppercase !important;
+      margin: 0 0 10px 0;
+    }
+
+/* People list: row layout (name left, counts right) */
     #people-root, #people-root *{
       font-family: "Orbitron", system-ui, sans-serif;
       text-transform: none !important;
@@ -599,7 +833,7 @@ function ensurePeopleStyles() {
     const metaEl = panelRoot.querySelector('#peopleMeta');
     if (!listEl) return;
 
-    const entries = Array.from(indexMap.entries()).map(([name, set]) => ({
+    const allEntries = Array.from(indexMap.entries()).map(([name, set]) => ({
       name,
       albums: set.size,
       photos: (() => {
@@ -609,12 +843,33 @@ function ensurePeopleStyles() {
         } catch (_) { return null; }
       })()
     }));
-    entries.sort((a, b) => a.name.localeCompare(b.name));
+    allEntries.sort((a, b) => a.name.localeCompare(b.name));
 
-    if (metaEl) metaEl.textContent = `${entries.length} people indexed`;
+    // Render A–Z nav (with empty letters dimmed)
+    renderPeopleLetterNav(indexMap);
+
+    const letter = _getPeopleLetter();
+    const entries = letter
+      ? allEntries.filter((p) => _letterForName(p.name) === letter)
+      : allEntries;
+
+    // Filter meta (only shows when a letter is selected)
+    _renderPeopleFilterMeta(allEntries.length, entries.length);
+
+    if (metaEl) metaEl.textContent = `${allEntries.length} people indexed`;
+
+    // Header totals (photos + unique albums)
+    _peopleTotals = _computePeopleTotals(indexMap);
+    _renderPeopleTotals(_peopleTotals);
+
+    if (!allEntries.length) {
+      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. This can be because the server is rebuilding the person database or there's something wrong. Give it a bit.</div>`;
+      return;
+    }
 
     if (!entries.length) {
-      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. Add semicolon-delimited names to photo captions.</div>`;
+      const L = _getPeopleLetter();
+      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people under <strong>${_eh(L || '')}</strong>.</div>`;
       return;
     }
 
@@ -655,6 +910,14 @@ function ensurePeopleStyles() {
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
     if (metaEl) metaEl.textContent = 'Person';
+
+    // Hide A–Z while drilling in
+    try {
+      const navEl = panelRoot.querySelector('#peopleLetterNav');
+      if (navEl) navEl.style.display = 'none';
+      const fm = panelRoot.querySelector('#peopleFilterMeta');
+      if (fm) fm.textContent = '';
+    } catch (_) {}
 
     if (!listEl) return;
 
@@ -904,6 +1167,16 @@ function ensurePeopleStyles() {
       return;
     }
 
+    // Letter filter
+    const letterBtn = t.closest ? t.closest('#peopleLetterNav [data-letter]') : null;
+    if (letterBtn) {
+      e.preventDefault();
+      const L = _safeTrim(letterBtn.getAttribute('data-letter'));
+      _setPeopleLetter(L);
+      if (_peopleIndex) renderPeopleList(_peopleIndex);
+      return;
+    }
+
     // Person card
     const card = t.closest ? t.closest('[data-person]') : null;
     if (card) {
@@ -985,6 +1258,10 @@ function ensurePeopleStyles() {
       const right = gen ? ` • ${gen.replace('T', ' ').replace('Z', '')}` : '';
       metaEl.textContent = `${left}${extra}${right}`;
     }
+
+    // Totals (photos + unique albums)
+    _peopleTotals = _computePeopleTotals(idx);
+    _renderPeopleTotals(_peopleTotals);
     if (statusEl) statusEl.textContent = '';
 
     // Audible cue (optional)
@@ -997,19 +1274,27 @@ function ensurePeopleStyles() {
   function render() {
     return `
       <div id="people-root" style="width:100%;">
-        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px;">
-          <div>
-            <div style="font-weight:900; font-size:14px; letter-spacing:.14em; text-transform:uppercase;">People</div>
-            <div id="peopleMeta" style="opacity:.7; font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:4px;">On-demand index</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px;">
+        <div class="peopleHeaderTop">
+          <div class="peopleHeaderTitle">People</div>
+          <div id="peopleStatus" class="peopleHeaderStatus"></div>
+          ${SHOW_REBUILD_BUTTON ? `
             <button type="button" id="peopleRebuildBtn"
               style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:10px; padding:8px 10px; font-weight:900; font-size:10px; letter-spacing:.14em; text-transform:uppercase;">
               Rebuild
             </button>
-            <div id="peopleStatus" style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; white-space:nowrap;"></div>
-          </div>
+          ` : ''}
         </div>
+
+        <!-- Centered totals pill (full-width row) -->
+        <div class="peopleTotalsRow">
+          <div id="peopleTotals" style="opacity:.85; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:7px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.22) inset;">0 PEOPLE • 0 PHOTOS • 0 ALBUMS</div>
+        </div>
+
+        <!-- A–Z filter (darkens letters with no entries) -->
+        <div class="peopleLetterRow">
+          <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
+        </div>
+        <div id="peopleFilterMeta" class="peopleFilterMeta"></div>
 
         <div id="peopleList"></div>
       </div>
@@ -1045,25 +1330,37 @@ function ensurePeopleStyles() {
         renderPeopleList(_peopleIndex);
       }
 
-      // If photo counts are missing (older session cache), hydrate quietly from server
-      // so the "Photos" metric shows real numbers again.
+      // If the People index was restored from session, we likely *don't* have photo counts
+      // (they are not stored in session). Quietly refresh from the server to seed counts
+      // and update the UI (replacing placeholders like —).
       try {
-        let hasAnyCounts = false;
-        if (_photoCountByPerson && typeof _photoCountByPerson.size === 'number') {
-          hasAnyCounts = _photoCountByPerson.size > 0;
-        }
-        if (!hasAnyCounts) {
-          loadPeopleIndexFromServer({ force: false, token })
+        const needsCounts = !_photoCountByPerson || typeof _photoCountByPerson.size !== 'number' || _photoCountByPerson.size === 0;
+        if (needsCounts && !_buildPromise) {
+          _buildPromise = loadPeopleIndexFromServer({ force: false, token })
             .then((idx) => {
-              if (token !== _lastRenderToken) return;
-              _peopleIndex = idx || _peopleIndex || new Map();
+              _peopleIndex = idx || new Map();
               try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
-              // Only rerender list view; don't interrupt person drill-in.
-              if (_view && _view.mode === 'list') renderPeopleList(_peopleIndex);
+              return _peopleIndex;
             })
-            .catch(() => {});
+            .catch((err) => {
+              console.warn('[people] server counts refresh failed:', err);
+              return _peopleIndex || new Map();
+            })
+            .finally(() => {
+              _buildPromise = null;
+            });
+
+          _buildPromise.then((idx) => {
+            if (token !== _lastRenderToken) return;
+            if (_view && _view.mode === 'person' && _view.person) {
+              showPerson(_view.person, token);
+            } else {
+              renderPeopleList(idx || new Map());
+            }
+          });
         }
       } catch (_) {}
+
       return;
     }
 
