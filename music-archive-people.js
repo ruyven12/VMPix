@@ -34,14 +34,13 @@
   // People index: Map(personName -> Set(albumKey))
   let _peopleIndex = null;
 
-  // Photo counts: Map(personName -> number)
-  let _peoplePhotoCounts = new Map();
-
   // Album stub cache: Map(albumKey -> { title?, url?, urlPath?, niceUrl? })
   let _albumStubByKey = new Map();
 
   // Album meta cache: Map(albumKey -> { title, url })
   let _albumMetaByKey = new Map();
+  // Photo count cache: Map(personName -> Number)
+  let _photoCountByPerson = new Map();
 
   // When using the server-side people index, we seed this cache up-front.
 
@@ -167,8 +166,7 @@
   // ---- Session cache (People index) ----
   // Stores a compact mapping: { personName: [albumKey, ...], ... }
   // Keeps rebuilds from happening on every People click.
-  // v2 stores per-person { albums:[], photos:n }
-  const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v2';
+  const PEOPLE_INDEX_CACHE_KEY = 'vm_music_people_index_v1';
   const PEOPLE_INDEX_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
 
   function loadPeopleIndexFromSession() {
@@ -184,25 +182,13 @@
       if (!v || typeof v !== 'object') return null;
 
       const map = new Map();
-      const counts = new Map();
-      for (const [person, val] of Object.entries(v)) {
+      for (const [person, keys] of Object.entries(v)) {
         const p = String(person || '').trim();
         if (!p) continue;
-
-        // Back-compat: val may be [albumKey,...]
-        const albumsArr = Array.isArray(val)
-          ? val
-          : (val && Array.isArray(val.albums) ? val.albums : []);
-        const photosNum = (!Array.isArray(val) && val && val.photos != null) ? Number(val.photos) : 0;
-
-        const set = new Set((albumsArr || []).map((k) => String(k || '').trim()).filter(Boolean));
+        const arr = Array.isArray(keys) ? keys : [];
+        const set = new Set(arr.map((k) => String(k || '').trim()).filter(Boolean));
         if (set.size) map.set(p, set);
-        if (Number.isFinite(photosNum) && photosNum > 0) counts.set(p, photosNum);
       }
-
-      // Seed global counts cache
-      _peoplePhotoCounts = counts;
-
       return map.size ? map : null;
     } catch (_) {
       return null;
@@ -217,10 +203,7 @@
         const p = String(person || '').trim();
         if (!p) return;
         const arr = Array.from(set || []).map((k) => String(k || '').trim()).filter(Boolean);
-        if (!arr.length) return;
-
-        const photos = Number(_peoplePhotoCounts && _peoplePhotoCounts.get ? _peoplePhotoCounts.get(p) : 0) || 0;
-        v[p] = { albums: arr, photos: photos > 0 ? photos : 0 };
+        if (arr.length) v[p] = arr;
       });
       sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v }));
     } catch (_) {}
@@ -501,6 +484,89 @@
     _albumStubByKey.set(albumKey, stub);
   }
 
+  // ================== STYLES (People list rows) ==================
+function ensurePeopleStyles() {
+  if (document.getElementById('musicPeopleStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'musicPeopleStyles';
+  s.textContent = `
+    /* People list: row layout (name left, counts right) */
+    #people-root, #people-root *{
+      font-family: "Orbitron", system-ui, sans-serif;
+      text-transform: none !important;
+    }
+
+    .peopleRow{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 14px;
+      text-align:left;
+      cursor:pointer;
+      background: rgba(0,0,0,0.16);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.22) inset, 0 12px 26px rgba(0,0,0,0.28);
+      transition: transform 140ms ease, box-shadow 180ms ease, filter 180ms ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .peopleRow:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.40) inset, 0 16px 34px rgba(0,0,0,0.42);
+      filter: brightness(1.03);
+    }
+    .peopleRow:active{ transform: translateY(0px); }
+
+    .peopleName{
+      font-weight: 800;
+      color: #ff466e;
+      font-size: 13px;
+      letter-spacing: .02em;
+      line-height: 1.2;
+    }
+
+    .peopleMetrics{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+    .peopleMetric{
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
+      color: rgba(226,232,240,0.88);
+      font-size: 12px;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .peopleMetric svg{
+      width: 14px;
+      height: 14px;
+      display:block;
+      opacity: .92;
+      filter: drop-shadow(0 0 8px rgba(255,70,110,0.18));
+    }
+    .peopleMetric .num{
+      font-weight: 800;
+      letter-spacing: .06em;
+    }
+
+    @media (max-width: 520px){
+      .peopleRow{ padding: 10px 10px; }
+      .peopleMetric{ padding: 6px 9px; font-size: 11px; }
+      .peopleName{ font-size: 12.5px; }
+    }
+  `;
+  document.head.appendChild(s);
+}
   function renderPeopleList(indexMap) {
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
@@ -510,7 +576,12 @@
     const entries = Array.from(indexMap.entries()).map(([name, set]) => ({
       name,
       albums: set.size,
-      photos: Number(_peoplePhotoCounts && _peoplePhotoCounts.get ? _peoplePhotoCounts.get(name) : 0) || 0
+      photos: (() => {
+        try {
+          const n = _photoCountByPerson && _photoCountByPerson.has(name) ? Number(_photoCountByPerson.get(name)) : NaN;
+          return Number.isFinite(n) ? n : null;
+        } catch (_) { return null; }
+      })()
     }));
     entries.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -521,19 +592,38 @@
       return;
     }
 
-    listEl.innerHTML = entries
-      .map(
-        (p) => `
-        <button type="button" class="peopleCard" data-person="${_eh(p.name)}"
-          style="width:100%; text-align:left; cursor:pointer; padding:10px 12px; border:0; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; margin:8px 0;">
-          <div style="font-weight:800; color:#ff466e; font-size:13px; letter-spacing:.02em;">${_eh(p.name)}</div>
-          <div style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;">Albums: ${p.albums} • Photos: ${p.photos}</div>
-        </button>
-      `
-      )
-      .join('');
-  }
+      listEl.innerHTML = entries
+    .map((p) => {
+      const photosTxt = (p.photos === null) ? '—' : String(p.photos);
+      const albumsTxt = String(p.albums);
 
+      return `
+      <button type="button" class="peopleRow" data-person="${_eh(p.name)}" aria-label="Open ${_eh(p.name)}">
+        <div class="peopleName">${_eh(p.name)}</div>
+
+        <div class="peopleMetrics" aria-hidden="true">
+          <div class="peopleMetric" title="Photos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span class="num">${_eh(photosTxt)}</span>
+          </div>
+
+          <div class="peopleMetric" title="Albums">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"></path>
+              <path d="M4 16.5A2.5 2.5 0 0 0 6.5 19H20"></path>
+              <path d="M4 3h16v13H6.5A2.5 2.5 0 0 0 4 18.5z"></path>
+            </svg>
+            <span class="num">${_eh(albumsTxt)}</span>
+          </div>
+        </div>
+      </button>
+    `;
+    })
+    .join('');
+}
   function renderPersonAlbumsShell(personName) {
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
@@ -758,7 +848,7 @@
 
       try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
 
-      loadPeopleIndexFromServer({ force: true, token })
+      loadPeopleIndexFromServer({ force: true, full: true, token })
         .then((idx) => {
           if (token !== _lastRenderToken) return;
           if (statusEl) statusEl.textContent = '';
@@ -806,7 +896,7 @@
     }
   }
 
-  async function loadPeopleIndexFromServer({ force = false, token } = {}) {
+  async function loadPeopleIndexFromServer({ force = false, full = false, token } = {}) {
     if (!panelRoot) return new Map();
 
     const metaEl = panelRoot.querySelector('#peopleMeta');
@@ -817,7 +907,10 @@
 
     // IMPORTANT: only force rebuild when explicitly requested.
     // Otherwise, we want the server's memory/disk cache for speed.
-    const url = `${API_BASE}/index/people${force ? '?force=1' : ''}`;
+    const qs = [];
+    if (force) qs.push('force=1');
+    if (full) qs.push('full=1');
+    const url = `${API_BASE}/index/people${qs.length ? ("?" + qs.join("&")) : ""}`;
     const r = await fetch(url);
     const data = await r.json();
 
@@ -837,11 +930,15 @@
 
     const idx = new Map();
     _albumMetaByKey = new Map();
-    _peoplePhotoCounts = new Map();
 
     for (const p of peopleArr) {
       const name = _safeTrim(p?.name);
       if (!name) continue;
+      try {
+        const pc = Number(p?.photoCount);
+        _photoCountByPerson.set(name, Number.isFinite(pc) ? pc : 0);
+      } catch (_) { _photoCountByPerson.set(name, 0); }
+
       const albums = Array.isArray(p?.albums) ? p.albums : [];
       const set = new Set();
       for (const a of albums) {
@@ -852,9 +949,6 @@
         _albumMetaByKey.set(k, { title: a?.title || '', url: a?.url || '' });
       }
       if (set.size) idx.set(name, set);
-
-      const pc = Number(p?.photoCount || 0);
-      if (Number.isFinite(pc) && pc > 0) _peoplePhotoCounts.set(name, pc);
     }
 
     const gen = data?.generatedAt ? String(data.generatedAt) : '';
@@ -898,6 +992,9 @@
 
   function onMount(panelEl) {
     panelRoot = panelEl || document.getElementById('musicContentPanel') || document.body;
+
+    // Styles (once)
+    try { ensurePeopleStyles(); } catch (_) {}
 
     // Ensure events only bound once per mount
     unbindEvents();
