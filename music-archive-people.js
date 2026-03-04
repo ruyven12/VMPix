@@ -189,6 +189,19 @@
         const set = new Set(arr.map((k) => String(k || '').trim()).filter(Boolean));
         if (set.size) map.set(p, set);
       }
+
+      // Optional: restore photo counts if present (newer cache shape).
+      try {
+        const pc = obj && obj.pc && typeof obj.pc === 'object' ? obj.pc : null;
+        if (pc && _photoCountByPerson && typeof _photoCountByPerson.set === 'function') {
+          for (const [name, n] of Object.entries(pc)) {
+            const nm = String(name || '').trim();
+            if (!nm) continue;
+            const num = Number(n);
+            if (Number.isFinite(num)) _photoCountByPerson.set(nm, num);
+          }
+        }
+      } catch (_) {}
       return map.size ? map : null;
     } catch (_) {
       return null;
@@ -205,7 +218,20 @@
         const arr = Array.from(set || []).map((k) => String(k || '').trim()).filter(Boolean);
         if (arr.length) v[p] = arr;
       });
-      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v }));
+
+      // Also persist photo counts when available so the list doesn't degrade to "—" on reload.
+      const pc = {};
+      try {
+        if (_photoCountByPerson && typeof _photoCountByPerson.forEach === 'function') {
+          _photoCountByPerson.forEach((num, name) => {
+            const nm = String(name || '').trim();
+            const n = Number(num);
+            if (nm && Number.isFinite(n)) pc[nm] = n;
+          });
+        }
+      } catch (_) {}
+
+      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, pc }));
     } catch (_) {}
   }
 
@@ -1018,6 +1044,26 @@ function ensurePeopleStyles() {
       } else {
         renderPeopleList(_peopleIndex);
       }
+
+      // If photo counts are missing (older session cache), hydrate quietly from server
+      // so the "Photos" metric shows real numbers again.
+      try {
+        let hasAnyCounts = false;
+        if (_photoCountByPerson && typeof _photoCountByPerson.size === 'number') {
+          hasAnyCounts = _photoCountByPerson.size > 0;
+        }
+        if (!hasAnyCounts) {
+          loadPeopleIndexFromServer({ force: false, token })
+            .then((idx) => {
+              if (token !== _lastRenderToken) return;
+              _peopleIndex = idx || _peopleIndex || new Map();
+              try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
+              // Only rerender list view; don't interrupt person drill-in.
+              if (_view && _view.mode === 'list') renderPeopleList(_peopleIndex);
+            })
+            .catch(() => {});
+        }
+      } catch (_) {}
       return;
     }
 
