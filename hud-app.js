@@ -9,6 +9,33 @@
 (function(){
   "use strict";
 
+  // =============================
+  // GLOBAL "DING" (tiny audible cue)
+  // =============================
+  // Usage: window.vmDing();
+  // Safe: no-op if audio is unavailable or blocked.
+  window.vmDing = function vmDing(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = 880;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(ctx.destination);
+      const now = ctx.currentTime;
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      o.start(now);
+      o.stop(now + 0.14);
+      o.onended = () => { try{ ctx.close(); }catch(_){ } };
+    }catch(_){ }
+  };
+
   
   // Auto-set --intro-chars based on the text inside .hudIntroType
   document.querySelectorAll('.hudIntroText').forEach(el => {

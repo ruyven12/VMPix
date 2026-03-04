@@ -494,7 +494,7 @@
     if (metaEl) metaEl.textContent = `${entries.length} people indexed`;
 
     if (!entries.length) {
-      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. Add semicolon-delimited names to photo captions (e.g., "Rich Yanok; Box Rox").</div>`;
+      listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. Add semicolon-delimited names to photo captions.</div>`;
       return;
     }
 
@@ -732,6 +732,7 @@
           _peopleIndex = idx || new Map();
           try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
           renderPeopleList(_peopleIndex);
+          try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
         })
         .catch((err) => {
           console.warn('[people] rebuild failed:', err);
@@ -785,6 +786,16 @@
     const r = await fetch(url);
     const data = await r.json();
 
+    // If the server returns a cached empty build (0 albums scanned),
+    // retry once with force=1 to avoid users getting stuck with "0 people indexed".
+    try {
+      const scanned0 = !Number(data?.albumsScanned || 0);
+      const people0 = Array.isArray(data?.people) && data.people.length === 0;
+      if (!force && scanned0 && people0) {
+        return await loadPeopleIndexFromServer({ force: true, token });
+      }
+    } catch (_) {}
+
     if (token && token !== _lastRenderToken) return new Map();
 
     const peopleArr = Array.isArray(data?.people) ? data.people : [];
@@ -816,6 +827,9 @@
       metaEl.textContent = `${left}${extra}${right}`;
     }
     if (statusEl) statusEl.textContent = '';
+
+    // Audible cue (optional)
+    try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
 
     return idx;
   }
