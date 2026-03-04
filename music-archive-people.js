@@ -503,7 +503,7 @@
         (p) => `
         <button type="button" class="peopleCard" data-person="${_eh(p.name)}"
           style="width:100%; text-align:left; cursor:pointer; padding:10px 12px; border:0; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; margin:8px 0;">
-          <div style="font-weight:800; font-size:13px; letter-spacing:.02em;">${_eh(p.name)}</div>
+          <div style="font-weight:800; color:#ff466e; font-size:13px; letter-spacing:.02em;">${_eh(p.name)}</div>
           <div style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;">Albums: ${p.albums}</div>
         </button>
       `
@@ -782,7 +782,7 @@
     if (metaEl) metaEl.textContent = 'Server index';
     if (statusEl) statusEl.textContent = force ? 'Rebuilding…' : 'Loading…';
 
-    const url = `${API_BASE}/index/people${force ? '?force=1' : ''}`;
+    const url = `${API_BASE}/index/people?force=1`;
     const r = await fetch(url);
     const data = await r.json();
 
