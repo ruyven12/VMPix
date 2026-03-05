@@ -52,6 +52,9 @@
 
   // Album meta cache: Map(albumKey -> { title, url })
   let _albumMetaByKey = new Map();
+
+  // Album thumb cache: Map(albumKey -> imageUrl)
+  let _albumThumbByKey = new Map();
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
 
@@ -72,6 +75,15 @@
   // ================== UTIL ==================
   function _eh(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function _cssEscape(s) {
+    const v = String(s || '');
+    try {
+      if (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') return CSS.escape(v);
+    } catch (_) {}
+    // Minimal fallback: escape quotes and backslashes.
+    return v.replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
   }
 
   function parseCsvLine(line) {
@@ -156,6 +168,40 @@
     const x = Number(n);
     if (!Number.isFinite(x)) return '0';
     try { return Math.round(x).toLocaleString(); } catch (_) { return String(Math.round(x)); }
+  }
+
+  // Try to extract a leading date from an album/show title.
+  // Supports patterns like:
+  //   "5/3/25 - The Benefit..."
+  //   "05-03-2025 The Benefit..."
+  //   "2025-05-03 - ..."
+  // Returns { dateText, restTitle }
+  function _splitDateFromTitle(title) {
+    const raw = String(title || '').trim();
+    if (!raw) return { dateText: '', restTitle: '' };
+
+    // YYYY-MM-DD ...
+    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-–—:]\s*)?(.*)$/);
+    if (m) {
+      const yyyy = m[1];
+      const mm = String(m[2]).padStart(2, '0');
+      const dd = String(m[3]).padStart(2, '0');
+      const rest = String(m[4] || '').trim();
+      return { dateText: `${mm}/${dd}/${yyyy.slice(-2)}`, restTitle: rest };
+    }
+
+    // M/D/YY ... or M-D-YYYY ...
+    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-–—:]\s*)?(.*)$/);
+    if (m) {
+      const mm = String(m[1]).padStart(2, '0');
+      const dd = String(m[2]).padStart(2, '0');
+      let yy = String(m[3] || '').trim();
+      if (yy.length === 4) yy = yy.slice(-2);
+      const rest = String(m[4] || '').trim();
+      return { dateText: `${mm}/${dd}/${yy}`, restTitle: rest };
+    }
+
+    return { dateText: '', restTitle: raw };
   }
 
 
@@ -525,6 +571,40 @@
       '';
   }
 
+  function _extractThumbUrlFromAlbumImage(albumImage) {
+    if (!albumImage) return '';
+    // Different payload shapes across endpoints.
+    // We accept any direct URL here; if absent, we leave blank.
+    return (
+      _pickFirst(albumImage, ['ThumbnailUrl', 'ThumbUrl', 'SmallUrl', 'MediumUrl', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
+      _pickFirst(albumImage && albumImage.Image, ['ThumbnailUrl', 'ThumbUrl', 'SmallUrl', 'MediumUrl', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
+      ''
+    );
+  }
+
+  async function fetchAlbumThumbUrl(albumKey) {
+    const k = _safeTrim(albumKey);
+    if (!k) return '';
+    if (_albumThumbByKey.has(k)) return _albumThumbByKey.get(k) || '';
+
+    try {
+      const pageJson = await limitNet(() => fetchAlbumImagesPage(k, 1, 1).catch(() => null));
+      if (!pageJson) {
+        _albumThumbByKey.set(k, '');
+        return '';
+      }
+      const images = extractAlbumImagesFromPage(pageJson);
+      const first = images && images.length ? images[0] : null;
+      const url = _extractThumbUrlFromAlbumImage(first);
+      const out = String(url || '').trim();
+      _albumThumbByKey.set(k, out);
+      return out;
+    } catch (_) {
+      _albumThumbByKey.set(k, '');
+      return '';
+    }
+  }
+
   // Fallback (heavier): fetch full image detail to read Caption if the album-image payload didn't include it.
   async function fetchImageCaptionByKey(imageKey) {
     if (!imageKey) return '';
@@ -857,6 +937,288 @@ function ensurePeopleStyles() {
       .peoplePosterBox{ width: 72px; height: 72px; border-radius: 12px; }
     }
 
+    /* ===== People person-view timeline (mockup style) ===== */
+    .peopleTimelineWrap{
+      position: relative;
+      width: 100%;
+      padding: 6px 0 2px;
+    }
+    .peopleTimelineWrap:before{
+      content:"";
+      position:absolute;
+      top: 2px;
+      bottom: 2px;
+      left: var(--peopleTlX);
+      width: 2px;
+      background: linear-gradient(to bottom, rgba(255,70,110,0.10), rgba(255,70,110,0.70), rgba(255,70,110,0.10));
+      box-shadow: 0 0 18px rgba(255,70,110,0.24);
+      border-radius: 999px;
+    }
+    .peopleTimelineNode{
+      position:absolute;
+      left: var(--peopleTlX);
+      transform: translateX(-50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(255,70,110,0.18);
+      box-shadow: 0 0 0 2px rgba(255,70,110,0.55), 0 0 24px rgba(255,70,110,0.35);
+    }
+    .peopleTimelineNode:before{
+      content:"";
+      position:absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,70,110,0.92);
+      box-shadow: 0 0 16px rgba(255,70,110,0.65);
+    }
+
+    .peopleTimelineItem{
+      position: relative;
+      display:grid;
+      align-items: stretch;
+      width: 100%;
+      border-radius: 20px;
+      padding: 12px;
+      margin: 14px 0;
+      background: rgba(0,0,0,0.16);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.24) inset, 0 18px 44px rgba(0,0,0,0.44);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .peopleTimelineDateCol{
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+      padding-top: 4px;
+    }
+    .peopleTimelineDatePill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,70,110,0.28);
+      background: rgba(0,0,0,0.18);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 22px rgba(255,70,110,0.12);
+      font-weight: 900;
+      letter-spacing: .10em;
+      color: rgba(226,232,240,0.92);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .peopleTimelinePosterCol{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .peoplePosterBox{
+      width: 86px;
+      height: 86px;
+      border-radius: 16px;
+      overflow:hidden;
+      background: radial-gradient(120% 160% at 0% 0%, rgba(255,70,110,0.18) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.18) 100%);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.30) inset, 0 16px 32px rgba(0,0,0,0.40);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position: relative;
+    }
+    .peoplePosterImg{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+      filter: saturate(1.02) contrast(1.02);
+    }
+    .peoplePosterFallback{
+      font-weight: 900;
+      letter-spacing: .12em;
+      font-size: 16px;
+      color: rgba(226,232,240,0.70);
+    }
+
+    .peopleTimelineBody{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      padding: 2px 4px;
+      min-width: 0;
+    }
+    .peopleTimelineTitle{
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .02em;
+      color: rgba(226,232,240,0.96);
+      line-height: 1.15;
+      text-shadow: 0 0 26px rgba(255,70,110,0.12);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .peopleTimelineKicker{
+      opacity: .70;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase !important;
+    }
+    .peopleTimelinePerson{
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .02em;
+      color: rgba(226,232,240,0.92);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .peopleTimelineSub{
+      opacity: .70;
+      font-size: 12px;
+      letter-spacing: .08em;
+    }
+    .peopleTimelineActions{
+      margin-top: 10px;
+      display:flex;
+      justify-content:flex-end;
+    }
+    .peopleTimelineBtn{
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,70,110,0.34);
+      background: rgba(0,0,0,0.16);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.12) inset, 0 0 26px rgba(255,70,110,0.10);
+      font-weight: 900;
+      letter-spacing: .10em;
+      text-transform: uppercase !important;
+      color: rgba(226,232,240,0.92);
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
+      user-select:none;
+    }
+    .peopleTimelineBtn:hover{
+      border-color: rgba(255,70,110,0.62);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset, 0 0 32px rgba(255,70,110,0.16);
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+    .peopleTimelineBtn:active{ transform: translateY(0px); }
+    .peopleTimelineBtn svg{
+      width: 16px;
+      height: 16px;
+      display:block;
+      opacity: .88;
+    }
+
+    @media (max-width: 920px){
+      .peopleTimelineTitle{ font-size: 18px; }
+    }
+    @media (max-width: 720px){
+      .peopleTimelineTitle{ font-size: 16px; }
+      .peopleTimelinePerson{ font-size: 15px; }
+      .peopleTimelineBtn{ padding: 9px 14px; border-radius: 14px; }
+    }
+
+    /* ===== People: Top stats (display-only; no click/routing) ===== */
+    #peopleTopStats{ width: 100%; margin: 10px auto 10px; }
+    .peopleTopStatsHdr{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin-bottom: 8px; }
+    .peopleTopStatsTitle{
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .86;
+    }
+    .peopleTopStatsSub{
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .62;
+    }
+    .peopleTopStatsGrid{
+      width: 100%;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+      justify-items: stretch;
+      pointer-events: none;
+      user-select: none;
+    }
+    .peopleTopStatCard{
+      position: relative;
+      border-radius: 16px;
+      padding: 12px 12px 11px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,70,110,0.18);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.32);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+    .peopleTopStatCard::before{
+      content:"";
+      position:absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      border-radius: 999px;
+      background: rgba(255,70,110,0.65);
+      box-shadow: 0 0 12px rgba(255,70,110,0.18);
+      opacity: .85;
+      pointer-events:none;
+    }
+    .peopleTopStatRank{
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 18px;
+      letter-spacing: 0;
+      text-transform: none;
+      opacity: .95;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .peopleTopStatName{
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: .02em;
+      opacity: .95;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .peopleTopStatMeta{
+      margin-top: 8px;
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .70;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+      gap: 6px;
+    }
+    .peopleTopStatMeta .k{ opacity: .95; font-weight: 900; }
+    .peopleTopStatMeta .lbl{ opacity: .72; }
+    .peopleTopStatMeta .dot{ opacity: .45; }
+
+    @media (max-width: 720px){
+      .peopleTopStatsGrid{ grid-template-columns: 1fr; }
+      .peopleTopStatCard{ border-radius: 18px; }
+      .peopleTopStatName{ font-size: 14px; }
+    }
+
   `;
   document.head.appendChild(s);
 }
@@ -894,6 +1256,9 @@ function ensurePeopleStyles() {
     // Header totals (photos + unique albums)
     _peopleTotals = _computePeopleTotals(indexMap);
     _renderPeopleTotals(_peopleTotals);
+
+    // Top 3 (display-only)
+    renderTopStats(indexMap);
 
     if (!allEntries.length) {
       listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people found yet. This can be because the server is rebuilding the person database or there's something wrong. Give it a bit.</div>`;
@@ -937,6 +1302,75 @@ function ensurePeopleStyles() {
     `;
     })
     .join('');
+
+
+// Top 3 stats (display-only; no click/routing)
+function renderTopStats(indexMap){
+  if (!panelRoot) return;
+  const host = panelRoot.querySelector('#peopleTopStats');
+  if (!host) return;
+
+  // Always reset (prevents stale content across filters/rebuilds)
+  host.style.display = '';
+
+  const all = Array.from(indexMap.entries()).map(([name, set]) => {
+    let photos = null;
+    try{
+      const n = (_photoCountByPerson && _photoCountByPerson.has(name)) ? Number(_photoCountByPerson.get(name)) : NaN;
+      photos = Number.isFinite(n) ? n : null;
+    }catch(_){ photos = null; }
+    return { name, albums: (set && typeof set.size === 'number') ? set.size : 0, photos };
+  });
+
+  if (!all.length){
+    host.innerHTML = '';
+    return;
+  }
+
+  // Prefer photoCount desc; if missing, fall back to albums desc; then name asc for stability.
+  all.sort((a,b) => {
+    const ap = (a.photos === null) ? -1 : a.photos;
+    const bp = (b.photos === null) ? -1 : b.photos;
+    if (bp != ap) return bp - ap;
+    if (b.albums != a.albums) return b.albums - a.albums;
+    return String(a.name).localeCompare(String(b.name));
+  });
+
+  const top = all.slice(0, 3);
+
+  // If absolutely no meaningful stats (all null photos and 0 albums), don't show the block.
+  const hasAny = top.some(t => (t.photos !== null && t.photos > 0) || (t.albums > 0));
+  if (!hasAny){
+    host.innerHTML = '';
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="peopleTopStatsHdr">
+      <div class="peopleTopStatsTitle">Top 3</div>
+      <div class="peopleTopStatsSub">Most Photographed</div>
+    </div>
+    <div class="peopleTopStatsGrid">
+      ${top.map((t, i) => {
+        const photosTxt = (t.photos === null) ? '—' : String(t.photos);
+        const albumsTxt = String(t.albums || 0);
+        const medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : '🥉';
+        const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
+        return `
+          <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
+            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)} ${_eh(t.name)}</div>
+            <div class="peopleTopStatMeta">
+              <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
+              <span class="dot">•</span>
+              <span class="lbl">Albums</span> <span class="k">${_eh(albumsTxt)}</span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 }
   function renderPersonAlbumsShell(personName) {
     if (!panelRoot) return;
@@ -950,6 +1384,8 @@ function ensurePeopleStyles() {
       if (navEl) navEl.style.display = 'none';
       const fm = panelRoot.querySelector('#peopleFilterMeta');
       if (fm) fm.textContent = '';
+      const ts = panelRoot.querySelector('#peopleTopStats');
+      if (ts) ts.style.display = 'none';
     } catch (_) {}
 
     if (!listEl) return;
@@ -957,7 +1393,7 @@ function ensurePeopleStyles() {
     listEl.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
-          style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:10px; padding:8px 10px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase;">
+          style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase;">
           ← Back
         </button>
         <div style="flex:1; min-width:0; text-align:right;">
@@ -968,11 +1404,11 @@ function ensurePeopleStyles() {
         </div>
       </div>
 
-      <div id="peopleAlbumsList"></div>
+      <div id="peopleAlbumsList" class="peopleTimelineWrap"></div>
     `;
   }
 
-  function renderPersonAlbumsList(items) {
+  function renderPersonAlbumsList(items, personName) {
     if (!panelRoot) return;
     const albumsEl = panelRoot.querySelector('#peopleAlbumsList');
     const countEl = panelRoot.querySelector('#peopleAlbumCount');
@@ -985,27 +1421,79 @@ function ensurePeopleStyles() {
       return;
     }
 
-    // Keep this simple and safe: title + open link (if available)
+    // Mockup-style timeline cards: date pill + poster + show title + featuring person + View Photos
+    const who = _eh(personName || '');
     albumsEl.innerHTML = items
-      .map((a) => {
-        const title = _eh(a.title || `Album ${a.albumKey}`);
+      .map((a, idx) => {
+        const rawTitle = String(a.title || `Album ${a.albumKey}`);
+        const split = _splitDateFromTitle(rawTitle);
+        const dateTxt = _eh(split.dateText || '');
+        const mainTitle = _eh(split.restTitle || rawTitle);
         const href = a.url ? _eh(a.url) : '';
-        const openBtn = href
-          ? `<a href="${href}" target="_blank" rel="noopener noreferrer"
-                style="text-decoration:none; display:inline-block; margin-top:8px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;">
-                Open
-              </a>`
-          : `<div style="opacity:.6; font-size:11px; margin-top:8px;">Album key: ${_eh(a.albumKey)}</div>`;
+
+        const btn = href
+          ? `<a class="peopleTimelineBtn" href="${href}" target="_blank" rel="noopener noreferrer">
+               <span>View Photos</span>
+               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 5l7 7-7 7-1.4-1.4L16.2 13H4v-2h12.2l-4.6-4.6L13 5z"/></svg>
+             </a>`
+          : `<div class="peopleTimelineSub" style="opacity:.65;">Album key: ${_eh(a.albumKey)}</div>`;
 
         return `
-          <div class="peopleAlbumCard"
-            style="padding:12px; border-radius:12px; background:rgba(0,0,0,0.14); box-shadow:0 0 0 1px rgba(255,70,110,0.20) inset; margin:10px 0;">
-            <div style="font-weight:900; font-size:13px; letter-spacing:.02em;">${title}</div>
-            ${openBtn}
+          <div class="peopleTimelineItem">
+            <div class="peopleTimelineNode" style="top: 26px;"></div>
+
+            <div class="peopleTimelineDateCol">
+              ${dateTxt ? `<div class="peopleTimelineDatePill">${dateTxt}</div>` : ''}
+            </div>
+
+            <div class="peopleTimelinePosterCol">
+              <div class="peoplePosterBox" data-albumkey="${_eh(a.albumKey)}">
+                <div class="peoplePosterFallback">${_eh((mainTitle || 'A').trim()[0] || 'A')}</div>
+              </div>
+            </div>
+
+            <div class="peopleTimelineBody">
+              <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
+              <div class="peopleTimelineKicker">Featuring</div>
+              <div class="peopleTimelinePerson">${who}</div>
+              <div class="peopleTimelineSub">Albums: 1</div>
+              <div class="peopleTimelineActions">${btn}</div>
+            </div>
           </div>
         `;
       })
       .join('');
+
+    // Best-effort poster thumbnails (non-blocking)
+    try {
+      hydrateAlbumThumbs(items.slice(0, 24).map((x) => x.albumKey));
+    } catch (_) {}
+  }
+
+  async function hydrateAlbumThumbs(albumKeys) {
+    if (!panelRoot) return;
+    const keys = Array.isArray(albumKeys) ? albumKeys : [];
+    if (!keys.length) return;
+
+    // Fill in-place for any boxes currently in the DOM.
+    for (const k of keys) {
+      const key = _safeTrim(k);
+      if (!key) continue;
+
+      const box = panelRoot.querySelector(`.peoplePosterBox[data-albumkey="${_cssEscape(key)}"]`);
+      if (!box) continue;
+      if (box.getAttribute('data-hasimg') === '1') continue;
+
+      const url = await fetchAlbumThumbUrl(key);
+      if (!panelRoot) return;
+      if (!url) continue;
+
+      // Swap fallback with img
+      try {
+        box.innerHTML = `<img class="peoplePosterImg" src="${_eh(url)}" alt="" loading="lazy" decoding="async"/>`;
+        box.setAttribute('data-hasimg', '1');
+      } catch (_) {}
+    }
   }
 
   async function showPerson(personName, token) {
@@ -1072,7 +1560,7 @@ function ensurePeopleStyles() {
     items.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
 
     if (statusEl) statusEl.textContent = '';
-    renderPersonAlbumsList(items);
+    renderPersonAlbumsList(items, personName);
   }
 
   async function buildPeopleIndex(onProgress) {
@@ -1385,6 +1873,9 @@ function ensurePeopleStyles() {
         <div class="peopleTotalsRow">
           <div id="peopleTotals" style="opacity:.85; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:7px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.22) inset;">0 PEOPLE • 0 PHOTOS • 0 ALBUMS</div>
         </div>
+
+        <!-- Top 3 (display-only; no click/routing) -->
+        <div id="peopleTopStats"></div>
 
         <!-- A–Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
