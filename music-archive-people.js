@@ -61,6 +61,12 @@
   // Header totals (computed client-side)
   let _peopleTotals = { people: 0, photos: 0, albums: 0 };
 
+  // People Stats (from Stats CSV)
+  // Static override (per project request) to avoid relying on /sheet/stats parsing.
+  // Keep the loader code in place for easy re-enable later.
+  let _statsTotalShots = 61289; // Number|null
+  let _statsLoadPromise = null;
+
   // When using the server-side people index, we seed this cache up-front.
 
   // View state
@@ -309,11 +315,113 @@
   }
 
   function _renderPeopleTotals(totals) {
+    // Back-compat: keep the old totals pill if it still exists in markup.
     if (!panelRoot) return;
     const el = panelRoot.querySelector('#peopleTotals');
-    if (!el) return;
-    const t = totals || { people: 0, photos: 0, albums: 0 };
-    el.textContent = `${_fmtInt(t.people)} PEOPLE \u2022 ${_fmtInt(t.photos)} PHOTOS \u2022 ${_fmtInt(t.albums)} ALBUMS`;
+    if (el) {
+      const t = totals || { people: 0, photos: 0, albums: 0 };
+      el.textContent = `${_fmtInt(t.people)} PEOPLE \u2022 ${_fmtInt(t.photos)} PHOTOS \u2022 ${_fmtInt(t.albums)} ALBUMS`;
+    }
+
+    // New People Stats tiles.
+    try { renderPeopleStatsTiles(); } catch (_) {}
+  }
+
+  // ================== PEOPLE STATS (tiles) ==================
+  // NOTE: bumped cache key to avoid persisting a previously cached error/empty response.
+  const PEOPLE_STATS_CSV_CACHE_KEY = 'vm_music_people_stats_csv_v2';
+  const PEOPLE_STATS_CSV_TTL_MS = 1000 * 60 * 60 * 6; // 6h
+
+  function _parseNumLoose(s) {
+    const v = String(s ?? '').replace(/[,\s]/g, '').trim();
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function _parseTotalShotsFromStatsCsv(csvText) {
+    const raw = String(csvText || '').trim();
+    if (!raw) return null;
+
+    const lines = raw.split(/\r?\n/).filter((l) => String(l || '').trim());
+    if (lines.length < 2) return null;
+
+    const header = parseCsvLine(lines[0]).map((h) => String(h || '').trim());
+    // Prefer a column named "Total"; fall back to the last column.
+    let idx = header.findIndex((h) => String(h || '').toLowerCase() === 'total');
+    if (idx < 0) idx = Math.max(0, header.length - 1);
+
+    // Find the first data row that yields a valid number in the chosen column.
+    for (let i = 1; i < lines.length; i++) {
+      const row = parseCsvLine(lines[i]);
+      const cell = (idx >= 0 && idx < row.length) ? row[idx] : '';
+      const n = _parseNumLoose(cell);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
+  }
+
+  async function loadPeopleStatsTotalShots() {
+    if (_statsTotalShots !== null) return _statsTotalShots;
+    if (_statsLoadPromise) return _statsLoadPromise;
+
+    _statsLoadPromise = (async () => {
+      try {
+        const url = `${API_BASE}/sheet/stats`;
+        const txt = await fetchTextWithSessionCache(url, PEOPLE_STATS_CSV_TTL_MS, PEOPLE_STATS_CSV_CACHE_KEY);
+        const total = _parseTotalShotsFromStatsCsv(txt);
+        _statsTotalShots = (total !== null) ? total : 0;
+        return _statsTotalShots;
+      } catch (_) {
+        _statsTotalShots = 0;
+        return _statsTotalShots;
+      } finally {
+        _statsLoadPromise = null;
+      }
+    })();
+
+    return _statsLoadPromise;
+  }
+
+  function _fmtPct(n, digits) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return '0%';
+    const d = Number.isFinite(Number(digits)) ? Math.max(0, Math.min(4, Number(digits))) : 2;
+    try { return `${x.toFixed(d)}%`; } catch (_) { return `${Math.round(x * 100) / 100}%`; }
+  }
+
+  function renderPeopleStatsTiles() {
+    if (!panelRoot) return;
+
+    const t = _peopleTotals || { people: 0, photos: 0, albums: 0 };
+
+    const elPeople = panelRoot.querySelector('#peopleStatPeople');
+    const elPhotos = panelRoot.querySelector('#peopleStatPhotos');
+    const elAlbums = panelRoot.querySelector('#peopleStatAlbums');
+    const elTotal = panelRoot.querySelector('#peopleStatTotalShots');
+    const elPct = panelRoot.querySelector('#peopleStatPercent');
+
+    if (elPeople) elPeople.textContent = _fmtInt(t.people);
+    if (elPhotos) elPhotos.textContent = _fmtInt(t.photos);
+    if (elAlbums) elAlbums.textContent = _fmtInt(t.albums);
+
+    // Total Shots + Percent need the Stats CSV.
+    // Render best-effort immediately; update once loaded.
+    const applyTotalAndPct = (totalShots) => {
+      const total = Number(totalShots);
+      if (elTotal) elTotal.textContent = _fmtInt(Number.isFinite(total) ? total : 0);
+      const pct = (Number.isFinite(total) && total > 0)
+        ? (Number(t.photos || 0) / total) * 100
+        : 0;
+      if (elPct) elPct.textContent = _fmtPct(pct, 2);
+    };
+
+    if (_statsTotalShots !== null) {
+      applyTotalAndPct(_statsTotalShots);
+    } else {
+      applyTotalAndPct(0);
+      // Fire-and-forget; safe rerender.
+      loadPeopleStatsTotalShots().then(applyTotalAndPct).catch(() => {});
+    }
   }
 
   // ---- Concurrency limiter (prevents request stampede) ----
@@ -443,6 +551,13 @@
 
     const res = await fetch(url, { cache: 'no-store' });
     const txt = await res.text();
+
+    // Never cache error payloads (prevents persisting "stats sheet error" etc.).
+    if (!res || !res.ok) {
+      const msg = String(txt || '').slice(0, 180).replace(/\s+/g, ' ').trim();
+      throw new Error(`HTTP ${res ? res.status : 0} (${url})${msg ? ': ' + msg : ''}`);
+    }
+
     try {
       sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), v: txt }));
     } catch (_) {}
@@ -779,6 +894,107 @@ function ensurePeopleStyles() {
       display:flex;
       justify-content:center;
       margin: 0 0 10px 0;
+    }
+
+    /* ===== People: Stats tiles (no click/routing) ===== */
+    .peopleStatsBlock{
+      width: min(980px, 96%);
+      margin: 0 auto 8px;
+      padding: 10px 10px 12px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.10);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.16) inset;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Remove the thin horizontal "scan" lines inside the stats block */
+    .peopleStatsBlock::before,
+    .peopleStatsBlock::after{
+      display:none;
+    }
+
+    .peopleStatsHdr{
+      width: 100%;
+      text-align:center;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .90;
+      margin: 0 0 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+    .peopleStatsTiles{
+      width: 100%;
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+      justify-items: stretch;
+      pointer-events: none;
+      user-select: none;
+      position: relative;
+      z-index: 2;
+    }
+    .peopleStatTile{
+      border-radius: 16px;
+      padding: 10px 10px 9px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,70,110,0.18);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.34);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow: hidden;
+      position: relative;
+      text-align:center;
+    }
+    .peopleStatTile::before{
+      content:"";
+      position:absolute;
+      inset: 0;
+      background:
+        radial-gradient(120px 80px at 50% 20%, rgba(255,70,110,0.14), transparent 60%),
+        radial-gradient(120px 80px at 50% 110%, rgba(0,210,255,0.06), transparent 60%);
+      opacity: .60;
+      pointer-events:none;
+    }
+    .peopleStatLabel{
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .80;
+      position: relative;
+      z-index: 2;
+    }
+    .peopleStatValue{
+      font-weight: 900;
+      font-size: 28px;
+      letter-spacing: .06em;
+      line-height: 1.05;
+      margin: 8px 0 6px;
+      color: rgba(255,210,210,0.92);
+      text-shadow: 0 0 18px rgba(255,70,110,0.14);
+      position: relative;
+      z-index: 2;
+    }
+    .peopleStatSub{
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .62;
+      position: relative;
+      z-index: 2;
+    }
+    @media (max-width: 980px){
+      .peopleStatsTiles{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    }
+    @media (max-width: 640px){
+      .peopleStatsTiles{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .peopleStatValue{ font-size: 24px; }
+      .peopleStatsBlock::before{ top: 40px; }
     }
 
     
@@ -1348,7 +1564,7 @@ function renderTopStats(indexMap){
   host.innerHTML = `
     <div class="peopleTopStatsHdr">
       <div class="peopleTopStatsTitle">Top 3</div>
-      <div class="peopleTopStatsSub">Most Photographed</div>
+      <div class="peopleTopStatsSub">Most photographed</div>
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
@@ -1358,7 +1574,8 @@ function renderTopStats(indexMap){
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
-            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)} ${_eh(t.name)}</div>
+            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)}</div>
+            <div class="peopleTopStatName">${_eh(t.name)}</div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
               <span class="dot">•</span>
@@ -1869,9 +2086,36 @@ function renderTopStats(indexMap){
           ` : ''}
         </div>
 
-        <!-- Centered totals pill (full-width row) -->
-        <div class="peopleTotalsRow">
-          <div id="peopleTotals" style="opacity:.85; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:7px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.22) inset;">0 PEOPLE • 0 PHOTOS • 0 ALBUMS</div>
+        <!-- People Stats (tiles) -->
+        <div class="peopleStatsBlock" aria-label="People Stats">
+          <div class="peopleStatsHdr">People Stats</div>
+          <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
+            <div class="peopleStatTile">
+              <div class="peopleStatLabel">PEOPLE</div>
+              <div id="peopleStatPeople" class="peopleStatValue">0</div>
+              <div class="peopleStatSub">PEOPLE</div>
+            </div>
+            <div class="peopleStatTile">
+              <div class="peopleStatLabel">PHOTOS</div>
+              <div id="peopleStatPhotos" class="peopleStatValue">0</div>
+              <div class="peopleStatSub">PHOTOS</div>
+            </div>
+            <div class="peopleStatTile">
+              <div class="peopleStatLabel">ALBUMS</div>
+              <div id="peopleStatAlbums" class="peopleStatValue">0</div>
+              <div class="peopleStatSub">ALBUMS</div>
+            </div>
+            <div class="peopleStatTile">
+              <div class="peopleStatLabel">TOTAL SHOTS</div>
+              <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
+              <div class="peopleStatSub">TOTAL</div>
+            </div>
+            <div class="peopleStatTile">
+              <div class="peopleStatLabel">PERCENT</div>
+              <div id="peopleStatPercent" class="peopleStatValue">0%</div>
+              <div class="peopleStatSub">of Total Shots</div>
+            </div>
+          </div>
         </div>
 
         <!-- Top 3 (display-only; no click/routing) -->
