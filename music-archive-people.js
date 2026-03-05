@@ -55,6 +55,18 @@
 
   // Album thumb cache: Map(albumKey -> imageUrl)
   let _albumThumbByKey = new Map();
+
+// Person-view album accordion + caption-match shots cache
+let _openPersonAlbumKey = '';
+const _albumCaptionMatchCache = new Map(); // albumKey -> { forPerson: string, shots: Array<{imageKey, thumbUrl}> }
+
+// Lightbox (People caption-match shots)
+let _peopleLightboxEl = null;
+let _peopleLightboxImg = null;
+let _peopleLightboxIndex = 0;
+let _peopleLightboxList = [];
+const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
+
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
 
@@ -67,16 +79,13 @@
   let _statsTotalShots = 61289; // Number|null
   let _statsLoadPromise = null;
 
+  // People stats collapsible UI state
+  let _peopleStatsCollapsed = false;
+
   // When using the server-side people index, we seed this cache up-front.
 
   // View state
   let _view = { mode: 'list', person: '', albumKeys: [] };
-
-  // Person-view accordion (only one album open at a time)
-  let _openPersonAlbumKey = '';
-  // Cache matched shots per album+person to avoid refetching on expand/collapse.
-  // Map(cacheKey -> { totalScanned:number, matches:[{thumbUrl, href, imageKey}], matchCount:number })
-  const _albumCaptionMatchCache = new Map();
 
   // Letter filter (A-Z). null = All
   let _peopleLetter = null;
@@ -215,6 +224,19 @@
 
     return { dateText: '', restTitle: raw };
   }
+
+function _dateSortValueFromDateText(dateText){
+  const s = String(dateText || '').trim();
+  // Expect MM/DD/YY
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (!m) return 0;
+  const mm = Number(m[1]);
+  const dd = Number(m[2]);
+  const yy = Number(m[3]);
+  if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yy)) return 0;
+  const yyyy = (yy >= 70) ? (1900 + yy) : (2000 + yy);
+  return (yyyy * 10000) + (mm * 100) + dd;
+}
 
 
   function _letterForName(name) {
@@ -933,6 +955,23 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
     }
+
+    .peopleStatsHdrToggle{
+      cursor: pointer;
+      user-select: none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+    }
+    .peopleStatsToggleIcon{
+      display:inline-block;
+      transition: transform 160ms ease, opacity 160ms ease;
+      opacity: .85;
+    }
+    .peopleStatsCollapsible.is-collapsed .peopleStatsToggleIcon{
+      transform: rotate(-90deg);
+    }
     .peopleStatsTiles{
       width: 100%;
       display:grid;
@@ -1062,6 +1101,23 @@ function ensurePeopleStyles() {
       text-transform: uppercase !important;
       margin: 0 0 10px 0;
     }
+
+    /* ===== People list: responsive columns ===== */
+    #people-root.is-list #peopleList{
+      width: min(980px, 96%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    #people-root.is-list .peopleRow{ width: 100%; }
+    @media (max-width: 1199px){
+      #people-root.is-list #peopleList{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 699px){
+      #people-root.is-list #peopleList{ grid-template-columns: 1fr; }
+    }
+
 
 /* People list: row layout (name left, counts right) */
     #people-root, #people-root *{
@@ -1349,94 +1405,6 @@ function ensurePeopleStyles() {
       .peopleTimelineBtn{ padding: 9px 14px; border-radius: 14px; }
     }
 
-    /* ===== People: Album inline dropdown (caption-match shots) ===== */
-    .peopleTimelineItem{ cursor: pointer; }
-    .peopleTimelineItem.is-open{ box-shadow: 0 0 0 1px rgba(255,70,110,0.40) inset, 0 18px 44px rgba(0,0,0,0.44); }
-    .peopleAlbumDrop{
-      grid-column: 1 / -1;
-      margin-top: 10px;
-      border-radius: 16px;
-      background: rgba(0,0,0,0.14);
-      border: 1px solid rgba(255,70,110,0.18);
-      box-shadow: 0 0 0 1px rgba(255,70,110,0.10) inset;
-      padding: 10px 10px 12px;
-      display: none;
-    }
-    .peopleTimelineItem.is-open .peopleAlbumDrop{ display: block; }
-    .peopleAlbumDropHdr{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase !important;
-      opacity: .82;
-      user-select:none;
-    }
-    .peopleAlbumDropHdr .right{ display:flex; align-items:center; gap:10px; }
-    .peopleAlbumDropLink{
-      pointer-events: auto;
-      text-decoration:none;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,70,110,0.26);
-      background: rgba(0,0,0,0.14);
-      box-shadow: 0 0 0 1px rgba(255,70,110,0.10) inset;
-      font-weight: 900;
-      letter-spacing: .12em;
-      color: rgba(226,232,240,0.92);
-      white-space: nowrap;
-    }
-    .peopleAlbumDropGrid{
-      display:grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      align-items: stretch;
-    }
-    @media (max-width: 980px){
-      .peopleAlbumDropGrid{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    }
-    @media (max-width: 820px){
-      .peopleAlbumDropGrid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px){
-      .peopleAlbumDropGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    .peopleAlbumShot{
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 12px 26px rgba(0,0,0,0.28);
-      aspect-ratio: 1 / 1;
-    }
-    .peopleAlbumShot img{ width:100%; height:100%; object-fit: cover; display:block; }
-    .peopleAlbumShotBadge{
-      position:absolute;
-      left: 8px;
-      top: 8px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.14);
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: .08em;
-      color: rgba(226,232,240,0.92);
-      pointer-events:none;
-      user-select:none;
-    }
-    .peopleAlbumShot a{ display:block; width:100%; height:100%; }
-    .peopleAlbumShotEmpty{
-      opacity:.7;
-      font-size:12px;
-      line-height:1.4;
-      padding: 8px;
-    }
-
     /* ===== People: Top stats (display-only; no click/routing) ===== */
     #peopleTopStats{ width: 100%; margin: 10px auto 10px; }
     .peopleTopStatsHdr{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin-bottom: 8px; }
@@ -1529,13 +1497,157 @@ function ensurePeopleStyles() {
       .peopleTopStatName{ font-size: 14px; }
     }
 
-  `;
+  
+
+/* Person album accordion (caption-match shots) */
+.peopleTimelineItem{ cursor: pointer; }
+.peopleTimelineItem.is-open{ box-shadow: 0 0 0 1px rgba(255,70,110,0.28) inset, 0 10px 26px rgba(0,0,0,0.35); }
+.peopleAlbumDrop{
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  background: rgba(0,0,0,0.22);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
+}
+.peopleAlbumDropHdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  opacity: .92;
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.peopleAlbumDropCount{ opacity: .78; }
+.peopleAlbumDropGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+.peopleShotThumb{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  padding: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  overflow: hidden;
+  background: rgba(0,0,0,0.20);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 14px 30px rgba(0,0,0,0.35);
+}
+.peopleShotThumb img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: translateZ(0);
+}
+.peopleShotBadge{
+  position:absolute;
+  top: 8px;
+  left: 8px;
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: .08em;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.45);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+  color: rgba(255,255,255,0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* People Lightbox */
+.peopleLightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.86);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.peopleLightbox.is-open{ display:flex; }
+.peopleLightboxInner{
+  width: min(1200px, 96vw);
+  max-height: 90vh;
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.peopleLightboxTop{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .9;
+}
+.peopleLightboxBtn{
+  cursor:pointer;
+  border:0;
+  background: rgba(0,0,0,0.25);
+  box-shadow: 0 0 0 1px rgba(255,70,110,0.25) inset;
+  color: rgba(255,255,255,0.92);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+}
+.peopleLightboxStage{
+  flex: 1;
+  min-height: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.18);
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+  overflow: hidden;
+}
+.peopleLightboxStage img{
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display:block;
+}
+.peopleLightboxNav{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.peopleLightboxNav .peopleLightboxBtn{ flex: 1; justify-content:center; }
+
+`;
   document.head.appendChild(s);
 }
   function renderPeopleList(indexMap) {
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
+    // List mode: enable responsive multi-column layout (CSS is keyed off this class).
+    try {
+      const root = panelRoot.querySelector('#people-root');
+      if (root) {
+        root.classList.add('is-list');
+        root.classList.remove('is-person');
+      }
+    } catch (_) {}
     if (!listEl) return;
 
     const allEntries = Array.from(indexMap.entries()).map(([name, set]) => ({
@@ -1657,8 +1769,7 @@ function renderTopStats(indexMap){
 
   host.innerHTML = `
     <div class="peopleTopStatsHdr">
-      <div class="peopleTopStatsTitle">Top 3</div>
-      <div class="peopleTopStatsSub">Most photographed</div>
+      <div class="peopleTopStatsTitle">Top 3 Most Photographed</div>
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
@@ -1668,8 +1779,7 @@ function renderTopStats(indexMap){
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
-            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)}</div>
-            <div class="peopleTopStatName">${_eh(t.name)}</div>
+            <div class="peopleTopStatRank" style="text-align:center" aria-hidden="true">${_eh(medal)}   ${_eh(t.name)}</div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
               <span class="dot">•</span>
@@ -1688,6 +1798,16 @@ function renderTopStats(indexMap){
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
     if (metaEl) metaEl.textContent = 'Person';
+
+    // Person mode: disable list grid layout.
+    try {
+      const root = panelRoot.querySelector('#people-root');
+      if (root) {
+        root.classList.add('is-person');
+        root.classList.remove('is-list');
+      }
+    } catch (_) {}
+
 
     // Hide A–Z while drilling in
     try {
@@ -1732,8 +1852,7 @@ function renderTopStats(indexMap){
       return;
     }
 
-    // Mockup-style timeline cards: date pill + poster + show title + featuring person + View Photos + inline dropdown for caption-match shots
-    const who = _eh(personName || '');
+    // Mockup-style timeline cards: date pill + poster + show title
     albumsEl.innerHTML = items
       .map((a, idx) => {
         const rawTitle = String(a.title || `Album ${a.albumKey}`);
@@ -1742,15 +1861,8 @@ function renderTopStats(indexMap){
         const mainTitle = _eh(split.restTitle || rawTitle);
         const href = a.url ? _eh(a.url) : '';
 
-        const btn = href
-          ? `<a class="peopleTimelineBtn" href="${href}" target="_blank" rel="noopener noreferrer">
-               <span>View Photos</span>
-               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 5l7 7-7 7-1.4-1.4L16.2 13H4v-2h12.2l-4.6-4.6L13 5z"/></svg>
-             </a>`
-          : `<div class="peopleTimelineSub" style="opacity:.65;">Album key: ${_eh(a.albumKey)}</div>`;
-
         return `
-          <div class="peopleTimelineItem" data-albumkey="${_eh(a.albumKey)}" data-albumurl="${href}">
+          <div class="peopleTimelineItem" data-albumkey="${_eh(a.albumKey)}">
             <div class="peopleTimelineNode" style="top: 26px;"></div>
 
             <div class="peopleTimelineDateCol">
@@ -1767,7 +1879,7 @@ function renderTopStats(indexMap){
               <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
             </div>
 
-            <div class="peopleAlbumDrop" aria-label="Tagged shots" data-drop="1"></div>
+            <div class="peopleAlbumDrop" data-albumdrop="1" style="display:none"></div>
           </div>
         `;
       })
@@ -1779,7 +1891,85 @@ function renderTopStats(indexMap){
     } catch (_) {}
   }
 
-  async function hydrateAlbumThumbs(albumKeys) {
+  
+
+function _closeOpenPersonAlbum(){
+  if (!panelRoot) return;
+  if (!_openPersonAlbumKey) return;
+  const key = _openPersonAlbumKey;
+  _openPersonAlbumKey = '';
+  try{
+    const item = panelRoot.querySelector(`.peopleTimelineItem[data-albumkey="${_cssEscape(key)}"]`);
+    if (item) item.classList.remove('is-open');
+    const drop = item ? item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]') : null;
+    if (drop) {
+      drop.style.display = 'none';
+      drop.innerHTML = '';
+    }
+  }catch(_){}
+}
+
+async function _openPersonAlbum(albumKey, personName){
+  if (!panelRoot) return;
+  const key = _safeTrim(albumKey);
+  if (!key) return;
+
+  // toggle off
+  if (_openPersonAlbumKey && _openPersonAlbumKey === key){
+    _closeOpenPersonAlbum();
+    return;
+  }
+
+  // close any previous
+  _closeOpenPersonAlbum();
+  _openPersonAlbumKey = key;
+
+  const item = panelRoot.querySelector(`.peopleTimelineItem[data-albumkey="${_cssEscape(key)}"]`);
+  if (!item) return;
+
+  item.classList.add('is-open');
+  const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
+  if (!drop) return;
+  drop.style.display = '';
+  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shots…</div>`;
+
+  const who = _safeTrim(personName);
+  const cached = _albumCaptionMatchCache.get(key);
+  let shots = (cached && cached.forPerson === _normKey(who) && Array.isArray(cached.shots)) ? cached.shots : null;
+
+  if (!shots){
+    shots = await fetchCaptionMatchShotsForPerson(key, who, { maxPages: 10, pageSize: 200 }).catch(() => []);
+    _albumCaptionMatchCache.set(key, { forPerson: _normKey(who), shots: Array.isArray(shots) ? shots : [] });
+  }
+
+  if (!panelRoot) return;
+  // If user switched albums while loading, abort
+  if (_openPersonAlbumKey !== key) return;
+
+  const list = Array.isArray(shots) ? shots : [];
+  _peopleLightboxList = list;
+  drop.innerHTML = `
+    <div class="peopleAlbumDropHdr">
+      <div>Tagged shots (caption match)</div>
+      <div class="peopleAlbumDropCount">${list.length}</div>
+    </div>
+    <div class="peopleAlbumDropGrid">
+      ${list.map((s, i) => {
+        const ik = _safeTrim(s.imageKey);
+        const tu = _safeTrim(s.thumbUrl);
+        if (!ik || !tu) return '';
+        return `
+          <button type="button" class="peopleShotThumb" data-imagekey="${_eh(ik)}" data-idx="${i}">
+            <span class="peopleShotBadge">#${i + 1}</span>
+            <img src="${_eh(tu)}" alt="" loading="lazy" decoding="async"/>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+async function hydrateAlbumThumbs(albumKeys) {
     if (!panelRoot) return;
     const keys = Array.isArray(albumKeys) ? albumKeys : [];
     if (!keys.length) return;
@@ -1805,139 +1995,11 @@ function renderTopStats(indexMap){
     }
   }
 
-  function _cacheKeyForAlbumPerson(albumKey, personName) {
-    return `${_normKey(albumKey)}|${_normKey(personName)}`;
-  }
-
-  function _captionHasPersonName(caption, personName) {
-    const who = String(personName || '').trim();
-    if (!who) return false;
-    const names = parsePeopleCaption(caption);
-    if (!names.length) return false;
-    const target = _normKey(who);
-    for (const nm of names) {
-      if (_normKey(nm) === target) return true;
-    }
-    return false;
-  }
-
-  function _extractHrefFromAlbumImage(albumImage) {
-    // Best-effort link to the photo page.
-    return (
-      _pickFirst(albumImage, ['WebUri', 'Url', 'URL', 'Uri', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl']) ||
-      _pickFirst(albumImage && albumImage.Image, ['WebUri', 'Url', 'URL', 'Uri', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl']) ||
-      ''
-    );
-  }
-
-  async function fetchCaptionMatchedShots(albumKey, personName, opts) {
-    const o = opts || {};
-    const maxPages = Math.max(1, Number(o.maxPages || 8));
-    const maxDetailFetches = Math.max(0, Number(o.maxDetailFetches || 60));
-    const pageSize = Math.max(50, Math.min(200, Number(o.pageSize || 200)));
-    const maxThumbs = Math.max(12, Math.min(120, Number(o.maxThumbs || 60)));
-
-    const matches = [];
-    let start = 1;
-    let page = 0;
-    let detailUsed = 0;
-    let scanned = 0;
-
-    while (page < maxPages) {
-      page += 1;
-      const pageJson = await limitNet(() => fetchAlbumImagesPage(albumKey, pageSize, start).catch(() => null));
-      if (!pageJson) break;
-      const images = extractAlbumImagesFromPage(pageJson);
-      if (!images.length) break;
-
-      for (const it of images) {
-        scanned += 1;
-        let caption = extractCaptionFromAlbumImage(it);
-        if (!caption && detailUsed < maxDetailFetches) {
-          const imageKey = extractImageKeyFromAlbumImage(it);
-          if (imageKey) {
-            detailUsed += 1;
-            caption = await limitNet(() => fetchImageCaptionByKey(imageKey));
-          }
-        }
-
-        if (_captionHasPersonName(caption, personName)) {
-          const thumbUrl = _extractThumbUrlFromAlbumImage(it) || '';
-          const href = _extractHrefFromAlbumImage(it) || '';
-          const imageKey = extractImageKeyFromAlbumImage(it) || '';
-          matches.push({ thumbUrl: String(thumbUrl || '').trim(), href: String(href || '').trim(), imageKey: String(imageKey || '').trim() });
-          if (matches.length >= maxThumbs) break;
-        }
-      }
-
-      if (matches.length >= maxThumbs) break;
-      if (images.length < pageSize) break;
-      start += pageSize;
-    }
-
-    return { matches, matchCount: matches.length, totalScanned: scanned };
-  }
-
-  function _closeOpenAlbumDropdown() {
-    if (!panelRoot || !_openPersonAlbumKey) return;
-    const openItem = panelRoot.querySelector(`.peopleTimelineItem[data-albumkey="${_cssEscape(_openPersonAlbumKey)}"]`);
-    if (openItem) openItem.classList.remove('is-open');
-    _openPersonAlbumKey = '';
-  }
-
-  function _renderAlbumDropdown(albumKey, personName, albumUrl, containerEl, token) {
-    if (!containerEl) return;
-
-    const cacheKey = _cacheKeyForAlbumPerson(albumKey, personName);
-    const cached = _albumCaptionMatchCache.get(cacheKey);
-
-    const hdr = (countTxt) => `
-      <div class="peopleAlbumDropHdr">
-        <div>${_eh(countTxt)}</div>
-      </div>
-    `;
-
-    if (cached && cached.matches) {
-      const countText = `Tagged shots (caption match): ${_fmtInt(cached.matchCount || 0)}`;
-      const grid = (cached.matches && cached.matches.length)
-        ? `<div class="peopleAlbumDropGrid">${cached.matches.map((m, i) => {
-            const badge = `#${i + 1}`;
-            const imgTag = m.thumbUrl
-              ? `<img src="${_eh(m.thumbUrl)}" alt="" loading="lazy" decoding="async"/>`
-              : `<div class="peopleAlbumShotEmpty">No thumb</div>`;
-            const inner = m.href
-              ? `<a href="${_eh(m.href)}" target="_blank" rel="noopener">${imgTag}</a>`
-              : imgTag;
-            return `<div class="peopleAlbumShot">${inner}<div class="peopleAlbumShotBadge">${_eh(badge)}</div></div>`;
-          }).join('')}</div>`
-        : `<div class="peopleAlbumShotEmpty">No caption matches found in this album.</div>`;
-
-      containerEl.innerHTML = `${hdr(countText)}${grid}`;
-      return;
-    }
-
-    // Loading
-    containerEl.innerHTML = `${hdr('Loading tagged shots…')}<div class="peopleAlbumShotEmpty">Loading…</div>`;
-
-    fetchCaptionMatchedShots(albumKey, personName, { maxPages: 10, pageSize: 200, maxDetailFetches: 80, maxThumbs: 60 })
-      .then((res) => {
-        if (token !== _lastRenderToken) return;
-        const out = res || { matches: [], matchCount: 0, totalScanned: 0 };
-        _albumCaptionMatchCache.set(cacheKey, out);
-        _renderAlbumDropdown(albumKey, personName, albumUrl, containerEl, token);
-      })
-      .catch(() => {
-        if (token !== _lastRenderToken) return;
-        containerEl.innerHTML = `${hdr('Tagged shots (caption match): 0')}<div class="peopleAlbumShotEmpty">Could not load shots for this album.</div>`;
-      });
-  }
-
   async function showPerson(personName, token) {
     if (!_peopleIndex) return;
     const set = _peopleIndex.get(personName);
     const albumKeys = set ? Array.from(set.values()) : [];
     _view = { mode: 'person', person: personName, albumKeys };
-    _openPersonAlbumKey = '';
 
     renderPersonAlbumsShell(personName);
 
@@ -1993,12 +2055,210 @@ function renderTopStats(indexMap){
 
     if (token !== _lastRenderToken) return;
 
-    // Sort albums by title for now (stable + predictable)
-    items.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    // Sort albums newest-first (by leading date in title when present), then title for stability.
+    items.sort((a, b) => {
+      const as = _splitDateFromTitle(String(a.title || ''));
+      const bs = _splitDateFromTitle(String(b.title || ''));
+      const ad = _dateSortValueFromDateText(as.dateText);
+      const bd = _dateSortValueFromDateText(bs.dateText);
+      if (bd !== ad) return bd - ad;
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    });
 
     if (statusEl) statusEl.textContent = '';
     renderPersonAlbumsList(items, personName);
   }
+
+// ================== PERSON ALBUM CAPTION MATCH SHOTS ==================
+function _captionNamesFromString(captionText){
+  const raw = String(captionText || '').trim();
+  if (!raw) return [];
+  // Semicolon-delimited (your vmpix convention); also allow commas as a fallback.
+  const parts = raw.split(';').join(';').split(';').map((x) => String(x || '').trim()).filter(Boolean);
+  return parts;
+}
+
+function _captionHasPerson(captionText, personName){
+  const who = _normKey(personName);
+  if (!who) return false;
+  const parts = _captionNamesFromString(captionText);
+  for (const p of parts){
+    if (_normKey(p) === who) return true;
+  }
+  return false;
+}
+
+async function fetchCaptionMatchShotsForPerson(albumKey, personName, opts){
+  const k = _safeTrim(albumKey);
+  const who = _safeTrim(personName);
+  if (!k || !who) return [];
+  const o = opts || {};
+  const maxPages = Math.max(1, Number(o.maxPages || 6));
+  const pageSize = Math.min(200, Math.max(25, Number(o.pageSize || 200)));
+
+  const out = [];
+  const seen = new Set();
+
+  for (let page = 1; page <= maxPages; page++){
+    const start = 1 + ((page - 1) * pageSize);
+    const pageJson = await limitNet(() => fetchAlbumImagesPage(k, pageSize, start).catch(() => null));
+    const images = pageJson ? extractAlbumImagesFromPage(pageJson) : [];
+    if (!images || !images.length) break;
+
+    for (const it of images){
+      const imageKey = extractImageKeyFromAlbumImage(it);
+      if (!imageKey || seen.has(imageKey)) continue;
+
+      let caption = extractCaptionFromAlbumImage(it);
+      if (!caption) {
+        // fallback: fetch image detail caption (bounded by server, but we keep pages small)
+        caption = await fetchImageCaptionByKey(imageKey);
+      }
+
+      if (!_captionHasPerson(caption, who)) continue;
+
+      const thumbUrl = _extractThumbUrlFromAlbumImage(it);
+      if (!thumbUrl) continue;
+
+      seen.add(imageKey);
+      out.push({ imageKey, thumbUrl });
+    }
+
+    // stop early if last page
+    try{
+      const resp = pageJson && pageJson.Response ? pageJson.Response : pageJson;
+      const totalPages = Number(resp?.Pages || resp?.TotalPages || 0);
+      if (totalPages && page >= totalPages) break;
+    }catch(_){}
+  }
+
+  return out;
+}
+
+// ================== PEOPLE LIGHTBOX (full-res) ==================
+function _upgradeSmugToOriginal(url){
+  const u = String(url || '');
+  // Many SmugMug image URLs include "/<size>/" or "/<size>/<file>".
+  // Prefer original "O" if present, otherwise leave untouched.
+  // Example: .../XL/filename-XL.jpg -> .../O/filename-O.jpg
+  return u
+    .replace(/\/([A-Z]{1,4})\//g, '/O/')
+    .replace(/-([A-Z]{1,4})\.(jpg|jpeg|png|webp)(\?.*)?$/i, '-O.$2$3');
+}
+
+function _bestFullUrlFromImageDetail(detailJson){
+  const resp = detailJson && detailJson.Response ? detailJson.Response : detailJson;
+  const img = resp && resp.Image ? resp.Image : null;
+  if (!img) return '';
+
+  const url =
+    _pickFirst(img, ['OriginalUrl','LargestUrl','X3LargeUrl','X2LargeUrl','XLargeUrl','LargeUrl','WebUri','Url','URL','Uri']) ||
+    '';
+
+  if (!url) return '';
+  // Prefer the direct OriginalUrl if present; else try to upgrade.
+  if (img.OriginalUrl) return String(img.OriginalUrl).trim();
+  return _upgradeSmugToOriginal(url);
+}
+
+async function _getFullUrlForImageKey(imageKey){
+  const k = _safeTrim(imageKey);
+  if (!k) return '';
+  if (_peopleFullUrlByImageKey.has(k)) return _peopleFullUrlByImageKey.get(k) || '';
+  try{
+    const detail = await fetchJsonSafe(`${API_BASE}/smug/image/${encodeURIComponent(k)}`, { retries: 1 });
+    const full = _bestFullUrlFromImageDetail(detail);
+    _peopleFullUrlByImageKey.set(k, full || '');
+    return full || '';
+  }catch(_){
+    _peopleFullUrlByImageKey.set(k, '');
+    return '';
+  }
+}
+
+function _ensurePeopleLightbox(){
+  if (_peopleLightboxEl && _peopleLightboxImg) return;
+
+  const el = document.createElement('div');
+  el.className = 'peopleLightbox';
+  el.innerHTML = `
+    <div class="peopleLightboxInner" role="dialog" aria-modal="true" aria-label="Photo viewer">
+      <div class="peopleLightboxTop">
+        <div id="peopleLightboxCounter">Photo</div>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close ✕</button>
+      </div>
+      <div class="peopleLightboxStage">
+        <img id="peopleLightboxImg" alt="" />
+      </div>
+      <div class="peopleLightboxNav">
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">← Prev</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next →</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  _peopleLightboxEl = el;
+  _peopleLightboxImg = el.querySelector('#peopleLightboxImg');
+
+  // Close on backdrop click
+  el.addEventListener('click', (ev) => {
+    const tgt = ev.target;
+    if (!tgt) return;
+    if (tgt === el) _closePeopleLightbox();
+  });
+
+  // Keyboard controls
+  window.addEventListener('keydown', (ev) => {
+    if (!_peopleLightboxEl || !_peopleLightboxEl.classList.contains('is-open')) return;
+    if (ev.key === 'Escape') { ev.preventDefault(); _closePeopleLightbox(); return; }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
+    if (ev.key === 'ArrowRight') { ev.preventDefault(); _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+  });
+}
+
+function _closePeopleLightbox(){
+  if (!_peopleLightboxEl) return;
+  _peopleLightboxEl.classList.remove('is-open');
+  try { document.body.style.overflow = ''; } catch(_) {}
+}
+
+async function _peopleLightboxShow(nextIndex){
+  if (!_peopleLightboxEl || !_peopleLightboxImg) return;
+  const list = Array.isArray(_peopleLightboxList) ? _peopleLightboxList : [];
+  if (!list.length) return;
+
+  const idx = (nextIndex < 0) ? (list.length - 1) : (nextIndex >= list.length) ? 0 : nextIndex;
+  _peopleLightboxIndex = idx;
+
+  const item = list[idx] || {};
+  const imageKey = _safeTrim(item.imageKey);
+  const counter = _peopleLightboxEl.querySelector('#peopleLightboxCounter');
+  if (counter) counter.textContent = `Photo ${idx + 1} / ${list.length}`;
+
+  // Show thumb immediately while full-res loads
+  const thumb = _safeTrim(item.thumbUrl);
+  if (thumb) {
+    try { _peopleLightboxImg.src = thumb; } catch(_) {}
+  }
+
+  const full = await _getFullUrlForImageKey(imageKey);
+  if (full) {
+    try { _peopleLightboxImg.src = full; } catch(_) {}
+  }
+}
+
+function openPeopleLightbox(list, index){
+  _ensurePeopleLightbox();
+  _peopleLightboxList = Array.isArray(list) ? list : [];
+  _peopleLightboxIndex = Math.max(0, Number(index || 0));
+  if (!_peopleLightboxEl) return;
+  _peopleLightboxEl.classList.add('is-open');
+  try { document.body.style.overflow = 'hidden'; } catch(_) {}
+  _peopleLightboxShow(_peopleLightboxIndex);
+}
+
+
 
   async function buildPeopleIndex(onProgress) {
     const folders = await loadBandFoldersFromCsv();
@@ -2069,16 +2329,73 @@ function renderTopStats(indexMap){
 
     // Delegated click handler
     panelRoot.addEventListener('click', onRootClick);
+    panelRoot.addEventListener('keydown', onRootKeydown);
   }
 
   function unbindEvents() {
     if (!panelRoot) return;
     panelRoot.removeEventListener('click', onRootClick);
+    panelRoot.removeEventListener('keydown', onRootKeydown);
   }
 
   function onRootClick(e) {
     const t = e && e.target ? e.target : null;
     if (!t || !panelRoot) return;
+
+    // People lightbox controls
+    const lbBtn = t.closest ? t.closest('[data-peoplelb]') : null;
+    if (lbBtn) {
+      e.preventDefault();
+      const act = _safeTrim(lbBtn.getAttribute('data-peoplelb'));
+      if (act === 'close') { _closePeopleLightbox(); return; }
+      if (act === 'prev') { _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
+      if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+    }
+
+    // Stats collapsible toggle
+    const statsBtn = t.closest ? t.closest('#peopleStatsToggle') : null;
+    if (statsBtn) {
+      e.preventDefault();
+      _peopleStatsCollapsed = !_peopleStatsCollapsed;
+      try {
+        const wrap = panelRoot && panelRoot.querySelector('#peopleStatsWrap');
+        const content = panelRoot && panelRoot.querySelector('#peopleStatsContent');
+        if (wrap) wrap.classList.toggle('is-collapsed', !!_peopleStatsCollapsed);
+        if (statsBtn) statsBtn.setAttribute('aria-expanded', _peopleStatsCollapsed ? 'false' : 'true');
+        if (content) content.style.display = _peopleStatsCollapsed ? 'none' : '';
+        try { sessionStorage.setItem('vm_music_people_stats_collapsed_v1', _peopleStatsCollapsed ? '1' : '0'); } catch (_) {}
+      } catch (_) {}
+      return;
+    }
+
+    // Shot thumbnail (caption match grid)
+    const shotBtn = t.closest ? t.closest('.peopleShotThumb[data-imagekey]') : null;
+    if (shotBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const idx = Number(shotBtn.getAttribute('data-idx') || 0);
+      openPeopleLightbox(_peopleLightboxList, idx);
+      return;
+    }
+
+    // Album accordion (person view)
+    const albumItem = t.closest ? t.closest('.peopleTimelineItem[data-albumkey]') : null;
+    if (albumItem && _view && _view.mode === 'person') {
+      // Don't toggle when clicking inside the expanded drop content (except thumbnails handled above)
+      const inDrop = t.closest ? t.closest('.peopleAlbumDrop[data-albumdrop="1"]') : null;
+      if (inDrop) return;
+      e.preventDefault();
+      const key = _safeTrim(albumItem.getAttribute('data-albumkey'));
+      if (key) {
+        // Build list for lightbox from the cached album matches (if present)
+        const cached = _albumCaptionMatchCache.get(key);
+        const who = _view && _view.person ? String(_view.person) : '';
+        const list = (cached && cached.forPerson === _normKey(who) && Array.isArray(cached.shots)) ? cached.shots : [];
+        _peopleLightboxList = list;
+        _openPersonAlbum(key, who);
+      }
+      return;
+    }
 
     // Rebuild index (server-side, force)
     const rebuildBtn = t.closest ? t.closest('#peopleRebuildBtn') : null;
@@ -2090,7 +2407,6 @@ function renderTopStats(indexMap){
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
-      _openPersonAlbumKey = '';
       _peopleIndex = null;
       _albumMetaByKey = new Map();
 
@@ -2121,7 +2437,6 @@ function renderTopStats(indexMap){
     if (backBtn) {
       e.preventDefault();
       _view = { mode: 'list', person: '', albumKeys: [] };
-      _openPersonAlbumKey = '';
       const statusEl = panelRoot.querySelector('#peopleStatus');
       if (statusEl) statusEl.textContent = '';
       if (_peopleIndex) renderPeopleList(_peopleIndex);
@@ -2153,41 +2468,33 @@ function renderTopStats(indexMap){
       if (statusEl) statusEl.textContent = '';
 
       showPerson(name, token);
-      return;
-    }
-
-    // Person view: album accordion + inline dropdown
-    const albumItem = t.closest ? t.closest('.peopleTimelineItem[data-albumkey]') : null;
-    if (albumItem && _view && _view.mode === 'person') {
-      // Allow clicks on normal links within the card (e.g., "View Photos" / "Open Album").
-      const aTag = t.closest ? t.closest('a') : null;
-      if (aTag) return;
-
-      e.preventDefault();
-
-      const albumKey = _safeTrim(albumItem.getAttribute('data-albumkey'));
-      if (!albumKey) return;
-
-      const personName = _safeTrim(_view.person);
-      const albumUrl = _safeTrim(albumItem.getAttribute('data-albumurl'));
-
-      // Toggle (accordion): close any other open item
-      const willOpen = !_openPersonAlbumKey || _openPersonAlbumKey !== albumKey;
-      _closeOpenAlbumDropdown();
-
-      if (!willOpen) return;
-
-      _openPersonAlbumKey = albumKey;
-      albumItem.classList.add('is-open');
-
-      const drop = albumItem.querySelector('.peopleAlbumDrop[data-drop="1"]');
-      const token = ++_lastRenderToken;
-      _renderAlbumDropdown(albumKey, personName, albumUrl, drop, token);
-      return;
     }
   }
 
-  async function loadPeopleIndexFromServer({ force = false, full = false, token, ifNewerThan = '' } = {}) {
+  
+  function onRootKeydown(e) {
+    const t = e && e.target ? e.target : null;
+    if (!t || !panelRoot) return;
+
+    const statsTgl = t.closest ? t.closest('#peopleStatsToggle') : null;
+    if (statsTgl && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      // Trigger the same logic as click (delegated)
+      try { statsTgl.click(); } catch (_) {
+        _peopleStatsCollapsed = !_peopleStatsCollapsed;
+        try {
+          const wrap = panelRoot && panelRoot.querySelector('#peopleStatsWrap');
+          const content = panelRoot && panelRoot.querySelector('#peopleStatsContent');
+          if (wrap) wrap.classList.toggle('is-collapsed', !!_peopleStatsCollapsed);
+          if (statsTgl) statsTgl.setAttribute('aria-expanded', _peopleStatsCollapsed ? 'false' : 'true');
+          if (content) content.style.display = _peopleStatsCollapsed ? 'none' : '';
+          try { sessionStorage.setItem('vm_music_people_stats_collapsed_v1', _peopleStatsCollapsed ? '1' : '0'); } catch (_) {}
+        } catch (_) {}
+      }
+    }
+  }
+
+async function loadPeopleIndexFromServer({ force = false, full = false, token, ifNewerThan = '' } = {}) {
     if (!panelRoot) return new Map();
 
     // De-dupe rapid calls. If we just started a load very recently, reuse it.
@@ -2329,7 +2636,7 @@ function renderTopStats(indexMap){
     return `
       <div id="people-root" style="width:100%;">
         <div class="peopleHeaderTop">
-          <div class="peopleHeaderTitle">People</div>
+          <div class="peopleHeaderTitle">The Individual Index</div>
           <div id="peopleStatus" class="peopleHeaderStatus"></div>
           ${SHOW_REBUILD_BUTTON ? `
             <button type="button" id="peopleRebuildBtn"
@@ -2339,40 +2646,46 @@ function renderTopStats(indexMap){
           ` : ''}
         </div>
 
-        <!-- People Stats (tiles) -->
-        <div class="peopleStatsBlock" aria-label="People Stats">
-          <div class="peopleStatsHdr">People Stats</div>
-          <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
-            <div class="peopleStatTile">
-              <div class="peopleStatLabel">PEOPLE</div>
-              <div id="peopleStatPeople" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">PEOPLE</div>
+        <!-- People Stats + Top 3 (collapsible) -->
+        <div id="peopleStatsWrap" class="peopleStatsCollapsible" aria-label="People Stats">
+          <!-- Centered header is the click target -->
+          <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
+               aria-expanded="true" aria-controls="peopleStatsContent">
+            <span>Stats</span>
+            <span class="peopleStatsToggleIcon" aria-hidden="true">▾</span>
+          </div>
+
+          <div id="peopleStatsContent" class="peopleStatsContent">
+            <!-- People Stats (tiles) -->
+            <div class="peopleStatsBlock" aria-label="People Stats tiles">
+              <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
+                <div class="peopleStatTile">
+                  <div id="peopleStatPeople" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">People Tagged</div>
+                </div>
+                <div class="peopleStatTile">
+                  <div id="peopleStatPhotos" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Photos Indexed</div>
+                </div>
+                <div class="peopleStatTile">
+                  <div id="peopleStatAlbums" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Albums</div>
+                </div>
+                <div class="peopleStatTile">
+                  <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Total Shots</div>
+                </div>
+                <div class="peopleStatTile">
+                  <div id="peopleStatPercent" class="peopleStatValue">0%</div>
+                  <div class="peopleStatSub">Total Shots Indexed</div>
+                </div>
+              </div>
             </div>
-            <div class="peopleStatTile">
-              <div class="peopleStatLabel">PHOTOS</div>
-              <div id="peopleStatPhotos" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">PHOTOS</div>
-            </div>
-            <div class="peopleStatTile">
-              <div class="peopleStatLabel">ALBUMS</div>
-              <div id="peopleStatAlbums" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">ALBUMS</div>
-            </div>
-            <div class="peopleStatTile">
-              <div class="peopleStatLabel">TOTAL SHOTS</div>
-              <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">TOTAL</div>
-            </div>
-            <div class="peopleStatTile">
-              <div class="peopleStatLabel">PERCENT</div>
-              <div id="peopleStatPercent" class="peopleStatValue">0%</div>
-              <div class="peopleStatSub">of Total Shots</div>
-            </div>
+
+            <!-- Top 3 (display-only; no click/routing) -->
+            <div id="peopleTopStats"></div>
           </div>
         </div>
-
-        <!-- Top 3 (display-only; no click/routing) -->
-        <div id="peopleTopStats"></div>
 
         <!-- A–Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
@@ -2390,6 +2703,21 @@ function renderTopStats(indexMap){
 
     // Styles (once)
     try { ensurePeopleStyles(); } catch (_) {}
+
+    // Restore stats collapse state (session-scoped)
+    try {
+      const raw = sessionStorage.getItem('vm_music_people_stats_collapsed_v1');
+      _peopleStatsCollapsed = raw === '1';
+    } catch (_) { _peopleStatsCollapsed = false; }
+
+    try {
+      const wrap = panelRoot && panelRoot.querySelector('#peopleStatsWrap');
+      const btn = panelRoot && panelRoot.querySelector('#peopleStatsToggle');
+      const content = panelRoot && panelRoot.querySelector('#peopleStatsContent');
+      if (wrap) wrap.classList.toggle('is-collapsed', !!_peopleStatsCollapsed);
+      if (btn) btn.setAttribute('aria-expanded', _peopleStatsCollapsed ? 'false' : 'true');
+      if (content) content.style.display = _peopleStatsCollapsed ? 'none' : '';
+    } catch (_) {}
 
     // Ensure events only bound once per mount
     unbindEvents();
