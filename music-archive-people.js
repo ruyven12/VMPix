@@ -23,6 +23,11 @@
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
 
+  // Used only for enriching the People→Albums drill-in with show posters (fail-soft).
+  const SHOWS_CSV_ENDPOINT = `${API_BASE}/sheet/shows`;
+  const PEOPLE_SHOWS_CSV_TTL_MS = 1000 * 60 * 60 * 12; // 12h
+  const PEOPLE_SHOWS_CSV_CACHE_KEY = 'musicArchive_people_shows_csv_v1';
+
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
     Local: 'Music/Archives/Bands/Local',
@@ -45,6 +50,9 @@
   let _albumMetaByKey = new Map();
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
+
+  // Shows poster lookup (date|title -> poster_url)
+  let _showsPosterMap = null;
 
   // Header totals (computed client-side)
   let _peopleTotals = { people: 0, photos: 0, albums: 0 };
@@ -147,6 +155,36 @@
     const x = Number(n);
     if (!Number.isFinite(x)) return '0';
     try { return Math.round(x).toLocaleString(); } catch (_) { return String(Math.round(x)); }
+  }
+
+  function _dateToIso(d) {
+    // Accepts M/D/YY, M/D/YYYY, etc. Returns YYYY-MM-DD or ''
+    const s = String(d || '').trim();
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return '';
+    let mm = parseInt(m[1], 10);
+    let dd = parseInt(m[2], 10);
+    let yy = parseInt(m[3], 10);
+    if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yy)) return '';
+    if (yy < 100) yy = 2000 + yy;
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
+    const p2 = (x) => String(x).padStart(2, '0');
+    return `${yy}-${p2(mm)}-${p2(dd)}`;
+  }
+
+  function _parseAlbumTitleForShow(title) {
+    const s = String(title || '').trim();
+    const m = s.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(.+)$/);
+    if (!m) return { showDate: '', showTitle: '' };
+    return { showDate: m[1].trim(), showTitle: m[2].trim() };
+  }
+
+  function _showKey(dateStr, titleStr) {
+    const iso = _dateToIso(dateStr);
+    if (!iso) return '';
+    const t = _normKey(titleStr);
+    if (!t) return '';
+    return `${iso}|${t}`;
   }
 
 
@@ -627,6 +665,77 @@
     return out;
   }
 
+  async function ensureShowsPosterMap() {
+    if (_showsPosterMap && typeof _showsPosterMap.get === 'function') return _showsPosterMap;
+    try {
+      const { text, ct } = await fetchTextWithSessionCache(
+        SHOWS_CSV_ENDPOINT,
+        PEOPLE_SHOWS_CSV_TTL_MS,
+        PEOPLE_SHOWS_CSV_CACHE_KEY
+      );
+      if (!text || !text.trim()) {
+        _showsPosterMap = new Map();
+        return _showsPosterMap;
+      }
+
+      const raw = String(text || '').trim();
+      let rows = null;
+
+      // JSON first (mirrors shows module behavior; fail-soft)
+      if ((ct && String(ct).includes('application/json')) || /^[\s]*[\[{]/.test(raw)) {
+        try {
+          const parsed = JSON.parse(raw);
+          rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.rows) ? parsed.rows : null);
+        } catch (_) {
+          // ignore; try CSV below
+        }
+      }
+
+      const map = new Map();
+
+      if (Array.isArray(rows)) {
+        for (const r of rows) {
+          const d = (r?.show_date || r?.date || '').trim();
+          const t = (r?.show_name || r?.title || '').trim();
+          const p = (r?.poster_url || r?.show_url || '').trim();
+          const k = _showKey(d, t);
+          if (k && p) map.set(k, p);
+        }
+        _showsPosterMap = map;
+        return map;
+      }
+
+      // CSV fallback
+      const lines = raw.split(/\r?\n/).filter((l) => l.trim());
+      const headerLine = lines.shift();
+      if (!headerLine) {
+        _showsPosterMap = map;
+        return map;
+      }
+      const header = parseCsvLine(headerLine).map((h) => h.trim());
+      const headerLower = header.map((h) => h.toLowerCase());
+
+      const nameIdx = headerLower.indexOf('show_name') !== -1 ? headerLower.indexOf('show_name') : headerLower.indexOf('title');
+      const dateIdx = headerLower.indexOf('show_date') !== -1 ? headerLower.indexOf('show_date') : headerLower.indexOf('date');
+      const posterIdx = headerLower.indexOf('poster_url') !== -1 ? headerLower.indexOf('poster_url') : headerLower.indexOf('show_url');
+
+      for (const line of lines) {
+        const cols = parseCsvLine(line);
+        const d = dateIdx !== -1 ? String(cols[dateIdx] || '').trim() : '';
+        const t = nameIdx !== -1 ? String(cols[nameIdx] || '').trim() : '';
+        const p = posterIdx !== -1 ? String(cols[posterIdx] || '').trim() : '';
+        const k = _showKey(d, t);
+        if (k && p) map.set(k, p);
+      }
+
+      _showsPosterMap = map;
+      return map;
+    } catch (_) {
+      _showsPosterMap = new Map();
+      return _showsPosterMap;
+    }
+  }
+
   function _rememberAlbumStub(albumKey, albumObj) {
     if (!albumKey || !albumObj) return;
     if (_albumStubByKey.has(albumKey)) return;
@@ -824,6 +933,142 @@ function ensurePeopleStyles() {
       .peopleMetric{ padding: 6px 9px; font-size: 11px; }
       .peopleName{ font-size: 12.5px; }
     }
+
+    /* Person drill-in: Timeline + album cards (items 1,2,3,5) */
+    .peopleTimelineWrap{
+      position: relative;
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      box-sizing: border-box;
+      padding: 4px 0 0 0;
+    }
+    .peopleTimelineWrap:before{
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 6px;
+      bottom: 6px;
+      width: 1px;
+      background: rgba(255,70,110,0.18);
+      box-shadow: 0 0 14px rgba(255,70,110,0.10);
+      pointer-events: none;
+    }
+    .peopleTimelineItem{
+      display: grid;
+      grid-template-columns: 84px 86px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      margin: 10px 0;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.14);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
+    }
+    .peopleTimelineDateCol{
+      position: relative;
+      min-height: 54px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding-right: 2px;
+    }
+    .peopleTimelineNode{
+      position: absolute;
+      left: 24px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: rgba(255,70,110,0.55);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.55), 0 0 18px rgba(255,70,110,0.22);
+    }
+    .peopleTimelineDatePill{
+      margin-left: 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: .10em;
+      text-transform: uppercase !important;
+      white-space: nowrap;
+    }
+    .peopleTimelinePosterCol{
+      width: 86px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .peoplePosterBox{
+      width: 78px;
+      height: 78px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.16);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.16) inset;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex: 0 0 auto;
+    }
+    .peoplePosterImg{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+    }
+    .peoplePosterPlaceholder{
+      width: 100%;
+      height: 100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase !important;
+      opacity: .55;
+    }
+    .peopleTimelineContent{
+      min-width: 0;
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+    }
+    .peopleTimelineTitle{
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: .02em;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .peopleTimelineActions{ display:flex; gap: 10px; align-items:center; }
+    .peopleOpenBtn{
+      text-decoration:none;
+      display:inline-block;
+      font-weight:800;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase !important;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(0,0,0,0.18);
+      box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;
+    }
+    @media (max-width: 720px){
+      .peopleTimelineItem{ grid-template-columns: 78px 80px 1fr; padding: 10px; }
+      .peoplePosterBox{ width: 72px; height: 72px; border-radius: 12px; }
+      .peopleTimelineWrap:before{ left: 26px; }
+      .peopleTimelineNode{ left: 22px; }
+      .peopleTimelineDatePill{ margin-left: 0; }
+    }
   `;
   document.head.appendChild(s);
 }
@@ -952,27 +1197,41 @@ function ensurePeopleStyles() {
       return;
     }
 
-    // Keep this simple and safe: title + open link (if available)
-    albumsEl.innerHTML = items
-      .map((a) => {
-        const title = _eh(a.title || `Album ${a.albumKey}`);
-        const href = a.url ? _eh(a.url) : '';
-        const openBtn = href
-          ? `<a href="${href}" target="_blank" rel="noopener noreferrer"
-                style="text-decoration:none; display:inline-block; margin-top:8px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;">
-                Open
-              </a>`
-          : `<div style="opacity:.6; font-size:11px; margin-top:8px;">Album key: ${_eh(a.albumKey)}</div>`;
+    // Timeline layout: left date rail + poster tile + content (title + open)
+    albumsEl.innerHTML = `
+      <div class="peopleTimelineWrap">
+        ${items.map((a) => {
+          const dateLabel = _eh(a.showDate || '—');
+          const title = _eh(a.title || `Album ${a.albumKey}`);
+          const href = a.url ? _eh(a.url) : '';
+          const posterUrl = a.posterUrl ? _eh(a.posterUrl) : '';
 
-        return `
-          <div class="peopleAlbumCard"
-            style="padding:12px; border-radius:12px; background:rgba(0,0,0,0.14); box-shadow:0 0 0 1px rgba(255,70,110,0.20) inset; margin:10px 0;">
-            <div style="font-weight:900; font-size:13px; letter-spacing:.02em;">${title}</div>
-            ${openBtn}
-          </div>
-        `;
-      })
-      .join('');
+          const poster = posterUrl
+            ? `<div class="peoplePosterBox"><img class="peoplePosterImg" src="${posterUrl}" alt="Poster" loading="lazy" /></div>`
+            : `<div class="peoplePosterBox"><div class="peoplePosterPlaceholder">Poster</div></div>`;
+
+          const openBtn = href
+            ? `<a class="peopleOpenBtn" href="${href}" target="_blank" rel="noopener noreferrer">Open</a>`
+            : `<div style="opacity:.6; font-size:11px;">Album key: ${_eh(a.albumKey)}</div>`;
+
+          return `
+            <div class="peopleTimelineItem">
+              <div class="peopleTimelineDateCol">
+                <div class="peopleTimelineNode"></div>
+                <div class="peopleTimelineDatePill">${dateLabel}</div>
+              </div>
+              <div class="peopleTimelinePosterCol">
+                ${poster}
+              </div>
+              <div class="peopleTimelineContent">
+                <div class="peopleTimelineTitle" title="${title}">${title}</div>
+                <div class="peopleTimelineActions">${openBtn}</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
   }
 
   async function showPerson(personName, token) {
@@ -992,6 +1251,10 @@ function ensurePeopleStyles() {
     // Build album list using stubs when available; fetch meta when needed.
     const items = [];
     let done = 0;
+
+    // Best-effort shows poster lookup (fail-soft)
+    let posterMap = null;
+    try { posterMap = await ensureShowsPosterMap(); } catch (_) { posterMap = new Map(); }
 
     for (const k of albumKeys) {
       if (token !== _lastRenderToken) return;
@@ -1023,9 +1286,28 @@ function ensurePeopleStyles() {
         }
       }
 
+      // Derive show date/title from album title (common pattern: M/D/YY - Show Name)
+      const parsed = _parseAlbumTitleForShow(title || '');
+      const showDate = parsed.showDate || '';
+      const showTitle = parsed.showTitle || (title || `Album ${key}`);
+
+      // Prefer show poster for the card image (fail-soft)
+      let posterUrl = '';
+      try {
+        const sk = _showKey(showDate, showTitle);
+        if (sk && posterMap && typeof posterMap.get === 'function') posterUrl = String(posterMap.get(sk) || '').trim();
+      } catch (_) {}
+
       // Normalize URL: if it's a relative path and we are not on SmugMug domain, leave it as-is;
       // if it's missing, we just omit the link.
-      items.push({ albumKey: key, title: title || `Album ${key}`, url: url || '' });
+      items.push({
+        albumKey: key,
+        title: showTitle || `Album ${key}`,
+        url: url || '',
+        showDate,
+        posterUrl,
+        _iso: _dateToIso(showDate)
+      });
 
       done += 1;
       if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
@@ -1035,8 +1317,15 @@ function ensurePeopleStyles() {
 
     if (token !== _lastRenderToken) return;
 
-    // Sort albums by title for now (stable + predictable)
-    items.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    // Sort by show date (newest first) when available; otherwise by title
+    items.sort((a, b) => {
+      const ai = String(a._iso || '');
+      const bi = String(b._iso || '');
+      if (ai && bi) return bi.localeCompare(ai);
+      if (ai && !bi) return -1;
+      if (!ai && bi) return 1;
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    });
 
     if (statusEl) statusEl.textContent = '';
     renderPersonAlbumsList(items);
@@ -1142,7 +1431,8 @@ function ensurePeopleStyles() {
           if (token !== _lastRenderToken) return;
           if (statusEl) statusEl.textContent = '';
           _peopleIndex = idx || new Map();
-          try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
+          // Persist photo counts too so header totals don't regress to 0 on refresh.
+          try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
           renderPeopleList(_peopleIndex);
           try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
         })
@@ -1339,7 +1629,8 @@ function ensurePeopleStyles() {
           _buildPromise = loadPeopleIndexFromServer({ force: false, token })
             .then((idx) => {
               _peopleIndex = idx || new Map();
-              try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
+              // Persist photo counts too so header totals don't regress to 0 on refresh.
+              try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
               return _peopleIndex;
             })
             .catch((err) => {
@@ -1369,7 +1660,8 @@ function ensurePeopleStyles() {
       _buildPromise = loadPeopleIndexFromServer({ force: false, token })
         .then((idx) => {
           _peopleIndex = idx || new Map();
-          try { savePeopleIndexToSession(_peopleIndex); } catch (_) {}
+          // Persist photo counts too so header totals don't regress to 0 on refresh.
+          try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
           return _peopleIndex;
         })
         .catch((err) => {
