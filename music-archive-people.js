@@ -72,6 +72,12 @@
   // View state
   let _view = { mode: 'list', person: '', albumKeys: [] };
 
+  // Person-view accordion (only one album open at a time)
+  let _openPersonAlbumKey = '';
+  // Cache matched shots per album+person to avoid refetching on expand/collapse.
+  // Map(cacheKey -> { totalScanned:number, matches:[{thumbUrl, href, imageKey}], matchCount:number })
+  const _albumCaptionMatchCache = new Map();
+
   // Letter filter (A-Z). null = All
   let _peopleLetter = null;
 
@@ -1343,6 +1349,94 @@ function ensurePeopleStyles() {
       .peopleTimelineBtn{ padding: 9px 14px; border-radius: 14px; }
     }
 
+    /* ===== People: Album inline dropdown (caption-match shots) ===== */
+    .peopleTimelineItem{ cursor: pointer; }
+    .peopleTimelineItem.is-open{ box-shadow: 0 0 0 1px rgba(255,70,110,0.40) inset, 0 18px 44px rgba(0,0,0,0.44); }
+    .peopleAlbumDrop{
+      grid-column: 1 / -1;
+      margin-top: 10px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.14);
+      border: 1px solid rgba(255,70,110,0.18);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.10) inset;
+      padding: 10px 10px 12px;
+      display: none;
+    }
+    .peopleTimelineItem.is-open .peopleAlbumDrop{ display: block; }
+    .peopleAlbumDropHdr{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase !important;
+      opacity: .82;
+      user-select:none;
+    }
+    .peopleAlbumDropHdr .right{ display:flex; align-items:center; gap:10px; }
+    .peopleAlbumDropLink{
+      pointer-events: auto;
+      text-decoration:none;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,70,110,0.26);
+      background: rgba(0,0,0,0.14);
+      box-shadow: 0 0 0 1px rgba(255,70,110,0.10) inset;
+      font-weight: 900;
+      letter-spacing: .12em;
+      color: rgba(226,232,240,0.92);
+      white-space: nowrap;
+    }
+    .peopleAlbumDropGrid{
+      display:grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+    @media (max-width: 980px){
+      .peopleAlbumDropGrid{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+    @media (max-width: 820px){
+      .peopleAlbumDropGrid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px){
+      .peopleAlbumDropGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .peopleAlbumShot{
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 12px 26px rgba(0,0,0,0.28);
+      aspect-ratio: 1 / 1;
+    }
+    .peopleAlbumShot img{ width:100%; height:100%; object-fit: cover; display:block; }
+    .peopleAlbumShotBadge{
+      position:absolute;
+      left: 8px;
+      top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: rgba(226,232,240,0.92);
+      pointer-events:none;
+      user-select:none;
+    }
+    .peopleAlbumShot a{ display:block; width:100%; height:100%; }
+    .peopleAlbumShotEmpty{
+      opacity:.7;
+      font-size:12px;
+      line-height:1.4;
+      padding: 8px;
+    }
+
     /* ===== People: Top stats (display-only; no click/routing) ===== */
     #peopleTopStats{ width: 100%; margin: 10px auto 10px; }
     .peopleTopStatsHdr{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin-bottom: 8px; }
@@ -1563,7 +1657,8 @@ function renderTopStats(indexMap){
 
   host.innerHTML = `
     <div class="peopleTopStatsHdr">
-      <div class="peopleTopStatsTitle">Top 3 Most Photographed</div>
+      <div class="peopleTopStatsTitle">Top 3</div>
+      <div class="peopleTopStatsSub">Most photographed</div>
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
@@ -1573,7 +1668,8 @@ function renderTopStats(indexMap){
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
-            <div class="peopleTopStatRank" style="text-align:center" aria-hidden="true">${_eh(medal)}   ${_eh(t.name)}</div>
+            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)}</div>
+            <div class="peopleTopStatName">${_eh(t.name)}</div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
               <span class="dot">•</span>
@@ -1636,7 +1732,8 @@ function renderTopStats(indexMap){
       return;
     }
 
-    // Mockup-style timeline cards: date pill + poster + show title
+    // Mockup-style timeline cards: date pill + poster + show title + featuring person + View Photos + inline dropdown for caption-match shots
+    const who = _eh(personName || '');
     albumsEl.innerHTML = items
       .map((a, idx) => {
         const rawTitle = String(a.title || `Album ${a.albumKey}`);
@@ -1645,8 +1742,15 @@ function renderTopStats(indexMap){
         const mainTitle = _eh(split.restTitle || rawTitle);
         const href = a.url ? _eh(a.url) : '';
 
+        const btn = href
+          ? `<a class="peopleTimelineBtn" href="${href}" target="_blank" rel="noopener noreferrer">
+               <span>View Photos</span>
+               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 5l7 7-7 7-1.4-1.4L16.2 13H4v-2h12.2l-4.6-4.6L13 5z"/></svg>
+             </a>`
+          : `<div class="peopleTimelineSub" style="opacity:.65;">Album key: ${_eh(a.albumKey)}</div>`;
+
         return `
-          <div class="peopleTimelineItem">
+          <div class="peopleTimelineItem" data-albumkey="${_eh(a.albumKey)}" data-albumurl="${href}">
             <div class="peopleTimelineNode" style="top: 26px;"></div>
 
             <div class="peopleTimelineDateCol">
@@ -1662,6 +1766,8 @@ function renderTopStats(indexMap){
             <div class="peopleTimelineBody">
               <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
             </div>
+
+            <div class="peopleAlbumDrop" aria-label="Tagged shots" data-drop="1"></div>
           </div>
         `;
       })
@@ -1699,11 +1805,139 @@ function renderTopStats(indexMap){
     }
   }
 
+  function _cacheKeyForAlbumPerson(albumKey, personName) {
+    return `${_normKey(albumKey)}|${_normKey(personName)}`;
+  }
+
+  function _captionHasPersonName(caption, personName) {
+    const who = String(personName || '').trim();
+    if (!who) return false;
+    const names = parsePeopleCaption(caption);
+    if (!names.length) return false;
+    const target = _normKey(who);
+    for (const nm of names) {
+      if (_normKey(nm) === target) return true;
+    }
+    return false;
+  }
+
+  function _extractHrefFromAlbumImage(albumImage) {
+    // Best-effort link to the photo page.
+    return (
+      _pickFirst(albumImage, ['WebUri', 'Url', 'URL', 'Uri', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl']) ||
+      _pickFirst(albumImage && albumImage.Image, ['WebUri', 'Url', 'URL', 'Uri', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl']) ||
+      ''
+    );
+  }
+
+  async function fetchCaptionMatchedShots(albumKey, personName, opts) {
+    const o = opts || {};
+    const maxPages = Math.max(1, Number(o.maxPages || 8));
+    const maxDetailFetches = Math.max(0, Number(o.maxDetailFetches || 60));
+    const pageSize = Math.max(50, Math.min(200, Number(o.pageSize || 200)));
+    const maxThumbs = Math.max(12, Math.min(120, Number(o.maxThumbs || 60)));
+
+    const matches = [];
+    let start = 1;
+    let page = 0;
+    let detailUsed = 0;
+    let scanned = 0;
+
+    while (page < maxPages) {
+      page += 1;
+      const pageJson = await limitNet(() => fetchAlbumImagesPage(albumKey, pageSize, start).catch(() => null));
+      if (!pageJson) break;
+      const images = extractAlbumImagesFromPage(pageJson);
+      if (!images.length) break;
+
+      for (const it of images) {
+        scanned += 1;
+        let caption = extractCaptionFromAlbumImage(it);
+        if (!caption && detailUsed < maxDetailFetches) {
+          const imageKey = extractImageKeyFromAlbumImage(it);
+          if (imageKey) {
+            detailUsed += 1;
+            caption = await limitNet(() => fetchImageCaptionByKey(imageKey));
+          }
+        }
+
+        if (_captionHasPersonName(caption, personName)) {
+          const thumbUrl = _extractThumbUrlFromAlbumImage(it) || '';
+          const href = _extractHrefFromAlbumImage(it) || '';
+          const imageKey = extractImageKeyFromAlbumImage(it) || '';
+          matches.push({ thumbUrl: String(thumbUrl || '').trim(), href: String(href || '').trim(), imageKey: String(imageKey || '').trim() });
+          if (matches.length >= maxThumbs) break;
+        }
+      }
+
+      if (matches.length >= maxThumbs) break;
+      if (images.length < pageSize) break;
+      start += pageSize;
+    }
+
+    return { matches, matchCount: matches.length, totalScanned: scanned };
+  }
+
+  function _closeOpenAlbumDropdown() {
+    if (!panelRoot || !_openPersonAlbumKey) return;
+    const openItem = panelRoot.querySelector(`.peopleTimelineItem[data-albumkey="${_cssEscape(_openPersonAlbumKey)}"]`);
+    if (openItem) openItem.classList.remove('is-open');
+    _openPersonAlbumKey = '';
+  }
+
+  function _renderAlbumDropdown(albumKey, personName, albumUrl, containerEl, token) {
+    if (!containerEl) return;
+
+    const cacheKey = _cacheKeyForAlbumPerson(albumKey, personName);
+    const cached = _albumCaptionMatchCache.get(cacheKey);
+
+    const hdr = (countTxt) => `
+      <div class="peopleAlbumDropHdr">
+        <div>${_eh(countTxt)}</div>
+      </div>
+    `;
+
+    if (cached && cached.matches) {
+      const countText = `Tagged shots (caption match): ${_fmtInt(cached.matchCount || 0)}`;
+      const grid = (cached.matches && cached.matches.length)
+        ? `<div class="peopleAlbumDropGrid">${cached.matches.map((m, i) => {
+            const badge = `#${i + 1}`;
+            const imgTag = m.thumbUrl
+              ? `<img src="${_eh(m.thumbUrl)}" alt="" loading="lazy" decoding="async"/>`
+              : `<div class="peopleAlbumShotEmpty">No thumb</div>`;
+            const inner = m.href
+              ? `<a href="${_eh(m.href)}" target="_blank" rel="noopener">${imgTag}</a>`
+              : imgTag;
+            return `<div class="peopleAlbumShot">${inner}<div class="peopleAlbumShotBadge">${_eh(badge)}</div></div>`;
+          }).join('')}</div>`
+        : `<div class="peopleAlbumShotEmpty">No caption matches found in this album.</div>`;
+
+      containerEl.innerHTML = `${hdr(countText)}${grid}`;
+      return;
+    }
+
+    // Loading
+    containerEl.innerHTML = `${hdr('Loading tagged shots…')}<div class="peopleAlbumShotEmpty">Loading…</div>`;
+
+    fetchCaptionMatchedShots(albumKey, personName, { maxPages: 10, pageSize: 200, maxDetailFetches: 80, maxThumbs: 60 })
+      .then((res) => {
+        if (token !== _lastRenderToken) return;
+        const out = res || { matches: [], matchCount: 0, totalScanned: 0 };
+        _albumCaptionMatchCache.set(cacheKey, out);
+        _renderAlbumDropdown(albumKey, personName, albumUrl, containerEl, token);
+      })
+      .catch(() => {
+        if (token !== _lastRenderToken) return;
+        containerEl.innerHTML = `${hdr('Tagged shots (caption match): 0')}<div class="peopleAlbumShotEmpty">Could not load shots for this album.</div>`;
+      });
+  }
+
   async function showPerson(personName, token) {
     if (!_peopleIndex) return;
     const set = _peopleIndex.get(personName);
     const albumKeys = set ? Array.from(set.values()) : [];
     _view = { mode: 'person', person: personName, albumKeys };
+    _openPersonAlbumKey = '';
 
     renderPersonAlbumsShell(personName);
 
@@ -1856,6 +2090,7 @@ function renderTopStats(indexMap){
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
+      _openPersonAlbumKey = '';
       _peopleIndex = null;
       _albumMetaByKey = new Map();
 
@@ -1886,6 +2121,7 @@ function renderTopStats(indexMap){
     if (backBtn) {
       e.preventDefault();
       _view = { mode: 'list', person: '', albumKeys: [] };
+      _openPersonAlbumKey = '';
       const statusEl = panelRoot.querySelector('#peopleStatus');
       if (statusEl) statusEl.textContent = '';
       if (_peopleIndex) renderPeopleList(_peopleIndex);
@@ -1917,6 +2153,37 @@ function renderTopStats(indexMap){
       if (statusEl) statusEl.textContent = '';
 
       showPerson(name, token);
+      return;
+    }
+
+    // Person view: album accordion + inline dropdown
+    const albumItem = t.closest ? t.closest('.peopleTimelineItem[data-albumkey]') : null;
+    if (albumItem && _view && _view.mode === 'person') {
+      // Allow clicks on normal links within the card (e.g., "View Photos" / "Open Album").
+      const aTag = t.closest ? t.closest('a') : null;
+      if (aTag) return;
+
+      e.preventDefault();
+
+      const albumKey = _safeTrim(albumItem.getAttribute('data-albumkey'));
+      if (!albumKey) return;
+
+      const personName = _safeTrim(_view.person);
+      const albumUrl = _safeTrim(albumItem.getAttribute('data-albumurl'));
+
+      // Toggle (accordion): close any other open item
+      const willOpen = !_openPersonAlbumKey || _openPersonAlbumKey !== albumKey;
+      _closeOpenAlbumDropdown();
+
+      if (!willOpen) return;
+
+      _openPersonAlbumKey = albumKey;
+      albumItem.classList.add('is-open');
+
+      const drop = albumItem.querySelector('.peopleAlbumDrop[data-drop="1"]');
+      const token = ++_lastRenderToken;
+      _renderAlbumDropdown(albumKey, personName, albumUrl, drop, token);
+      return;
     }
   }
 
@@ -2062,7 +2329,7 @@ function renderTopStats(indexMap){
     return `
       <div id="people-root" style="width:100%;">
         <div class="peopleHeaderTop">
-          <div class="peopleHeaderTitle">The Individual Index</div>
+          <div class="peopleHeaderTitle">People</div>
           <div id="peopleStatus" class="peopleHeaderStatus"></div>
           ${SHOW_REBUILD_BUTTON ? `
             <button type="button" id="peopleRebuildBtn"
@@ -2074,27 +2341,32 @@ function renderTopStats(indexMap){
 
         <!-- People Stats (tiles) -->
         <div class="peopleStatsBlock" aria-label="People Stats">
-          <div class="peopleStatsHdr" style="font-size:20px">Stats</div>
+          <div class="peopleStatsHdr">People Stats</div>
           <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
             <div class="peopleStatTile">
+              <div class="peopleStatLabel">PEOPLE</div>
               <div id="peopleStatPeople" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">People Tagged</div>
+              <div class="peopleStatSub">PEOPLE</div>
             </div>
             <div class="peopleStatTile">
+              <div class="peopleStatLabel">PHOTOS</div>
               <div id="peopleStatPhotos" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">Photos Indexed</div>
+              <div class="peopleStatSub">PHOTOS</div>
             </div>
             <div class="peopleStatTile">
+              <div class="peopleStatLabel">ALBUMS</div>
               <div id="peopleStatAlbums" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">Albums</div>
+              <div class="peopleStatSub">ALBUMS</div>
             </div>
             <div class="peopleStatTile">
+              <div class="peopleStatLabel">TOTAL SHOTS</div>
               <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">Total Shots</div>
+              <div class="peopleStatSub">TOTAL</div>
             </div>
             <div class="peopleStatTile">
+              <div class="peopleStatLabel">PERCENT</div>
               <div id="peopleStatPercent" class="peopleStatValue">0%</div>
-              <div class="peopleStatSub">Total Shots Indexed</div>
+              <div class="peopleStatSub">of Total Shots</div>
             </div>
           </div>
         </div>

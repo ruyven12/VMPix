@@ -718,7 +718,7 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
       copy.innerHTML = `
         <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
           <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
-          Filters to sort the archive are above - please make your selection in which way you wish to go.
+          Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
         </div>
       `;
 
@@ -774,8 +774,8 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
         _contentPanelEl.innerHTML = `
           <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-            <strong>Welcome to the Music section for this page.</strong><br><br>
-            Please make your selection below.
+            <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
+          Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
           </div>
         `;
 
