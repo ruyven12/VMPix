@@ -10,7 +10,7 @@
 
   // UI safety: hide destructive controls from public UI.
   // Keep rebuild logic in-place for easy re-enable later.
-  const SHOW_REBUILD_BUTTON = true;
+  const SHOW_REBUILD_BUTTON = false;
 
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
@@ -30,8 +30,8 @@
     National: 'Music/Archives/Bands/National',
     International: 'Music/Archives/Bands/International',
   };
-
-  // ================== STATE ==================
+  
+    // ================== STATE ==================
   let panelRoot = null;
   let _buildPromise = null;
 
@@ -1477,14 +1477,14 @@ function ensurePeopleStyles() {
     .peopleTopStatMeta{
       margin-top: 8px;
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 10px;
+      font-size: 13px;
       letter-spacing: .14em;
       text-transform: uppercase;
       opacity: .70;
       display:flex;
       flex-wrap:wrap;
       align-items:center;
-      justify-content:flex-start;
+      justify-content:center;
       gap: 6px;
     }
     .peopleTopStatMeta .k{ opacity: .95; font-weight: 900; }
@@ -1770,6 +1770,7 @@ function renderTopStats(indexMap){
   host.innerHTML = `
     <div class="peopleTopStatsHdr">
       <div class="peopleTopStatsTitle">Top 3 Most Photographed</div>
+	  <div class="peopleTopStatsSub">(not complete, working on it)</div>
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
@@ -1824,7 +1825,7 @@ function renderTopStats(indexMap){
     listEl.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
-          style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase;">
+          style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#FFFFFF;">
           ← Back
         </button>
         <div style="flex:1; min-width:0; text-align:right;">
@@ -2565,15 +2566,6 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
       // Track server generatedAt for cache comparisons
       try { _peopleIndexGeneratedAt = data && data.generatedAt ? String(data.generatedAt) : (_peopleIndexGeneratedAt || ''); } catch (_) {}
 
-      // If the server returns a cached empty build (0 albums scanned),
-      // retry once with force=1 to avoid users getting stuck with "0 people indexed".
-      try {
-        const scanned0 = !Number(data?.albumsScanned || 0);
-        const people0 = Array.isArray(data?.people) && data.people.length === 0;
-        if (!force && scanned0 && people0) {
-          return await loadPeopleIndexFromServer({ force: true, token });
-        }
-      } catch (_) {}
 
       if (token && token !== _lastRenderToken) return new Map();
 
