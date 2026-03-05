@@ -1563,8 +1563,7 @@ function renderTopStats(indexMap){
 
   host.innerHTML = `
     <div class="peopleTopStatsHdr">
-      <div class="peopleTopStatsTitle">Top 3</div>
-      <div class="peopleTopStatsSub">Most photographed</div>
+      <div class="peopleTopStatsTitle">Top 3 Most Photographed</div>
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
@@ -1574,8 +1573,7 @@ function renderTopStats(indexMap){
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
-            <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)}</div>
-            <div class="peopleTopStatName">${_eh(t.name)}</div>
+            <div class="peopleTopStatRank" style="text-align:center" aria-hidden="true">${_eh(medal)}   ${_eh(t.name)}</div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
               <span class="dot">•</span>
@@ -1638,8 +1636,7 @@ function renderTopStats(indexMap){
       return;
     }
 
-    // Mockup-style timeline cards: date pill + poster + show title + featuring person + View Photos
-    const who = _eh(personName || '');
+    // Mockup-style timeline cards: date pill + poster + show title
     albumsEl.innerHTML = items
       .map((a, idx) => {
         const rawTitle = String(a.title || `Album ${a.albumKey}`);
@@ -1647,13 +1644,6 @@ function renderTopStats(indexMap){
         const dateTxt = _eh(split.dateText || '');
         const mainTitle = _eh(split.restTitle || rawTitle);
         const href = a.url ? _eh(a.url) : '';
-
-        const btn = href
-          ? `<a class="peopleTimelineBtn" href="${href}" target="_blank" rel="noopener noreferrer">
-               <span>View Photos</span>
-               <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 5l7 7-7 7-1.4-1.4L16.2 13H4v-2h12.2l-4.6-4.6L13 5z"/></svg>
-             </a>`
-          : `<div class="peopleTimelineSub" style="opacity:.65;">Album key: ${_eh(a.albumKey)}</div>`;
 
         return `
           <div class="peopleTimelineItem">
@@ -1671,10 +1661,6 @@ function renderTopStats(indexMap){
 
             <div class="peopleTimelineBody">
               <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
-              <div class="peopleTimelineKicker">Featuring</div>
-              <div class="peopleTimelinePerson">${who}</div>
-              <div class="peopleTimelineSub">Albums: 1</div>
-              <div class="peopleTimelineActions">${btn}</div>
             </div>
           </div>
         `;
@@ -2076,7 +2062,7 @@ function renderTopStats(indexMap){
     return `
       <div id="people-root" style="width:100%;">
         <div class="peopleHeaderTop">
-          <div class="peopleHeaderTitle">People</div>
+          <div class="peopleHeaderTitle">The Individual Index</div>
           <div id="peopleStatus" class="peopleHeaderStatus"></div>
           ${SHOW_REBUILD_BUTTON ? `
             <button type="button" id="peopleRebuildBtn"
@@ -2088,32 +2074,27 @@ function renderTopStats(indexMap){
 
         <!-- People Stats (tiles) -->
         <div class="peopleStatsBlock" aria-label="People Stats">
-          <div class="peopleStatsHdr">People Stats</div>
+          <div class="peopleStatsHdr" style="font-size:20px">Stats</div>
           <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
             <div class="peopleStatTile">
-              <div class="peopleStatLabel">PEOPLE</div>
               <div id="peopleStatPeople" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">PEOPLE</div>
+              <div class="peopleStatSub">People Tagged</div>
             </div>
             <div class="peopleStatTile">
-              <div class="peopleStatLabel">PHOTOS</div>
               <div id="peopleStatPhotos" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">PHOTOS</div>
+              <div class="peopleStatSub">Photos Indexed</div>
             </div>
             <div class="peopleStatTile">
-              <div class="peopleStatLabel">ALBUMS</div>
               <div id="peopleStatAlbums" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">ALBUMS</div>
+              <div class="peopleStatSub">Albums</div>
             </div>
             <div class="peopleStatTile">
-              <div class="peopleStatLabel">TOTAL SHOTS</div>
               <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
-              <div class="peopleStatSub">TOTAL</div>
+              <div class="peopleStatSub">Total Shots</div>
             </div>
             <div class="peopleStatTile">
-              <div class="peopleStatLabel">PERCENT</div>
               <div id="peopleStatPercent" class="peopleStatValue">0%</div>
-              <div class="peopleStatSub">of Total Shots</div>
+              <div class="peopleStatSub">Total Shots Indexed</div>
             </div>
           </div>
         </div>
