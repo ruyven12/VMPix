@@ -10,7 +10,7 @@
 
   // UI safety: hide destructive controls from public UI.
   // Keep rebuild logic in-place for easy re-enable later.
-  const SHOW_REBUILD_BUTTON = false;
+  const SHOW_REBUILD_BUTTON = true;
 
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
@@ -22,11 +22,6 @@
       : DEFAULT_API_BASE;
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
-
-  // Used only for enriching the People→Albums drill-in with show posters (fail-soft).
-  const SHOWS_CSV_ENDPOINT = `${API_BASE}/sheet/shows`;
-  const PEOPLE_SHOWS_CSV_TTL_MS = 1000 * 60 * 60 * 12; // 12h
-  const PEOPLE_SHOWS_CSV_CACHE_KEY = 'musicArchive_people_shows_csv_v1';
 
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
@@ -40,8 +35,17 @@
   let panelRoot = null;
   let _buildPromise = null;
 
+  // Prevent bursty duplicate loads (e.g., multiple onMount calls in quick succession)
+  // without changing the server/cache behavior.
+  let _peopleIndexLoadPromise = null;
+  let _peopleIndexLastLoadAt = 0;
+  let _peopleQuietRefreshDone = false;
+
   // People index: Map(personName -> Set(albumKey))
   let _peopleIndex = null;
+
+  // People index generatedAt (from server), used to detect newer data
+  let _peopleIndexGeneratedAt = '';
 
   // Album stub cache: Map(albumKey -> { title?, url?, urlPath?, niceUrl? })
   let _albumStubByKey = new Map();
@@ -50,9 +54,6 @@
   let _albumMetaByKey = new Map();
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
-
-  // Shows poster lookup (date|title -> poster_url)
-  let _showsPosterMap = null;
 
   // Header totals (computed client-side)
   let _peopleTotals = { people: 0, photos: 0, albums: 0 };
@@ -155,36 +156,6 @@
     const x = Number(n);
     if (!Number.isFinite(x)) return '0';
     try { return Math.round(x).toLocaleString(); } catch (_) { return String(Math.round(x)); }
-  }
-
-  function _dateToIso(d) {
-    // Accepts M/D/YY, M/D/YYYY, etc. Returns YYYY-MM-DD or ''
-    const s = String(d || '').trim();
-    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-    if (!m) return '';
-    let mm = parseInt(m[1], 10);
-    let dd = parseInt(m[2], 10);
-    let yy = parseInt(m[3], 10);
-    if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yy)) return '';
-    if (yy < 100) yy = 2000 + yy;
-    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
-    const p2 = (x) => String(x).padStart(2, '0');
-    return `${yy}-${p2(mm)}-${p2(dd)}`;
-  }
-
-  function _parseAlbumTitleForShow(title) {
-    const s = String(title || '').trim();
-    const m = s.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(.+)$/);
-    if (!m) return { showDate: '', showTitle: '' };
-    return { showDate: m[1].trim(), showTitle: m[2].trim() };
-  }
-
-  function _showKey(dateStr, titleStr) {
-    const iso = _dateToIso(dateStr);
-    if (!iso) return '';
-    const t = _normKey(titleStr);
-    if (!t) return '';
-    return `${iso}|${t}`;
   }
 
 
@@ -376,6 +347,8 @@
         }
       } catch (_) {}
 
+      try { _peopleIndexGeneratedAt = (obj && obj.g) ? String(obj.g) : ''; } catch (_) {}
+
       return map.size ? map : null;
     } catch (_) {
       return null;
@@ -407,7 +380,7 @@
         }
       } catch (_) {}
 
-      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, p }));
+      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, p, g: _peopleIndexGeneratedAt || '' }));
     } catch (_) {}
   }
 
@@ -422,7 +395,7 @@
       }
     } catch (_) {}
 
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: 'no-store' });
     const txt = await res.text();
     try {
       sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), v: txt }));
@@ -665,77 +638,6 @@
     return out;
   }
 
-  async function ensureShowsPosterMap() {
-    if (_showsPosterMap && typeof _showsPosterMap.get === 'function') return _showsPosterMap;
-    try {
-      const { text, ct } = await fetchTextWithSessionCache(
-        SHOWS_CSV_ENDPOINT,
-        PEOPLE_SHOWS_CSV_TTL_MS,
-        PEOPLE_SHOWS_CSV_CACHE_KEY
-      );
-      if (!text || !text.trim()) {
-        _showsPosterMap = new Map();
-        return _showsPosterMap;
-      }
-
-      const raw = String(text || '').trim();
-      let rows = null;
-
-      // JSON first (mirrors shows module behavior; fail-soft)
-      if ((ct && String(ct).includes('application/json')) || /^[\s]*[\[{]/.test(raw)) {
-        try {
-          const parsed = JSON.parse(raw);
-          rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.rows) ? parsed.rows : null);
-        } catch (_) {
-          // ignore; try CSV below
-        }
-      }
-
-      const map = new Map();
-
-      if (Array.isArray(rows)) {
-        for (const r of rows) {
-          const d = (r?.show_date || r?.date || '').trim();
-          const t = (r?.show_name || r?.title || '').trim();
-          const p = (r?.poster_url || r?.show_url || '').trim();
-          const k = _showKey(d, t);
-          if (k && p) map.set(k, p);
-        }
-        _showsPosterMap = map;
-        return map;
-      }
-
-      // CSV fallback
-      const lines = raw.split(/\r?\n/).filter((l) => l.trim());
-      const headerLine = lines.shift();
-      if (!headerLine) {
-        _showsPosterMap = map;
-        return map;
-      }
-      const header = parseCsvLine(headerLine).map((h) => h.trim());
-      const headerLower = header.map((h) => h.toLowerCase());
-
-      const nameIdx = headerLower.indexOf('show_name') !== -1 ? headerLower.indexOf('show_name') : headerLower.indexOf('title');
-      const dateIdx = headerLower.indexOf('show_date') !== -1 ? headerLower.indexOf('show_date') : headerLower.indexOf('date');
-      const posterIdx = headerLower.indexOf('poster_url') !== -1 ? headerLower.indexOf('poster_url') : headerLower.indexOf('show_url');
-
-      for (const line of lines) {
-        const cols = parseCsvLine(line);
-        const d = dateIdx !== -1 ? String(cols[dateIdx] || '').trim() : '';
-        const t = nameIdx !== -1 ? String(cols[nameIdx] || '').trim() : '';
-        const p = posterIdx !== -1 ? String(cols[posterIdx] || '').trim() : '';
-        const k = _showKey(d, t);
-        if (k && p) map.set(k, p);
-      }
-
-      _showsPosterMap = map;
-      return map;
-    } catch (_) {
-      _showsPosterMap = new Map();
-      return _showsPosterMap;
-    }
-  }
-
   function _rememberAlbumStub(albumKey, albumObj) {
     if (!albumKey || !albumObj) return;
     if (_albumStubByKey.has(albumKey)) return;
@@ -933,142 +835,28 @@ function ensurePeopleStyles() {
       .peopleMetric{ padding: 6px 9px; font-size: 11px; }
       .peopleName{ font-size: 12.5px; }
     }
+    /* Timeline autosize (safe override): aligns date rail, node, and shrinks date column so cards line up */
+    .peopleTimelineWrap{ --peopleTlX: 24px; }
+    .peopleTimelineWrap:before{ left: var(--peopleTlX); }
+    .peopleTimelineNode{ left: var(--peopleTlX); }
 
-    /* Person drill-in: Timeline + album cards (items 1,2,3,5) */
-    .peopleTimelineWrap{
-      position: relative;
-      width: 100%;
-      max-width: 980px;
-      margin: 0 auto;
-      box-sizing: border-box;
-      padding: 4px 0 0 0;
-    }
-    .peopleTimelineWrap:before{
-      content: '';
-      position: absolute;
-      left: 28px;
-      top: 6px;
-      bottom: 6px;
-      width: 1px;
-      background: rgba(255,70,110,0.18);
-      box-shadow: 0 0 14px rgba(255,70,110,0.10);
-      pointer-events: none;
-    }
-    .peopleTimelineItem{
-      display: grid;
-      grid-template-columns: 84px 86px 1fr;
-      gap: 12px;
-      align-items: center;
-      padding: 10px 12px;
-      margin: 10px 0;
-      border-radius: 14px;
-      background: rgba(0,0,0,0.14);
-      box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
-    }
+    .peopleTimelineItem{ grid-template-columns: auto 86px 1fr; column-gap: 12px; }
     .peopleTimelineDateCol{
-      position: relative;
-      min-height: 54px;
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
+      justify-content: flex-end;
+      min-width: 52px;
+      padding-left: calc(var(--peopleTlX) + 10px);
       padding-right: 2px;
+      box-sizing: border-box;
     }
-    .peopleTimelineNode{
-      position: absolute;
-      left: 24px;
-      top: 50%;
-      width: 10px;
-      height: 10px;
-      transform: translate(-50%, -50%);
-      border-radius: 999px;
-      background: rgba(255,70,110,0.55);
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.55), 0 0 18px rgba(255,70,110,0.22);
-    }
-    .peopleTimelineDatePill{
-      margin-left: 0;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.18);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
-      font-weight: 900;
-      font-size: 11px;
-      letter-spacing: .10em;
-      text-transform: uppercase !important;
-      white-space: nowrap;
-    }
-    .peopleTimelinePosterCol{
-      width: 86px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .peoplePosterBox{
-      width: 78px;
-      height: 78px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.16);
-      box-shadow: 0 0 0 1px rgba(255,70,110,0.16) inset;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex: 0 0 auto;
-    }
-    .peoplePosterImg{
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display:block;
-    }
-    .peoplePosterPlaceholder{
-      width: 100%;
-      height: 100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight: 900;
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase !important;
-      opacity: .55;
-    }
-    .peopleTimelineContent{
-      min-width: 0;
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-start;
-    }
-    .peopleTimelineTitle{
-      font-weight: 900;
-      font-size: 13px;
-      letter-spacing: .02em;
-      line-height: 1.25;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-    .peopleTimelineActions{ display:flex; gap: 10px; align-items:center; }
-    .peopleOpenBtn{
-      text-decoration:none;
-      display:inline-block;
-      font-weight:800;
-      font-size:11px;
-      letter-spacing:.12em;
-      text-transform:uppercase !important;
-      padding:8px 10px;
-      border-radius:10px;
-      background:rgba(0,0,0,0.18);
-      box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;
-    }
+    .peopleTimelineDatePill{ margin-left: 0 !important; }
+
     @media (max-width: 720px){
-      .peopleTimelineItem{ grid-template-columns: 78px 80px 1fr; padding: 10px; }
+      .peopleTimelineWrap{ --peopleTlX: 22px; }
+      .peopleTimelineItem{ grid-template-columns: auto 80px 1fr; padding: 10px; }
+      .peopleTimelinePosterCol{ width: 80px; }
       .peoplePosterBox{ width: 72px; height: 72px; border-radius: 12px; }
-      .peopleTimelineWrap:before{ left: 26px; }
-      .peopleTimelineNode{ left: 22px; }
-      .peopleTimelineDatePill{ margin-left: 0; }
     }
+
   `;
   document.head.appendChild(s);
 }
@@ -1197,41 +985,27 @@ function ensurePeopleStyles() {
       return;
     }
 
-    // Timeline layout: left date rail + poster tile + content (title + open)
-    albumsEl.innerHTML = `
-      <div class="peopleTimelineWrap">
-        ${items.map((a) => {
-          const dateLabel = _eh(a.showDate || '—');
-          const title = _eh(a.title || `Album ${a.albumKey}`);
-          const href = a.url ? _eh(a.url) : '';
-          const posterUrl = a.posterUrl ? _eh(a.posterUrl) : '';
+    // Keep this simple and safe: title + open link (if available)
+    albumsEl.innerHTML = items
+      .map((a) => {
+        const title = _eh(a.title || `Album ${a.albumKey}`);
+        const href = a.url ? _eh(a.url) : '';
+        const openBtn = href
+          ? `<a href="${href}" target="_blank" rel="noopener noreferrer"
+                style="text-decoration:none; display:inline-block; margin-top:8px; font-weight:800; font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset;">
+                Open
+              </a>`
+          : `<div style="opacity:.6; font-size:11px; margin-top:8px;">Album key: ${_eh(a.albumKey)}</div>`;
 
-          const poster = posterUrl
-            ? `<div class="peoplePosterBox"><img class="peoplePosterImg" src="${posterUrl}" alt="Poster" loading="lazy" /></div>`
-            : `<div class="peoplePosterBox"><div class="peoplePosterPlaceholder">Poster</div></div>`;
-
-          const openBtn = href
-            ? `<a class="peopleOpenBtn" href="${href}" target="_blank" rel="noopener noreferrer">Open</a>`
-            : `<div style="opacity:.6; font-size:11px;">Album key: ${_eh(a.albumKey)}</div>`;
-
-          return `
-            <div class="peopleTimelineItem">
-              <div class="peopleTimelineDateCol">
-                <div class="peopleTimelineNode"></div>
-                <div class="peopleTimelineDatePill">${dateLabel}</div>
-              </div>
-              <div class="peopleTimelinePosterCol">
-                ${poster}
-              </div>
-              <div class="peopleTimelineContent">
-                <div class="peopleTimelineTitle" title="${title}">${title}</div>
-                <div class="peopleTimelineActions">${openBtn}</div>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
+        return `
+          <div class="peopleAlbumCard"
+            style="padding:12px; border-radius:12px; background:rgba(0,0,0,0.14); box-shadow:0 0 0 1px rgba(255,70,110,0.20) inset; margin:10px 0;">
+            <div style="font-weight:900; font-size:13px; letter-spacing:.02em;">${title}</div>
+            ${openBtn}
+          </div>
+        `;
+      })
+      .join('');
   }
 
   async function showPerson(personName, token) {
@@ -1251,10 +1025,6 @@ function ensurePeopleStyles() {
     // Build album list using stubs when available; fetch meta when needed.
     const items = [];
     let done = 0;
-
-    // Best-effort shows poster lookup (fail-soft)
-    let posterMap = null;
-    try { posterMap = await ensureShowsPosterMap(); } catch (_) { posterMap = new Map(); }
 
     for (const k of albumKeys) {
       if (token !== _lastRenderToken) return;
@@ -1286,28 +1056,9 @@ function ensurePeopleStyles() {
         }
       }
 
-      // Derive show date/title from album title (common pattern: M/D/YY - Show Name)
-      const parsed = _parseAlbumTitleForShow(title || '');
-      const showDate = parsed.showDate || '';
-      const showTitle = parsed.showTitle || (title || `Album ${key}`);
-
-      // Prefer show poster for the card image (fail-soft)
-      let posterUrl = '';
-      try {
-        const sk = _showKey(showDate, showTitle);
-        if (sk && posterMap && typeof posterMap.get === 'function') posterUrl = String(posterMap.get(sk) || '').trim();
-      } catch (_) {}
-
       // Normalize URL: if it's a relative path and we are not on SmugMug domain, leave it as-is;
       // if it's missing, we just omit the link.
-      items.push({
-        albumKey: key,
-        title: showTitle || `Album ${key}`,
-        url: url || '',
-        showDate,
-        posterUrl,
-        _iso: _dateToIso(showDate)
-      });
+      items.push({ albumKey: key, title: title || `Album ${key}`, url: url || '' });
 
       done += 1;
       if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
@@ -1317,15 +1068,8 @@ function ensurePeopleStyles() {
 
     if (token !== _lastRenderToken) return;
 
-    // Sort by show date (newest first) when available; otherwise by title
-    items.sort((a, b) => {
-      const ai = String(a._iso || '');
-      const bi = String(b._iso || '');
-      if (ai && bi) return bi.localeCompare(ai);
-      if (ai && !bi) return -1;
-      if (!ai && bi) return 1;
-      return String(a.title || '').localeCompare(String(b.title || ''));
-    });
+    // Sort albums by title for now (stable + predictable)
+    items.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
 
     if (statusEl) statusEl.textContent = '';
     renderPersonAlbumsList(items);
@@ -1485,8 +1229,18 @@ function ensurePeopleStyles() {
     }
   }
 
-  async function loadPeopleIndexFromServer({ force = false, full = false, token } = {}) {
+  async function loadPeopleIndexFromServer({ force = false, full = false, token, ifNewerThan = '' } = {}) {
     if (!panelRoot) return new Map();
+
+    // De-dupe rapid calls. If we just started a load very recently, reuse it.
+    // (This is the main fix for the "many requests very fast" symptom.)
+    try {
+      const now = Date.now();
+      if (!force && _peopleIndexLoadPromise && (now - (_peopleIndexLastLoadAt || 0) < 2500)) {
+        return await _peopleIndexLoadPromise;
+      }
+      _peopleIndexLastLoadAt = now;
+    } catch (_) {}
 
     const metaEl = panelRoot.querySelector('#peopleMeta');
     const statusEl = panelRoot.querySelector('#peopleStatus');
@@ -1499,28 +1253,71 @@ function ensurePeopleStyles() {
     const qs = [];
     if (force) qs.push('force=1');
     if (full) qs.push('full=1');
-    const url = `${API_BASE}/index/people${qs.length ? ("?" + qs.join("&")) : ""}`;
-    const r = await fetch(url);
-    const data = await r.json();
 
-    // If the server returns a cached empty build (0 albums scanned),
-    // retry once with force=1 to avoid users getting stuck with "0 people indexed".
-    try {
-      const scanned0 = !Number(data?.albumsScanned || 0);
-      const people0 = Array.isArray(data?.people) && data.people.length === 0;
-      if (!force && scanned0 && people0) {
-        return await loadPeopleIndexFromServer({ force: true, token });
+    // Cache-bust every request (prevents browser/proxy cached JSON during rebuild testing)
+    qs.push(`cb=${Date.now()}`);
+    const url = `${API_BASE}/index/people?${qs.join("&")}`;
+
+    // Helper: fetch JSON with explicit no-store so we always see the freshest response.
+    const fetchNoStore = async (u) => {
+      const rr = await fetch(u, { cache: 'no-store' });
+      let j = null;
+      try { j = await rr.json(); } catch (_) {}
+      return { rr, j };
+    };
+
+    // 1) Try once (force/full optionally)
+    const run = (async () => {
+      let { rr: r, j: data } = await fetchNoStore(url);
+
+    // 2) If a rebuild is already in progress, poll until it completes (or we timeout).
+    // Server behavior: when a build is running and force=1 is requested, it can reply 202 "building".
+    // Also, non-force requests can return cached payload with cache.building=true.
+    const started = Date.now();
+    const timeoutMs = 60_000; // 60s max polling
+    const pollDelayMs = 2000;
+
+    const isBuilding = (resp, json) => {
+      if (resp && resp.status === 202) return true;
+      if (json && (json.status === 'building' || json.message === 'People index rebuild already in progress.')) return true;
+      if (json && json.cache && json.cache.building) return true;
+      return false;
+    };
+
+      if (isBuilding(r, data)) {
+      // While building, poll non-force endpoint until generatedAt changes (or build flag clears).
+      const basePrev = String(ifNewerThan || _peopleIndexGeneratedAt || '');
+        while (Date.now() - started < timeoutMs) {
+          await new Promise((res) => setTimeout(res, pollDelayMs));
+          const pollUrl = `${API_BASE}/index/people?cb=${Date.now()}`;
+          const out = await fetchNoStore(pollUrl);
+          r = out.rr; data = out.j;
+          const gen = data && data.generatedAt ? String(data.generatedAt) : '';
+          if (!isBuilding(r, data) && (!basePrev || (gen && gen !== basePrev))) break;
+        }
       }
-    } catch (_) {}
 
-    if (token && token !== _lastRenderToken) return new Map();
+      // Track server generatedAt for cache comparisons
+      try { _peopleIndexGeneratedAt = data && data.generatedAt ? String(data.generatedAt) : (_peopleIndexGeneratedAt || ''); } catch (_) {}
 
-    const peopleArr = Array.isArray(data?.people) ? data.people : [];
+      // If the server returns a cached empty build (0 albums scanned),
+      // retry once with force=1 to avoid users getting stuck with "0 people indexed".
+      try {
+        const scanned0 = !Number(data?.albumsScanned || 0);
+        const people0 = Array.isArray(data?.people) && data.people.length === 0;
+        if (!force && scanned0 && people0) {
+          return await loadPeopleIndexFromServer({ force: true, token });
+        }
+      } catch (_) {}
 
-    const idx = new Map();
-    _albumMetaByKey = new Map();
+      if (token && token !== _lastRenderToken) return new Map();
 
-    for (const p of peopleArr) {
+      const peopleArr = Array.isArray(data?.people) ? data.people : [];
+
+      const idx = new Map();
+      _albumMetaByKey = new Map();
+
+      for (const p of peopleArr) {
       const name = _safeTrim(p?.name);
       if (!name) continue;
       try {
@@ -1538,26 +1335,35 @@ function ensurePeopleStyles() {
         _albumMetaByKey.set(k, { title: a?.title || '', url: a?.url || '' });
       }
       if (set.size) idx.set(name, set);
+      }
+
+      const gen = data?.generatedAt ? String(data.generatedAt) : '';
+      const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
+      if (metaEl) {
+        const left = `${idx.size} people indexed`;
+        const extra = scanned !== null ? ` • albums scanned: ${scanned}` : '';
+        const right = gen ? ` • ${gen.replace('T', ' ').replace('Z', '')}` : '';
+        metaEl.textContent = `${left}${extra}${right}`;
+      }
+
+      // Totals (photos + unique albums)
+      _peopleTotals = _computePeopleTotals(idx);
+      _renderPeopleTotals(_peopleTotals);
+      if (statusEl) statusEl.textContent = '';
+
+      // Audible cue (optional)
+      try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
+
+      return idx;
+    })();
+
+    _peopleIndexLoadPromise = run;
+    try {
+      return await run;
+    } finally {
+      // Release only if no newer run replaced it.
+      if (_peopleIndexLoadPromise === run) _peopleIndexLoadPromise = null;
     }
-
-    const gen = data?.generatedAt ? String(data.generatedAt) : '';
-    const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
-    if (metaEl) {
-      const left = `${idx.size} people indexed`;
-      const extra = scanned !== null ? ` • albums scanned: ${scanned}` : '';
-      const right = gen ? ` • ${gen.replace('T', ' ').replace('Z', '')}` : '';
-      metaEl.textContent = `${left}${extra}${right}`;
-    }
-
-    // Totals (photos + unique albums)
-    _peopleTotals = _computePeopleTotals(idx);
-    _renderPeopleTotals(_peopleTotals);
-    if (statusEl) statusEl.textContent = '';
-
-    // Audible cue (optional)
-    try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
-
-    return idx;
   }
 
   // ================== PUBLIC MODULE API ==================
@@ -1620,39 +1426,33 @@ function ensurePeopleStyles() {
         renderPeopleList(_peopleIndex);
       }
 
-      // If the People index was restored from session, we likely *don't* have photo counts
-      // (they are not stored in session). Quietly refresh from the server to seed counts
-      // and update the UI (replacing placeholders like —).
+      // If the People index was restored from session, do a quiet refresh from the server.
+      // This seeds photo counts *and* picks up any newer server index (generatedAt changes).
       try {
-        const needsCounts = !_photoCountByPerson || typeof _photoCountByPerson.size !== 'number' || _photoCountByPerson.size === 0;
-        if (needsCounts && !_buildPromise) {
-          _buildPromise = loadPeopleIndexFromServer({ force: false, token })
+        if (!_buildPromise && !_peopleQuietRefreshDone) {
+          _peopleQuietRefreshDone = true;
+          const prevGen = _peopleIndexGeneratedAt || '';
+          _buildPromise = loadPeopleIndexFromServer({ force: false, token, ifNewerThan: prevGen })
             .then((idx) => {
               _peopleIndex = idx || new Map();
-              // Persist photo counts too so header totals don't regress to 0 on refresh.
               try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
+              // Only rerender if server had newer data.
+              if ((_peopleIndexGeneratedAt || '') !== (prevGen || '')) {
+                if (_view && _view.mode === 'person' && _view.person) showPerson(_view.person, token);
+                else renderPeopleList(_peopleIndex);
+              }
               return _peopleIndex;
             })
             .catch((err) => {
-              console.warn('[people] server counts refresh failed:', err);
+              console.warn('[people] server refresh failed:', err);
               return _peopleIndex || new Map();
             })
             .finally(() => {
               _buildPromise = null;
             });
-
-          _buildPromise.then((idx) => {
-            if (token !== _lastRenderToken) return;
-            if (_view && _view.mode === 'person' && _view.person) {
-              showPerson(_view.person, token);
-            } else {
-              renderPeopleList(idx || new Map());
-            }
-          });
         }
       } catch (_) {}
-
-      return;
+return;
     }
 
     // Phase 2: load server-cached people index (fast)
