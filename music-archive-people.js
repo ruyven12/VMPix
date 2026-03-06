@@ -1193,24 +1193,39 @@ function ensurePeopleStyles() {
       .peopleMetric{ padding: 6px 9px; font-size: 11px; }
       .peopleName{ font-size: 12.5px; }
     }
-    /* Timeline autosize (safe override): aligns date rail, node, and shrinks date column so cards line up */
-    .peopleTimelineWrap{ --peopleTlX: 24px; }
+    /* Timeline autosize (safe override): keep the rail aligned without allowing the grid to overflow horizontally */
+    .peopleTimelineWrap{
+      --peopleTlX: 24px;
+      width: min(980px, 96%);
+      margin: 0 auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
     .peopleTimelineWrap:before{ left: var(--peopleTlX); }
     .peopleTimelineNode{ left: var(--peopleTlX); }
 
-    .peopleTimelineItem{ grid-template-columns: auto 86px 1fr; column-gap: 12px; }
-    .peopleTimelineDateCol{
-      justify-content: flex-end;
-      min-width: 52px;
-      padding-left: calc(var(--peopleTlX) + 10px);
-      padding-right: 2px;
+    .peopleTimelineItem{
+      grid-template-columns: 92px 86px minmax(0, 1fr);
+      column-gap: 12px;
+      overflow: hidden;
       box-sizing: border-box;
     }
-    .peopleTimelineDatePill{ margin-left: 0 !important; }
+    .peopleTimelineDateCol,
+    .peopleTimelinePosterCol,
+    .peopleTimelineBody{
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .peopleTimelineDateCol{
+      justify-content: flex-end;
+      padding-left: calc(var(--peopleTlX) + 10px);
+      padding-right: 2px;
+    }
+    .peopleTimelineDatePill{ margin-left: 0 !important; max-width: 100%; }
 
     @media (max-width: 720px){
-      .peopleTimelineWrap{ --peopleTlX: 22px; }
-      .peopleTimelineItem{ grid-template-columns: auto 80px 1fr; padding: 10px; }
+      .peopleTimelineWrap{ --peopleTlX: 22px; width: min(980px, 100%); }
+      .peopleTimelineItem{ grid-template-columns: 84px 80px minmax(0, 1fr); padding: 10px; }
       .peopleTimelinePosterCol{ width: 80px; }
       .peoplePosterBox{ width: 72px; height: 72px; border-radius: 12px; }
     }
