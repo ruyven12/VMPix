@@ -10,7 +10,7 @@
 
   // UI safety: hide destructive controls from public UI.
   // Keep rebuild logic in-place for easy re-enable later.
-  const SHOW_REBUILD_BUTTON = false;
+  const SHOW_REBUILD_BUTTON = true;
 
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
