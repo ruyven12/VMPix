@@ -10,7 +10,7 @@
 
   // UI safety: hide destructive controls from public UI.
   // Keep rebuild logic in-place for easy re-enable later.
-  const SHOW_REBUILD_BUTTON = true;
+  const SHOW_REBUILD_BUTTON = false;
 
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
@@ -1051,7 +1051,7 @@ function ensurePeopleStyles() {
     }
     .peopleStatValue{
       font-weight: 900;
-      font-size: 28px;
+      font-size: 18px;
       letter-spacing: .06em;
       line-height: 1.05;
       margin: 8px 0 6px;
