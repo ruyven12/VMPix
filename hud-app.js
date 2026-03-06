@@ -315,7 +315,10 @@ function pulseFrame(){
           : 'https://wrestling-archive.onrender.com';
 
       const targets = [
+        musicBase + '/health',
+        musicBase + '/index/people',
         musicBase + '/sheet/bands',
+        wrestleBase + '/health',
         wrestleBase + '/sheet/shows'
       ];
 
