@@ -716,11 +716,13 @@ function _dateSortValueFromDateText(dateText){
 
   function _extractThumbUrlFromAlbumImage(albumImage) {
     if (!albumImage) return '';
-    // Different payload shapes across endpoints.
-    // We accept any direct URL here; if absent, we leave blank.
+    // Prefer aspect-preserving preview sizes first.
+    // SmugMug Thumbnail/Thumb URLs are often square-cropped, which makes the
+    // People lightbox look like it is forcing photos into a square before the
+    // full-res upgrade completes. Keep thumb-sized URLs as a last fallback only.
     return (
-      _pickFirst(albumImage, ['ThumbnailUrl', 'ThumbUrl', 'SmallUrl', 'MediumUrl', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
-      _pickFirst(albumImage && albumImage.Image, ['ThumbnailUrl', 'ThumbUrl', 'SmallUrl', 'MediumUrl', 'LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
+      _pickFirst(albumImage, ['LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'MediumUrl', 'SmallUrl', 'ThumbnailUrl', 'ThumbUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
+      _pickFirst(albumImage && albumImage.Image, ['LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'MediumUrl', 'SmallUrl', 'ThumbnailUrl', 'ThumbUrl', 'WebUri', 'Url', 'URL', 'Uri']) ||
       ''
     );
   }
@@ -1592,6 +1594,7 @@ function ensurePeopleStyles() {
 .peopleLightbox.is-open{ display:flex; }
 .peopleLightboxInner{
   width: min(1200px, 96vw);
+  height: min(90vh, calc(100vh - 36px));
   max-height: 90vh;
   display:flex;
   flex-direction: column;
@@ -1636,9 +1639,13 @@ function ensurePeopleStyles() {
   overflow: hidden;
 }
 .peopleLightboxStage img{
+  width: auto;
+  height: auto;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  object-position: center center;
+  aspect-ratio: auto;
   display:block;
 }
 .peopleLightboxNav{
@@ -2153,42 +2160,78 @@ async function fetchCaptionMatchShotsForPerson(albumKey, personName, opts){
 
 // ================== PEOPLE LIGHTBOX (full-res) ==================
 function _upgradeSmugToOriginal(url){
-  const u = String(url || '');
+  const u = String(url || '').trim();
+  if (!u) return '';
   // Many SmugMug image URLs include "/<size>/" or "/<size>/<file>".
   // Prefer original "O" if present, otherwise leave untouched.
   // Example: .../XL/filename-XL.jpg -> .../O/filename-O.jpg
   return u
-    .replace(/\/([A-Z]{1,4})\//g, '/O/')
-    .replace(/-([A-Z]{1,4})\.(jpg|jpeg|png|webp)(\?.*)?$/i, '-O.$2$3');
+    .replace(/\/(S|M|L|XL|X2|X3|Th|T|Ti|Sm|Me|La|Xl|O)\//gi, '/O/')
+    .replace(/-(S|M|L|XL|X2|X3|Th|T|Ti|Sm|Me|La|Xl|O)\.(jpg|jpeg|png|webp)(\?.*)?$/i, '-O.$2$3');
 }
 
-function _bestFullUrlFromImageDetail(detailJson){
+function _looksLikeDirectImageUrl(url){
+  const u = String(url || '').trim();
+  if (!u) return false;
+  if (/\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(u)) return true;
+  if (/\/photos\.smugmug\.com\//i.test(u)) return true;
+  if (/^https?:\/\/[^\s]+\/i-[A-Za-z0-9]+\/[A-Za-z0-9]+\//i.test(u)) return true;
+  return false;
+}
+
+function _bestFullUrlFromImageDetail(detailJson, fallbackThumbUrl){
   const resp = detailJson && detailJson.Response ? detailJson.Response : detailJson;
   const img = resp && resp.Image ? resp.Image : null;
-  if (!img) return '';
 
-  const url =
-    _pickFirst(img, ['OriginalUrl','LargestUrl','X3LargeUrl','X2LargeUrl','XLargeUrl','LargeUrl','WebUri','Url','URL','Uri']) ||
-    '';
+  const candidates = img ? [
+    img.OriginalUrl,
+    img.LargestImageUrl,
+    img.OriginalImageUrl,
+    img.OriginalSizeUrl,
+    img.ArchivedSizeUrl,
+    img.ImageUrl,
+    img.LargestUrl,
+    img.X3LargeUrl,
+    img.X2LargeUrl,
+    img.XLargeUrl,
+    img.LargeUrl,
+    img.MediumUrl,
+    img.SmallUrl,
+    img.ThumbnailUrl,
+    img.TinyUrl,
+    img.Url,
+    img.URL,
+  ] : [];
 
-  if (!url) return '';
-  // Prefer the direct OriginalUrl if present; else try to upgrade.
-  if (img.OriginalUrl) return String(img.OriginalUrl).trim();
-  return _upgradeSmugToOriginal(url);
+  for (const candidate of candidates) {
+    const url = String(candidate || '').trim();
+    if (!url || !_looksLikeDirectImageUrl(url)) continue;
+    if (img && img.OriginalUrl && url === String(img.OriginalUrl).trim()) return url;
+    return _upgradeSmugToOriginal(url);
+  }
+
+  const thumb = String(fallbackThumbUrl || '').trim();
+  if (_looksLikeDirectImageUrl(thumb)) return _upgradeSmugToOriginal(thumb);
+  return '';
 }
 
-async function _getFullUrlForImageKey(imageKey){
+async function _getFullUrlForImageKey(imageKey, fallbackThumbUrl){
   const k = _safeTrim(imageKey);
-  if (!k) return '';
-  if (_peopleFullUrlByImageKey.has(k)) return _peopleFullUrlByImageKey.get(k) || '';
+  const thumb = _safeTrim(fallbackThumbUrl);
+  if (!k) return _looksLikeDirectImageUrl(thumb) ? _upgradeSmugToOriginal(thumb) : '';
+  if (_peopleFullUrlByImageKey.has(k)) {
+    const cached = _peopleFullUrlByImageKey.get(k) || '';
+    return cached || (_looksLikeDirectImageUrl(thumb) ? _upgradeSmugToOriginal(thumb) : '');
+  }
   try{
     const detail = await fetchJsonSafe(`${API_BASE}/smug/image/${encodeURIComponent(k)}`, { retries: 1 });
-    const full = _bestFullUrlFromImageDetail(detail);
+    const full = _bestFullUrlFromImageDetail(detail, thumb);
     _peopleFullUrlByImageKey.set(k, full || '');
     return full || '';
   }catch(_){
-    _peopleFullUrlByImageKey.set(k, '');
-    return '';
+    const fallback = _looksLikeDirectImageUrl(thumb) ? _upgradeSmugToOriginal(thumb) : '';
+    _peopleFullUrlByImageKey.set(k, fallback || '');
+    return fallback || '';
   }
 }
 
@@ -2258,7 +2301,7 @@ async function _peopleLightboxShow(nextIndex){
     try { _peopleLightboxImg.src = thumb; } catch(_) {}
   }
 
-  const full = await _getFullUrlForImageKey(imageKey);
+  const full = await _getFullUrlForImageKey(imageKey, thumb);
   if (full) {
     try { _peopleLightboxImg.src = full; } catch(_) {}
   }
