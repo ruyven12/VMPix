@@ -87,7 +87,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
   // View state
   let _view = { mode: 'list', person: '', albumKeys: [] };
 
-  // Letter filter (A-Z). null = All
+  // Letter filter (A-Z). null = no selection / blank state
   let _peopleLetter = null;
 
   // Re-render token to avoid stale async writes
@@ -238,6 +238,40 @@ function _dateSortValueFromDateText(dateText){
   return (yyyy * 10000) + (mm * 100) + dd;
 }
 
+function _ordinalSuffix(day) {
+  const n = Number(day);
+  if (!Number.isFinite(n)) return '';
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return 'th';
+  switch (n % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+
+function _formatLongDateFromShort(dateText) {
+  const s = String(dateText || '').trim();
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (!m) return s;
+
+  const mm = Number(m[1]);
+  const dd = Number(m[2]);
+  const yy = Number(m[3]);
+  if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yy)) return s;
+
+  const yyyy = (yy >= 70) ? (1900 + yy) : (2000 + yy);
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const monthName = monthNames[mm - 1];
+  if (!monthName) return s;
+
+  return `${monthName} ${dd}${_ordinalSuffix(dd)}, ${yyyy}`;
+}
+
 
   function _letterForName(name) {
     const s = String(name || '').trim();
@@ -294,7 +328,6 @@ function _dateSortValueFromDateText(dateText){
     };
 
     const parts = [];
-    parts.push(btn('ALL', 'ALL', false));
     for (let i = 65; i <= 90; i++) {
       const L = String.fromCharCode(i);
       parts.push(btn(L, L, counts[L] === 0));
@@ -1207,7 +1240,7 @@ function ensurePeopleStyles() {
     .peopleTimelineNode{ left: var(--peopleTlX); }
 
     .peopleTimelineItem{
-      grid-template-columns: 92px 86px minmax(0, 1fr);
+      grid-template-columns: 36px 86px minmax(0, 1fr);
       column-gap: 12px;
       overflow: hidden;
       box-sizing: border-box;
@@ -1219,15 +1252,23 @@ function ensurePeopleStyles() {
       box-sizing: border-box;
     }
     .peopleTimelineDateCol{
-      justify-content: flex-end;
-      padding-left: calc(var(--peopleTlX) + 10px);
-      padding-right: 2px;
+      justify-content: flex-start;
+      padding-left: 0;
+      padding-right: 0;
     }
     .peopleTimelineDatePill{ margin-left: 0 !important; max-width: 100%; }
+    .peopleTimelineMetaDate{
+      font-size: 12px;
+      color: rgba(226,232,240,0.72);
+      letter-spacing: .03em;
+      line-height: 1.35;
+      text-transform: none !important;
+      white-space: normal;
+    }
 
     @media (max-width: 720px){
       .peopleTimelineWrap{ --peopleTlX: 22px; width: min(980px, 100%); }
-      .peopleTimelineItem{ grid-template-columns: 84px 80px minmax(0, 1fr); padding: 10px; }
+      .peopleTimelineItem{ grid-template-columns: 32px 80px minmax(0, 1fr); padding: 10px; }
       .peopleTimelinePosterCol{ width: 80px; }
       .peoplePosterBox{ width: 72px; height: 72px; border-radius: 12px; }
     }
@@ -1690,7 +1731,7 @@ function ensurePeopleStyles() {
     const letter = _getPeopleLetter();
     const entries = letter
       ? allEntries.filter((p) => _letterForName(p.name) === letter)
-      : allEntries;
+      : [];
 
     // Filter meta (only shows when a letter is selected)
     _renderPeopleFilterMeta(allEntries.length, entries.length);
@@ -1711,6 +1752,10 @@ function ensurePeopleStyles() {
 
     if (!entries.length) {
       const L = _getPeopleLetter();
+      if (!L) {
+        listEl.innerHTML = ``;
+        return;
+      }
       listEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">No people under <strong>${_eh(L || '')}</strong>.</div>`;
       return;
     }
@@ -1881,6 +1926,7 @@ function renderTopStats(indexMap){
         const rawTitle = String(a.title || `Album ${a.albumKey}`);
         const split = _splitDateFromTitle(rawTitle);
         const dateTxt = _eh(split.dateText || '');
+        const longDateTxt = _eh(_formatLongDateFromShort(split.dateText || ''));
         const mainTitle = _eh(split.restTitle || rawTitle);
         const href = a.url ? _eh(a.url) : '';
 
@@ -1888,9 +1934,7 @@ function renderTopStats(indexMap){
           <div class="peopleTimelineItem" data-albumkey="${_eh(a.albumKey)}">
             <div class="peopleTimelineNode" style="top: 26px;"></div>
 
-            <div class="peopleTimelineDateCol">
-              ${dateTxt ? `<div class="peopleTimelineDatePill">${dateTxt}</div>` : ''}
-            </div>
+            <div class="peopleTimelineDateCol"></div>
 
             <div class="peopleTimelinePosterCol">
               <div class="peoplePosterBox" data-albumkey="${_eh(a.albumKey)}">
@@ -1900,6 +1944,7 @@ function renderTopStats(indexMap){
 
             <div class="peopleTimelineBody">
               <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
+              ${dateTxt ? `<div class="peopleTimelineMetaDate">${longDateTxt}</div>` : ''}
             </div>
 
             <div class="peopleAlbumDrop" data-albumdrop="1" style="display:none"></div>
