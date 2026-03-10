@@ -614,6 +614,16 @@ function _formatLongDateFromShort(dateText) {
   }
 
 
+  function resetPeopleIndexCacheState() {
+    _peopleIndex = null;
+    _buildPromise = null;
+    _peopleIndexLoadPromise = null;
+    _peopleIndexLastLoadAt = 0;
+    _peopleIndexGeneratedAt = '';
+    _albumMetaByKey = new Map();
+    try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
+  }
+
   async function fetchTextWithSessionCache(url, ttlMs, cacheKey) {
     try {
       const now = Date.now();
@@ -2903,10 +2913,7 @@ function openPeopleLightbox(list, index){
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
-      _peopleIndex = null;
-      _albumMetaByKey = new Map();
-
-      try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
+      resetPeopleIndexCacheState();
 
       loadPeopleIndexFromServer({ force: true, full: true, token })
         .then((idx) => {
@@ -3295,4 +3302,5 @@ return;
 
   window.MusicArchivePeople = { render, onMount, destroy };
 })();
+
 
