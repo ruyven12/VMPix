@@ -2184,6 +2184,7 @@ function ensurePeopleStyles() {
     `;
     })
     .join('');
+  }
 
 
 // Top 3 stats (display-only; no click/routing)
