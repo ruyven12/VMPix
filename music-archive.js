@@ -1222,6 +1222,9 @@ return;
                           return;
                         }
 
+                        const peopleModuleSrc = "music-archive-people.js?v=20260310a";
+
+
                         // Try to load the module once.
                         try {
                           const existing = document.querySelector('script[data-music-archive-people="1"]');
@@ -1233,7 +1236,7 @@ return;
                           }
 
                           const s = document.createElement('script');
-                          s.src = 'music-archive-people.js';
+                          s.src = peopleModuleSrc;
                           s.async = true;
                           s.setAttribute('data-music-archive-people', '1');
                           s.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
@@ -1364,10 +1367,11 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
 
       // 1) Preload the People module script (on-demand loader still works as fallback).
       try {
+        const peopleModuleSrc = "music-archive-people.js?v=20260310a";
         const existing = document.querySelector('script[data-music-archive-people="1"]');
         if (!existing) {
           const s = document.createElement('script');
-          s.src = 'music-archive-people.js';
+                          s.src = peopleModuleSrc;
           s.async = true;
           s.setAttribute('data-music-archive-people', '1');
           document.head.appendChild(s);
@@ -1518,3 +1522,4 @@ function setMode(mode) {
 
 window.MusicArchive = { render, onEnter, destroy, setMode };
 })();
+
