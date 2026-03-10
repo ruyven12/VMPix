@@ -10,7 +10,7 @@
 
   // UI safety: hide destructive controls from public UI.
   // Keep rebuild logic in-place for easy re-enable later.
-  const SHOW_REBUILD_BUTTON = false;
+  const SHOW_REBUILD_BUTTON = true;
 
   // ================== CONFIG (match music-archive-bands.js) ==================
   const DEFAULT_API_BASE = 'https://music-archive-3lfa.onrender.com';
@@ -509,7 +509,7 @@ function _formatLongDateFromShort(dateText) {
   }
 
   // Keep conservative to avoid bursts in webviews
-  const limitNet = pLimit(2);
+  const limitNet = pLimit(1);
 
   // ---- Session cache (Bands CSV) ----
   const PEOPLE_BANDS_CSV_CACHE_KEY = 'vm_music_people_bands_csv_v1';
@@ -720,12 +720,12 @@ function _formatLongDateFromShort(dateText) {
   }
 
   async function fetchAlbumImagesPage(albumKey, count, start) {
-    if (!albumKey) return null;
-    const c = count || 200;
-    const s = start || 1;
-    const url = `${API_BASE}/smug/album/${encodeURIComponent(albumKey)}?count=${encodeURIComponent(c)}&start=${encodeURIComponent(s)}`;
-    return fetchJsonSafe(url, { retries: 2 });
-  }
+  if (!albumKey) return null;
+  const c = count || 200;
+  const s = start || 1;
+  const url = `${API_BASE}/smug/album/${encodeURIComponent(albumKey)}?count=${encodeURIComponent(c)}&start=${encodeURIComponent(s)}`;
+  return fetchJsonSafe(url, { retries: 0 });
+}
 
   function extractAlbumImagesFromPage(pageJson) {
     const resp = pageJson && pageJson.Response ? pageJson.Response : pageJson;
