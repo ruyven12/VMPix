@@ -2621,7 +2621,7 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
     // Otherwise, we want the server's memory/disk cache for speed.
     const qs = [];
     if (force) qs.push('force=1');
-    if (full) qs.push('full=1');
+    // Intentionally ignore "full" so rebuilds always use the faster incremental server path.
 
     // Cache-bust every request (prevents browser/proxy cached JSON during rebuild testing)
     qs.push(`cb=${Date.now()}`);
