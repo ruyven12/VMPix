@@ -2642,9 +2642,9 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
     // 2) If a rebuild is already in progress, poll until it completes (or we timeout).
     // Server behavior: when a build is running and force=1 is requested, it can reply 202 "building".
     // Also, non-force requests can return cached payload with cache.building=true.
-    const started = Date.now();
-    const timeoutMs = 60_000; // 60s max polling
-    const pollDelayMs = 2000;
+const started = Date.now();
+const timeoutMs = 1000 * 60 * 8; // 8 minutes max polling
+const pollDelayMs = 2000;
 
     const isBuilding = (resp, json) => {
       if (resp && resp.status === 202) return true;
