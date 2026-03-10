@@ -1127,8 +1127,9 @@ function ensurePeopleStyles() {
       z-index: 2;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 14px;
-      margin-top: 14px;
+      padding: 13px; 
+	  gap: 14px;
+      margin-top: 1px;
       align-items: stretch;
     }
 
