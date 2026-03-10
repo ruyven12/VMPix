@@ -202,7 +202,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     if (!raw) return { dateText: '', restTitle: '' };
 
     // YYYY-MM-DD ...
-    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-Ã¢â‚¬â€œÃ¢â‚¬â€:]\s*)?(.*)$/);
+    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â:]\s*)?(.*)$/);
     if (m) {
       const yyyy = m[1];
       const mm = String(m[2]).padStart(2, '0');
@@ -212,7 +212,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     }
 
     // M/D/YY ... or M-D-YYYY ...
-    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-Ã¢â‚¬â€œÃ¢â‚¬â€:]\s*)?(.*)$/);
+    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â:]\s*)?(.*)$/);
     if (m) {
       const mm = String(m[1]).padStart(2, '0');
       const dd = String(m[2]).padStart(2, '0');
@@ -1202,7 +1202,7 @@ function ensurePeopleStyles() {
     }
 
     .peopleDashProgressPct{
-      font-size: 2rem;
+      font-size: 1rem;
       font-weight: 800;
       letter-spacing: .08em;
       color: rgba(244,247,255,0.98);
@@ -1898,11 +1898,12 @@ function ensurePeopleStyles() {
     .peopleTopStatMeta .dot{ opacity: .34; }
 
     @media (max-width: 720px){
-      .peopleTopStatsGrid{ grid-template-columns: 1fr; }
-      .peopleTopStatCard{ border-radius: 18px; }
-      .peopleTopStatName{ font-size: 14px; }
-    }
-
+      .peopleTopStatsGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+      .peopleTopStatCard{ min-height: 84px; border-radius: 16px; padding: 12px 8px 11px; }
+      .peopleTopStatRankRow{ gap: 6px; }
+      .peopleTopStatRank{ width: 24px; height: 24px; font-size: 12px; }
+      .peopleTopStatName{ font-size: 12px; }
+      .peopleTopStatMeta{ font-size: 9px; gap: 3px 6px; }
   
 
 /* Person album accordion (caption-match shots) */
@@ -2073,7 +2074,7 @@ function ensurePeopleStyles() {
     }));
     allEntries.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Render AÃ¢â‚¬â€œZ nav (with empty letters dimmed)
+    // Render AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ nav (with empty letters dimmed)
     renderPeopleLetterNav(indexMap);
 
     const letter = _getPeopleLetter();
@@ -2110,7 +2111,7 @@ function ensurePeopleStyles() {
 
       listEl.innerHTML = entries
     .map((p) => {
-      const photosTxt = (p.photos === null) ? 'Ã¢â‚¬â€' : String(p.photos);
+      const photosTxt = (p.photos === null) ? 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' : String(p.photos);
       const albumsTxt = String(p.albums);
 
       return `
@@ -2189,9 +2190,9 @@ function renderTopStats(indexMap){
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
-        const photosTxt = (t.photos === null) ? 'Ã¢â‚¬â€' : String(t.photos);
+        const photosTxt = (t.photos === null) ? '\u2014' : String(t.photos);
         const albumsTxt = String(t.albums || 0);
-        const medal = (i === 0) ? 'Ã°Å¸Â¥â€¡' : (i === 1) ? 'Ã°Å¸Â¥Ë†' : 'Ã°Å¸Â¥â€°';
+        const medal = (i === 0) ? '\u{1F947}' : (i === 1) ? '\u{1F948}' : '\u{1F949}';
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
@@ -2201,7 +2202,7 @@ function renderTopStats(indexMap){
             </div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
-              <span class="dot">Ã¢â‚¬Â¢</span>
+              <span class="dot">\u2022</span>
               <span class="lbl">Albums</span> <span class="k">${_eh(albumsTxt)}</span>
             </div>
           </div>
@@ -2228,7 +2229,7 @@ function renderTopStats(indexMap){
     } catch (_) {}
 
 
-    // Hide AÃ¢â‚¬â€œZ while drilling in
+    // Hide AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ while drilling in
     try {
       const navEl = panelRoot.querySelector('#peopleLetterNav');
       if (navEl) navEl.style.display = 'none';
@@ -2244,7 +2245,7 @@ function renderTopStats(indexMap){
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
           style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#FFFFFF;">
-          Ã¢â€ Â Back
+          ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â Back
         </button>
         <div style="flex:1; min-width:0; text-align:right;">
           <div style="font-weight:900; font-size:13px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -2350,7 +2351,7 @@ async function _openPersonAlbum(albumKey, personName){
   const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
   if (!drop) return;
   drop.style.display = '';
-  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shotsÃ¢â‚¬Â¦</div>`;
+  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shotsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>`;
 
   const who = _safeTrim(personName);
   const cached = _albumCaptionMatchCache.get(key);
@@ -2425,8 +2426,8 @@ async function hydrateAlbumThumbs(albumKeys) {
     const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const albumsEl = panelRoot && panelRoot.querySelector('#peopleAlbumsList');
 
-    if (statusEl) statusEl.textContent = 'Loading albumsÃ¢â‚¬Â¦';
-    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">LoadingÃ¢â‚¬Â¦</div>`;
+    if (statusEl) statusEl.textContent = 'Loading albumsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
+    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">LoadingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>`;
 
     // Build album list using stubs when available; fetch meta when needed.
     const items = [];
@@ -2468,7 +2469,7 @@ async function hydrateAlbumThumbs(albumKeys) {
 
       done += 1;
       if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
-        statusEl.textContent = `Loading albumsÃ¢â‚¬Â¦ ${done}/${albumKeys.length}`;
+        statusEl.textContent = `Loading albumsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ ${done}/${albumKeys.length}`;
       }
     }
 
@@ -2640,14 +2641,14 @@ function _ensurePeopleLightbox(){
     <div class="peopleLightboxInner" role="dialog" aria-modal="true" aria-label="Photo viewer">
       <div class="peopleLightboxTop">
         <div id="peopleLightboxCounter">Photo</div>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close Ã¢Å“â€¢</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢</button>
       </div>
       <div class="peopleLightboxStage">
         <img id="peopleLightboxImg" alt="" />
       </div>
       <div class="peopleLightboxNav">
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">Ã¢â€ Â Prev</button>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next Ã¢â€ â€™</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â Prev</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢</button>
       </div>
     </div>
   `;
@@ -2858,7 +2859,7 @@ function openPeopleLightbox(list, index){
       e.preventDefault();
       const token = ++_lastRenderToken;
       const statusEl = panelRoot.querySelector('#peopleStatus');
-      if (statusEl) statusEl.textContent = 'RebuildingÃ¢â‚¬Â¦';
+      if (statusEl) statusEl.textContent = 'RebuildingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
@@ -2966,7 +2967,7 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
     const statusEl = panelRoot.querySelector('#peopleStatus');
 
     if (metaEl) metaEl.textContent = 'Server index';
-    if (statusEl) statusEl.textContent = force ? 'RebuildingÃ¢â‚¬Â¦' : 'LoadingÃ¢â‚¬Â¦';
+    if (statusEl) statusEl.textContent = force ? 'RebuildingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦' : 'LoadingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
 
     // IMPORTANT: only force rebuild when explicitly requested.
     // Otherwise, we want the server's memory/disk cache for speed.
@@ -3065,8 +3066,8 @@ const pollDelayMs = 2000;
       const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
       if (metaEl) {
         const left = `${idx.size} people indexed`;
-        const extra = scanned !== null ? ` Ã¢â‚¬Â¢ albums scanned: ${scanned}` : '';
-        const right = gen ? ` Ã¢â‚¬Â¢ ${gen.replace('T', ' ').replace('Z', '')}` : '';
+        const extra = scanned !== null ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ albums scanned: ${scanned}` : '';
+        const right = gen ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ ${gen.replace('T', ' ').replace('Z', '')}` : '';
         metaEl.textContent = `${left}${extra}${right}`;
       }
 
@@ -3110,7 +3111,7 @@ const pollDelayMs = 2000;
           <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
                aria-expanded="true" aria-controls="peopleStatsContent">
             <span>Archive System Status</span>
-            <span class="peopleStatsToggleIcon" aria-hidden="true">Ã¢â€“Â¾</span>
+            <span class="peopleStatsToggleIcon" aria-hidden="true">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¾</span>
           </div>
 
           <div id="peopleStatsContent" class="peopleStatsContent">
@@ -3162,7 +3163,7 @@ const pollDelayMs = 2000;
           </div>
         </div>
 
-        <!-- AÃ¢â‚¬â€œZ filter (darkens letters with no entries) -->
+        <!-- AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
           <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
         </div>
