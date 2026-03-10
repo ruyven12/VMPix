@@ -2193,8 +2193,8 @@ function renderTopStats(indexMap){
   const host = panelRoot.querySelector('#peopleTopStats');
   if (!host) return;
 
-  // Always reset (prevents stale content across filters/rebuilds)
-  host.style.display = '';
+  // Respect the panel's current collapsed state when re-rendering.
+  host.style.display = _peopleStatsCollapsed ? 'none' : ''; 
 
   const all = Array.from(indexMap.entries()).map(([name, set]) => {
     let photos = null;
@@ -3218,11 +3218,8 @@ const pollDelayMs = 2000;
     // Styles (once)
     try { ensurePeopleStyles(); } catch (_) {}
 
-    // Restore stats collapse state (session-scoped)
-    try {
-      const raw = sessionStorage.getItem('vm_music_people_stats_collapsed_v1');
-      _peopleStatsCollapsed = raw !== '0';
-    } catch (_) { _peopleStatsCollapsed = true; }
+    // Default to collapsed whenever the People page opens.
+    _peopleStatsCollapsed = true;
 
     try {
       const wrap = panelRoot && panelRoot.querySelector('#peopleStatsWrap');
@@ -3298,3 +3295,4 @@ return;
 
   window.MusicArchivePeople = { render, onMount, destroy };
 })();
+
