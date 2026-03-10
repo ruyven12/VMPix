@@ -460,6 +460,7 @@ function _formatLongDateFromShort(dateText) {
     const elAlbums = panelRoot.querySelector('#peopleStatAlbums');
     const elTotal = panelRoot.querySelector('#peopleStatTotalShots');
     const elPct = panelRoot.querySelector('#peopleStatPercent');
+    const elBarFill = panelRoot.querySelector('#peopleDashBarFill');
 
     if (elPeople) elPeople.textContent = _fmtInt(t.people);
     if (elPhotos) elPhotos.textContent = _fmtInt(t.photos);
@@ -473,7 +474,20 @@ function _formatLongDateFromShort(dateText) {
       const pct = (Number.isFinite(total) && total > 0)
         ? (Number(t.photos || 0) / total) * 100
         : 0;
-      if (elPct) elPct.textContent = _fmtPct(pct, 2);
+      const pctText = _fmtPct(pct, 2);
+      const pctWhole = `${Math.round(pct)}%`;
+
+      if (elPct) elPct.textContent = pctText;
+        const clampedPct = Math.max(0, Math.min(100, pct));
+
+      if (elBarFill) elBarFill.style.width = `${clampedPct}%`;
+      try {
+        const statsBlock = panelRoot && panelRoot.querySelector('.peopleStatsBlock');
+        if (statsBlock) {
+          statsBlock.style.setProperty('--people-index-pct', `${clampedPct}%`);
+          statsBlock.style.setProperty('--people-gauge-pct', `${clampedPct}`);
+        }
+      } catch (_) {}
     };
 
     if (_statsTotalShots !== null) {
@@ -959,34 +973,57 @@ function ensurePeopleStyles() {
       margin: 0 0 10px 0;
     }
 
-    /* ===== People: Stats tiles (no click/routing) ===== */
+        /* ===== People: Stats dashboard (pass two polish) ===== */
     .peopleStatsBlock{
-      width: min(980px, 96%);
-      margin: 0 auto 8px;
-      padding: 10px 10px 12px;
-      border-radius: 18px;
-      background: rgba(0,0,0,0.10);
-      box-shadow: 0 0 0 1px rgba(255,70,110,0.16) inset;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      width: min(1020px, 96%);
+      margin: 0 auto 12px;
+      padding: 14px;
+      border-radius: 22px;
       position: relative;
       overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(22, 6, 14, 0.88), rgba(8, 3, 8, 0.84));
+      border: 1px solid rgba(255,70,110,0.34);
+      box-shadow:
+        0 0 0 1px rgba(255,70,110,0.16) inset,
+        0 0 26px rgba(255,70,110,0.14),
+        0 18px 44px rgba(0,0,0,0.42);
+      backdrop-filter: blur(9px);
+      -webkit-backdrop-filter: blur(9px);
     }
-    /* Remove the thin horizontal "scan" lines inside the stats block */
-    .peopleStatsBlock::before,
+
+    .peopleStatsBlock::before{
+      content:"";
+      position:absolute;
+      inset: 0;
+      pointer-events:none;
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(255,70,110,0.14), transparent 52%),
+        radial-gradient(80% 120% at 50% 100%, rgba(0,210,255,0.05), transparent 55%);
+      opacity:.95;
+    }
+
     .peopleStatsBlock::after{
-      display:none;
+      content:"";
+      position:absolute;
+      inset: 10px;
+      border-radius: 17px;
+      border: 1px solid rgba(255,70,110,0.18);
+      box-shadow:
+        0 0 18px rgba(255,70,110,0.08) inset,
+        0 0 0 1px rgba(255,255,255,0.02);
+      pointer-events:none;
     }
 
     .peopleStatsHdr{
       width: 100%;
       text-align:center;
       font-weight: 900;
-      font-size: 12px;
-      letter-spacing: .16em;
+      font-size: 13px;
+      letter-spacing: .24em;
       text-transform: uppercase;
-      opacity: .90;
-      margin: 0 0 10px 0;
+      opacity: .94;
+      margin: 0 0 14px 0;
       position: relative;
       z-index: 2;
     }
@@ -999,82 +1036,308 @@ function ensurePeopleStyles() {
       justify-content:center;
       gap: 10px;
     }
+
     .peopleStatsToggleIcon{
       display:inline-block;
       transition: transform 160ms ease, opacity 160ms ease;
       opacity: .85;
     }
+
     .peopleStatsCollapsible.is-collapsed .peopleStatsToggleIcon{
       transform: rotate(-90deg);
     }
-    .peopleStatsTiles{
-      width: 100%;
-      display:grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
-      align-items: stretch;
-      justify-items: stretch;
-      pointer-events: none;
-      user-select: none;
+
+    .peopleStatsDashboard{
       position: relative;
       z-index: 2;
+      display: grid;
+	  padding: 15px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
     }
-    .peopleStatTile{
-      border-radius: 16px;
-      padding: 10px 10px 9px;
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(255,70,110,0.18);
-      box-shadow: 0 14px 32px rgba(0,0,0,0.34);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      overflow: hidden;
+
+    .peopleDashCard{
       position: relative;
-      text-align:center;
+      min-height: 88px;
+      border-radius: 15px;
+      padding: 14px 10px 11px;
+      text-align: center;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(28, 8, 18, 0.90), rgba(12, 4, 9, 0.84));
+      border: 1px solid rgba(255,70,110,0.24);
+      box-shadow:
+        0 0 0 1px rgba(255,70,110,0.10) inset,
+        0 10px 24px rgba(0,0,0,0.34);
     }
-    .peopleStatTile::before{
+
+    .peopleDashCard::before{
       content:"";
       position:absolute;
       inset: 0;
+      pointer-events:none;
       background:
-        radial-gradient(120px 80px at 50% 20%, rgba(255,70,110,0.14), transparent 60%),
-        radial-gradient(120px 80px at 50% 110%, rgba(0,210,255,0.06), transparent 60%);
-      opacity: .60;
+        radial-gradient(140px 80px at 50% 14%, rgba(255,70,110,0.16), transparent 58%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), transparent 36%);
+      opacity:.95;
+    }
+
+    .peopleDashCard::after{
+      content:"";
+      position:absolute;
+      left: 10px;
+      right: 10px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,130,160,0.28), transparent);
+      opacity: .75;
       pointer-events:none;
     }
-    .peopleStatLabel{
-      font-size: 10px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      opacity: .80;
-      position: relative;
-      z-index: 2;
-    }
+
     .peopleStatValue{
+      position: relative;
+      z-index: 2;
       font-weight: 900;
-      font-size: 18px;
-      letter-spacing: .06em;
-      line-height: 1.05;
-      margin: 8px 0 6px;
-      color: rgba(255,210,210,0.92);
-      text-shadow: 0 0 18px rgba(255,70,110,0.14);
-      position: relative;
-      z-index: 2;
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: .04em;
+      margin: 1px 0 8px;
+      color: rgba(255,232,238,0.97);
+      text-shadow:
+        0 0 14px rgba(255,70,110,0.20),
+        0 0 28px rgba(255,70,110,0.08);
+      white-space: nowrap;
     }
+
     .peopleStatSub{
-      font-size: 10px;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      opacity: .62;
+      position: relative;
+      z-index: 2;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase !important;
+      opacity: .70;
+      white-space: nowrap;
+    }
+
+        .peopleDashBottom{
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      align-items: stretch;
+    }
+
+    .peopleDashProgress,
+    .peopleDashGauge{
+      position: relative;
+      overflow: hidden;
+      border-radius: 15px;
+      background:
+        linear-gradient(180deg, rgba(28, 8, 18, 0.90), rgba(12, 4, 9, 0.84));
+      border: 1px solid rgba(255,70,110,0.22);
+      box-shadow:
+        0 0 0 1px rgba(255,70,110,0.10) inset,
+        0 10px 24px rgba(0,0,0,0.32);
+    }
+
+    .peopleDashProgress::after,
+    .peopleDashGauge::after{
+      content:"";
+      position:absolute;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,130,160,0.24), transparent);
+      opacity: .72;
+      pointer-events:none;
+    }
+
+    .peopleDashProgress{
+      padding: 16px 16px 15px;
+      min-height: 114px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .peopleDashProgress::before,
+    .peopleDashGauge::before{
+      content:"";
+      position:absolute;
+      inset: 0;
+      pointer-events:none;
+      background:
+        radial-gradient(150px 90px at 25% 18%, rgba(255,70,110,0.12), transparent 58%);
+      opacity:.95;
+    }
+
+    .peopleDashProgressLabel{
+      position: relative;
+      z-index: 2;
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase !important;
+      opacity: .78;
+      margin-bottom: 12px;
+      white-space: nowrap;
+    }
+
+    .peopleDashProgressRow{
+      position: relative;
+      z-index: 2;
+      display:flex;
+      align-items:flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .peopleDashProgressPct{
+      font-size:1.5rem;
+      font-weight: 700;
+      letter-spacing: .25em;
+      color: rgba(255,232,238,0.97);
+      text-shadow:
+        0 0 14px rgba(255,70,110,0.20),
+        0 0 28px rgba(255,70,110,0.08);
+      white-space: nowrap;
+    }
+
+    .peopleDashProgressPctSub{
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase !important;
+      opacity: .70;
+      white-space: nowrap;
+      padding-bottom: 3px;
+    }
+
+    .peopleDashBar{
+      position: relative;
+      z-index: 2;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        0 0 12px rgba(255,70,110,0.06);
+    }
+
+    .peopleDashBarFill{
+      height: 100%;
+      width: var(--people-index-pct, 0%);
+      min-width: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, rgba(255,70,110,0.96), rgba(255,170,195,0.98));
+      box-shadow:
+        0 0 14px rgba(255,70,110,0.30),
+        0 0 28px rgba(255,70,110,0.14);
+      transition: width 260ms ease;
+    }
+
+    .peopleDashGauge{
+      min-height: 114px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+    }
+
+    .peopleDashGaugeInner{
+      position: relative;
+      z-index: 2;
+      width: 104px;
+      height: 104px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(22,8,14,0.94) 52%, rgba(12,4,9,0.99) 100%);
+      border: 1px solid rgba(255,70,110,0.28);
+      box-shadow:
+        0 0 0 9px rgba(255,70,110,0.05),
+        0 0 24px rgba(255,70,110,0.14),
+        inset 0 0 18px rgba(255,70,110,0.08);
+    }
+
+    .peopleDashGaugeInner::before{
+      content:"";
+      position:absolute;
+      inset: -11px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,70,110,0.18);
+      box-shadow: 0 0 18px rgba(255,70,110,0.10);
+    }
+
+    .peopleDashGaugeInner::after{
+      content:"";
+      position:absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background:
+        conic-gradient(
+          from -90deg,
+          rgba(255,70,110,0.95) 0deg,
+          rgba(255,120,150,0.92) calc((var(--people-gauge-pct, 0) / 100) * 360deg),
+          rgba(255,255,255,0.08) calc((var(--people-gauge-pct, 0) / 100) * 360deg),
+          rgba(255,255,255,0.08) 360deg
+        );
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+      opacity: .92;
+      pointer-events:none;
+    }
+
+    .peopleDashGaugeValue{
+      font-size: 29px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: .01em;
+      color: rgba(255,232,238,0.97);
+      text-shadow:
+        0 0 12px rgba(255,70,110,0.18),
+        0 0 24px rgba(255,70,110,0.08);
+      white-space: nowrap;
       position: relative;
       z-index: 2;
     }
+
     @media (max-width: 980px){
-      .peopleStatsTiles{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .peopleStatsDashboard{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .peopleDashBottom{
+        grid-template-columns: 1fr;
+      }
+      .peopleDashGauge{
+        min-height: 130px;
+      }
     }
+
     @media (max-width: 640px){
-      .peopleStatsTiles{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .peopleStatValue{ font-size: 24px; }
-      .peopleStatsBlock::before{ top: 40px; }
+      .peopleStatsDashboard{
+        grid-template-columns: 1fr;
+      }
+      .peopleStatValue{
+        font-size: 23px;
+      }
+      .peopleDashProgressPct{
+        font-size: 28px;
+      }
+      .peopleDashGaugeInner{
+        width: 90px;
+        height: 90px;
+      }
+      .peopleDashGaugeValue{
+        font-size: 24px;
+      }
     }
 
     
@@ -1089,6 +1352,7 @@ function ensurePeopleStyles() {
       display:flex;
       flex-wrap:wrap;
       align-items:center;
+	  font-family: "Orbitron", system-ui, sans-serif;
       justify-content:center;
       gap: 6px;
       padding: 6px 8px;
@@ -1105,7 +1369,8 @@ function ensurePeopleStyles() {
       color: rgba(226,232,240,0.90);
       border-radius: 999px;
       padding: 5px 9px;
-      font-size: 11px;
+      font-size: 12px;
+	  font-family: "Orbitron", system-ui, sans-serif;
       letter-spacing: .12em;
       text-transform: uppercase !important;
       cursor: pointer;
@@ -1170,6 +1435,7 @@ function ensurePeopleStyles() {
       border: 0;
       border-radius: 14px;
       text-align:left;
+	  font-family: "Orbitron", system-ui, sans-serif;
       cursor:pointer;
       background: rgba(0,0,0,0.16);
       box-shadow: 0 0 0 1px rgba(255,70,110,0.22) inset, 0 12px 26px rgba(0,0,0,0.28);
@@ -2754,41 +3020,57 @@ const pollDelayMs = 2000;
           ` : ''}
         </div>
 
-        <!-- People Stats + Top 3 (collapsible) -->
+                <!-- People Stats + Top 3 (collapsible) -->
         <div id="peopleStatsWrap" class="peopleStatsCollapsible" aria-label="People Stats">
-          <!-- Centered header is the click target -->
           <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
                aria-expanded="true" aria-controls="peopleStatsContent">
-            <span>Stats</span>
+            <span>Archive System Status</span>
             <span class="peopleStatsToggleIcon" aria-hidden="true">▾</span>
           </div>
 
           <div id="peopleStatsContent" class="peopleStatsContent">
-            <!-- People Stats (tiles) -->
-            <div class="peopleStatsBlock" aria-label="People Stats tiles">
-              <div class="peopleStatsTiles" role="group" aria-label="People stats tiles">
-                <div class="peopleStatTile">
+            <div class="peopleStatsBlock" aria-label="People Stats dashboard">
+              <div class="peopleStatsDashboard" role="group" aria-label="People stats tiles">
+                <div class="peopleDashCard">
                   <div id="peopleStatPeople" class="peopleStatValue">0</div>
                   <div class="peopleStatSub">People Tagged</div>
                 </div>
-                <div class="peopleStatTile">
+                <div class="peopleDashCard">
                   <div id="peopleStatPhotos" class="peopleStatValue">0</div>
                   <div class="peopleStatSub">Photos Indexed</div>
                 </div>
-                <div class="peopleStatTile">
+                <div class="peopleDashCard">
                   <div id="peopleStatAlbums" class="peopleStatValue">0</div>
                   <div class="peopleStatSub">Albums</div>
                 </div>
-                <div class="peopleStatTile">
+                <div class="peopleDashCard">
                   <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
                   <div class="peopleStatSub">Total Shots</div>
                 </div>
-                <div class="peopleStatTile">
-                  <div id="peopleStatPercent" class="peopleStatValue">0%</div>
-                  <div class="peopleStatSub">Total Shots Indexed</div>
+              </div>
+
+              <div class="peopleDashBottom">
+                <div class="peopleDashProgress">
+                  <div class="peopleDashProgressRow">
+  <div class="peopleDashProgressLabel">Indexing Progress:          </div>
+
+  <div class="peopleDashProgressRight">
+    <div id="peopleStatPercent" class="peopleDashProgressPct">0.00%</div>
+  </div>
+</div>
+                  <div class="peopleDashBar" aria-hidden="true">
+                    <div id="peopleDashBarFill" class="peopleDashBarFill"></div>
+                  </div>
+                </div>
+
                 </div>
               </div>
             </div>
+
+            <!-- Top 3 (display-only; no click/routing) -->
+            <div id="peopleTopStats"></div>
+          </div>
+        </div>
 
             <!-- Top 3 (display-only; no click/routing) -->
             <div id="peopleTopStats"></div>
