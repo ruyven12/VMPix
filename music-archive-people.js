@@ -2837,32 +2837,8 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
         renderPeopleList(_peopleIndex);
       }
 
-      // If the People index was restored from session, do a quiet refresh from the server.
-      // This seeds photo counts *and* picks up any newer server index (generatedAt changes).
-      try {
-        if (!_buildPromise && !_peopleQuietRefreshDone) {
-          _peopleQuietRefreshDone = true;
-          const prevGen = _peopleIndexGeneratedAt || '';
-          _buildPromise = loadPeopleIndexFromServer({ force: false, token, ifNewerThan: prevGen })
-            .then((idx) => {
-              _peopleIndex = idx || new Map();
-              try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
-              // Only rerender if server had newer data.
-              if ((_peopleIndexGeneratedAt || '') !== (prevGen || '')) {
-                if (_view && _view.mode === 'person' && _view.person) showPerson(_view.person, token);
-                else renderPeopleList(_peopleIndex);
-              }
-              return _peopleIndex;
-            })
-            .catch((err) => {
-              console.warn('[people] server refresh failed:', err);
-              return _peopleIndex || new Map();
-            })
-            .finally(() => {
-              _buildPromise = null;
-            });
-        }
-      } catch (_) {}
+      // Keep the last completed People index stable on normal visits.
+      // Rebuilds should only happen from the explicit rebuild button.
 return;
     }
 
