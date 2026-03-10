@@ -2698,6 +2698,19 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
       }
 
       const gen = data?.generatedAt ? String(data.generatedAt) : '';
+	  
+	  try {
+  const layer = data && data.cache && data.cache.layer ? String(data.cache.layer) : '';
+  if (metaEl) {
+    metaEl.textContent = layer ? `Server index (${layer})` : 'Server index';
+  }
+  if (statusEl) {
+    statusEl.textContent = force
+      ? (layer ? `Rebuilt from ${layer}.` : 'Rebuild complete.')
+      : (layer ? `Loaded from ${layer}.` : '');
+  }
+} catch (_) {}
+
       const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
       if (metaEl) {
         const left = `${idx.size} people indexed`;
