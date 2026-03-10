@@ -202,7 +202,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     if (!raw) return { dateText: '', restTitle: '' };
 
     // YYYY-MM-DD ...
-    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-–—:]\s*)?(.*)$/);
+    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-Ã¢â‚¬â€œÃ¢â‚¬â€:]\s*)?(.*)$/);
     if (m) {
       const yyyy = m[1];
       const mm = String(m[2]).padStart(2, '0');
@@ -212,7 +212,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     }
 
     // M/D/YY ... or M-D-YYYY ...
-    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-–—:]\s*)?(.*)$/);
+    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-Ã¢â‚¬â€œÃ¢â‚¬â€:]\s*)?(.*)$/);
     if (m) {
       const mm = String(m[1]).padStart(2, '0');
       const dd = String(m[2]).padStart(2, '0');
@@ -1059,17 +1059,18 @@ function ensurePeopleStyles() {
 
     .peopleDashCard{
       position: relative;
-      min-height: 88px;
-      border-radius: 15px;
-      padding: 14px 10px 11px;
+      min-height: 94px;
+      border-radius: 16px;
+      padding: 15px 12px 13px;
       text-align: center;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(28, 8, 18, 0.90), rgba(12, 4, 9, 0.84));
-      border: 1px solid rgba(255,70,110,0.24);
+        radial-gradient(circle at top center, rgba(88, 166, 255, 0.16), transparent 58%),
+        linear-gradient(180deg, rgba(11, 18, 38, 0.94), rgba(8, 11, 24, 0.88));
+      border: 1px solid rgba(112, 168, 255, 0.22);
       box-shadow:
-        0 0 0 1px rgba(255,70,110,0.10) inset,
-        0 10px 24px rgba(0,0,0,0.34);
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 12px 28px rgba(0,0,0,0.34);
     }
 
     .peopleDashCard::before{
@@ -1078,20 +1079,20 @@ function ensurePeopleStyles() {
       inset: 0;
       pointer-events:none;
       background:
-        radial-gradient(140px 80px at 50% 14%, rgba(255,70,110,0.16), transparent 58%),
-        linear-gradient(180deg, rgba(255,255,255,0.02), transparent 36%);
+        radial-gradient(140px 80px at 50% 10%, rgba(96,178,255,0.14), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.035), transparent 38%);
       opacity:.95;
     }
 
     .peopleDashCard::after{
       content:"";
       position:absolute;
-      left: 10px;
-      right: 10px;
+      left: 12px;
+      right: 12px;
       top: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,130,160,0.28), transparent);
-      opacity: .75;
+      background: linear-gradient(90deg, transparent, rgba(126,208,255,0.34), transparent);
+      opacity: .82;
       pointer-events:none;
     }
 
@@ -1099,14 +1100,14 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
       font-weight: 900;
-      font-size: 22px;
+      font-size: 24px;
       line-height: 1;
-      letter-spacing: .04em;
-      margin: 1px 0 8px;
-      color: rgba(255,232,238,0.97);
+      letter-spacing: .03em;
+      margin: 2px 0 10px;
+      color: rgba(244,247,255,0.98);
       text-shadow:
-        0 0 14px rgba(255,70,110,0.20),
-        0 0 28px rgba(255,70,110,0.08);
+        0 0 12px rgba(91,168,255,0.16),
+        0 0 24px rgba(255,70,110,0.06);
       white-space: nowrap;
     }
 
@@ -1114,19 +1115,20 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
       font-size: 12px;
-      letter-spacing: .14em;
+      letter-spacing: .12em;
       text-transform: uppercase !important;
-      opacity: .70;
+      color: rgba(190,206,228,0.84);
+      line-height: 1.35;
       white-space: nowrap;
     }
 
-        .peopleDashBottom{
+    .peopleDashBottom{
       position: relative;
       z-index: 2;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
-      margin-top: 12px;
+      gap: 14px;
+      margin-top: 14px;
       align-items: stretch;
     }
 
@@ -1134,12 +1136,13 @@ function ensurePeopleStyles() {
     .peopleDashGauge{
       position: relative;
       overflow: hidden;
-      border-radius: 15px;
+      border-radius: 16px;
       background:
-        linear-gradient(180deg, rgba(28, 8, 18, 0.90), rgba(12, 4, 9, 0.84));
-      border: 1px solid rgba(255,70,110,0.22);
+        radial-gradient(circle at top left, rgba(88, 166, 255, 0.10), transparent 42%),
+        linear-gradient(180deg, rgba(10, 16, 35, 0.94), rgba(8, 11, 24, 0.88));
+      border: 1px solid rgba(112,168,255,0.18);
       box-shadow:
-        0 0 0 1px rgba(255,70,110,0.10) inset,
+        0 0 0 1px rgba(255,255,255,0.05) inset,
         0 10px 24px rgba(0,0,0,0.32);
     }
 
@@ -1151,14 +1154,14 @@ function ensurePeopleStyles() {
       right: 12px;
       top: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,130,160,0.24), transparent);
+      background: linear-gradient(90deg, transparent, rgba(126,208,255,0.28), transparent);
       opacity: .72;
       pointer-events:none;
     }
 
     .peopleDashProgress{
-      padding: 16px 16px 15px;
-      min-height: 114px;
+      padding: 18px 18px 17px;
+      min-height: 120px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -1171,7 +1174,7 @@ function ensurePeopleStyles() {
       inset: 0;
       pointer-events:none;
       background:
-        radial-gradient(150px 90px at 25% 18%, rgba(255,70,110,0.12), transparent 58%);
+        radial-gradient(150px 90px at 25% 18%, rgba(90,166,255,0.10), transparent 58%);
       opacity:.95;
     }
 
@@ -1179,10 +1182,10 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
       font-size: 11px;
-      letter-spacing: .14em;
+      letter-spacing: .12em;
       text-transform: uppercase !important;
-      opacity: .78;
-      margin-bottom: 12px;
+      color: rgba(196,211,232,0.84);
+      margin-bottom: 0;
       white-space: nowrap;
     }
 
@@ -1190,20 +1193,21 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
       display:flex;
-      align-items:flex-end;
+      align-items:center;
+      justify-content:space-between;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
 
     .peopleDashProgressPct{
-      font-size:1.5rem;
-      font-weight: 700;
-      letter-spacing: .25em;
-      color: rgba(255,232,238,0.97);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: rgba(244,247,255,0.98);
       text-shadow:
-        0 0 14px rgba(255,70,110,0.20),
-        0 0 28px rgba(255,70,110,0.08);
+        0 0 14px rgba(255,70,110,0.18),
+        0 0 28px rgba(91,168,255,0.10);
       white-space: nowrap;
     }
 
@@ -1219,13 +1223,14 @@ function ensurePeopleStyles() {
     .peopleDashBar{
       position: relative;
       z-index: 2;
-      height: 10px;
+      height: 12px;
       border-radius: 999px;
       overflow: hidden;
-      background: rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.04),
-        0 0 12px rgba(255,70,110,0.06);
+        inset 0 0 0 1px rgba(255,255,255,0.06),
+        inset 0 1px 4px rgba(0,0,0,0.20),
+        0 0 12px rgba(91,168,255,0.05);
     }
 
     .peopleDashBarFill{
@@ -1234,10 +1239,10 @@ function ensurePeopleStyles() {
       min-width: 0;
       border-radius: inherit;
       background:
-        linear-gradient(90deg, rgba(255,70,110,0.96), rgba(255,170,195,0.98));
+        linear-gradient(90deg, rgba(255,82,128,0.98), rgba(255,126,176,0.98) 55%, rgba(255,198,218,0.96));
       box-shadow:
-        0 0 14px rgba(255,70,110,0.30),
-        0 0 28px rgba(255,70,110,0.14);
+        0 0 14px rgba(255,70,110,0.28),
+        0 0 28px rgba(255,70,110,0.12);
       transition: width 260ms ease;
     }
 
@@ -1323,13 +1328,25 @@ function ensurePeopleStyles() {
 
     @media (max-width: 640px){
       .peopleStatsDashboard{
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .peopleDashCard{
+        min-height: 86px;
+        padding: 14px 10px 12px;
       }
       .peopleStatValue{
-        font-size: 23px;
+        font-size: 22px;
+      }
+      .peopleStatSub{
+        font-size: 11px;
+        letter-spacing: .10em;
       }
       .peopleDashProgressPct{
         font-size: 28px;
+      }
+      .peopleDashProgress{
+        padding: 16px 14px 15px;
       }
       .peopleDashGaugeInner{
         width: 90px;
@@ -2055,7 +2072,7 @@ function ensurePeopleStyles() {
     }));
     allEntries.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Render A–Z nav (with empty letters dimmed)
+    // Render AÃ¢â‚¬â€œZ nav (with empty letters dimmed)
     renderPeopleLetterNav(indexMap);
 
     const letter = _getPeopleLetter();
@@ -2092,7 +2109,7 @@ function ensurePeopleStyles() {
 
       listEl.innerHTML = entries
     .map((p) => {
-      const photosTxt = (p.photos === null) ? '—' : String(p.photos);
+      const photosTxt = (p.photos === null) ? 'Ã¢â‚¬â€' : String(p.photos);
       const albumsTxt = String(p.albums);
 
       return `
@@ -2171,9 +2188,9 @@ function renderTopStats(indexMap){
     </div>
     <div class="peopleTopStatsGrid">
       ${top.map((t, i) => {
-        const photosTxt = (t.photos === null) ? '—' : String(t.photos);
+        const photosTxt = (t.photos === null) ? 'Ã¢â‚¬â€' : String(t.photos);
         const albumsTxt = String(t.albums || 0);
-        const medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : '🥉';
+        const medal = (i === 0) ? 'Ã°Å¸Â¥â€¡' : (i === 1) ? 'Ã°Å¸Â¥Ë†' : 'Ã°Å¸Â¥â€°';
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
@@ -2183,7 +2200,7 @@ function renderTopStats(indexMap){
             </div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
-              <span class="dot">•</span>
+              <span class="dot">Ã¢â‚¬Â¢</span>
               <span class="lbl">Albums</span> <span class="k">${_eh(albumsTxt)}</span>
             </div>
           </div>
@@ -2210,7 +2227,7 @@ function renderTopStats(indexMap){
     } catch (_) {}
 
 
-    // Hide A–Z while drilling in
+    // Hide AÃ¢â‚¬â€œZ while drilling in
     try {
       const navEl = panelRoot.querySelector('#peopleLetterNav');
       if (navEl) navEl.style.display = 'none';
@@ -2226,7 +2243,7 @@ function renderTopStats(indexMap){
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
           style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#FFFFFF;">
-          ← Back
+          Ã¢â€ Â Back
         </button>
         <div style="flex:1; min-width:0; text-align:right;">
           <div style="font-weight:900; font-size:13px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -2332,7 +2349,7 @@ async function _openPersonAlbum(albumKey, personName){
   const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
   if (!drop) return;
   drop.style.display = '';
-  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shots…</div>`;
+  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shotsÃ¢â‚¬Â¦</div>`;
 
   const who = _safeTrim(personName);
   const cached = _albumCaptionMatchCache.get(key);
@@ -2407,8 +2424,8 @@ async function hydrateAlbumThumbs(albumKeys) {
     const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const albumsEl = panelRoot && panelRoot.querySelector('#peopleAlbumsList');
 
-    if (statusEl) statusEl.textContent = 'Loading albums…';
-    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">Loading…</div>`;
+    if (statusEl) statusEl.textContent = 'Loading albumsÃ¢â‚¬Â¦';
+    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">LoadingÃ¢â‚¬Â¦</div>`;
 
     // Build album list using stubs when available; fetch meta when needed.
     const items = [];
@@ -2450,7 +2467,7 @@ async function hydrateAlbumThumbs(albumKeys) {
 
       done += 1;
       if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
-        statusEl.textContent = `Loading albums… ${done}/${albumKeys.length}`;
+        statusEl.textContent = `Loading albumsÃ¢â‚¬Â¦ ${done}/${albumKeys.length}`;
       }
     }
 
@@ -2622,14 +2639,14 @@ function _ensurePeopleLightbox(){
     <div class="peopleLightboxInner" role="dialog" aria-modal="true" aria-label="Photo viewer">
       <div class="peopleLightboxTop">
         <div id="peopleLightboxCounter">Photo</div>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close ✕</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close Ã¢Å“â€¢</button>
       </div>
       <div class="peopleLightboxStage">
         <img id="peopleLightboxImg" alt="" />
       </div>
       <div class="peopleLightboxNav">
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">← Prev</button>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next →</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">Ã¢â€ Â Prev</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next Ã¢â€ â€™</button>
       </div>
     </div>
   `;
@@ -2840,7 +2857,7 @@ function openPeopleLightbox(list, index){
       e.preventDefault();
       const token = ++_lastRenderToken;
       const statusEl = panelRoot.querySelector('#peopleStatus');
-      if (statusEl) statusEl.textContent = 'Rebuilding…';
+      if (statusEl) statusEl.textContent = 'RebuildingÃ¢â‚¬Â¦';
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
@@ -2948,7 +2965,7 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
     const statusEl = panelRoot.querySelector('#peopleStatus');
 
     if (metaEl) metaEl.textContent = 'Server index';
-    if (statusEl) statusEl.textContent = force ? 'Rebuilding…' : 'Loading…';
+    if (statusEl) statusEl.textContent = force ? 'RebuildingÃ¢â‚¬Â¦' : 'LoadingÃ¢â‚¬Â¦';
 
     // IMPORTANT: only force rebuild when explicitly requested.
     // Otherwise, we want the server's memory/disk cache for speed.
@@ -3047,8 +3064,8 @@ const pollDelayMs = 2000;
       const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
       if (metaEl) {
         const left = `${idx.size} people indexed`;
-        const extra = scanned !== null ? ` • albums scanned: ${scanned}` : '';
-        const right = gen ? ` • ${gen.replace('T', ' ').replace('Z', '')}` : '';
+        const extra = scanned !== null ? ` Ã¢â‚¬Â¢ albums scanned: ${scanned}` : '';
+        const right = gen ? ` Ã¢â‚¬Â¢ ${gen.replace('T', ' ').replace('Z', '')}` : '';
         metaEl.textContent = `${left}${extra}${right}`;
       }
 
@@ -3092,7 +3109,7 @@ const pollDelayMs = 2000;
           <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
                aria-expanded="true" aria-controls="peopleStatsContent">
             <span>Archive System Status</span>
-            <span class="peopleStatsToggleIcon" aria-hidden="true">▾</span>
+            <span class="peopleStatsToggleIcon" aria-hidden="true">Ã¢â€“Â¾</span>
           </div>
 
           <div id="peopleStatsContent" class="peopleStatsContent">
@@ -3144,7 +3161,7 @@ const pollDelayMs = 2000;
           </div>
         </div>
 
-        <!-- A–Z filter (darkens letters with no entries) -->
+        <!-- AÃ¢â‚¬â€œZ filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
           <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
         </div>
