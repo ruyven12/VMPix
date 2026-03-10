@@ -80,7 +80,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
   let _statsLoadPromise = null;
 
   // People stats collapsible UI state
-  let _peopleStatsCollapsed = false;
+  let _peopleStatsCollapsed = true;
 
   // When using the server-side people index, we seed this cache up-front.
 
@@ -202,7 +202,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     if (!raw) return { dateText: '', restTitle: '' };
 
     // YYYY-MM-DD ...
-    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â:]\s*)?(.*)$/);
+    let m = raw.match(/^\s*(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\s*(?:[-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â:]\s*)?(.*)$/);
     if (m) {
       const yyyy = m[1];
       const mm = String(m[2]).padStart(2, '0');
@@ -212,7 +212,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     }
 
     // M/D/YY ... or M-D-YYYY ...
-    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â:]\s*)?(.*)$/);
+    m = raw.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\s*(?:[-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â:]\s*)?(.*)$/);
     if (m) {
       const mm = String(m[1]).padStart(2, '0');
       const dd = String(m[2]).padStart(2, '0');
@@ -1031,16 +1031,60 @@ function ensurePeopleStyles() {
     .peopleStatsHdrToggle{
       cursor: pointer;
       user-select: none;
-      display:flex;
+      display:inline-flex;
       align-items:center;
       justify-content:center;
       gap: 10px;
+      margin: 0 auto 14px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(8,12,24,0.42);
+      color: rgba(196,211,232,0.78);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        0 10px 22px rgba(0,0,0,0.22);
+      transition: transform 140ms ease, filter 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .peopleStatsHdrToggle:hover{
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .peopleStatsHdrToggle:focus-visible{
+      outline: none;
+      border-color: rgba(130,210,255,0.42);
+      box-shadow:
+        0 0 0 2px rgba(74,164,255,0.18),
+        0 12px 24px rgba(0,0,0,0.24);
+    }
+
+    .peopleStatsCollapsible:not(.is-collapsed) .peopleStatsHdrToggle{
+      background: linear-gradient(180deg, rgba(42,10,28,0.88), rgba(20,8,18,0.84));
+      border-color: rgba(255,92,138,0.34);
+      color: rgba(245,240,246,0.96);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 0 0 1px rgba(255,92,138,0.12),
+        0 14px 28px rgba(0,0,0,0.28);
     }
 
     .peopleStatsToggleIcon{
       display:inline-block;
+      font-size: 12px;
+      line-height: 1;
       transition: transform 160ms ease, opacity 160ms ease;
       opacity: .85;
+    }
+
+    .peopleStatsCollapsible.is-collapsed .peopleStatsHdrToggle{
+      background: rgba(8,12,24,0.34);
+      border-color: rgba(255,255,255,0.08);
+      color: rgba(173,189,210,0.68);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.02),
+        0 8px 18px rgba(0,0,0,0.18);
     }
 
     .peopleStatsCollapsible.is-collapsed .peopleStatsToggleIcon{
@@ -2074,7 +2118,7 @@ function ensurePeopleStyles() {
     }));
     allEntries.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Render AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ nav (with empty letters dimmed)
+    // Render AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Z nav (with empty letters dimmed)
     renderPeopleLetterNav(indexMap);
 
     const letter = _getPeopleLetter();
@@ -2111,7 +2155,7 @@ function ensurePeopleStyles() {
 
       listEl.innerHTML = entries
     .map((p) => {
-      const photosTxt = (p.photos === null) ? 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' : String(p.photos);
+      const photosTxt = (p.photos === null) ? 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â' : String(p.photos);
       const albumsTxt = String(p.albums);
 
       return `
@@ -2229,7 +2273,7 @@ function renderTopStats(indexMap){
     } catch (_) {}
 
 
-    // Hide AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ while drilling in
+    // Hide AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Z while drilling in
     try {
       const navEl = panelRoot.querySelector('#peopleLetterNav');
       if (navEl) navEl.style.display = 'none';
@@ -2245,7 +2289,7 @@ function renderTopStats(indexMap){
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
           style="cursor:pointer; border:0; background:rgba(0,0,0,0.18); box-shadow:0 0 0 1px rgba(255,70,110,0.25) inset; border-radius:12px; padding:9px 12px; font-weight:900; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#FFFFFF;">
-          ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â Back
+          ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Back
         </button>
         <div style="flex:1; min-width:0; text-align:right;">
           <div style="font-weight:900; font-size:13px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -2351,7 +2395,7 @@ async function _openPersonAlbum(albumKey, personName){
   const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
   if (!drop) return;
   drop.style.display = '';
-  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shotsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>`;
+  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shotsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>`;
 
   const who = _safeTrim(personName);
   const cached = _albumCaptionMatchCache.get(key);
@@ -2426,8 +2470,8 @@ async function hydrateAlbumThumbs(albumKeys) {
     const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const albumsEl = panelRoot && panelRoot.querySelector('#peopleAlbumsList');
 
-    if (statusEl) statusEl.textContent = 'Loading albumsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
-    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">LoadingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>`;
+    if (statusEl) statusEl.textContent = 'Loading albumsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦';
+    if (albumsEl) albumsEl.innerHTML = `<div style="opacity:.7; font-size:12px; line-height:1.4;">LoadingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>`;
 
     // Build album list using stubs when available; fetch meta when needed.
     const items = [];
@@ -2469,7 +2513,7 @@ async function hydrateAlbumThumbs(albumKeys) {
 
       done += 1;
       if (statusEl && (done % 6 === 0 || done === albumKeys.length)) {
-        statusEl.textContent = `Loading albumsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ ${done}/${albumKeys.length}`;
+        statusEl.textContent = `Loading albumsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ ${done}/${albumKeys.length}`;
       }
     }
 
@@ -2641,14 +2685,14 @@ function _ensurePeopleLightbox(){
     <div class="peopleLightboxInner" role="dialog" aria-modal="true" aria-label="Photo viewer">
       <div class="peopleLightboxTop">
         <div id="peopleLightboxCounter">Photo</div>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢</button>
       </div>
       <div class="peopleLightboxStage">
         <img id="peopleLightboxImg" alt="" />
       </div>
       <div class="peopleLightboxNav">
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â Prev</button>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Prev</button>
+        <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢</button>
       </div>
     </div>
   `;
@@ -2859,7 +2903,7 @@ function openPeopleLightbox(list, index){
       e.preventDefault();
       const token = ++_lastRenderToken;
       const statusEl = panelRoot.querySelector('#peopleStatus');
-      if (statusEl) statusEl.textContent = 'RebuildingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
+      if (statusEl) statusEl.textContent = 'RebuildingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦';
 
       // Reset view to list on rebuild
       _view = { mode: 'list', person: '', albumKeys: [] };
@@ -2967,7 +3011,7 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
     const statusEl = panelRoot.querySelector('#peopleStatus');
 
     if (metaEl) metaEl.textContent = 'Server index';
-    if (statusEl) statusEl.textContent = force ? 'RebuildingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦' : 'LoadingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦';
+    if (statusEl) statusEl.textContent = force ? 'RebuildingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦' : 'LoadingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦';
 
     // IMPORTANT: only force rebuild when explicitly requested.
     // Otherwise, we want the server's memory/disk cache for speed.
@@ -3066,8 +3110,8 @@ const pollDelayMs = 2000;
       const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
       if (metaEl) {
         const left = `${idx.size} people indexed`;
-        const extra = scanned !== null ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ albums scanned: ${scanned}` : '';
-        const right = gen ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ ${gen.replace('T', ' ').replace('Z', '')}` : '';
+        const extra = scanned !== null ? ` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ albums scanned: ${scanned}` : '';
+        const right = gen ? ` ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ ${gen.replace('T', ' ').replace('Z', '')}` : '';
         metaEl.textContent = `${left}${extra}${right}`;
       }
 
@@ -3107,14 +3151,14 @@ const pollDelayMs = 2000;
         </div>
 
                 <!-- People Stats + Top 3 (collapsible) -->
-        <div id="peopleStatsWrap" class="peopleStatsCollapsible" aria-label="People Stats">
+        <div id="peopleStatsWrap" class="peopleStatsCollapsible is-collapsed" aria-label="People Stats">
           <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
-               aria-expanded="true" aria-controls="peopleStatsContent">
+               aria-expanded="false" aria-controls="peopleStatsContent">
             <span>Archive System Status</span>
-            <span class="peopleStatsToggleIcon" aria-hidden="true">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¾</span>
+            <span class="peopleStatsToggleIcon" aria-hidden="true">&#9662;</span>
           </div>
 
-          <div id="peopleStatsContent" class="peopleStatsContent">
+          <div id="peopleStatsContent" class="peopleStatsContent" style="display:none;">
             <div class="peopleStatsBlock" aria-label="People Stats dashboard">
               <div class="peopleStatsDashboard" role="group" aria-label="People stats tiles">
                 <div class="peopleDashCard">
@@ -3163,7 +3207,7 @@ const pollDelayMs = 2000;
           </div>
         </div>
 
-        <!-- AÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œZ filter (darkens letters with no entries) -->
+        <!-- AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
           <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
         </div>
@@ -3183,8 +3227,8 @@ const pollDelayMs = 2000;
     // Restore stats collapse state (session-scoped)
     try {
       const raw = sessionStorage.getItem('vm_music_people_stats_collapsed_v1');
-      _peopleStatsCollapsed = raw === '1';
-    } catch (_) { _peopleStatsCollapsed = false; }
+      _peopleStatsCollapsed = raw !== '0';
+    } catch (_) { _peopleStatsCollapsed = true; }
 
     try {
       const wrap = panelRoot && panelRoot.querySelector('#peopleStatsWrap');
