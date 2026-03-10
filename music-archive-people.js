@@ -1730,27 +1730,38 @@ function ensurePeopleStyles() {
     }
 
     /* ===== People: Top stats (display-only; no click/routing) ===== */
-    #peopleTopStats{ width: 100%; margin: 10px auto 10px; }
-    .peopleTopStatsHdr{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin-bottom: 8px; }
+    #peopleTopStats{ width: 100%; margin: 12px auto 14px; }
+    .peopleTopStatsHdr{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
     .peopleTopStatsTitle{
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 12px;
-      letter-spacing: .16em;
+      font-size: 11px;
+      letter-spacing: .18em;
       text-transform: uppercase;
-      opacity: .86;
+      color: rgba(240,244,255,0.92);
+      text-shadow: 0 0 12px rgba(84,180,255,0.16);
+      opacity: .92;
     }
     .peopleTopStatsSub{
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 10px;
-      letter-spacing: .18em;
+      font-size: 9px;
+      letter-spacing: .12em;
       text-transform: uppercase;
-      opacity: .62;
+      color: rgba(184,205,232,0.72);
+      opacity: .9;
     }
     .peopleTopStatsGrid{
       width: 100%;
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
       align-items: stretch;
       justify-items: stretch;
       pointer-events: none;
@@ -1758,11 +1769,21 @@ function ensurePeopleStyles() {
     }
     .peopleTopStatCard{
       position: relative;
-      border-radius: 16px;
-      padding: 12px 12px 11px;
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(255,70,110,0.18);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.32);
+      display:flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 92px;
+      border-radius: 18px;
+      padding: 14px 14px 13px;
+      background:
+        radial-gradient(circle at top center, rgba(77,160,255,0.18), transparent 56%),
+        linear-gradient(180deg, rgba(8,14,30,0.88), rgba(6,10,22,0.72));
+      border: 1px solid rgba(106,168,255,0.2);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 14px 34px rgba(0,0,0,0.34);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       overflow: hidden;
@@ -1770,50 +1791,93 @@ function ensurePeopleStyles() {
     .peopleTopStatCard::before{
       content:"";
       position:absolute;
-      left: 0;
-      top: 10px;
-      bottom: 10px;
-      width: 2px;
-      border-radius: 999px;
-      background: rgba(255,70,110,0.65);
-      box-shadow: 0 0 12px rgba(255,70,110,0.18);
-      opacity: .85;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(122,202,255,0.72), transparent);
+      box-shadow: 0 0 16px rgba(122,202,255,0.18);
+      opacity: .95;
       pointer-events:none;
+    }
+    .peopleTopStatCard::after{
+      content:"";
+      position:absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid rgba(255,255,255,0.03);
+      pointer-events:none;
+    }
+    .peopleTopStatCard:nth-child(1){
+      border-color: rgba(255,212,120,0.28);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 16px 38px rgba(0,0,0,0.36),
+        0 0 0 1px rgba(255,212,120,0.06);
+    }
+    .peopleTopStatCard:nth-child(2){
+      border-color: rgba(152,212,255,0.24);
+    }
+    .peopleTopStatCard:nth-child(3){
+      border-color: rgba(255,156,120,0.24);
+    }
+    .peopleTopStatRankRow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
     }
     .peopleTopStatRank{
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 14px;
       letter-spacing: 0;
       text-transform: none;
-      opacity: .95;
+      opacity: .98;
       line-height: 1;
-      margin-bottom: 6px;
+      flex: 0 0 auto;
     }
     .peopleTopStatName{
+      font-family: "Orbitron", system-ui, sans-serif;
       font-weight: 900;
-      font-size: 13px;
-      letter-spacing: .02em;
-      opacity: .95;
+      font-size: 15px;
+      letter-spacing: .01em;
+      color: rgba(244,247,255,0.96);
+      text-shadow: 0 1px 12px rgba(69,145,255,0.12);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0;
+      text-align: left;
     }
     .peopleTopStatMeta{
-      margin-top: 8px;
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 13px;
-      letter-spacing: .14em;
+      font-size: 11px;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      opacity: .70;
+      color: rgba(198,214,236,0.74);
       display:flex;
       flex-wrap:wrap;
       align-items:center;
       justify-content:center;
-      gap: 6px;
+      gap: 4px 8px;
     }
-    .peopleTopStatMeta .k{ opacity: .95; font-weight: 900; }
-    .peopleTopStatMeta .lbl{ opacity: .72; }
-    .peopleTopStatMeta .dot{ opacity: .45; }
+    .peopleTopStatMeta .k{
+      color: rgba(245,248,255,0.96);
+      opacity: 1;
+      font-weight: 900;
+    }
+    .peopleTopStatMeta .lbl{ opacity: .64; }
+    .peopleTopStatMeta .dot{ opacity: .34; }
 
     @media (max-width: 720px){
       .peopleTopStatsGrid{ grid-template-columns: 1fr; }
@@ -2113,7 +2177,10 @@ function renderTopStats(indexMap){
         const ariaRank = (i === 0) ? 'Gold medal' : (i === 1) ? 'Silver medal' : 'Bronze medal';
         return `
           <div class="peopleTopStatCard" role="group" aria-label="${_eh(ariaRank)} ${_eh(t.name)}">
-            <div class="peopleTopStatRank" style="text-align:center" aria-hidden="true">${_eh(medal)}   ${_eh(t.name)}</div>
+            <div class="peopleTopStatRankRow">
+              <div class="peopleTopStatRank" aria-hidden="true">${_eh(medal)}</div>
+              <div class="peopleTopStatName">${_eh(t.name)}</div>
+            </div>
             <div class="peopleTopStatMeta">
               <span class="lbl">Photos</span> <span class="k">${_eh(photosTxt)}</span>
               <span class="dot">•</span>
