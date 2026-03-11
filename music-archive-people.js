@@ -22,6 +22,7 @@
       : DEFAULT_API_BASE;
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
+  const PEOPLE_MATCH_PREVIEW_LIMIT = 8;
 
   // where each region actually lives on SmugMug (kept from your script.js)
   const REGION_FOLDER_BASE = {
@@ -1997,21 +1998,54 @@ function ensurePeopleStyles() {
 }
 .peopleAlbumDropHdr{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-  opacity: .92;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.peopleAlbumDropMeta{
+  min-width: 0;
+}
+.peopleAlbumDropLabel{
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(245,248,255,0.96);
+}
+.peopleAlbumDropHint{
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(198,214,236,0.68);
+}
+.peopleAlbumDropActions{
+  flex: 0 0 auto;
+}
+.peopleAlbumDropToggle{
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 11px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+  color: rgba(245,248,255,0.92);
   font-family: "Orbitron", system-ui, sans-serif;
   font-size: 10px;
-  letter-spacing: .14em;
+  font-weight: 900;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
-.peopleAlbumDropCount{ opacity: .78; }
+.peopleAlbumDropToggle:hover{
+  background: rgba(255,255,255,0.12);
+}
 .peopleAlbumDropGrid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 12px;
+  align-items:start;
 }
 .peopleShotThumb{
   position: relative;
@@ -2032,6 +2066,7 @@ function ensurePeopleStyles() {
   display: block;
   transform: translateZ(0);
 }
+.peopleShotThumb.is-hidden{ display:none; }
 .peopleShotBadge{
   position:absolute;
   top: 8px;
@@ -2443,19 +2478,26 @@ async function _openPersonAlbum(albumKey, personName){
   if (_openPersonAlbumKey !== key) return;
 
   const list = Array.isArray(shots) ? shots : [];
+  const previewCount = Math.min(PEOPLE_MATCH_PREVIEW_LIMIT, list.length);
+  const hasMoreShots = list.length > previewCount;
   _peopleLightboxList = list;
-  drop.innerHTML = `
+  drop.innerHTML =     `
     <div class="peopleAlbumDropHdr">
-      <div>Tagged shots (caption match)</div>
-      <div class="peopleAlbumDropCount">${list.length}</div>
+      <div class="peopleAlbumDropMeta">
+        <div class="peopleAlbumDropLabel">${list.length} tagged shots</div>
+        <div class="peopleAlbumDropHint">Caption match</div>
+      </div>
+      <div class="peopleAlbumDropActions">
+        ${hasMoreShots ? `<button type="button" class="peopleAlbumDropToggle" data-people-toggle-shots="1" data-preview-count="${previewCount}" aria-expanded="false">Show all</button>` : ''}
+      </div>
     </div>
-    <div class="peopleAlbumDropGrid">
+    <div class="peopleAlbumDropGrid" data-preview-count="${previewCount}" data-expanded="0">
       ${list.map((s, i) => {
         const ik = _safeTrim(s.imageKey);
         const tu = _safeTrim(s.thumbUrl);
         if (!ik || !tu) return '';
         return `
-          <button type="button" class="peopleShotThumb" data-imagekey="${_eh(ik)}" data-idx="${i}">
+          <button type="button" class="peopleShotThumb${i >= previewCount ? ' is-hidden' : ''}" data-imagekey="${_eh(ik)}" data-idx="${i}" aria-label="Open tagged shot ${i + 1}">
             <span class="peopleShotBadge">#${i + 1}</span>
             <img src="${_eh(tu)}" alt="" loading="lazy" decoding="async"/>
           </button>
@@ -2895,6 +2937,24 @@ function openPeopleLightbox(list, index){
         if (topStats) topStats.style.display = _peopleStatsCollapsed ? 'none' : '';
         try { sessionStorage.setItem('vm_music_people_stats_collapsed_v1', _peopleStatsCollapsed ? '1' : '0'); } catch (_) {}
       } catch (_) {}
+      return;
+    }
+
+    const toggleShotsBtn = t.closest ? t.closest('[data-people-toggle-shots="1"]') : null;
+    if (toggleShotsBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const drop = t.closest ? t.closest('.peopleAlbumDrop[data-albumdrop="1"]') : null;
+      const grid = drop ? drop.querySelector('.peopleAlbumDropGrid') : null;
+      const thumbs = grid ? Array.from(grid.querySelectorAll('.peopleShotThumb[data-imagekey]')) : [];
+      const previewCount = Math.max(0, Number(toggleShotsBtn.getAttribute('data-preview-count') || 0));
+      const expand = toggleShotsBtn.getAttribute('aria-expanded') !== 'true';
+      thumbs.forEach((el, idx) => {
+        el.classList.toggle('is-hidden', !expand && idx >= previewCount);
+      });
+      toggleShotsBtn.setAttribute('aria-expanded', expand ? 'true' : 'false');
+      if (grid) grid.setAttribute('data-expanded', expand ? '1' : '0');
+      toggleShotsBtn.textContent = expand ? 'Show less' : 'Show all';
       return;
     }
 
