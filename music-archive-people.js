@@ -2001,6 +2001,17 @@ function ensurePeopleStyles() {
   box-sizing: border-box;
   box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
 }
+.peopleAlbumDropLayout{
+  display:grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.peopleAlbumDropRail{
+  min-width: 0;
+}
+.peopleAlbumDropBody{
+  min-width: 0;
+}
 .peopleAlbumDropHdr{
   display:flex;
   align-items:flex-start;
@@ -2076,6 +2087,17 @@ function ensurePeopleStyles() {
   .peopleTimelineItem.is-open .peopleAlbumDrop{
     grid-column: 3 / -1;
     margin-left: 0;
+  }
+  .peopleTimelineItem.is-open .peopleAlbumDropLayout{
+    grid-template-columns: 110px minmax(0, 1fr);
+    align-items: start;
+  }
+  .peopleTimelineItem.is-open .peopleAlbumDropHdr{
+    display:block;
+    margin-bottom: 0;
+  }
+  .peopleTimelineItem.is-open .peopleAlbumDropActions{
+    margin-top: 10px;
   }
   .peopleTimelineItem.is-open .peopleAlbumDropGrid{
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2476,49 +2498,37 @@ async function _openPersonAlbum(albumKey, personName){
   const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
   if (!drop) return;
   drop.style.display = '';
-  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shots...</div>`;
-
-  const who = _safeTrim(personName);
-  const cached = _albumCaptionMatchCache.get(key);
-  let shots = (cached && cached.forPerson === _normKey(who) && Array.isArray(cached.shots)) ? cached.shots : null;
-
-  if (!shots){
-    shots = await fetchCaptionMatchShotsForPerson(key, who, { maxPages: 10, pageSize: 200 }).catch(() => []);
-    _albumCaptionMatchCache.set(key, { forPerson: _normKey(who), shots: Array.isArray(shots) ? shots : [] });
-  }
-
-  if (!panelRoot) return;
-  // If user switched albums while loading, abort
-  if (_openPersonAlbumKey !== key) return;
-
-  const list = Array.isArray(shots) ? shots : [];
-  const previewCount = Math.min(PEOPLE_MATCH_PREVIEW_LIMIT, list.length);
-  const hasMoreShots = list.length > previewCount;
-  _peopleLightboxList = list;
   drop.innerHTML =     `
-    <div class="peopleAlbumDropHdr">
-      <div class="peopleAlbumDropMeta">
-        <div class="peopleAlbumDropLabel">${list.length} tagged shots</div>
-        <div class="peopleAlbumDropHint">Caption match</div>
+    <div class="peopleAlbumDropLayout">
+      <div class="peopleAlbumDropRail">
+        <div class="peopleAlbumDropHdr">
+          <div class="peopleAlbumDropMeta">
+            <div class="peopleAlbumDropLabel">${list.length} tagged shots</div>
+            <div class="peopleAlbumDropHint">Caption match</div>
+          </div>
+          <div class="peopleAlbumDropActions">
+            ${hasMoreShots ? `<button type="button" class="peopleAlbumDropToggle" data-people-toggle-shots="1" data-preview-count="${previewCount}" aria-expanded="false">Show all</button>` : ''}
+          </div>
+        </div>
       </div>
-      <div class="peopleAlbumDropActions">
-        ${hasMoreShots ? `<button type="button" class="peopleAlbumDropToggle" data-people-toggle-shots="1" data-preview-count="${previewCount}" aria-expanded="false">Show all</button>` : ''}
+      <div class="peopleAlbumDropBody">
+        <div class="peopleAlbumDropGrid" data-preview-count="${previewCount}" data-expanded="0">
+          ${list.map((s, i) => {
+            const ik = _safeTrim(s.imageKey);
+            const tu = _safeTrim(s.thumbUrl);
+            if (!ik || !tu) return '';
+            return `
+              <button type="button" class="peopleShotThumb${i >= previewCount ? ' is-hidden' : ''}" data-imagekey="${_eh(ik)}" data-idx="${i}" aria-label="Open tagged shot ${i + 1}">
+                <span class="peopleShotBadge">#${i + 1}</span>
+                <img src="${_eh(tu)}" alt="" loading="lazy" decoding="async"/>
+              </button>
+            `;
+          }).join('')}
+        </div>
       </div>
-    </div>
-    <div class="peopleAlbumDropGrid" data-preview-count="${previewCount}" data-expanded="0">
-      ${list.map((s, i) => {
-        const ik = _safeTrim(s.imageKey);
-        const tu = _safeTrim(s.thumbUrl);
-        if (!ik || !tu) return '';
-        return `
-          <button type="button" class="peopleShotThumb${i >= previewCount ? ' is-hidden' : ''}" data-imagekey="${_eh(ik)}" data-idx="${i}" aria-label="Open tagged shot ${i + 1}">
-            <span class="peopleShotBadge">#${i + 1}</span>
-            <img src="${_eh(tu)}" alt="" loading="lazy" decoding="async"/>
-          </button>
-        `;
-      }).join('')}
     </div>
   `;
+
 }
 
 async function hydrateAlbumThumbs(albumKeys) {
