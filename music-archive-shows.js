@@ -61,6 +61,19 @@
     return (d + "|" + t).replace(/\s+/g, " ").slice(0, 180);
   }
 
+  function formatShowTitle(title) {
+    const raw = String(title || "").trim();
+    if (!raw) return "";
+
+    if (/[A-Z]/.test(raw) && !/[a-z]/.test(raw)) {
+      return raw
+        .toLowerCase()
+        .replace(/\b([a-z])([a-z']*)/g, (_m, first, rest) => first.toUpperCase() + rest);
+    }
+
+    return raw;
+  }
+
 
   // Optional: inject shows-only CSS once
   function ensureShowsStyles() {
@@ -1350,7 +1363,7 @@ async function ensureShowsLoaded() {
   function renderPosterDetail({ year, show, containerEl }) {
   if (!containerEl) return;
 
-  const title = (show?.title || "").trim();
+  const title = formatShowTitle(show?.title || "");
   const date = (show?.prettyDate || "").trim();
   const venueLine = (show?.venueLine || "").trim();
   const posterUrl = (show?.poster_url || "").trim();
@@ -1926,7 +1939,7 @@ const meta = document.createElement("div");
 
       const title = document.createElement("div");
       title.className = "showTitle";
-      title.textContent = s.title || "";
+      title.textContent = formatShowTitle(s.title || "");
 
       const date = document.createElement("div");
       date.className = "showDate";
