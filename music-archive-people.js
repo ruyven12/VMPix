@@ -2498,6 +2498,24 @@ async function _openPersonAlbum(albumKey, personName){
   const drop = item.querySelector('.peopleAlbumDrop[data-albumdrop="1"]');
   if (!drop) return;
   drop.style.display = '';
+  drop.innerHTML = `<div style="opacity:.75; font-size:12px; padding:8px 2px;">Loading shots...</div>`;
+
+  const who = _safeTrim(personName);
+  const cached = _albumCaptionMatchCache.get(key);
+  let shots = (cached && cached.forPerson === _normKey(who) && Array.isArray(cached.shots)) ? cached.shots : null;
+
+  if (!shots){
+    shots = await fetchCaptionMatchShotsForPerson(key, who, { maxPages: 10, pageSize: 200 }).catch(() => []);
+    _albumCaptionMatchCache.set(key, { forPerson: _normKey(who), shots: Array.isArray(shots) ? shots : [] });
+  }
+
+  if (!panelRoot) return;
+  if (_openPersonAlbumKey !== key) return;
+
+  const list = Array.isArray(shots) ? shots : [];
+  const previewCount = Math.min(PEOPLE_MATCH_PREVIEW_LIMIT, list.length);
+  const hasMoreShots = list.length > previewCount;
+  _peopleLightboxList = list;
   drop.innerHTML =     `
     <div class="peopleAlbumDropLayout">
       <div class="peopleAlbumDropRail">
@@ -2528,7 +2546,6 @@ async function _openPersonAlbum(albumKey, personName){
       </div>
     </div>
   `;
-
 }
 
 async function hydrateAlbumThumbs(albumKeys) {
