@@ -451,6 +451,27 @@ function _formatLongDateFromShort(dateText) {
     try { return `${x.toFixed(d)}%`; } catch (_) { return `${Math.round(x * 100) / 100}%`; }
   }
 
+  function _fmtPeopleGeneratedAt(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return 'Last updated: --';
+
+    const date = new Date(raw);
+    if (!Number.isFinite(date.getTime())) return 'Last updated: --';
+
+    try {
+      const formatted = new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      }).format(date);
+      return `Last updated: ${formatted}`;
+    } catch (_) {
+      return `Last updated: ${date.toLocaleString()}`;
+    }
+  }
+
   function renderPeopleStatsTiles() {
     if (!panelRoot) return;
 
@@ -461,11 +482,17 @@ function _formatLongDateFromShort(dateText) {
     const elAlbums = panelRoot.querySelector('#peopleStatAlbums');
     const elTotal = panelRoot.querySelector('#peopleStatTotalShots');
     const elPct = panelRoot.querySelector('#peopleStatPercent');
+    const elUpdated = panelRoot.querySelector('#peopleStatUpdated');
     const elBarFill = panelRoot.querySelector('#peopleDashBarFill');
 
     if (elPeople) elPeople.textContent = _fmtInt(t.people);
     if (elPhotos) elPhotos.textContent = _fmtInt(t.photos);
     if (elAlbums) elAlbums.textContent = _fmtInt(t.albums);
+    if (elUpdated) {
+      const updatedText = _fmtPeopleGeneratedAt(_peopleIndexGeneratedAt);
+      elUpdated.textContent = updatedText;
+      elUpdated.title = String(_peopleIndexGeneratedAt || '').trim() || updatedText;
+    }
 
     // Total Shots + Percent need the Stats CSV.
     // Render best-effort immediately; update once loaded.
@@ -1272,12 +1299,27 @@ function ensurePeopleStyles() {
     .peopleDashProgressRow{
       position: relative;
       z-index: 2;
-      display:flex;
+      display:grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items:center;
-      justify-content:space-between;
       gap: 10px;
       margin-bottom: 14px;
-      flex-wrap: wrap;
+    }
+
+    .peopleDashProgressMeta{
+      min-width: 0;
+      justify-self: center;
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: .08em;
+      color: rgba(196,211,232,0.74);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .peopleDashProgressRight{
+      justify-self: end;
     }
 
     .peopleDashProgressPct{
@@ -1427,6 +1469,18 @@ function ensurePeopleStyles() {
       }
       .peopleDashProgress{
         padding: 16px 14px 15px;
+      }
+      .peopleDashProgressRow{
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+      .peopleDashProgressLabel,
+      .peopleDashProgressMeta,
+      .peopleDashProgressRight{
+        justify-self: center;
+      }
+      .peopleDashProgressMeta{
+        max-width: 100%;
       }
       .peopleDashGaugeInner{
         width: 90px;
@@ -3312,8 +3366,8 @@ const pollDelayMs = 2000;
               <div class="peopleDashBottom">
                 <div class="peopleDashProgress">
                   <div class="peopleDashProgressRow">
-  <div class="peopleDashProgressLabel">Indexing Progress:          </div>
-
+  <div class="peopleDashProgressLabel">Indexing Progress:</div>
+  <div id="peopleStatUpdated" class="peopleDashProgressMeta">Last updated: --</div>
   <div class="peopleDashProgressRight">
     <div id="peopleStatPercent" class="peopleDashProgressPct">0.00%</div>
   </div>
