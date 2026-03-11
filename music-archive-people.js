@@ -1990,10 +1990,15 @@ function ensurePeopleStyles() {
 .peopleTimelineItem.is-open{ box-shadow: 0 0 0 1px rgba(255,70,110,0.28) inset, 0 10px 26px rgba(0,0,0,0.35); }
 .peopleAlbumDrop{
   grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  display:grid;
+  grid-template-columns: minmax(0, 1fr);
   margin-top: 10px;
   background: rgba(0,0,0,0.22);
   border-radius: 18px;
   padding: 12px;
+  box-sizing: border-box;
   box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
 }
 .peopleAlbumDropHdr{
@@ -2067,6 +2072,15 @@ function ensurePeopleStyles() {
   transform: translateZ(0);
 }
 .peopleShotThumb.is-hidden{ display:none; }
+@media (min-width: 721px){
+  .peopleTimelineItem.is-open .peopleAlbumDrop{
+    grid-column: 3 / -1;
+    margin-left: 0;
+  }
+  .peopleTimelineItem.is-open .peopleAlbumDropGrid{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 .peopleShotBadge{
   position:absolute;
   top: 8px;
@@ -3387,6 +3401,7 @@ const pollDelayMs = 2000;
 
   window.MusicArchivePeople = { render, onMount, destroy };
 })();
+
 
 
 
