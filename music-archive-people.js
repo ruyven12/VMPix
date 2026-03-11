@@ -620,8 +620,32 @@ function _formatLongDateFromShort(dateText) {
     _peopleIndexLoadPromise = null;
     _peopleIndexLastLoadAt = 0;
     _peopleIndexGeneratedAt = '';
+    _peopleQuietRefreshDone = false;
     _albumMetaByKey = new Map();
     try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
+  }
+
+  function quietlyRefreshPeopleIndex(token) {
+    if (_peopleQuietRefreshDone) return;
+    _peopleQuietRefreshDone = true;
+    const prevGeneratedAt = String(_peopleIndexGeneratedAt || '');
+
+    loadPeopleIndexFromServer({ force: false, token })
+      .then((idx) => {
+        if (token !== _lastRenderToken) return;
+        const nextGeneratedAt = String(_peopleIndexGeneratedAt || '');
+        if (!idx || !idx.size || nextGeneratedAt === prevGeneratedAt) return;
+        _peopleIndex = idx;
+        try { savePeopleIndexToSession(_peopleIndex, _photoCountByPerson); } catch (_) {}
+        if (_view && _view.mode === 'person' && _view.person) {
+          showPerson(_view.person, token);
+        } else {
+          renderPeopleList(_peopleIndex);
+        }
+      })
+      .catch((err) => {
+        console.warn('[people] quiet refresh failed:', err);
+      });
   }
 
   async function fetchTextWithSessionCache(url, ttlMs, cacheKey) {
@@ -3264,7 +3288,8 @@ const pollDelayMs = 2000;
 
       // Keep the last completed People index stable on normal visits.
       // Rebuilds should only happen from the explicit rebuild button.
-return;
+      quietlyRefreshPeopleIndex(token);
+      return;
     }
 
     // Phase 2: load server-cached people index (fast)
@@ -3302,5 +3327,6 @@ return;
 
   window.MusicArchivePeople = { render, onMount, destroy };
 })();
+
 
 
