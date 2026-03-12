@@ -732,7 +732,7 @@ async function mountMusicStatsPanel(panel) {
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =       '<div class="musicStatsTopLabels">' +
         '<div class="musicStatsTopHeading">Band Stats</div>' +
-        '<div class="musicStatsTopHeading">People Stats</div>' +
+        '<div class="musicStatsTopHeading is-empty"></div>' +
       '</div>' +
       '<div class="musicStatsTop">' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
@@ -749,6 +749,7 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
         '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
       '</div>' +
+      '<div class="musicStatsLowerHeading">People Stats</div>' +
       '<div class="musicStatsFooter">' +
         '<div class="musicStatsFooterRow">' +
           '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
@@ -1098,6 +1099,19 @@ if (!document.getElementById('musicContentWipeStyles')) {
             margin-bottom:10px;
           }
           .musicStatsTopHeading{
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:15px;
+            font-weight:900;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            color:rgba(233,236,245,0.90);
+          }
+          .musicStatsTopHeading.is-empty{
+            visibility:hidden;
+          }
+          .musicStatsLowerHeading{
+            margin:14px 0 10px;
             text-align:center;
             font-family:"Orbitron", system-ui, sans-serif;
             font-size:15px;
