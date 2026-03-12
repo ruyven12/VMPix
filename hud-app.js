@@ -418,6 +418,67 @@ function pulseFrame(){
     }catch(_){}
   }
 
+  const __VM_KEEPALIVE_INTERVAL_MS = 1000 * 60 * 10;
+  let _vmKeepAliveTimer = null;
+
+  function getBackendKeepaliveTargets(){
+    const musicBase =
+      (typeof window !== 'undefined' && typeof window.MUSIC_ARCHIVE_API_BASE === 'string' && window.MUSIC_ARCHIVE_API_BASE.trim())
+        ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://music-archive-3lfa.onrender.com';
+
+    const wrestleBase =
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com';
+
+    return [
+      musicBase + '/health',
+      musicBase + '/index/people',
+      musicBase + '/sheet/bands',
+      wrestleBase + '/health',
+      wrestleBase + '/sheet/shows'
+    ];
+  }
+
+  function pingBackends(){
+    try{
+      const targets = getBackendKeepaliveTargets();
+      targets.forEach((url) => {
+        try{
+          const ctrl = (window.AbortController) ? new AbortController() : null;
+          const sig = ctrl ? ctrl.signal : undefined;
+          const to = window.setTimeout(() => { try{ ctrl && ctrl.abort(); }catch(_){ } }, 8000);
+
+          fetch(url, { method: 'GET', signal: sig, cache: 'no-store' })
+            .then((res) => {
+              try{
+                if (res && res.body && typeof res.body.cancel === 'function') res.body.cancel();
+              }catch(_){ }
+            })
+            .catch(() => {})
+            .finally(() => { try{ window.clearTimeout(to); }catch(_){ } });
+        }catch(_){ }
+      });
+    }catch(_){ }
+  }
+
+  function installBackendKeepAlive(){
+    try {
+      if (_vmKeepAliveTimer) return;
+      pingBackends();
+      _vmKeepAliveTimer = window.setInterval(() => {
+        try { pingBackends(); } catch (_) {}
+      }, __VM_KEEPALIVE_INTERVAL_MS);
+
+      document.addEventListener('visibilitychange', () => {
+        try {
+          if (!document.hidden) pingBackends();
+        } catch (_) {}
+      });
+    } catch (_) {}
+  }
+
   const modules = {
     home: {
   render(){
@@ -436,8 +497,8 @@ function pulseFrame(){
     }
   },
   onEnter(){
-    // Warm backend services ASAP so the first heavy route click is fast.
-    warmUpBackendsOnce();
+    // Warm backend services ASAP and keep them alive every 10 minutes while the site is open.
+    installBackendKeepAlive();
     if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
       // Pass the editable Home copy through so home.js can render it (HTML or plain text).
       HomeArchive.onEnter(ROUTE_COPY.home);
@@ -1250,5 +1311,7 @@ window.addEventListener('hashchange', () => {
 
   window.VMPixNavigate = navigateToRoute;
 })();
+
+
 
 
