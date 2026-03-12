@@ -1,0 +1,7 @@
+services:
+  - type: static_site
+    name: vmpix
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
