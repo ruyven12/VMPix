@@ -372,6 +372,8 @@
         font-size:14px;
         color: rgba(255,255,255,0.94);
         margin: 0 0 4px;
+        text-transform: none !important;
+        font-variant: normal;
       }
       .showDate{
         font-size:12px;
@@ -637,6 +639,8 @@
         margin: 2px 0 8px;
       }
       .showsDetailTitle{
+        text-transform: none !important;
+        font-variant: normal;
         font-size: 16px;
         font-weight: 800;
         color: rgba(255,255,255,0.94);
@@ -2452,3 +2456,4 @@ currentYearPretty = (showsForYear || []).map((s) => {
 
   window.MusicArchiveShows = { render, onMount };
 })();
+
