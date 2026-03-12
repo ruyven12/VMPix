@@ -736,7 +736,7 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
       '</div>' +
-      '<div class="musicStatsHeading">Archive Status</div>' +
+      '<div class="musicStatsHeading">Band Stats</div>' +
       '<div class="musicStatsGrid">' +
         '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
         '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
