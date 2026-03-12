@@ -3885,7 +3885,8 @@ function ensureLightbox() {
     try {
       if (!fromImgEl) {
         // fallback
-        showBandCard(region, letter, bandObj, { deferContent: true });
+        try { syncBandsPath(bandObj); } catch (_) {}
+        showBandCard(region, letter, bandObj, { deferContent: true, replaceRoute: true });
         return;
       }
 
@@ -3900,7 +3901,8 @@ function ensureLightbox() {
 
       const startRect = fromImgEl.getBoundingClientRect();
       if (!startRect || !startRect.width || !startRect.height) {
-        showBandCard(region, letter, bandObj, { deferContent: true });
+        try { syncBandsPath(bandObj); } catch (_) {}
+        showBandCard(region, letter, bandObj, { deferContent: true, replaceRoute: true });
         return;
       }
 
@@ -3935,8 +3937,11 @@ function ensureLightbox() {
       document.body.appendChild(clone);
       window.requestAnimationFrame(() => (overlay.style.opacity = "1"));
 
+      // Claim the route immediately so the URL tracks the band even during the animation.
+      try { syncBandsPath(bandObj); } catch (_) {}
+
       // Render destination view ASAP (don’t await album loading)
-      showBandCard(region, letter, bandObj, { deferContent: true });
+      showBandCard(region, letter, bandObj, { deferContent: true, replaceRoute: true });
 
       // Wait for destination logo to exist
       let destLogo = null;
@@ -4594,6 +4599,7 @@ function animateReimagingStats(overallEl){
         card.appendChild(row);
 
         card.addEventListener("click", () => {
+          try { syncBandsPath(bandObj); } catch (_) {}
           // Analytics: band click
           safetrack('band_click', {
             band: String(bandObj?.name || ''),
@@ -5596,6 +5602,8 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
+
 
 
 
