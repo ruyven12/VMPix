@@ -420,16 +420,33 @@
       const style = document.createElement('style');
       style.id = 'wrestlingInfoStripStyles';
       style.textContent = `
-        #wrestlingInfoStrip{ overflow:hidden; }
+        #wrestlingInfoStrip{ position:relative; overflow:visible; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
 
         #wrestlingInfoStrip .hudTabs{
           display:flex;
-          gap:16px;
+          flex-wrap:nowrap;
           align-items:center;
           justify-content:center;
-          white-space:nowrap;
+          gap:18px;
           user-select:none;
+          overflow-x:auto;
+          overflow-y:hidden;
+          -webkit-overflow-scrolling:touch;
+          scrollbar-width:none;
+          padding:0 18px;
+          width:100%;
+          box-sizing:border-box;
+          white-space:nowrap;
         }
+
+        #wrestlingInfoStrip .hudTabs::before,
+        #wrestlingInfoStrip .hudTabs::after{
+          content:"";
+          flex:1 0 auto;
+        }
+
+        #wrestlingInfoStrip .hudTabs::-webkit-scrollbar{ display:none; }
+        #wrestlingInfoStrip .hudTab{ flex:0 0 auto; }
 
         #wrestlingInfoStrip .hudTab{
           position:relative;
@@ -479,9 +496,9 @@
         #wrestlingInfoStrip .scanPing{
           pointer-events:none;
           position:absolute;
-          left:-30%;
+          left:0;
           top:0;
-          width:30%;
+          width:100%;
           height:100%;
           opacity:0;
           background:linear-gradient(
@@ -490,15 +507,17 @@
             rgba(255,255,255,.10) 45%,
             rgba(255,255,255,0) 100%
           );
+          background-size:200% 100%;
+          background-position:-100% 0;
           filter:blur(.2px);
           transform:skewX(-18deg);
         }
 
         @keyframes hudScanPing{
-          0%{ transform:translateX(0) skewX(-18deg); opacity:0; }
+          0%{ opacity:0; background-position:-100% 0; }
           10%{ opacity:.65; }
           60%{ opacity:.35; }
-          100%{ transform:translateX(520%) skewX(-18deg); opacity:0; }
+          100%{ opacity:0; background-position:200% 0; }
         }
         #wrestlingInfoStrip.ping .scanPing{ animation:hudScanPing 320ms ease-out both; }
       `;
@@ -577,7 +596,7 @@
     if (_prevHudMainPadding === null) _prevHudMainPadding = hudMain.style.padding || '';
 
     hudMain.style.position = 'relative';
-    hudMain.style.padding = `calc(${ORANGE_BOX_HEIGHT} + 18px) 18px 0`;
+    hudMain.style.padding = '0 18px 0';
     hudMain.style.boxSizing = 'border-box';
     hudMain.style.overflow = 'hidden';
 
@@ -622,27 +641,31 @@
       _orangeBoxEl = document.createElement('div');
       _orangeBoxEl.id = 'wrestlingInfoStrip';
 
-      _orangeBoxEl.style.height = ORANGE_BOX_HEIGHT;
+      _orangeBoxEl.style.height = 'auto';
+      _orangeBoxEl.style.minHeight = 'unset';
+      _orangeBoxEl.style.paddingTop = '0px';
+      _orangeBoxEl.style.paddingBottom = '10px';
+      _orangeBoxEl.style.paddingLeft = '14px';
+      _orangeBoxEl.style.paddingRight = '14px';
       _orangeBoxEl.style.maxWidth = ORANGE_BOX_MAX_WIDTH;
       _orangeBoxEl.style.width = '100%';
-      _orangeBoxEl.style.position = 'absolute';
-      _orangeBoxEl.style.left = '50%';
-      _orangeBoxEl.style.top = ORANGE_BOX_BOTTOM;
+      _orangeBoxEl.style.position = 'relative';
+      _orangeBoxEl.style.left = '';
+      _orangeBoxEl.style.top = '';
       _orangeBoxEl.style.bottom = '';
-      _orangeBoxEl.style.transform = `translateX(-50%) translate(${ORANGE_BOX_X_OFFSET}, ${ORANGE_BOX_Y_OFFSET})`;
+      _orangeBoxEl.style.transform = '';
+      _orangeBoxEl.style.margin = '0px auto 5px';
       _orangeBoxEl.style.border = '1px solid rgba(255, 70, 110, 0.25)';
       _orangeBoxEl.style.borderRadius = ORANGE_BOX_RADIUS;
       _orangeBoxEl.style.background = 'rgba(0,0,0,0.10)';
       _orangeBoxEl.style.boxShadow = '0 0 0 1px rgba(255,70,110,0.50) inset, 0 0 10px rgba(255,70,110,0.50)';
       _orangeBoxEl.style.boxSizing = 'border-box';
-      _orangeBoxEl.style.padding = '0 12px';
       _orangeBoxEl.style.display = 'flex';
+      _orangeBoxEl.style.flexDirection = 'column';
       _orangeBoxEl.style.alignItems = 'center';
       _orangeBoxEl.style.justifyContent = 'center';
       _orangeBoxEl.style.textAlign = 'center';
       _orangeBoxEl.style.pointerEvents = 'auto';
-
-      // NO Bands tab
       _orangeBoxEl.innerHTML = `
         <div class="hudTabs" role="tablist" aria-label="Wrestling sections">
           <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
@@ -722,9 +745,12 @@
           );
         });
       });
-
-      hudMain.appendChild(_orangeBoxEl);
     }
+      if (_contentPanelEl && _contentPanelEl.parentNode === hudMain) {
+        hudMain.insertBefore(_orangeBoxEl, _contentPanelEl);
+      } else {
+        hudMain.appendChild(_orangeBoxEl);
+      }
   }
 
   function onEnter() {
