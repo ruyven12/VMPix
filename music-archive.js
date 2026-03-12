@@ -1076,8 +1076,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             overflow:hidden;
             border-radius:22px;
             border:1px solid rgba(255,70,110,0.34);
-            background:linear-gradient(180deg, rgba(10,13,28,0.92), rgba(13,16,34,0.82));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 0 1px rgba(255,70,110,0.12), 0 28px 60px rgba(0,0,0,0.28);
+            background:transparent;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 0 1px rgba(255,70,110,0.10), 0 24px 54px rgba(0,0,0,0.22);
             padding:18px;
           }
           .musicStatsPanel::before{
@@ -1086,10 +1086,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             inset:0;
             pointer-events:none;
             background:
-              radial-gradient(circle at top left, rgba(255,70,110,0.16), transparent 28%),
-              radial-gradient(circle at top right, rgba(56,189,248,0.12), transparent 26%),
-              linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%);
-            opacity:.9;
+              linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%);
+            opacity:.45;
           }
           .musicStatsPanel > *{ position:relative; z-index:1; }
           .musicStatsSection{
@@ -1108,7 +1106,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsSeparator{
             position:relative;
             height:3px;
-            margin:10px 14px 12px;
+            margin:10px 19px 12px;
             border-radius:999px;
             background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(56,189,248,0.22) 16%, rgba(255,70,110,0.72) 50%, rgba(245,158,11,0.42) 82%, rgba(255,255,255,0) 100%);
             box-shadow: 0 0 10px rgba(255,70,110,0.20), 0 0 18px rgba(56,189,248,0.10);
@@ -1315,7 +1313,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           @media (max-width: 620px){
             .musicStatsPanel{ padding:14px; border-radius:18px; }
             .musicStatsSection{ padding:12px; }
-            .musicStatsSeparator{ margin:10px 8px 12px; }
+            .musicStatsSeparator{ margin:10px 13px 12px; }
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: 1fr; }
