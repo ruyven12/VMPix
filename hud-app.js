@@ -263,13 +263,9 @@ function pulseFrame(){
     }
   }
 
-    function currentRouteKey(){
-    const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());
-    if (hashRoute) return hashRoute;
-
+      function currentRouteKey(){
     const pathRoute = routeKeyFromPath();
     if (pathRoute) return pathRoute;
-
     return 'home';
   }
 
@@ -969,13 +965,11 @@ function navigate(route){
     try { sessionStorage.setItem(LAST_HASH_KEY, nh); } catch(_){}
   }
 
-    function restoreHash(){
+      function restoreHash(){
     if (_restoringHash) return;
-    if (routeKeyFromPath()) return;
     _restoringHash = true;
-    const last = getLastHash() || '#/home';
-    // Use normal assignment so the user can still back out if they choose.
-    location.hash = last;
+    syncUrlToRoute('home', { replace: true });
+    navigate('home');
     window.setTimeout(() => { _restoringHash = false; }, 0);
   }
 
@@ -997,52 +991,54 @@ function navigate(route){
     // Seed a guard entry so the first Back press doesn't jump out of the app.
     try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
 
-        window.addEventListener('popstate', () => {
+            window.addEventListener('popstate', () => {
       // Re-seed the guard so repeated Back presses stay in-app.
       try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){ }
 
-      const h = normalizeHash(location.hash || '');
       const pathRoute = routeKeyFromPath();
-      if (!h && !pathRoute){
+      if (!pathRoute){
         restoreHash();
         return;
       }
-      if (h) setLastHash(h);
       navigate(currentRouteKey());
     });
   }
 
 window.addEventListener('hashchange', () => {
-    const h = normalizeHash(location.hash || '');
-    if (!h){
-      if (routeKeyFromPath()) {
-        navigate(currentRouteKey());
-        return;
-      }
+    const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());
+    if (hashRoute) {
+      syncUrlToRoute(hashRoute, { replace: true });
+      navigate(hashRoute);
+      return;
+    }
+
+    const pathRoute = routeKeyFromPath();
+    if (!pathRoute) {
       restoreHash();
       return;
     }
-    setLastHash(h);
-    const route = currentRouteKey();
-    navigate(route);
-    syncUrlToRoute(route, { replace: true });
+    navigate(pathRoute);
   });
 
-      (function(){
+        (function(){
     installBackGuard();
-    const nh = normalizeHash(location.hash || '');
+    const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());
     const pathRoute = routeKeyFromPath();
-    if (!nh && !pathRoute){
-      syncUrlToRoute('home', { replace: true });
-      navigate('home');
+
+    if (hashRoute) {
+      syncUrlToRoute(hashRoute, { replace: true });
+      navigate(hashRoute);
       return;
     }
-    if (nh) setLastHash(nh);
-    const route = currentRouteKey();
-    navigate(route);
-    if (nh || pathRoute) {
-      syncUrlToRoute(route, { replace: true });
+
+    if (pathRoute) {
+      navigate(pathRoute);
+      syncUrlToRoute(pathRoute, { replace: true });
+      return;
     }
+
+    syncUrlToRoute('home', { replace: true });
+    navigate('home');
   })();
   // =============================
   // MAIN MENU ATMOSPHERE: Embers canvas (copied exactly from your HUD)
