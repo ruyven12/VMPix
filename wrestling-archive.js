@@ -682,7 +682,7 @@
       _orangeBoxEl.innerHTML = `
         <div class="archiveHeaderWrap">
           <div class="archiveModeToggle" role="tablist" aria-label="Wrestling sections">
-            <button class="archiveModeBtn is-active" data-tab="shows" role="tab" aria-selected="true">Shows</button>
+            <button class="archiveModeBtn" data-tab="shows" role="tab" aria-selected="false">Shows</button>
             <button class="archiveModeBtn" data-tab="origins" role="tab" aria-selected="false">Origins</button>
           </div>
         </div>
@@ -774,7 +774,16 @@
   function onEnter() {
     try {
       const initialMode = getWrestlingSubrouteFromPath();
-      if (initialMode) setMode(initialMode, { replace: true, preservePath: true });
+      if (initialMode) {
+        setMode(initialMode, { replace: true, preservePath: true });
+        return;
+      }
+
+      const btns = _orangeBoxEl ? _orangeBoxEl.querySelectorAll('.archiveModeBtn') : [];
+      btns.forEach((b) => {
+        b.classList.remove('is-active');
+        try { b.setAttribute('aria-selected', 'false'); } catch (_) {}
+      });
     } catch (_) {}
   }
 
