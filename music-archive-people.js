@@ -2113,28 +2113,38 @@ function ensurePeopleStyles() {
 }
 .peopleAlbumDropGrid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 14px;
   align-items:start;
 }
 .peopleShotThumb{
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
   border: 0;
-  padding: 0;
-  border-radius: 14px;
+  padding: 10px 10px 30px;
+  border-radius: 18px;
   cursor: pointer;
   overflow: hidden;
-  background: rgba(0,0,0,0.20);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 14px 30px rgba(0,0,0,0.35);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(232,236,245,0.92));
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.20) inset, 0 16px 34px rgba(0,0,0,0.34), 0 6px 14px rgba(0,0,0,0.24);
+  transition: transform 160ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+.peopleShotThumb:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.24) inset, 0 22px 38px rgba(0,0,0,0.38), 0 8px 18px rgba(0,0,0,0.26);
+  filter: brightness(1.02);
 }
 .peopleShotThumb img{
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   display: block;
   transform: translateZ(0);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.28);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.16) inset;
 }
 .peopleShotThumb.is-hidden{ display:none; }
 @media (min-width: 721px){
@@ -2159,18 +2169,20 @@ function ensurePeopleStyles() {
 }
 .peopleShotBadge{
   position:absolute;
-  top: 8px;
-  left: 8px;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
   font-family: "Orbitron", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: .08em;
-  padding: 3px 7px;
+  padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.45);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset;
+  background: rgba(12,18,30,0.72);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
   color: rgba(255,255,255,0.92);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  text-align: center;
 }
 
 /* People Lightbox */
@@ -2211,14 +2223,17 @@ function ensurePeopleStyles() {
   box-shadow: 0 0 0 1px rgba(255,70,110,0.25) inset;
   color: rgba(255,255,255,0.92);
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 14px;
+  min-height: 44px;
   font-weight: 900;
   font-size: 10px;
   letter-spacing: .14em;
   text-transform: uppercase;
   display:inline-flex;
   align-items:center;
+  justify-content:center;
   gap: 8px;
+  touch-action: manipulation;
 }
 .peopleLightboxStage{
   flex: 1;
@@ -2247,6 +2262,24 @@ function ensurePeopleStyles() {
   gap: 10px;
 }
 .peopleLightboxNav .peopleLightboxBtn{ flex: 1; justify-content:center; }
+@media (max-width: 640px){
+  .peopleLightbox{
+    padding: 10px;
+  }
+  .peopleLightboxInner{
+    width: 100%;
+    height: calc(100vh - 20px);
+    max-height: none;
+    gap: 8px;
+  }
+  .peopleLightboxTop{
+    font-size: 9px;
+    letter-spacing: .12em;
+  }
+  .peopleLightboxNav{
+    gap: 8px;
+  }
+}
 
 `;
   document.head.appendChild(s);
@@ -2866,10 +2899,21 @@ function _ensurePeopleLightbox(){
   _peopleLightboxEl = el;
   _peopleLightboxImg = el.querySelector('#peopleLightboxImg');
 
-  // Close on backdrop click
+  // Handle lightbox controls directly on the overlay so they work outside panelRoot.
   el.addEventListener('click', (ev) => {
     const tgt = ev.target;
     if (!tgt) return;
+
+    const btn = tgt.closest ? tgt.closest('[data-peoplelb]') : null;
+    if (btn) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const act = _safeTrim(btn.getAttribute('data-peoplelb'));
+      if (act === 'close') { _closePeopleLightbox(); return; }
+      if (act === 'prev') { _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
+      if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+    }
+
     if (tgt === el) _closePeopleLightbox();
   });
 
@@ -2899,6 +2943,7 @@ async function _peopleLightboxShow(nextIndex){
   const item = list[idx] || {};
   const imageKey = _safeTrim(item.imageKey);
   const counter = _peopleLightboxEl.querySelector('#peopleLightboxCounter');
+  try { _peopleLightboxImg.removeAttribute('src'); } catch(_) {}
   if (counter) counter.textContent = `Photo ${idx + 1} / ${list.length}`;
 
   // Show thumb immediately while full-res loads
