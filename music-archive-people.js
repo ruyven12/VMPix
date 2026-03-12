@@ -2147,6 +2147,27 @@ function ensurePeopleStyles() {
   box-shadow: 0 0 0 1px rgba(0,0,0,0.16) inset;
 }
 .peopleShotThumb.is-hidden{ display:none; }
+@media (min-width: 1100px){
+  .peopleAlbumDropGrid{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 721px) and (max-width: 1099px){
+  .peopleAlbumDropGrid{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px){
+  .peopleAlbumDropGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .peopleShotThumb{
+    padding: 8px 8px 26px;
+    border-radius: 16px;
+  }
+}
+
 .peopleShotBadge{
   position:absolute;
   left: 10px;
