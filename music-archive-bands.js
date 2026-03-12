@@ -3425,38 +3425,75 @@ async function downloadZipFromServer(items, suggestedName){
     return out;
   }
 
-  function bestFullUrl(img) {
-    // Prefer the highest quality URL we have from SmugMug image payloads.
-    // Different endpoints return different field names, so include the common variants.
-    const candidates = [
-      img?.OriginalUrl,
-      img?.LargestImageUrl,
-      img?.OriginalImageUrl,
-      img?.OriginalSizeUrl,
-      img?.ArchivedSizeUrl,
-      img?.ImageUrl,
-      img?.X3LargeUrl,
-      img?.X2LargeUrl,
-      img?.XLargeUrl,
-      img?.LargeUrl,
-      img?.MediumUrl,
-      img?.SmallUrl,
-      img?.ThumbnailUrl,
-      img?.TinyUrl,
-      img?.Url,
-    ].filter(Boolean);
+  
+  function imageUrlCandidates(img, preferFull) {
+    const candidates = preferFull
+      ? [
+          img?.OriginalUrl,
+          img?.LargestImageUrl,
+          img?.OriginalImageUrl,
+          img?.OriginalSizeUrl,
+          img?.ArchivedSizeUrl,
+          img?.ImageUrl,
+          img?.X3LargeUrl,
+          img?.X2LargeUrl,
+          img?.XLargeUrl,
+          img?.LargeUrl,
+          img?.MediumUrl,
+          img?.SmallUrl,
+          img?.ThumbnailUrl,
+          img?.TinyUrl,
+          img?.Url,
+        ]
+      : [
+          img?.MediumUrl,
+          img?.SmallUrl,
+          img?.ThumbnailUrl,
+          img?.TinyUrl,
+          img?.LargeUrl,
+          img?.XLargeUrl,
+          img?.X2LargeUrl,
+          img?.X3LargeUrl,
+          img?.Url,
+          img?.OriginalUrl,
+        ];
 
-    if (!candidates.length) return "";
-    const first = candidates[0];
+    const out = [];
+    const seen = new Set();
+    (candidates || []).forEach((u) => {
+      const url = String(u || '').trim();
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      out.push(url);
+    });
+    return out;
+  }
 
-    // If we only got a sized SmugMug CDN URL, upgrade it to Original by swapping the size token.
-    if (
-      candidates.length === 1 &&
-      /photos\.smugmug\.com\/.+\/(S|M|L|XL|X2|X3|Th|T)\//i.test(first)
-    ) {
-      return upgradeSmugToOriginal(first);
-    }
-    return first;
+  function applyImageFallback(imgEl, urls, fallbackUrl) {
+    if (!imgEl) return;
+
+    const list = Array.isArray(urls)
+      ? urls.map((u) => String(u || '').trim()).filter(Boolean)
+      : [];
+    let idx = 0;
+    const fallback = String(fallbackUrl || '').trim();
+
+    const setNext = () => {
+      while (idx < list.length) {
+        const next = list[idx++];
+        if (!next) continue;
+        imgEl.src = next;
+        return;
+      }
+      imgEl.onerror = null;
+      if (fallback) imgEl.src = fallback;
+    };
+
+    imgEl.onerror = () => {
+      setNext();
+    };
+
+    setNext();
   }
 function ensureLightbox() {
     if (lightboxEl) return;
@@ -3620,7 +3657,7 @@ function ensureLightbox() {
     lightboxImg.onload = () => {
       try { lightboxImg.style.opacity = "1"; } catch(_) {}
     };
-    lightboxImg.src = url;
+    applyImageFallback(lightboxImg, imageUrlCandidates(img, true), url || "");
 
     // Caption lines
     const band = String(currentAlbumContext?.band || "").trim();
@@ -4794,14 +4831,14 @@ const members = document.createElement("div");
         thumb.className = "albumRowThumb";
         thumb.loading = "lazy";
         thumb.alt = alb?.Name || alb?.Title || "Show";
-        thumb.src =
-          alb?.HighlightImage?.SmallUrl ||
-          alb?.HighlightImage?.MediumUrl ||
-          alb?.HighlightImage?.ThumbnailUrl ||
-          alb?.SmallUrl ||
-          alb?.MediumUrl ||
-          alb?.ThumbnailUrl ||
-          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
+        const thumbFallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect width='100%25' height='100%25' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E";
+        applyImageFallback(thumb, imageUrlCandidates({
+          MediumUrl: alb?.HighlightImage?.MediumUrl || alb?.MediumUrl,
+          SmallUrl: alb?.HighlightImage?.SmallUrl || alb?.SmallUrl,
+          ThumbnailUrl: alb?.HighlightImage?.ThumbnailUrl || alb?.ThumbnailUrl,
+          LargeUrl: alb?.HighlightImage?.LargeUrl || alb?.LargeUrl,
+          Url: alb?.Url || alb?.HighlightImage?.Url
+        }, false), thumbFallback);
 
         const meta = document.createElement("div");
         meta.className = "albumRowMeta";
@@ -5394,13 +5431,7 @@ try { grid.innerHTML = ""; } catch (_) {}
       im.alt = img?.FileName || `Photo ${idx + 1}`;
 
       // pick a thumbnail-ish url if present
-      im.src =
-        img?.ThumbnailUrl ||
-        img?.SmallUrl ||
-        img?.MediumUrl ||
-        img?.LargeUrl ||
-        img?.Url ||
-        bestFullUrl(img);
+      applyImageFallback(im, imageUrlCandidates(img, false), bestFullUrl(img));
 
       box.appendChild(im);
 
