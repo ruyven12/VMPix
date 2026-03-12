@@ -1304,11 +1304,32 @@ color: rgba(226,232,240,0.92);
         #results.is-swapping{ transform:none !important; filter:none !important; opacity: 0; }
       }
       .band-card{
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
         background:rgba(255,255,255,0.04);
         border:1px solid rgba(255,255,255,0.10);
         border-radius:16px;
         padding:12px;
         cursor:pointer;
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 220ms ease, background 180ms ease;
+      }
+      .band-card::before{
+        content:"";
+        position:absolute;
+        inset:-1px auto -1px -38%;
+        width:34%;
+        pointer-events:none;
+        opacity:0;
+        transform: translateX(-150%) skewX(-18deg);
+        transition: transform 560ms cubic-bezier(.22,.61,.36,1), opacity 180ms ease;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.04) 18%, rgba(34,197,94,0.22) 50%, rgba(245,158,11,0.16) 72%, rgba(255,255,255,0) 100%);
+        filter: blur(1px);
+        z-index:0;
+      }
+      .band-card > *{
+        position: relative;
+        z-index:1;
       }
 
       /* Stagger reveal for photo tiles */
@@ -1322,6 +1343,42 @@ color: rgba(226,232,240,0.92);
       }
       .band-card:hover{
         background:rgba(255,255,255,0.06);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.28);
+      }
+      .band-card:hover::before,
+      .band-card:focus-visible::before{
+        opacity:1;
+        transform: translateX(340%) skewX(-18deg);
+      }
+      .band-card:hover .band-logo,
+      .band-card:focus-visible .band-logo{
+        transform: translateY(-1px) scale(1.02);
+        filter: saturate(1.08) brightness(1.06);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 0 18px rgba(34,197,94,0.18);
+      }
+      .band-card:hover .band-name,
+      .band-card:focus-visible .band-name{
+        color: rgba(244,244,245,0.98);
+        text-shadow: 0 0 16px rgba(34,197,94,0.12);
+      }
+      @media (hover: none){
+        .band-card:hover{
+          transform:none;
+          box-shadow:none;
+        }
+        .band-card:hover::before{
+          opacity:0;
+          transform: translateX(-150%) skewX(-18deg);
+        }
+        .band-card:hover .band-logo{
+          transform:none;
+          filter:none;
+          box-shadow:none;
+        }
+        .band-card:hover .band-name{
+          text-shadow:none;
+        }
       }
 
       /* ===== Band list -> Band detail transition helpers ===== */
@@ -1355,9 +1412,21 @@ color: rgba(226,232,240,0.92);
         background: rgba(148,163,184,0.12);
         border-color: rgba(148,163,184,0.22);
       }
-      #results .band-card.setsGood:hover{ background: rgba(34,197,94,0.18); }
-      #results .band-card.setsPartial:hover{ background: rgba(245,158,11,0.18); }
-      #results .band-card.setsNone:hover{ background: rgba(148,163,184,0.16); }
+      #results .band-card.setsGood:hover{
+        background: rgba(34,197,94,0.18);
+        border-color: rgba(34,197,94,0.42);
+        box-shadow: 0 16px 34px rgba(6,78,59,0.22);
+      }
+      #results .band-card.setsPartial:hover{
+        background: rgba(245,158,11,0.18);
+        border-color: rgba(245,158,11,0.42);
+        box-shadow: 0 16px 34px rgba(120,53,15,0.24);
+      }
+      #results .band-card.setsNone:hover{
+        background: rgba(148,163,184,0.16);
+        border-color: rgba(148,163,184,0.34);
+        box-shadow: 0 16px 34px rgba(30,41,59,0.24);
+      }
       .band-row{
         display:flex;
         align-items:center;
@@ -1369,11 +1438,13 @@ color: rgba(226,232,240,0.92);
         background:rgba(255,255,255,0.06);
         border:1px solid rgba(255,255,255,0.10);
         flex:0 0 auto;
+        transition: transform 180ms ease, filter 180ms ease, box-shadow 220ms ease;
       }
       .band-name{
         font-size:15px;
         font-weight:700;
         line-height:1.1;
+        transition: color 160ms ease, text-shadow 220ms ease;
       }
 
       .band-count{
