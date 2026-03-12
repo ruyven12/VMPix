@@ -238,6 +238,25 @@
 
     renderYearBubbles(filtered);
 
+    const detailSlug = getShowDetailSlugFromPath();
+    if (detailSlug) {
+      const detailRow = findShowByDateSlug(detailSlug);
+      const detailYear = detailRow ? yearFromDateString((detailRow.show_date || detailRow.date || "").trim()) : null;
+      if (detailRow && detailYear != null) {
+        try {
+          const rowEl = getYearGroupsEl();
+          if (rowEl) {
+            const btns = Array.prototype.slice.call(rowEl.querySelectorAll(".letter-pill"));
+            btns.forEach((b) => b.classList.toggle("active", String((b.textContent || "")).trim() === String(detailYear)));
+          }
+        } catch (_) {}
+        setCrumbs(`Shows for ${detailYear}`);
+        showShowDetail(detailRow, detailYear, { syncUrl: false });
+        resetPanelScroll();
+        return;
+      }
+    }
+
     // Auto-select the newest year so the view isn't empty on load (matches live app feel)
     if (filtered && filtered.length) {
       const newest = filtered[0];
@@ -1217,6 +1236,59 @@
     return Number.isFinite(yr) ? yr : null;
   }
 
+  function showDateSlugFromRaw(raw) {
+    const v = String(raw || "").trim();
+    if (!v) return "";
+
+    const m1 = v.match(/^\s*(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s*$/);
+    if (m1) {
+      const mm = String(m1[1]).padStart(2, "0");
+      const dd = String(m1[2]).padStart(2, "0");
+      let yy = String(m1[3]);
+      if (yy.length === 4) yy = yy.slice(2);
+      return mm + dd + yy;
+    }
+
+    const m2 = v.match(/^\s*(\d{4})-(\d{2})-(\d{2})\s*$/);
+    if (m2) return String(m2[2]) + String(m2[3]) + String(m2[1]).slice(2);
+
+    return "";
+  }
+
+  function getShowDetailSlugFromPath() {
+    try {
+      const parts = String(window.location.pathname || "").trim().replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+      if (String(parts[0] || "").toLowerCase() !== "wrestling") return "";
+      if (String(parts[1] || "").toLowerCase() !== "shows") return "";
+      const slug = String(parts[2] || "").trim();
+      return /^\d{6}$/.test(slug) ? slug : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function syncShowsPathForDetail(slug, opts) {
+    const clean = /^\d{6}$/.test(String(slug || "").trim()) ? String(slug).trim() : "";
+    const path = clean ? (`/wrestling/shows/${clean}`) : "/wrestling/shows";
+    const target = path + (window.location.search || "");
+    const method = (opts && opts.replace) ? "replaceState" : "pushState";
+    try {
+      window.history[method]({}, "", target);
+    } catch (_) {}
+  }
+
+  function findShowByDateSlug(slug) {
+    const clean = String(slug || "").trim();
+    if (!/^\d{6}$/.test(clean)) return null;
+    const rows = Array.isArray(SHOWS) ? SHOWS : [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowSlug = showDateSlugFromRaw((row && (row.show_date || row.date)) || "");
+      if (rowSlug === clean) return row;
+    }
+    return null;
+  }
+
   function extractYearsFromShows(shows) {
     const set = new Set();
     (shows || []).forEach((s) => {
@@ -1364,7 +1436,7 @@
         dateEl.style.fontSize = "12px";
         right.appendChild(dateEl);
       }
-      // Poster click → open a "show detail" view (Band-style routing)
+      // Poster click -> open a "show detail" view (Band-style routing)
       posterBox.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1380,12 +1452,17 @@
   
 
   // ================== SHOW DETAIL (Band-style routing) ==================
-  function showShowDetail(row, year) {
+  function showShowDetail(row, year, opts) {
     if (!row) return;
     ensureShowsStyles();
 
     // Save list context for Back
     LAST_LIST_CTX = { year: (year != null ? Number(year) : null) };
+
+    if (!opts || opts.syncUrl !== false) {
+      const detailSlug = showDateSlugFromRaw((row.show_date || row.date || "").trim());
+      if (detailSlug) syncShowsPathForDetail(detailSlug, { replace: !!(opts && opts.replace) });
+    }
 
     const resultsEl = getResultsEl();
     const yearRow = getYearGroupsEl();
@@ -1402,14 +1479,14 @@
 
     const title = String((row.show_name || row.title || "").trim() || "(Untitled show)");
     const rawDate = String((row.show_date || row.date || "").trim() || "");
-    const prettyDate = rawDate ? formatPrettyDate(rawDate) : "—";
-    const company = String((row.company || "").trim() || "—");
+    const prettyDate = rawDate ? formatPrettyDate(rawDate) : "-";
+    const company = String((row.company || "").trim() || "-");
 
     // Venue-ish (best-effort: supports venue/city/state columns if present)
     const venue = String((row.show_venue || row.venue || "").trim() || "");
     const city = String((row.show_city || row.city || "").trim() || "");
     const state = String((row.show_state || row.state || "").trim() || "");
-    const venueLine = [venue, (city && state ? `${city}, ${state}` : (city || state))].filter(Boolean).join(" — ") || "—";
+    const venueLine = [venue, (city && state ? `${city}, ${state}` : (city || state))].filter(Boolean).join(" - ") || "-";
 
     const posterUrlRaw = String((row.show_poster || row.poster_url || "").trim() || "");
     const posterUrl = posterUrlRaw ? `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrlRaw)}` : "";
@@ -1423,32 +1500,33 @@
     const backBtn = document.createElement("button");
     backBtn.className = "waBackBtn";
     backBtn.type = "button";
-    backBtn.textContent = "← Back to shows";
+    backBtn.textContent = "Back to shows";
     backBtn.addEventListener("click", () => {
       runNeonShutterTransition(function () {
-      // Restore list view for the year we came from
-      try { if (yearRow) yearRow.style.display = ""; } catch (_) {}
-      try { if (crumbsEl) crumbsEl.style.display = ""; } catch (_) {}
+        // Restore list view for the year we came from
+        try { if (yearRow) yearRow.style.display = ""; } catch (_) {}
+        try { if (crumbsEl) crumbsEl.style.display = ""; } catch (_) {}
 
-      const y = (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null;
-      if (y != null) {
-        setCrumbs(`Shows for ${y}`);
-        const rows = getShowsForYear(y);
-        renderShowsCards(rows, y);
+        const y = (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null;
+        if (y != null) {
+          setCrumbs(`Shows for ${y}`);
+          const rows = getShowsForYear(y);
+          renderShowsCards(rows, y);
+          syncShowsPathForDetail("", { replace: true });
 
-        // Re-activate the year pill visually
-        try {
-          const btns = yearRow ? Array.from(yearRow.querySelectorAll(".letter-pill")) : [];
-          btns.forEach((b) => b.classList.toggle("active", String(b.textContent || "").trim() === String(y)));
-        } catch (_) {}
-      } else {
-        // If we somehow don't know the year, just clear results
-        clearResults();
-      }
-      resetPanelScroll();
-    
+          // Re-activate the year pill visually
+          try {
+            const btns = yearRow ? Array.from(yearRow.querySelectorAll(".letter-pill")) : [];
+            btns.forEach((b) => b.classList.toggle("active", String(b.textContent || "").trim() === String(y)));
+          } catch (_) {}
+        } else {
+          // If we somehow do not know the year, just clear results
+          clearResults();
+          syncShowsPathForDetail("", { replace: true });
+        }
+        resetPanelScroll();
       });
-});
+    });
 
     topbar.appendChild(backBtn);
     wrap.appendChild(topbar);
@@ -1515,10 +1593,7 @@
     resultsEl.appendChild(wrap);
     resetPanelScroll();
   }
-
   function renderMatchesInto(containerEl, row) {
-    if (!containerEl) return;
-
     let any = false;
 
     // Match columns are moving from part_1_* to match-1_* (and match_1_*).
