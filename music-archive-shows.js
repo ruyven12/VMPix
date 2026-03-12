@@ -1415,7 +1415,13 @@ async function ensureShowsLoaded(opts) {
     if (isUpcomingSelection(year)) return getUpcomingShows(allShows);
     const yr = Number(year);
     if (!Array.isArray(allShows) || !allShows.length) return [];
-    return allShows.filter((s) => yearFromShowDate(s.date) === yr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return allShows.filter((s) => {
+      if (yearFromShowDate(s.date) !== yr) return false;
+      const dt = parseShowDateValue(s?.date);
+      return !!(dt && dt.getTime() < today.getTime());
+    });
   }
   
   function renderPosterDetail({ year, show, containerEl }) {
@@ -2006,6 +2012,17 @@ async function fetchJsonSafe(url, opts) {
         poster.className = "showPoster";
         poster.alt = s.title || "Poster";
         poster.loading = "lazy";
+        poster.addEventListener("error", () => {
+          try {
+            poster.remove();
+          } catch (_) {}
+          if (!posterWrap.querySelector(".showPosterPlaceholder")) {
+            const ph = document.createElement("div");
+            ph.className = "showPosterPlaceholder";
+            ph.textContent = "N/A";
+            posterWrap.appendChild(ph);
+          }
+        }, { once: true });
         poster.src = s.poster_url;
         posterWrap.appendChild(poster);
       } else {
