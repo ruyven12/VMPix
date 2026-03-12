@@ -3476,6 +3476,26 @@ async function downloadZipFromServer(items, suggestedName){
   }
 
   
+  function bestFullUrl(img) {
+    const preferred = imageUrlCandidates(img, true);
+    if (preferred.length) return preferred[0];
+
+    const upgraded = upgradeSmugToOriginal(
+      String(
+        img?.Url ||
+        img?.LargeUrl ||
+        img?.XLargeUrl ||
+        img?.X2LargeUrl ||
+        img?.X3LargeUrl ||
+        img?.MediumUrl ||
+        img?.SmallUrl ||
+        img?.ThumbnailUrl ||
+        ''
+      ).trim()
+    );
+    return upgraded || '';
+  }
+
   function imageUrlCandidates(img, preferFull) {
     const candidates = preferFull
       ? [
@@ -5602,6 +5622,7 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
 
 
 
