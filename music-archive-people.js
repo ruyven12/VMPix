@@ -2942,13 +2942,7 @@ async function _peopleLightboxShow(nextIndex){
   const counter = _peopleLightboxEl.querySelector('#peopleLightboxCounter');
   try { _peopleLightboxImg.removeAttribute('src'); } catch(_) {}
   if (counter) counter.textContent = `Photo ${idx + 1} / ${list.length}`;
-
-  // Show thumb immediately while full-res loads
   const thumb = _safeTrim(item.thumbUrl);
-  if (thumb) {
-    try { _peopleLightboxImg.src = thumb; } catch(_) {}
-  }
-
   const full = await _getFullUrlForImageKey(imageKey, thumb);
   if (full) {
     try { _peopleLightboxImg.src = full; } catch(_) {}
