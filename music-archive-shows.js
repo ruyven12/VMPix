@@ -1173,14 +1173,17 @@ function restoreScrollSnapshot(snapshot) {
   const MUSIC_SHOWS_CSV_CACHE_KEY = 'vm_music_shows_csv_v1';
   const MUSIC_SHOWS_CSV_TTL_MS = 1000 * 60 * 30;
 
-  async function fetchTextWithSessionCache(url, ttlMs, cacheKey) {
+  async function fetchTextWithSessionCache(url, ttlMs, cacheKey, opts) {
+    const forceFresh = !!(opts && opts.forceFresh);
     try {
+      if (!forceFresh) {
       const now = Date.now();
       const raw = sessionStorage.getItem(cacheKey);
       if (raw) {
         const obj = JSON.parse(raw);
         if (obj && obj.t && obj.v && now - obj.t < ttlMs) {
           return { text: String(obj.v), ct: String(obj.ct || '') };
+      }
         }
       }
     } catch (_) {}
@@ -1229,10 +1232,10 @@ let SHOWS_CACHE = null;
     return out;
   }
 
-  async function loadShowsFromCsv() {
+  async function loadShowsFromCsv(opts) {
   // /sheet/shows may return CSV, JSON, or (in some cases) a JS-ish object string.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
-  const { text, ct } = await fetchTextWithSessionCache(SHOWS_ENDPOINT, MUSIC_SHOWS_CSV_TTL_MS, MUSIC_SHOWS_CSV_CACHE_KEY);
+  const { text, ct } = await fetchTextWithSessionCache(SHOWS_ENDPOINT, MUSIC_SHOWS_CSV_TTL_MS, MUSIC_SHOWS_CSV_CACHE_KEY, opts);
   if (!text || !text.trim()) return [];
 
   const raw = text.trim();
@@ -1329,14 +1332,20 @@ let SHOWS_CACHE = null;
   return rows;
 }
 
-async function ensureShowsLoaded() {
+async function ensureShowsLoaded(opts) {
+    const forceFresh = !!(opts && opts.forceFresh);
 
-    if (Array.isArray(SHOWS_CACHE)) return SHOWS_CACHE;
-    if (SHOWS_LOADING) return SHOWS_LOADING;
+    if (!forceFresh && Array.isArray(SHOWS_CACHE)) return SHOWS_CACHE;
+    if (!forceFresh && SHOWS_LOADING) return SHOWS_LOADING;
+
+    if (forceFresh) {
+      SHOWS_CACHE = null;
+      try { sessionStorage.removeItem(MUSIC_SHOWS_CSV_CACHE_KEY); } catch (_) {}
+    }
 
     SHOWS_LOADING = (async () => {
       try {
-        const rows = await loadShowsFromCsv();
+        const rows = await loadShowsFromCsv({ forceFresh });
         SHOWS_CACHE = rows;
         return rows;
       } catch (e) {
@@ -2332,10 +2341,15 @@ contentEl.addEventListener("click", (e) => {
     const requestId = String(Date.now()) + String(Math.random());
     content.dataset.req = requestId;
 
-    const all = await ensureShowsLoaded();
+    let all = await ensureShowsLoaded();
     if (content.dataset.req !== requestId) return;
 
-    const showsForYear = getShowsForYear(year, all);
+    let showsForYear = getShowsForYear(year, all);
+    if (isUpcomingSelection(year) && !showsForYear.length) {
+      all = await ensureShowsLoaded({ forceFresh: true });
+      if (content.dataset.req !== requestId) return;
+      showsForYear = getShowsForYear(year, all);
+    }
 	currentYearShows = showsForYear;
 currentYearPretty = (showsForYear || []).map((s) => {
   const venue = String(s.venue || "").trim();
