@@ -1659,7 +1659,7 @@ function ensurePeopleStyles() {
     .peopleTimelineItem{
       grid-template-columns: 36px 86px minmax(0, 1fr);
       column-gap: 12px;
-      overflow: hidden;
+      overflow: visible;
       box-sizing: border-box;
     }
     .peopleTimelineDateCol,
@@ -2147,26 +2147,6 @@ function ensurePeopleStyles() {
   box-shadow: 0 0 0 1px rgba(0,0,0,0.16) inset;
 }
 .peopleShotThumb.is-hidden{ display:none; }
-@media (min-width: 721px){
-  .peopleTimelineItem.is-open .peopleAlbumDrop{
-    grid-column: 3 / -1;
-    margin-left: 0;
-  }
-  .peopleTimelineItem.is-open .peopleAlbumDropLayout{
-    grid-template-columns: 110px minmax(0, 1fr);
-    align-items: start;
-  }
-  .peopleTimelineItem.is-open .peopleAlbumDropHdr{
-    display:block;
-    margin-bottom: 0;
-  }
-  .peopleTimelineItem.is-open .peopleAlbumDropActions{
-    margin-top: 10px;
-  }
-  .peopleTimelineItem.is-open .peopleAlbumDropGrid{
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 .peopleShotBadge{
   position:absolute;
   left: 10px;
