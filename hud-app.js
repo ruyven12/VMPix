@@ -289,7 +289,11 @@ function pulseFrame(){
     const replace = !!(opts && opts.replace);
     const preservePath = !!(opts && opts.preservePath);
     const currentPath = String(location.pathname || '').trim();
-    const target = (preservePath && key === 'music' && currentPath.toLowerCase().startsWith('/music/'))
+    const shouldPreserveSubpath = preservePath && (
+      (key === 'music' && currentPath.toLowerCase().startsWith('/music/')) ||
+      (key === 'wrestling' && currentPath.toLowerCase().startsWith('/wrestling/'))
+    );
+    const target = shouldPreserveSubpath
       ? currentPath + (location.search || '')
       : routePathForKey(key) + (location.search || '');
     try {

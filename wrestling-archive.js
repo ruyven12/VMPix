@@ -58,6 +58,39 @@
   let _typeTimer = null;
   let _showsMountTimer = null;
 
+  let _suppressWrestlingTabUrlSync = false;
+
+  const WRESTLING_SUBROUTES = new Set(['shows', 'origins']);
+
+  function getWrestlingSubrouteFromPath() {
+    try {
+      const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      if (!parts.length) return '';
+      if (String(parts[0] || '').toLowerCase() !== 'wrestling') return '';
+      const sub = String(parts[1] || '').toLowerCase().trim();
+      return WRESTLING_SUBROUTES.has(sub) ? sub : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function syncWrestlingSubroute(mode, opts) {
+    const key = WRESTLING_SUBROUTES.has(String(mode || '').toLowerCase().trim())
+      ? String(mode || '').toLowerCase().trim()
+      : 'shows';
+    const replace = !!(opts && opts.replace);
+    const preservePath = !!(opts && opts.preservePath);
+    const currentPath = String(window.location.pathname || '').trim();
+    const target = (preservePath && currentPath.toLowerCase().startsWith('/wrestling/' + key))
+      ? currentPath + (window.location.search || '')
+      : '/wrestling/' + key + (window.location.search || '');
+
+    try {
+      if (replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
+      else window.history.pushState({ __vmpixBackGuard: true }, document.title, target);
+    } catch (_) {}
+  }
+
   function pxToNum(v) {
     const n = parseFloat(String(v || '').replace('px', ''));
     return Number.isFinite(n) ? n : 0;
@@ -658,6 +691,9 @@
 
       _orangeBoxEl.querySelectorAll('.archiveModeBtn').forEach((tab) => {
         tab.addEventListener('click', async () => {
+          if (!_suppressWrestlingTabUrlSync) {
+            try { syncWrestlingSubroute((tab.getAttribute('data-tab') || '').trim(), { replace: false }); } catch (_) {}
+          }
           animateHudTab(tab);
 
           // prevent stale Shows mounts from firing after tab switches
@@ -736,7 +772,30 @@
   }
 
   function onEnter() {
-    // optional hook
+    try {
+      const initialMode = getWrestlingSubrouteFromPath();
+      if (initialMode) setMode(initialMode, { replace: true, preservePath: true });
+    } catch (_) {}
+  }
+
+
+  function setMode(mode, opts) {
+    const m = String(mode || '').toLowerCase().trim();
+    const key = WRESTLING_SUBROUTES.has(m) ? m : 'shows';
+
+    try {
+      syncWrestlingSubroute(key, { replace: !!(opts && opts.replace), preservePath: !!(opts && opts.preservePath) });
+    } catch (_) {}
+
+    try {
+      const tab =
+        (_orangeBoxEl && _orangeBoxEl.querySelector(`.archiveModeBtn[data-tab="${key}"]`)) ||
+        document.querySelector(`.archiveModeBtn[data-tab="${key}"]`);
+      if (tab) {
+        _suppressWrestlingTabUrlSync = true;
+        try { tab.click(); } finally { _suppressWrestlingTabUrlSync = false; }
+      }
+    } catch (_) {}
   }
 
   function destroy() {
@@ -804,5 +863,5 @@
     }
   }
 
-  window.WrestlingArchive = { render, onEnter, destroy };
+  window.WrestlingArchive = { render, onEnter, destroy, setMode };
 })();
