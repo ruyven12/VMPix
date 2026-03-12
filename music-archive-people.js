@@ -1785,7 +1785,7 @@ function ensurePeopleStyles() {
     .peoplePosterImg{
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display:block;
       filter: saturate(1.02) contrast(1.02);
     }
@@ -1926,7 +1926,7 @@ function ensurePeopleStyles() {
       justify-content: center;
       gap: 8px;
       min-height: 92px;
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 14px 14px 13px;
       background:
         radial-gradient(circle at top center, rgba(77,160,255,0.18), transparent 56%),
@@ -2037,7 +2037,7 @@ function ensurePeopleStyles() {
       .peopleTopStatRank{ width: 24px; height: 24px; font-size: 12px; }
       .peopleTopStatName{ font-size: 12px; }
       .peopleTopStatMeta{ font-size: 9px; gap: 3px 6px; }
-  
+    }
 
 /* Person album accordion (caption-match shots) */
 .peopleTimelineItem{ cursor: pointer; }
@@ -2050,7 +2050,7 @@ function ensurePeopleStyles() {
   grid-template-columns: minmax(0, 1fr);
   margin-top: 10px;
   background: rgba(0,0,0,0.22);
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 12px;
   box-sizing: border-box;
   box-shadow: 0 0 0 1px rgba(255,70,110,0.18) inset;
@@ -2122,29 +2122,29 @@ function ensurePeopleStyles() {
   width: 100%;
   aspect-ratio: 3 / 4;
   border: 0;
-  padding: 10px 10px 30px;
-  border-radius: 18px;
+  padding: 8px 8px 24px;
+  border-radius: 16px;
   cursor: pointer;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(232,236,245,0.92));
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.20) inset, 0 16px 34px rgba(0,0,0,0.34), 0 6px 14px rgba(0,0,0,0.24);
+  background: linear-gradient(180deg, rgba(16,22,38,0.92), rgba(10,14,24,0.92));
+  box-shadow: 0 0 0 1px rgba(118,164,255,0.14) inset, 0 14px 28px rgba(0,0,0,0.30), 0 4px 10px rgba(0,0,0,0.22);
   transition: transform 160ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 .peopleShotThumb:hover{
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.24) inset, 0 22px 38px rgba(0,0,0,0.38), 0 8px 18px rgba(0,0,0,0.26);
-  filter: brightness(1.02);
+  box-shadow: 0 0 0 1px rgba(118,164,255,0.20) inset, 0 18px 34px rgba(0,0,0,0.34), 0 6px 14px rgba(0,0,0,0.24);
+  filter: brightness(1.03);
 }
 .peopleShotThumb img{
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center center;
   display: block;
   transform: translateZ(0);
-  border-radius: 10px;
-  background: rgba(0,0,0,0.28);
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.16) inset;
+  border-radius: 9px;
+  background: rgba(4,8,16,0.72);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset;
 }
 .peopleShotThumb.is-hidden{ display:none; }
 @media (min-width: 1100px){
@@ -2223,7 +2223,7 @@ function ensurePeopleStyles() {
   background: rgba(0,0,0,0.25);
   box-shadow: 0 0 0 1px rgba(255,70,110,0.25) inset;
   color: rgba(255,255,255,0.92);
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 10px 14px;
   min-height: 44px;
   font-weight: 900;
@@ -2243,7 +2243,7 @@ function ensurePeopleStyles() {
   align-items:center;
   justify-content:center;
   background: rgba(0,0,0,0.18);
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
   overflow: hidden;
 }
