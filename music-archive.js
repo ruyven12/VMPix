@@ -734,8 +734,8 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsTopHeading is-single">Band Stats</div>' +
       '</div>' +
       '<div class="musicStatsTop">' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Shots</div></div>' +
+        '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Total Bands</div></div>' +
+        '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Total Shots</div></div>' +
       '</div>' +
       '<div class="musicStatsGrid">' +
         '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
@@ -1097,6 +1097,13 @@ if (!document.getElementById('musicContentWipeStyles')) {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap:12px;
             margin:0 0 14px;
+          }
+          .musicStatsCardTop{
+            text-align:center;
+            align-items:center;
+          }
+          .musicStatsTop{
+            margin-bottom:10px;
           }
           .musicStatsTopLabels{
             display:grid;
