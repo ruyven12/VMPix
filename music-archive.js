@@ -476,8 +476,8 @@
         <div class="archiveModeToggle" role="tablist" aria-label="Music sections (quick)">
           <button class="archiveModeBtn is-active" data-mode="bands" role="tab" aria-selected="true">Bands</button>
           <button class="archiveModeBtn" data-mode="shows" role="tab" aria-selected="false">Shows</button>
-                    <button class="archiveModeBtn" data-mode="people" role="tab" aria-selected="false">People</button>
-<button class="archiveModeBtn" data-mode="origins" role="tab" aria-selected="false">Origins of Music</button>
+          <button class="archiveModeBtn" data-mode="people" role="tab" aria-selected="false">People</button>
+		  <button class="archiveModeBtn" data-mode="origins" role="tab" aria-selected="false">Origins of Music</button>
           <button class="archiveModeBtn" data-mode="project" role="tab" aria-selected="false">Reimaging Project</button>
         </div>
       </div>

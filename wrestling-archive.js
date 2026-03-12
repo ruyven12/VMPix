@@ -292,10 +292,10 @@
 
     const wasActive = tabEl.classList.contains('is-active');
 
-    strip.querySelectorAll('.hudTab').forEach((t) => t.classList.remove('sweep'));
+    strip.querySelectorAll('.archiveModeBtn').forEach((t) => t.classList.remove('sweep'));
 
     if (!wasActive) {
-      strip.querySelectorAll('.hudTab').forEach((t) => {
+      strip.querySelectorAll('.archiveModeBtn').forEach((t) => {
         t.classList.remove('is-active');
         t.setAttribute('aria-selected', 'false');
       });
@@ -422,75 +422,55 @@
       style.textContent = `
         #wrestlingInfoStrip{ position:relative; overflow:visible; transition:height 220ms ease, padding 220ms ease, opacity 220ms ease; }
 
-        #wrestlingInfoStrip .hudTabs{
-          display:flex;
-          flex-wrap:nowrap;
-          align-items:center;
-          justify-content:center;
-          gap:18px;
-          user-select:none;
-          overflow-x:auto;
-          overflow-y:hidden;
-          -webkit-overflow-scrolling:touch;
-          scrollbar-width:none;
-          padding:0 18px;
+        .archiveHeaderWrap{
           width:100%;
-          box-sizing:border-box;
-          white-space:nowrap;
+          display:flex;
+          justify-content:center;
+          margin:10px 0 0;
         }
 
-        #wrestlingInfoStrip .hudTabs::before,
-        #wrestlingInfoStrip .hudTabs::after{
-          content:"";
-          flex:1 0 auto;
-        }
-
-        #wrestlingInfoStrip .hudTabs::-webkit-scrollbar{ display:none; }
-        #wrestlingInfoStrip .hudTab{ flex:0 0 auto; }
-
-        #wrestlingInfoStrip .hudTab{
-          position:relative;
-          cursor:pointer;
-          pointer-events:auto;
-          padding:10px 6px;
-          font-size:${ORANGE_BOX_TEXT_SIZE};
-          letter-spacing:${ORANGE_BOX_TEXT_TRACKING};
-          text-transform:uppercase;
-          opacity:.75;
-          transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
-        }
-
-        #wrestlingInfoStrip .hudTab:hover{
-          opacity:.95;
-          filter:brightness(1.15);
-          transform:translateY(-1px);
-        }
-
-        #wrestlingInfoStrip .hudTab::after{
-          content:"";
-          position:absolute;
-          left:0; right:0;
-          bottom:4px;
-          height:2px;
+        .archiveModeToggle{
+          display:flex;
+          flex-wrap:wrap;
+          justify-content:center;
+          gap:10px;
+          padding:6px;
           border-radius:999px;
-          opacity:0;
-          transform:scaleX(0);
-          transform-origin:left center;
-          background:rgba(255,70,110,0.85);
-          box-shadow:0 0 10px rgba(255,70,110,0.35);
-          transition:opacity 160ms ease;
+          background:rgba(0,0,0,0.35);
+          box-shadow:
+            0 0 0 1px rgba(255,80,110,0.35) inset,
+            0 0 22px rgba(255,80,110,0.25);
         }
 
-        #wrestlingInfoStrip .hudTab.is-active{ opacity:1; filter:brightness(1.25); }
-        #wrestlingInfoStrip .hudTab.is-active::after{ opacity:1; }
-
-        @keyframes hudUnderlineSweep{
-          0%{ transform:scaleX(0); }
-          70%{ transform:scaleX(1.06); }
-          100%{ transform:scaleX(1); }
+        .archiveModeBtn{
+          min-width:84px;
+          padding:8px 14px;
+          border-radius:999px;
+          border:none;
+          background:transparent;
+          color:rgba(255,190,200,0.75);
+          font-size:13px;
+          font-family: Orbitron;
+          letter-spacing:.12em;
+          text-transform:none;
+          cursor:pointer;
+          transition:all 160ms ease;
         }
-        #wrestlingInfoStrip .hudTab.sweep::after{
-          animation:hudUnderlineSweep 220ms cubic-bezier(.2,.9,.2,1) both;
+
+        .archiveModeBtn:hover{
+          color:#fff;
+        }
+
+        .archiveModeBtn.is-active{
+          background:linear-gradient(
+            180deg,
+            rgba(255,120,140,0.95),
+            rgba(255,70,90,0.85)
+          );
+          color:#010306;
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.45) inset,
+            0 0 26px rgba(255,90,120,0.75);
         }
 
         #wrestlingInfoStrip .scanPing{
@@ -674,7 +654,7 @@
         <div class="scanPing" aria-hidden="true"></div>
       `;
 
-      _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
+      _orangeBoxEl.querySelectorAll('.archiveModeBtn').forEach((tab) => {
         tab.addEventListener('click', async () => {
           animateHudTab(tab);
 
