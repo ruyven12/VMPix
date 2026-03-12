@@ -1106,7 +1106,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsSeparator{
             position:relative;
             height:3px;
-            margin:10px 19px 12px;
+            margin:15px 19px 17px;
             border-radius:999px;
             background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(56,189,248,0.22) 16%, rgba(255,70,110,0.72) 50%, rgba(245,158,11,0.42) 82%, rgba(255,255,255,0) 100%);
             box-shadow: 0 0 10px rgba(255,70,110,0.20), 0 0 18px rgba(56,189,248,0.10);
@@ -1313,7 +1313,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           @media (max-width: 620px){
             .musicStatsPanel{ padding:14px; border-radius:18px; }
             .musicStatsSection{ padding:12px; }
-            .musicStatsSeparator{ margin:10px 13px 12px; }
+            .musicStatsSeparator{ margin:15px 13px 17px; }
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: 1fr; }
