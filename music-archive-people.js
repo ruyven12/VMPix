@@ -58,6 +58,8 @@
   // Show lookup cache used for People timeline metadata.
   let _peopleShowsLookupPromise = null;
   let _peopleShowsLookup = new Map();
+  let _peopleBandNameLookupPromise = null;
+  let _peopleBandNameByFolder = new Map();
 
   // Album thumb cache: Map(albumKey -> imageUrl)
   let _albumThumbByKey = new Map();
@@ -1018,6 +1020,62 @@ function _formatLongDateFromShort(dateText) {
     return `${d}|${t}`;
   }
 
+  function _peopleBandFolderKeyFromUrl(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    try {
+      const parsed = new URL(raw, (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : 'https://vmpix.onrender.com');
+      const parts = String(parsed.pathname || '').split('/').filter(Boolean);
+      if (parts.length >= 2) return _normKey(decodeURIComponent(parts[parts.length - 2] || ''));
+    } catch (_) {}
+    return '';
+  }
+
+  async function ensurePeopleBandNameLookup() {
+    if (_peopleBandNameLookupPromise) return _peopleBandNameLookupPromise;
+
+    _peopleBandNameLookupPromise = (async () => {
+      const text = await fetchTextWithSessionCache(CSV_ENDPOINT, PEOPLE_BANDS_CSV_TTL_MS, PEOPLE_BANDS_CSV_CACHE_KEY);
+      const lookup = new Map();
+      if (!text || !text.trim()) {
+        _peopleBandNameByFolder = lookup;
+        return lookup;
+      }
+
+      const lines = text.split(/\r?\n/).filter((l) => String(l || '').trim());
+      const headerLine = lines.shift();
+      if (!headerLine) {
+        _peopleBandNameByFolder = lookup;
+        return lookup;
+      }
+
+      const header = parseCsvLine(headerLine).map((h) => String(h || '').trim().toLowerCase());
+      const bandIdx = header.indexOf('band');
+      const folderIdx = header.indexOf('smug_folder');
+      if (bandIdx === -1 || folderIdx === -1) {
+        _peopleBandNameByFolder = lookup;
+        return lookup;
+      }
+
+      for (const line of lines) {
+        const cols = parseCsvLine(line);
+        const bandName = _safeTrim(cols[bandIdx]);
+        const folder = _normKey(cols[folderIdx]);
+        if (!bandName || !folder || lookup.has(folder)) continue;
+        lookup.set(folder, bandName);
+      }
+
+      _peopleBandNameByFolder = lookup;
+      return lookup;
+    })().catch((err) => {
+      console.warn('[people] band lookup failed', err);
+      _peopleBandNameByFolder = new Map();
+      return _peopleBandNameByFolder;
+    });
+
+    return _peopleBandNameLookupPromise;
+  }
+
   async function ensurePeopleShowsLookup() {
     if (_peopleShowsLookupPromise) return _peopleShowsLookupPromise;
 
@@ -1080,7 +1138,12 @@ function _formatLongDateFromShort(dateText) {
     return _peopleShowsLookupPromise;
   }
 
-  function _peopleAppearsWithTextForAlbum(rawTitle) {
+  function _peopleAppearsWithTextForAlbum(item) {
+    const urlBandKey = _peopleBandFolderKeyFromUrl(item && item.url);
+    const bandName = urlBandKey ? (_peopleBandNameByFolder.get(urlBandKey) || '') : '';
+    if (bandName) return `(appears with ${bandName})`;
+
+    const rawTitle = String(item && item.title || '');
     const split = _splitDateFromTitle(rawTitle);
     const key = _peopleShowLookupKey(split.dateText || '', split.restTitle || rawTitle || '');
     if (!key) return '';
@@ -1094,7 +1157,7 @@ function _formatLongDateFromShort(dateText) {
     const renderPerson = _safeTrim(_view.person);
     if (!renderPerson || !Array.isArray(items) || !items.length) return;
 
-    await ensurePeopleShowsLookup();
+    await Promise.all([ensurePeopleBandNameLookup(), ensurePeopleShowsLookup()]);
 
     if (!panelRoot || !_view || _view.mode !== 'person' || _safeTrim(_view.person) !== renderPerson) return;
 
@@ -1103,7 +1166,7 @@ function _formatLongDateFromShort(dateText) {
       if (!albumKey) continue;
       const line = panelRoot.querySelector(`.peopleTimelineAppearsWith[data-albumkey="${_cssEscape(albumKey)}"]`);
       if (!line) continue;
-      const text = _peopleAppearsWithTextForAlbum(String(item && item.title || ''));
+      const text = _peopleAppearsWithTextForAlbum(item);
       if (text) {
         line.textContent = text;
         line.style.display = '';
