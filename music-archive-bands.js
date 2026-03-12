@@ -3460,9 +3460,10 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     const who = String(personName || '').trim();
     if (!who) return false;
 
+    try { window.__vmMusicPendingPerson = who; } catch (_) {}
     try { window.MusicArchive?.setMode?.('people'); } catch (_) {}
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 60; i++) {
       try {
         const api = window.MusicArchivePeople;
         if (api && typeof api.openPerson === 'function') {
@@ -3473,7 +3474,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       await new Promise((resolve) => window.setTimeout(resolve, 100));
     }
 
-    return false;
+    return true;
   }
 async function downloadZipFromServer(items, suggestedName){
     // items: [{ url, filename }]
@@ -5455,17 +5456,7 @@ const grid = document.createElement("div");
         chip.addEventListener("click", async (e) => {
           e.preventDefault();
           e.stopPropagation();
-
-          const ok = await openPersonInPeopleTab(kw);
-          if (ok) return;
-
-          openAlsoAppearsModal(kw, {
-            region: info.region,
-            letter: info.letter,
-            band: info.band,
-            folderPath: info.folderPath,
-            currentAlbumKey: albumKey,
-          });
+          await openPersonInPeopleTab(kw);
         });
         kwChips.appendChild(chip);
       });

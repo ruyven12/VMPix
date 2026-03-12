@@ -3463,6 +3463,14 @@ const pollDelayMs = 2000;
     const statusEl = panelRoot && panelRoot.querySelector('#peopleStatus');
     const token = ++_lastRenderToken;
 
+
+    try {
+      const pendingPerson = _safeTrim(window.__vmMusicPendingPerson || '');
+      if (pendingPerson) {
+        _view = { mode: 'person', person: pendingPerson, albumKeys: [] };
+        window.__vmMusicPendingPerson = '';
+      }
+    } catch (_) {}
     // Fast path: session-cached index (prevents rebuilds on every click)
     if (!_peopleIndex) {
       try { _peopleIndex = loadPeopleIndexFromSession(); } catch (_) {}
