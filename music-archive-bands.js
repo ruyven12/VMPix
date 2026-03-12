@@ -2254,11 +2254,30 @@ color: rgba(226,232,240,0.92);
     }
   }
 
+  function getAlbumDateSlugFromPath() {
+    try {
+      const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      if (String(parts[0] || '').toLowerCase() !== 'music') return '';
+      if (String(parts[1] || '').toLowerCase() !== 'bands') return '';
+      return String(parts[3] || '').trim().toLowerCase();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function albumDateSlugFromAlbum(albumObj) {
+    const bits = parseAlbumNameToShowBits(albumObj?.Name || albumObj?.Title || '');
+    return String(bits && bits.mmddyy ? bits.mmddyy : '').trim().toLowerCase();
+  }
+
   function syncBandsPath(bandObj, opts) {
     try {
       const slug = bandObj ? bandSlugFromBand(bandObj) : '';
+      const albumDateSlug = String((opts && opts.albumDateSlug) || '').trim().toLowerCase();
       const target = slug
-        ? `/music/bands/${slug}${window.location.search || ''}`
+        ? (albumDateSlug
+            ? `/music/bands/${slug}/${albumDateSlug}${window.location.search || ''}`
+            : `/music/bands/${slug}${window.location.search || ''}`)
         : `/music/bands${window.location.search || ''}`;
       const current = `${window.location.pathname || ''}${window.location.search || ''}`;
       if (current === target) return;
@@ -5036,6 +5055,7 @@ const members = document.createElement("div");
 
   }
   async function showAlbumPhotos(info) {
+    try { syncBandsPath(info && info.band ? info.band : null, { replace: !!(info && info.replaceRoute), albumDateSlug: albumDateSlugFromAlbum(info && info.album ? info.album : null) }); } catch (_) {}
     resultsEl.innerHTML = "";
     try { document.body.classList.remove("inBandDetail"); } catch(_) {}
     try { document.body.classList.add("inAlbumPhotos"); } catch(_) {}
@@ -5605,6 +5625,29 @@ try {
         try { initRegionPills(); } catch (_) {}
         try { updateLegendStats(CURRENT_REGION, CURRENT_LETTER); } catch (_) {}
         try { updateLetterGroups(CURRENT_REGION, { autoSelect: false }); } catch (_) {}
+
+        const pathAlbumSlug = getAlbumDateSlugFromPath();
+        if (pathAlbumSlug) {
+          const folderPath = cleanFolderPath(target?.band?.smug_folder || '');
+          const albums = await fetchFolderAlbumsCached(folderPath, target.region).catch(() => []);
+          const albumMatch = (Array.isArray(albums) ? albums : []).find((alb) => albumDateSlugFromAlbum(alb) === pathAlbumSlug);
+          if (albumMatch) {
+            await showAlbumPhotos({
+              region: target.region,
+              letter: target.letter,
+              band: target.band,
+              album: albumMatch,
+              folderPath,
+              allAlbums: albums,
+              replaceRoute: true,
+            });
+            resetPanelScroll();
+            ensurePanelScrollable();
+            if (legendEl) legendEl.style.display = "";
+            return;
+          }
+        }
+
         await showBandCard(target.region, target.letter, target.band, { replaceRoute: true });
         resetPanelScroll();
         ensurePanelScrollable();
@@ -5622,6 +5665,9 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
+
+
 
 
 
