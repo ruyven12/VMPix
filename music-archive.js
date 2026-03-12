@@ -736,8 +736,6 @@ async function mountMusicStatsPanel(panel) {
       '<div class="musicStatsTop">' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Shots</div></div>' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
       '</div>' +
       '<div class="musicStatsGrid">' +
         '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
@@ -748,6 +746,10 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
       '</div>' +
       '<div class="musicStatsLowerHeading">People Stats</div>' +
+      '<div class="musicStatsPeopleRow">' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
+      '</div>' +
       '<div class="musicStatsFooter">' +
         '<div class="musicStatsFooterRow">' +
           '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
@@ -1087,8 +1089,14 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsPanel > *{ position:relative; z-index:1; }
           .musicStatsTop{
             display:grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap:12px;
+          }
+          .musicStatsPeopleRow{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap:12px;
+            margin:0 0 14px;
           }
           .musicStatsTopLabels{
             display:grid;
@@ -1256,6 +1264,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           @media (max-width: 920px){
             .musicStatsTopLabels,
             .musicStatsTop,
+            .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsFooterRow{ grid-template-columns: 1fr; justify-items:start; }
             .musicStatsFooterPct{ justify-self:end; }
@@ -1264,6 +1273,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsPanel{ padding:14px; border-radius:18px; }
             .musicStatsTopLabels,
             .musicStatsTop,
+            .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: 1fr; }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
