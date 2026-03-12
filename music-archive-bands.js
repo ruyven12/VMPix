@@ -2238,6 +2238,56 @@ color: rgba(226,232,240,0.92);
       .replace(/\s+/g, "-")
       .toLowerCase();
 
+  function bandSlugFromBand(bandObj) {
+    const raw = cleanFolderPath((bandObj && bandObj.smug_folder) ? bandObj.smug_folder : ((bandObj && bandObj.name) ? bandObj.name : ""));
+    return toSlug(raw || "");
+  }
+
+  function getBandSlugFromPath() {
+    try {
+      const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      if (String(parts[0] || '').toLowerCase() !== 'music') return '';
+      if (String(parts[1] || '').toLowerCase() !== 'bands') return '';
+      return toSlug(decodeURIComponent(String(parts[2] || '').trim()));
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function syncBandsPath(bandObj, opts) {
+    try {
+      const slug = bandObj ? bandSlugFromBand(bandObj) : '';
+      const target = slug
+        ? `/music/bands/${slug}${window.location.search || ''}`
+        : `/music/bands${window.location.search || ''}`;
+      const current = `${window.location.pathname || ''}${window.location.search || ''}`;
+      if (current === target) return;
+      if (opts && opts.replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
+      else window.history.pushState({ __vmpixBackGuard: true }, document.title, target);
+    } catch (_) {}
+  }
+
+  function findBandBySlug(slug) {
+    const want = toSlug(slug || '');
+    if (!want) return null;
+
+    try {
+      const regions = Object.keys(BANDS || {});
+      for (const region of regions) {
+        const lettersObj = BANDS[region] || {};
+        const letters = Object.keys(lettersObj || {});
+        for (const letter of letters) {
+          const list = Array.isArray(lettersObj[letter]) ? lettersObj[letter] : [];
+          for (const band of list) {
+            if (bandSlugFromBand(band) === want) return { region, letter, band };
+          }
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   // ================== PERF HELPERS ==================
   // Goal: faster first reveal (don't block UI) + fewer repeat network calls.
 
@@ -4485,13 +4535,15 @@ function animateReimagingStats(overallEl){
 } catch(_){}
   }
 
-  function showLetter(regionKey, letter){
+  function showLetter(regionKey, letter, opts){
     if (!resultsEl) return;
 
     CURRENT_REGION = regionKey || CURRENT_REGION;
     CURRENT_LETTER = letter || null;
 
     try { updateLegendStats(CURRENT_REGION, CURRENT_LETTER); } catch(_) {}
+
+    try { if (!(opts && opts.skipRoute)) syncBandsPath(null, { replace: !!(opts && opts.replaceRoute) }); } catch(_) {}
 
     // Transition out
     try { resultsEl.classList.add("is-swapping"); } catch(_) {}
@@ -4572,6 +4624,7 @@ async function showBandCard(region, letter, bandObj, opts) {
 
     // Keep a safe return context for Back buttons / modal jumps
     try { LAST_BAND_CTX = { region, letter, band: bandObj }; } catch(_) {}
+    try { syncBandsPath(bandObj, { replace: !!opts.replaceRoute }); } catch(_) {}
 
     if (!resultsEl) return;
     try { document.body.classList.remove("inAlbumPhotos"); } catch(_) {}
@@ -4597,6 +4650,7 @@ async function showBandCard(region, letter, bandObj, opts) {
     backBtn.classList.add("backToBandsBtn");
     backBtn.addEventListener("click", () => {
       try { document.body.classList.remove("inBandDetail"); } catch(_) {}
+      try { syncBandsPath(null); } catch(_) {}
       // return to letter view (with reverse shared-element transition)
       CURRENT_REGION = region;
       initRegionPills();
@@ -5516,6 +5570,23 @@ try {
       return;
     }
 
+    const pathBandSlug = getBandSlugFromPath();
+    if (pathBandSlug) {
+      const target = findBandBySlug(pathBandSlug);
+      if (target && target.band) {
+        CURRENT_REGION = target.region || CURRENT_REGION;
+        CURRENT_LETTER = target.letter || null;
+        try { initRegionPills(); } catch (_) {}
+        try { updateLegendStats(CURRENT_REGION, CURRENT_LETTER); } catch (_) {}
+        try { updateLetterGroups(CURRENT_REGION, { autoSelect: false }); } catch (_) {}
+        await showBandCard(target.region, target.letter, target.band, { replaceRoute: true });
+        resetPanelScroll();
+        ensurePanelScrollable();
+        if (legendEl) legendEl.style.display = "";
+        return;
+      }
+    }
+
     // default: clear results
     if (resultsEl) resultsEl.innerHTML = "";
     resetPanelScroll();
@@ -5525,3 +5596,7 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
+
+
+
