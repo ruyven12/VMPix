@@ -2911,7 +2911,10 @@ function _ensurePeopleLightbox(){
       if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
     }
 
-    if (tgt === el) _closePeopleLightbox();
+    const img = _peopleLightboxImg;
+    if (img && (tgt === img || (tgt.closest && tgt.closest('#peopleLightboxImg')))) return;
+
+    _closePeopleLightbox();
   });
 
   // Keyboard controls
