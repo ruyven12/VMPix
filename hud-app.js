@@ -1056,33 +1056,79 @@ function navigate(route){
   }
 
 
-  
   // ============================================================
-  // Back-button trap (Option #1): keep navigation inside the app
+  // Back-button behavior: unwind internal route levels first, then stay on Home.
   // ============================================================
-  // NOTE: Browsers do not allow truly disabling Back, but we can keep the user
-  // inside this single-page experience by ensuring there's always a "guard"
-  // history entry to land on. When Back is pressed, popstate fires and we
-  // immediately push the guard state again, then restore/navigate in-app.
   const __VM_BACK_GUARD_STATE = { __vmpixBackGuard: true };
+
+  function buildInternalPathTrail(pathname){
+    const path = String(pathname || '').trim() || '/';
+    const clean = '/' + path.replace(/^\/+|\/+$/g, '');
+    const parts = clean.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+    if (!parts.length) return ['/'];
+
+    const top = String(parts[0] || '').toLowerCase();
+    if (top === 'music') {
+      const trail = ['/', '/music'];
+      const sub = String(parts[1] || '').toLowerCase();
+      if (sub) trail.push('/music/' + sub);
+      if (sub === 'bands') {
+        const band = String(parts[2] || '').trim();
+        const album = String(parts[3] || '').trim();
+        if (band) trail.push('/music/bands/' + band);
+        if (band && album) trail.push('/music/bands/' + band + '/' + album);
+      }
+      return trail.filter((value, index, arr) => arr.indexOf(value) === index);
+    }
+
+    if (top === 'wrestling') {
+      const trail = ['/', '/wrestling'];
+      const sub = String(parts[1] || '').toLowerCase();
+      if (sub) trail.push('/wrestling/' + sub);
+      return trail.filter((value, index, arr) => arr.indexOf(value) === index);
+    }
+
+    return ['/', clean].filter((value, index, arr) => arr.indexOf(value) === index);
+  }
+
+  function seedInternalHistoryTrail(){
+    try {
+      if (history.state && history.state.__vmpixTrailSeeded) return;
+      const trail = buildInternalPathTrail(location.pathname || '/');
+      if (!trail.length) return;
+      const search = location.search || '';
+      history.replaceState({ __vmpixTrailSeeded: true, __vmpixPath: trail[0] }, document.title, trail[0] + search);
+      if (trail.length === 1) {
+        history.pushState({ __vmpixBackGuard: true, __vmpixPath: trail[0] }, document.title, trail[0] + search);
+        return;
+      }
+      for (let i = 1; i < trail.length; i += 1) {
+        history.pushState({ __vmpixTrailSeeded: true, __vmpixPath: trail[i] }, document.title, trail[i] + search);
+      }
+    } catch (_) {}
+  }
 
   function installBackGuard(){
     if (installBackGuard._installed) return;
     installBackGuard._installed = true;
 
-    // Seed a guard entry so the first Back press doesn't jump out of the app.
-    try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
+    seedInternalHistoryTrail();
 
-            window.addEventListener('popstate', () => {
-      // Re-seed the guard so repeated Back presses stay in-app.
-      try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){ }
-
+    window.addEventListener('popstate', () => {
       const pathRoute = routeKeyFromPath();
       if (!pathRoute){
         restoreHash();
         return;
       }
+
       navigate(currentRouteKey());
+
+      try {
+        const pathname = String(location.pathname || '').trim() || '/';
+        if (pathname === '/') {
+          history.pushState({ __vmpixBackGuard: true, __vmpixPath: '/' }, document.title, '/' + (location.search || ''));
+        }
+      } catch (_) {}
     });
   }
 
@@ -1324,6 +1370,7 @@ window.addEventListener('hashchange', () => {
   window.VMPixSetTitle = setDocumentTitle;
   window.VMPixBuildTitle = buildDocumentTitle;
 })();
+
 
 
 
