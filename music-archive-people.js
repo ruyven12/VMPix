@@ -22,6 +22,7 @@
       : DEFAULT_API_BASE;
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
+  const PEOPLE_SHOWS_CSV_ENDPOINT = `${API_BASE}/sheet/shows`;
   const PEOPLE_MATCH_PREVIEW_LIMIT = 8;
 
   // where each region actually lives on SmugMug (kept from your script.js)
@@ -53,6 +54,10 @@
 
   // Album meta cache: Map(albumKey -> { title, url })
   let _albumMetaByKey = new Map();
+
+  // Show lookup cache used for People timeline metadata.
+  let _peopleShowsLookupPromise = null;
+  let _peopleShowsLookup = new Map();
 
   // Album thumb cache: Map(albumKey -> imageUrl)
   let _albumThumbByKey = new Map();
@@ -556,6 +561,8 @@ function _formatLongDateFromShort(dateText) {
   // ---- Session cache (Bands CSV) ----
   const PEOPLE_BANDS_CSV_CACHE_KEY = 'vm_music_people_bands_csv_v1';
   const PEOPLE_BANDS_CSV_TTL_MS = 1000 * 60 * 30;
+  const PEOPLE_SHOWS_CSV_CACHE_KEY = 'vm_music_people_shows_csv_v1';
+  const PEOPLE_SHOWS_CSV_TTL_MS = 1000 * 60 * 30;
 
   // ---- Session cache (People index) ----
   // Stores a compact mapping:
@@ -970,6 +977,141 @@ function _formatLongDateFromShort(dateText) {
       out.push({ folder, region });
     }
     return out;
+  }
+
+  function _normalizePeopleShowDate(dateText) {
+    const s = String(dateText || '').trim();
+    if (!s) return '';
+
+    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (m) {
+      const mm = Number(m[1]);
+      const dd = Number(m[2]);
+      let yyyy = Number(m[3]);
+      if (!Number.isFinite(mm) || !Number.isFinite(dd) || !Number.isFinite(yyyy)) return '';
+      if (yyyy < 100) yyyy = yyyy >= 70 ? 1900 + yyyy : 2000 + yyyy;
+      return `${String(yyyy).padStart(4, '0')}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+
+    m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (m) {
+      return `${String(Number(m[1])).padStart(4, '0')}-${String(Number(m[2])).padStart(2, '0')}-${String(Number(m[3])).padStart(2, '0')}`;
+    }
+
+    return '';
+  }
+
+  function _normalizePeopleShowTitle(titleText) {
+    return String(titleText || '')
+      .toLowerCase()
+      .replace(/[`"']/g, '')
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+  }
+
+  function _peopleShowLookupKey(dateText, titleText) {
+    const d = _normalizePeopleShowDate(dateText);
+    const t = _normalizePeopleShowTitle(titleText);
+    if (!d || !t) return '';
+    return `${d}|${t}`;
+  }
+
+  async function ensurePeopleShowsLookup() {
+    if (_peopleShowsLookupPromise) return _peopleShowsLookupPromise;
+
+    _peopleShowsLookupPromise = (async () => {
+      const text = await fetchTextWithSessionCache(PEOPLE_SHOWS_CSV_ENDPOINT, PEOPLE_SHOWS_CSV_TTL_MS, PEOPLE_SHOWS_CSV_CACHE_KEY);
+      const lookup = new Map();
+      if (!text || !text.trim()) {
+        _peopleShowsLookup = lookup;
+        return lookup;
+      }
+
+      let rows = [];
+      const raw = String(text || '').trim();
+      if (/^[\[{]/.test(raw)) {
+        try {
+          const parsed = JSON.parse(raw);
+          rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.rows) ? parsed.rows : []);
+        } catch (_) {
+          rows = [];
+        }
+      }
+
+      if (!rows.length) {
+        const lines = raw.split(/\r?\n/).filter((l) => String(l || '').trim());
+        const headerLine = lines.shift();
+        if (headerLine) {
+          const header = parseCsvLine(headerLine).map((h) => String(h || '').trim().toLowerCase());
+          const nameIdx = header.indexOf('show_name') !== -1 ? header.indexOf('show_name') : header.indexOf('title');
+          const dateIdx = header.indexOf('show_date') !== -1 ? header.indexOf('show_date') : header.indexOf('date');
+          const bandIdxs = [];
+          for (let n = 1; n <= 20; n++) bandIdxs.push(header.indexOf(`band_${n}`));
+          rows = lines.map((line) => {
+            const cols = parseCsvLine(line);
+            return {
+              title: nameIdx !== -1 ? (cols[nameIdx] || '').trim() : '',
+              date: dateIdx !== -1 ? (cols[dateIdx] || '').trim() : '',
+              bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || '').trim() : '')).filter(Boolean),
+            };
+          });
+        }
+      }
+
+      for (const row of rows) {
+        const title = _safeTrim(row && row.title);
+        const date = _safeTrim(row && row.date);
+        const bands = Array.isArray(row && row.bands) ? row.bands.map((b) => _safeTrim(b)).filter(Boolean) : [];
+        const key = _peopleShowLookupKey(date, title);
+        if (!key || !bands.length) continue;
+        if (!lookup.has(key)) lookup.set(key, bands);
+      }
+
+      _peopleShowsLookup = lookup;
+      return lookup;
+    })().catch((err) => {
+      console.warn('[people] shows lookup failed', err);
+      _peopleShowsLookup = new Map();
+      return _peopleShowsLookup;
+    });
+
+    return _peopleShowsLookupPromise;
+  }
+
+  function _peopleAppearsWithTextForAlbum(rawTitle) {
+    const split = _splitDateFromTitle(rawTitle);
+    const key = _peopleShowLookupKey(split.dateText || '', split.restTitle || rawTitle || '');
+    if (!key) return '';
+    const bands = _peopleShowsLookup.get(key) || [];
+    if (!Array.isArray(bands) || !bands.length) return '';
+    return `(appears with ${bands.join(' / ')})`;
+  }
+
+  async function hydratePeopleTimelineAppearsWith(items) {
+    if (!panelRoot || !_view || _view.mode !== 'person') return;
+    const renderPerson = _safeTrim(_view.person);
+    if (!renderPerson || !Array.isArray(items) || !items.length) return;
+
+    await ensurePeopleShowsLookup();
+
+    if (!panelRoot || !_view || _view.mode !== 'person' || _safeTrim(_view.person) !== renderPerson) return;
+
+    for (const item of items) {
+      const albumKey = _safeTrim(item && item.albumKey);
+      if (!albumKey) continue;
+      const line = panelRoot.querySelector(`.peopleTimelineAppearsWith[data-albumkey="${_cssEscape(albumKey)}"]`);
+      if (!line) continue;
+      const text = _peopleAppearsWithTextForAlbum(String(item && item.title || ''));
+      if (text) {
+        line.textContent = text;
+        line.style.display = '';
+      } else {
+        line.textContent = '';
+        line.style.display = 'none';
+      }
+    }
   }
 
   function _rememberAlbumStub(albumKey, albumObj) {
@@ -1678,6 +1820,16 @@ function ensurePeopleStyles() {
       font-size: 12px;
       color: rgba(226,232,240,0.72);
       letter-spacing: .03em;
+      line-height: 1.35;
+      text-transform: none !important;
+      white-space: normal;
+    }
+    .peopleTimelineAppearsWith{
+      display: none;
+      margin-top: 5px;
+      font-size: 11px;
+      color: rgba(255,170,194,0.82);
+      letter-spacing: .02em;
       line-height: 1.35;
       text-transform: none !important;
       white-space: normal;
@@ -2533,6 +2685,7 @@ function renderTopStats(indexMap){
 
             <div class="peopleTimelineBody">
               <div class="peopleTimelineTitle" title="${_eh(split.restTitle || rawTitle)}">${mainTitle}</div>
+              <div class="peopleTimelineAppearsWith" data-albumkey="${_eh(a.albumKey)}"></div>
               ${dateTxt ? `<div class="peopleTimelineMetaDate">${longDateTxt}</div>` : ''}
             </div>
 
@@ -2545,6 +2698,9 @@ function renderTopStats(indexMap){
     // Best-effort poster thumbnails (non-blocking)
     try {
       hydrateAlbumThumbs(items.slice(0, 24).map((x) => x.albumKey));
+    } catch (_) {}
+    try {
+      hydratePeopleTimelineAppearsWith(items);
     } catch (_) {}
   }
 
