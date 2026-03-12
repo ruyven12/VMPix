@@ -1173,6 +1173,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           if (!_suppressMusicTabUrlSync) {
             try { syncMusicSubroute((tab.getAttribute('data-tab') || '').trim(), { replace: false }); } catch (_) {}
           }
+          try { setMusicDocumentTitle((tab.getAttribute('data-tab') || '').trim()); } catch (_) {}
           animateHudTab(tab);
           if (!_contentPanelEl) return;
 
@@ -1362,6 +1363,21 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
   }
 
   const MUSIC_SUBROUTES = new Set(['bands', 'shows', 'people', 'origins', 'project']);
+  const MUSIC_TITLE_BY_MODE = {
+    bands: 'Bands',
+    shows: 'Shows',
+    people: 'People',
+    origins: 'Origins of Music',
+    project: 'Reimagining Project'
+  };
+
+  function setMusicDocumentTitle(mode, fallback){
+    try {
+      const label = String(fallback || MUSIC_TITLE_BY_MODE[String(mode || '').toLowerCase().trim()] || 'Music').trim();
+      if (typeof window.VMPixSetTitle === 'function') window.VMPixSetTitle(label);
+      else document.title = label ? (label + ' - Voodoo Media') : 'Voodoo Media';
+    } catch (_) {}
+  }
 
   function getMusicSubrouteFromPath() {
     try {
@@ -1568,6 +1584,8 @@ function setMode(mode, opts) {
 
 window.MusicArchive = { render, onEnter, destroy, setMode };
 })();
+
+
 
 
 

@@ -229,6 +229,16 @@ function pulseFrame(){
   // Routing + Mount
   // =============================
   const mount = () => document.getElementById('hudMainMount');
+  const DEFAULT_SITE_TITLE = 'Voodoo Media';
+
+  function buildDocumentTitle(label){
+    const part = String(label || '').trim();
+    return part ? part + ' - ' + DEFAULT_SITE_TITLE : DEFAULT_SITE_TITLE;
+  }
+
+  function setDocumentTitle(label){
+    try { document.title = buildDocumentTitle(label); } catch (_) {}
+  }
 
   function setActiveTopNav(route){
     document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
@@ -497,6 +507,7 @@ function pulseFrame(){
     }
   },
   onEnter(){
+    setDocumentTitle('');
     // Warm backend services ASAP and keep them alive every 10 minutes while the site is open.
     installBackendKeepAlive();
     if (HomeArchive && typeof HomeArchive.onEnter === 'function'){
@@ -1310,7 +1321,11 @@ window.addEventListener('hashchange', () => {
   })();
 
   window.VMPixNavigate = navigateToRoute;
+  window.VMPixSetTitle = setDocumentTitle;
+  window.VMPixBuildTitle = buildDocumentTitle;
 })();
+
+
 
 
 

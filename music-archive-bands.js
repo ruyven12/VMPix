@@ -2286,6 +2286,14 @@ color: rgba(226,232,240,0.92);
     } catch (_) {}
   }
 
+  function setBandsDocumentTitle(label) {
+    try {
+      const text = String(label || 'Bands').trim() || 'Bands';
+      if (typeof window.VMPixSetTitle === 'function') window.VMPixSetTitle(text);
+      else document.title = text + ' - Voodoo Media';
+    } catch (_) {}
+  }
+
   function findBandBySlug(slug) {
     const want = toSlug(slug || '');
     if (!want) return null;
@@ -4620,6 +4628,7 @@ function animateReimagingStats(overallEl){
   }
 
   function showLetter(regionKey, letter, opts){
+    try { setBandsDocumentTitle('Bands'); } catch (_) {}
     if (!resultsEl) return;
 
     CURRENT_REGION = regionKey || CURRENT_REGION;
@@ -4706,6 +4715,8 @@ function animateReimagingStats(overallEl){
 
 async function showBandCard(region, letter, bandObj, opts) {
     opts = opts || {};
+
+    try { setBandsDocumentTitle(bandObj?.name || 'Bands'); } catch (_) {}
 
     // Keep a safe return context for Back buttons / modal jumps
     try { LAST_BAND_CTX = { region, letter, band: bandObj }; } catch(_) {}
@@ -5095,6 +5106,10 @@ const members = document.createElement("div");
 
   }
   async function showAlbumPhotos(info) {
+    try {
+      const albumTitle = String(info?.album?.Name || info?.album?.Title || info?.band?.name || 'Bands').trim();
+      setBandsDocumentTitle(albumTitle);
+    } catch (_) {}
     try { syncBandsPath(info && info.band ? info.band : null, { replace: !!(info && info.replaceRoute), albumDateSlug: albumDateSlugFromAlbum(info && info.album ? info.album : null) }); } catch (_) {}
     resultsEl.innerHTML = "";
     try { document.body.classList.remove("inBandDetail"); } catch(_) {}
@@ -5698,6 +5713,8 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
+
 
 
 
