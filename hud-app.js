@@ -1240,6 +1240,5 @@ window.addEventListener('hashchange', () => {
     }
   })();
 
+  window.VMPixNavigate = navigateToRoute;
 })();
-
-window.VMPixNavigate = navigateToRoute;

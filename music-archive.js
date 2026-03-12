@@ -1226,7 +1226,7 @@ return;
                           return;
                         }
 
-                        const peopleModuleSrc = "music-archive-people.js?v=20260310a";
+                        const peopleModuleSrc = "/music-archive-people.js?v=20260310a";
 
 
                         // Try to load the module once.
@@ -1402,7 +1402,7 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
 
       // 1) Preload the People module script (on-demand loader still works as fallback).
       try {
-        const peopleModuleSrc = "music-archive-people.js?v=20260310a";
+        const peopleModuleSrc = "/music-archive-people.js?v=20260310a";
         const existing = document.querySelector('script[data-music-archive-people="1"]');
         if (!existing) {
           const s = document.createElement('script');
