@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/" />
   <title>Voodoo Media</title>
+  <script>
+    (function () {
+      try {
+        var redirect = new URLSearchParams(window.location.search).get("spa");
+        if (!redirect) return;
+        var target = decodeURIComponent(String(redirect || ""));
+        if (!target || target.charAt(0) !== "/") return;
+        window.history.replaceState(window.history.state || {}, document.title, target);
+      } catch (_) {}
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
