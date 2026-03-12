@@ -741,6 +741,7 @@ async function mountMusicStatsPanel(panel) {
       '</div>' +
       '<div class="musicStatsSeparator" aria-hidden="true"></div>' +
       '<div class="musicStatsSection musicStatsSectionBody">' +
+        '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
           '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
           '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
@@ -1160,6 +1161,16 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsLowerHeading{
             margin:14px 0 10px;
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:15px;
+            font-weight:900;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            color:rgba(233,236,245,0.90);
+          }
+          .musicStatsMidHeading{
+            margin:0 0 12px;
             text-align:center;
             font-family:"Orbitron", system-ui, sans-serif;
             font-size:15px;
