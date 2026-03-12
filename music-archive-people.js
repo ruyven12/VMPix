@@ -1810,6 +1810,8 @@ function ensurePeopleStyles() {
       color: rgba(226,232,240,0.96);
       line-height: 1.15;
       text-shadow: 0 0 26px rgba(255,70,110,0.12);
+      text-transform: none !important;
+      font-variant: normal;
       white-space: nowrap;
       overflow:hidden;
       text-overflow: ellipsis;
@@ -3556,3 +3558,4 @@ const pollDelayMs = 2000;
 
   window.MusicArchivePeople = { render, onMount, destroy, openPerson };
 })();
+
