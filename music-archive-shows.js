@@ -1451,7 +1451,7 @@ async function ensureShowsLoaded() {
         card.appendChild(img);
         card.appendChild(nm);
 
-        // Analytics: band click (from show detail)
+        // Navigate into Bands with explicit show context so the destination can resolve reliably.
         card.addEventListener("click", (e) => {
           try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
           safeTrack("band_click", {
@@ -1460,6 +1460,18 @@ async function ensureShowsLoaded() {
             year: String(year || ""),
             category: "show_detail"
           });
+
+          try {
+            window.__VM_MUSIC_BAND_NAV = {
+              source: "shows",
+              bandName: String(bandName || "").trim(),
+              showTitle: String(title || "").trim(),
+              showDate: String(show?.date || "").trim(),
+              year: String(year || "").trim()
+            };
+          } catch (_) {}
+
+          try { window.MusicArchive?.setMode?.("bands"); } catch (_) {}
         });
 
         bandsHost.appendChild(card);

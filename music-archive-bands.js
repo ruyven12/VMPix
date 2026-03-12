@@ -2554,16 +2554,106 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     return { show_date: "", show_name: raw, mmddyy: "" };
   }
 
-  function buildVenueLine(row){
-    const venue = String(row?.show_venue || row?.venue || "").trim();
-    const city  = String(row?.show_city  || row?.city  || "").trim();
-    const state = String(row?.show_state || row?.state || "").trim();
+  
+  function findBandNavTarget(request) {
+    const want = normStr(request && request.bandName);
+    if (!want) return null;
 
-    if (venue && city && state) return `${venue} - ${city}, ${state}`;
-    if (venue && city) return `${venue} - ${city}`;
-    if (city && state) return `${city}, ${state}`;
-    if (venue) return venue;
-    return "";
+    try {
+      const regions = Object.keys(BANDS || {});
+      for (const region of regions) {
+        const lettersObj = BANDS[region] || {};
+        const letters = Object.keys(lettersObj || {});
+        for (const letter of letters) {
+          const list = Array.isArray(lettersObj[letter]) ? lettersObj[letter] : [];
+          for (const band of list) {
+            const have = normStr(band && (band.name || band.band || ''));
+            if (have && have === want) {
+              return { region, letter, band };
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  async function resolveBandNavAlbum(target, request) {
+    const folderPath = cleanFolderPath(target?.band?.smug_folder || '');
+    const region = String(target?.region || '').trim();
+    if (!folderPath || !region) return null;
+
+    const wantDate = toMMDDYY(request?.showDate || '');
+    const wantTitle = normStr(request?.showTitle || '');
+    const albums = await fetchFolderAlbumsCached(folderPath, region).catch(() => []);
+    if (!Array.isArray(albums) || !albums.length) return null;
+
+    let best = null;
+    let bestScore = -1;
+
+    albums.forEach((alb) => {
+      const rawName = String(alb?.Name || alb?.Title || '').trim();
+      if (!rawName) return;
+
+      const bits = parseAlbumNameToShowBits(rawName);
+      const haveDate = bits.mmddyy || '';
+      const haveTitle = normStr(bits.show_name || rawName);
+      let score = 0;
+
+      if (wantDate && haveDate && haveDate === wantDate) score += 100;
+      if (wantTitle && haveTitle) {
+        if (haveTitle === wantTitle) score += 60;
+        else if (haveTitle.includes(wantTitle) || wantTitle.includes(haveTitle)) score += 30;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = alb;
+      }
+    });
+
+    const usable = bestScore >= 100 || (!wantDate && bestScore >= 60);
+    if (!usable || !best) return null;
+
+    return { album: best, allAlbums: albums, folderPath };
+  }
+
+  async function consumePendingBandNav() {
+    let request = null;
+    try {
+      request = window.__VM_MUSIC_BAND_NAV || null;
+      window.__VM_MUSIC_BAND_NAV = null;
+    } catch (_) {}
+
+    if (!request || normStr(request.source) !== 'shows') return false;
+
+    const target = findBandNavTarget(request);
+    if (!target || !target.band) return false;
+
+    CURRENT_REGION = target.region || CURRENT_REGION;
+    CURRENT_LETTER = target.letter || null;
+
+    try { initRegionPills(); } catch (_) {}
+    try { updateLegendStats(CURRENT_REGION, CURRENT_LETTER); } catch (_) {}
+    try { updateLetterGroups(CURRENT_REGION, { autoSelect: false }); } catch (_) {}
+
+    const match = await resolveBandNavAlbum(target, request).catch(() => null);
+    if (match && match.album) {
+      await showAlbumPhotos({
+        region: target.region,
+        letter: target.letter,
+        band: target.band,
+        album: match.album,
+        folderPath: match.folderPath,
+        allAlbums: match.allAlbums,
+        _navSource: request
+      });
+      return true;
+    }
+
+    await showBandCard(target.region, target.letter, target.band);
+    return true;
   }
 
   async function ensureShowsIndex(){
@@ -5386,6 +5476,14 @@ try {
       if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
       if (root) root.classList.remove("is-loading");
     } catch (_) {}
+
+    const handledPendingNav = await consumePendingBandNav();
+    if (handledPendingNav) {
+      resetPanelScroll();
+      ensurePanelScrollable();
+      if (legendEl) legendEl.style.display = "";
+      return;
+    }
 
     // default: clear results
     if (resultsEl) resultsEl.innerHTML = "";
