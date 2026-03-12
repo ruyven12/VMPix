@@ -1,0 +1,1867 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/" />
+  <title>Voodoo Media</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+  /* =============================
+   IMPORTS (moved to <link> tags in <head> for faster mobile first paint)
+   ============================= */
+  
+
+  /* =============================
+   THEME TOKENS
+   ============================= */
+  :root {
+    --bg: #050608;
+    --fg: rgba(226,232,240,0.92);
+    --border: rgba(255,255,255,0.14);
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    --radius: 18px;
+
+    /* Device-aware viewport height helper (mobile-safe) */
+    --vh: 1vh;
+  }
+
+  /* =============================
+   HUD TOKENS (LOGBOOK HUD)
+   ============================= */
+  :root {
+    /* HUD palette (red) */
+    --hud-bg: #040405;
+    --hud-bg2: #07070a;
+    --hud-panel: rgba(12, 7, 9, .72);
+    --hud-panel2: rgba(18, 8, 10, .55);
+
+    --hud-r1:#ff2a2a;
+    --hud-r2:#ff4c4c;
+    --hud-r3:#ff9a9a;
+
+    --hud-line: rgba(255, 60, 60, .28);
+    --hud-line2: rgba(255, 60, 60, .16);
+    --hud-txt: rgba(255, 210, 210, .92);
+    --hud-muted: rgba(255, 210, 210, .62);
+
+    --hud-glow: 0 0 18px rgba(255,60,60,.42), 0 0 48px rgba(255,60,60,.16);
+    --hud-shadow: 0 14px 40px rgba(0,0,0,.55);
+    --hud-radius: 18px;
+  }
+
+  /* =============================
+   BASE RESET
+   ============================= */
+  * { box-sizing: border-box; }
+
+  /* =============================
+   PAGE BACKGROUND + TYPOGRAPHY
+   ============================= */
+  html, body {
+    margin: 0;
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(1200px 700px at 50% 20%, rgba(255,0,0,0.10), transparent 60%),
+      radial-gradient(900px 500px at 30% 80%, rgba(0,170,255,0.10), transparent 55%),
+      linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.72));
+    background-size: auto, auto, auto, cover;
+    background-position: center, center, center, center;
+    background-repeat: no-repeat;
+    background-attachment: scroll, scroll, scroll, fixed;
+
+
+
+/* Mobile/WebView fix: `background-attachment: fixed` can break layout/scroll in some in-app browsers (Messenger, etc.) */
+@media (max-width: 600px){
+  html, body{
+    background-attachment: scroll, scroll, scroll, scroll !important;
+  }
+}
+    color: var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* =============================
+   APP SHELL / VIEWS
+   ============================= */
+  #app { min-height: 100%; display: grid; }
+  .view { display: none; min-height: 100vh; }
+  .view.active { display: grid; }
+  #view-home { grid-template-rows: auto 1fr; }
+
+  /* =============================
+   HEADER / BRAND BAR
+   ============================= */
+  header {
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.35);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 18px 12px;
+    z-index: 5;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+  }
+
+  .brandLink { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
+  .brandImg { height: 100px; width: auto; display: block; }
+
+  /* =============================
+   HUD LAYOUT / STAGE
+   ============================= */
+  .hudStage{
+    /* Flush HUD to top of page (no vertical centering / no top padding) */
+    min-height: calc(var(--vh) * 100);
+    display: grid;
+    justify-items: center;
+    align-items: start;
+    padding: 0;
+  }
+
+  .hud{
+    width: min(1080px, 100%);
+    /* Make the HUD fill the usable screen height (device-aware) */
+    height: calc(var(--vh) * 100);
+
+    border-radius: 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--hud-shadow);
+    background: radial-gradient(1200px 700px at 55% 35%, #1a070a 0%, var(--hud-bg) 55%, #020203 100%);
+
+    /* Boot/open animation (whole HUD) */
+    opacity: 0;
+    transform: translateY(10px) scale(.985);
+    filter: none;
+    transform-origin: top center;
+    will-change: transform, opacity, filter;
+    animation: hudBootIn 1100ms ease-out 120ms forwards;
+  }
+
+  .hud::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(900px 520px at 50% 40%, rgba(255,40,40,.08), transparent 60%),
+      radial-gradient(1200px 900px at 50% 80%, rgba(255,40,40,.06), transparent 65%),
+      linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.60));
+    pointer-events: none;
+  }
+
+  .hud::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.035) 0px,
+        rgba(255,255,255,.035) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+    mix-blend-mode: overlay;
+    opacity: .08;
+    pointer-events: none;
+  }
+
+  .hudSweep{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -20%;
+    height: 22%;
+    background: linear-gradient(
+      to bottom,
+      rgba(255,60,60,0) 0%,
+      rgba(255,60,60,.10) 45%,
+      rgba(255,60,60,.16) 50%,
+      rgba(255,60,60,.10) 55%,
+      rgba(255,60,60,0) 100%
+    );
+    opacity: .0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    filter: blur(0.4px);
+    animation: hudAmbientSweep 4s ease-in-out 2.2s infinite;
+  }
+
+  .hudNoise{
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='https://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+    opacity: .07;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    animation: hudNoiseDrift 3.2s steps(2,end) infinite;
+  }
+
+  .hudFrame{
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    border: 2px solid rgba(255,60,60,.28);
+    box-shadow: inset 0 0 0 1px rgba(255,60,60,.10), inset 0 0 36px rgba(255,60,60,.08);
+    pointer-events: none;
+  }
+
+  .hudFrameCorners::before,
+  .hudFrameCorners::after{
+    content: "";
+    position: absolute;
+    width: 46%;
+    height: 30%;
+    border: 2px solid rgba(255,60,60,.22);
+    border-bottom: none;
+    border-left: none;
+    border-top-right-radius: 28px;
+    top: -1px;
+    right: -1px;
+    filter: drop-shadow(0 0 10px rgba(255,60,60,.22));
+    pointer-events: none;
+  }
+
+  .hudFrameCorners::after{
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 28px;
+    bottom: -1px;
+    left: -1px;
+    top: auto;
+    right: auto;
+  }
+
+  .hudContent{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows:  74px auto 1fr;
+    padding: 14px 16px;
+    gap: 12px;
+    color: var(--hud-txt);
+  }
+
+  /* =============================
+   HUD TOPBAR (brand)
+   ============================= */
+  .hudTopbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--hud-radius);
+    border: 1px solid rgba(255,60,60,.22);
+    background: linear-gradient(180deg, rgba(18,8,10,.72), rgba(10,6,7,.55));
+    box-shadow: inset 0 0 0 1px rgba(255,60,60,.08);
+  }
+
+  .hudBrandLink{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hudBrandImg{
+    height: 100px;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
+  }
+
+  /* =============================
+   HUD CONTENT (reveal + sweep)
+   ============================= */
+  .hudTopbar,
+  .hudContent > :nth-child(2),
+  .hudContent > :nth-child(3){
+    opacity: 0;
+    will-change: transform, opacity, filter;
+  }
+
+  .hudTopbar,
+  .hudStub{
+    font-size: 14px;
+    border-width: 2px;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hudTopbar > *,
+  .hudStub > *{
+    position: relative;
+    z-index: 2;
+  }
+
+  .hudTopbar::after,
+  .hudStub::after{
+    content: "";
+    position: absolute;
+    inset: -35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-80%) rotate(-10deg);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    z-index: 3;
+  }
+
+  .hudTopbar{
+    transform: translateY(-8px);
+    animation: hudTopbarIn 540ms ease-out 720ms forwards;
+  }
+
+  .hudContent > :nth-child(2){
+    transform: translateY(10px);
+    animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
+  }
+
+  .hudContent > :nth-child(3){
+    transform: translateY(8px);
+    animation: hudFooterIn 540ms ease-out 940ms forwards;
+  }
+
+  .hudTopbar::after{ animation: hudScanSweep 1100ms ease-in-out 760ms 1; }
+  .hudContent > :nth-child(2)::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
+  .hudContent > :nth-child(3)::after{ animation: hudScanSweep 1200ms ease-in-out 980ms 1; }
+
+  /* =============================
+   HUD INTRO PILLS (tabs)
+   ============================= */
+/* =============================
+   NAV ICONS (minimal, inherits neon)
+   ============================= */
+  .nav-icon{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 6px rgba(255,60,60,.18));
+    transition: transform 180ms ease, opacity 180ms ease, filter 180ms ease;
+  }
+  .hudIntroText:hover .nav-icon{
+    transform: translateY(-1px);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(255,60,60,.30));
+  }
+  .hudIntroText:active .nav-icon{
+    transform: translateY(0px);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .nav-icon{ transition: none !important; }
+  }
+
+  .hudIntroText{
+    text-align: center;
+    display: inline-block;
+    white-space: nowrap;
+    padding: 5px 10px;
+    border: 1px solid rgba(255,60,60,.32);
+    border-radius: var(--hud-radius);
+    background: rgba(0,0,0,.18);
+	text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    position: relative;
+
+    transition: transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, filter 180ms ease;
+  }
+
+  /* =============================
+   CINEMATIC NAV (premium):
+   - Magnetic micro-motion (driven by --tx/--ty in JS)
+   - Single sliding underline rail (injected by JS)
+   - Extra depth/gloss (no layout changes)
+   ============================= */
+  .hudContent > .hudStub:not(.hudMain){
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Subtle nav-local atmosphere behind pills (static, engineered) */
+  .hudContent > .hudStub:not(.hudMain)::before{
+    content: "";
+    position: absolute;
+    inset: -22px -18px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .55;
+    filter: blur(14px);
+    background:
+      radial-gradient(40% 70% at 18% 60%, rgba(0,255,255,0.10), transparent 60%),
+      radial-gradient(46% 70% at 82% 55%, rgba(160,70,255,0.09), transparent 62%),
+      radial-gradient(60% 90% at 50% 140%, rgba(255,60,80,0.14), transparent 58%);
+  }
+
+  /* Sliding underline rail (element is injected by JS into the nav stub) */
+  .hudNavUnderline{
+    /* Disabled (user request: remove underline). Kept for easy re-enable later. */
+    display: none !important;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 8px;
+    height: 2px;
+    width: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+      rgba(255,80,120,0.0),
+      rgba(255,90,130,0.75),
+      rgba(0,210,255,0.55),
+      rgba(255,80,120,0.0)
+    );
+    opacity: 0;
+    transform: translate3d(var(--ux, 0px), 0, 0);
+    box-shadow:
+      0 0 14px rgba(255,90,130,0.32),
+      0 0 22px rgba(0,210,255,0.18);
+    will-change: transform, width, opacity;
+    transition:
+      transform 420ms cubic-bezier(.2,.85,.2,1),
+      width 420ms cubic-bezier(.2,.85,.2,1),
+      opacity 180ms ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .hudNavUnderline.is-on{ opacity: 1; }
+
+  /* Magnetic micro-motion (JS sets --tx/--ty per pill) */
+  .hudIntroText{
+    transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+    will-change: transform;
+  }
+  .hudIntroText:hover{
+    /* subtle hover lift */
+    transform: translate3d(var(--tx, 0px), calc(var(--ty, 0px) - 2px), 0);
+  }
+  .hudIntroText:active{
+    transform: translate3d(0px, 1px, 0);
+  }
+
+  /* Reinforce gloss sweep (already present) when active, without extra noise */
+  .hudIntroText.is-active::after{
+    opacity: 1;
+    animation: pillSheen 920ms ease-out;
+  }
+
+  .hudIntroText.is-active{
+    background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
+    border-color: rgba(255,60,60,.45);
+    box-shadow:
+      0 0 0 1px rgba(255,60,60,.20),
+      0 0 24px rgba(255,60,60,.28),
+      inset 0 0 22px rgba(255,60,60,.20);
+    filter: brightness(1.06);
+    animation: hudPillActivate 220ms ease-out;
+  }
+
+  .hudIntroText:active{ transform: translateY(1px); }
+
+  .hudIntroType{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0ch;
+    animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
+  }
+
+  .hudContent > :nth-child(2){
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+  }
+
+  .hudContent > :nth-child(2),
+  .hudContent > :nth-child(3){
+    font-family: 'Orbitron', system-ui, sans-serif;
+  }
+
+  /* =============================
+   HUD MAIN
+   ============================= */
+  /* =============================
+   HUD MAIN (PLAIN) – neon frame removed
+   ============================= */
+  .hudMainPlain{
+    width: 100%;
+    max-width: min(760px, 92%);
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+    padding: 18px 20px;
+    text-align: center;
+  }
+
+  .hudMain{
+    border: 1px solid rgba(255,60,60,.32);
+    background: rgba(0,0,0,.18);
+    padding: 5px;
+    font-size: 15px;
+    border-radius: var(--hud-radius);
+  }
+
+  .hudMainTextBox{
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 22px;
+  }
+
+  [data-hud-main-text]{
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+    text-align: center;
+  }
+
+  /* =============================
+   HUD MAIN TEXT SAFETY
+   Ensures Home text is visible even if a route module momentarily clears the mount
+   ============================= */
+  #hudMainMount{ width:100%; }
+  .neonFrameTextInner{ min-height: 56px; }
+  [data-hud-main-text]{ opacity: 1 !important; }
+
+
+  .hudMain{
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .hudMainLoad{
+    display: block;
+    width: 100%;
+    will-change: transform, opacity, filter;
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(1px);
+    animation: hudMainScrollBoot 820ms ease-out 1040ms forwards;
+  }
+
+  .hudMainType{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow: visible;
+    letter-spacing: .10em;
+    text-transform: none;
+  }
+
+  .hudLineOuter{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    overflow: visible;
+  }
+
+  .hudLineInner{
+    display: inline-block;
+    white-space: normal;
+    overflow: visible;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    width: auto;
+    opacity: 0;
+  }
+
+  .hudLine:last-child::after{
+    content: "";
+    display: inline-block;
+    width: 0.6ch;
+    height: 1em;
+    margin-left: 0.3ch;
+    border-right: 2px solid rgba(255, 210, 210, .85);
+    transform: translateY(1px);
+    animation: hudCaretBlink 640ms steps(2, end) calc(var(--last-line-delay) + 240ms) infinite;
+  }
+
+  [data-hud-main-text].isTyping::after{
+    content: "▌";
+    display: inline-block;
+    margin-left: 2px;
+    transform: translateY(1px);
+    animation: hudCaretBlink 850ms steps(1, end) infinite;
+  }
+
+  .hudStub{
+  display: grid;
+  place-items: center;
+  border-radius: var(--hud-radius);
+
+  /* OUTER BOX LOOK */
+  border: 1px solid rgba(255,60,60,.22);     /* border of the big container */
+  background: rgba(0,0,0,.12);               /* fill behind the neon frame */
+
+  color: var(--hud-muted);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+  /* =============================
+   NAV STUB (TOP MENU): wrap + content-sized pills
+
+  /* Nav stub should not clip wrapped pills (icons/glow/rounded corners) */
+  .hudContent > .hudStub:not(.hudMain){
+    overflow: visible;
+  }
+
+   - WebViews (FB/IG/X) sometimes report wider layout widths, so we must not
+     rely on max-width breakpoints to prevent pill pinch/cutoff.
+   - Keep HUD MAIN panel styling untouched (.hudStub.hudMain)
+   ============================= */
+  .hudContent > .hudStub:not(.hudMain){
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(8px, 2.2vw, 12px);
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  /* Make pills size to their text (no forced widths) */
+  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
+    flex: 0 0 auto;
+    padding: 6px 14px;
+    font-size: clamp(11px, 2.6vw, 13px);
+    line-height: 1.05;
+  }
+
+  /* Disable ch-based typing width on touch + WebViews (prevents clipped labels) */
+  @media (hover: none) and (pointer: coarse){
+    .hudIntroType{
+      width: auto !important;
+      overflow: visible !important;
+      animation: none !important;
+    }
+  }
+
+  body.webview .hudIntroType,
+  body.facebook .hudIntroType,
+  body.instagram .hudIntroType,
+  body.twitter .hudIntroType,
+  body.x .hudIntroType{
+    width: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
+
+  .hudStub.hudMain{
+  border: 1px solid rgba(255,60,60,.32);
+  border-radius: var(--hud-radius);
+
+  place-items: start center;
+  align-content: start;
+
+  /* was 20px — this is the mobile "empty band" */
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+
+
+  /* =============================
+   HOLOGRAM EMITTER RING (sci‑fi core)
+   - confined to the HUD MAIN panel only
+   - additive glow + subtle ticks
+   ============================= */
+  .hudStub.hudMain::before{
+    content:"";
+    position:absolute;
+    inset: 10px 14px;
+    border-radius: calc(var(--hud-radius) - 10px);
+    pointer-events:none;
+    z-index: 1;
+    opacity: .38;
+    mix-blend-mode: screen;
+    background:
+      radial-gradient(closest-side at 50% 80%,
+        rgba(0,255,255,0.00) 0%,
+        rgba(0,255,255,0.00) 56%,
+        rgba(0,255,255,0.22) 62%,
+        rgba(160,70,255,0.16) 66%,
+        rgba(0,0,0,0.00) 74%),
+      repeating-conic-gradient(from 90deg at 50% 80%,
+        rgba(0,255,255,0.00) 0 14deg,
+        rgba(0,255,255,0.18) 14deg 15deg);
+    filter:
+      blur(0.35px)
+      drop-shadow(0 0 14px rgba(0,255,255,0.22))
+      drop-shadow(0 0 18px rgba(160,70,255,0.18));
+    -webkit-mask: radial-gradient(closest-side at 50% 80%,
+      transparent 0 58%,
+      #000 60% 66%,
+      transparent 68%);
+            mask: radial-gradient(closest-side at 50% 80%,
+      transparent 0 58%,
+      #000 60% 66%,
+      transparent 68%);
+  }
+
+  /* faint inner field-lines (kept subtle so text stays readable) */
+  .hudStub.hudMain::after{
+    content:"";
+    position:absolute;
+    inset: 8px;
+    border-radius: calc(var(--hud-radius) - 8px);
+    pointer-events:none;
+    z-index: 1;
+    opacity: .12;
+    mix-blend-mode: overlay;
+    background:
+      repeating-linear-gradient(
+        to right,
+        rgba(255,255,255,0.00) 0px,
+        rgba(255,255,255,0.00) 22px,
+        rgba(0,255,255,0.10) 23px,
+        rgba(255,255,255,0.00) 24px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.00) 0px,
+        rgba(255,255,255,0.00) 18px,
+        rgba(160,70,255,0.08) 19px,
+        rgba(255,255,255,0.00) 20px
+      );
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .hudStub.hudMain::before,
+    .hudStub.hudMain::after{ display:none !important; }
+  }
+
+  /* =============================
+   PERF: Defer expensive HUD MAIN FX until after initial paint
+   - The ::before/::after effects on .hudStub.hudMain are visually great but
+     heavy (gradients + masks + blend-modes). By fading them in *after* the
+     boot animation, we reduce LCP without changing layout.
+   ============================= */
+  @keyframes hudMainFxInBefore{
+    from{ opacity: 0; }
+    to{ opacity: .38; }
+  }
+  @keyframes hudMainFxInAfter{
+    from{ opacity: 0; }
+    to{ opacity: .12; }
+  }
+
+  /* Start hidden (avoid being counted in initial LCP paint) */
+  .hudStub.hudMain::before{ opacity: 0; animation: hudMainFxInBefore 520ms ease-out 1400ms forwards; }
+  .hudStub.hudMain::after{  opacity: 0; animation: hudMainFxInAfter  520ms ease-out 1400ms forwards; }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .hudStub.hudMain::before{ opacity: .38; animation: none !important; }
+    .hudStub.hudMain::after{  opacity: .12; animation: none !important; }
+  }
+
+  /* =============================
+   NEON FRAME (SVG tracer) - HUD MAIN addon
+   ============================= */
+  .neonFrameWrap{
+    width: 100%;
+    margin-top: 0px;
+    padding: 8px 10px 14px;
+    display: grid;
+    place-items: center;
+  }
+
+  
+
+  /* =============================
+   MAIN MENU SURROUND FX (atmosphere + ornaments)
+   Adds the "rest of the graphic" around the box
+   ============================= */
+  .menuHero{
+    position: relative;
+    width: min(1020px, 100%);
+    margin: 8px auto 0;
+    padding: 34px 14px;
+    border-radius: 28px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* smoky bloom + ember haze */
+  .menuHero::before{
+    content:"";
+    position:absolute; inset:-28%;
+    background:
+      radial-gradient(60% 45% at 50% 40%, rgba(255,60,80,0.22), transparent 60%),
+      radial-gradient(45% 35% at 30% 65%, rgba(255,30,40,0.16), transparent 62%),
+      radial-gradient(45% 35% at 70% 65%, rgba(255,30,40,0.16), transparent 62%),
+      radial-gradient(120% 90% at 50% 120%, rgba(0,0,0,0.85), rgba(0,0,0,0.0) 56%);
+    filter: blur(18px);
+    opacity: .95;
+    transform: translate3d(0,0,0);
+    animation: fogDrift 10s ease-in-out infinite, hudBreath 12s ease-in-out infinite;
+    z-index: 0;
+    pointer-events:none;
+  }
+
+  /* vignette + scanlines + film grain */
+  .menuHero::after{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.74) 100%),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.040) 0px,
+        rgba(255,255,255,.040) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+    opacity: .18;
+    mix-blend-mode: overlay;
+    z-index: 4;
+    pointer-events:none;
+  }
+
+  @keyframes fogDrift{
+    0%,100%{ transform: translate(0,0) scale(1.02); }
+    
+
+  /* =============================
+   HUD-WIDE ATMOSPHERE (full main HUD background)
+   ============================= */
+  #hudEmbers{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    animation: plasmaPulse 2s ease-in-out infinite;
+    opacity:.95;
+    filter: blur(.15px) drop-shadow(0 0 14px rgba(0,255,255,0.22)) drop-shadow(0 0 18px rgba(160,70,255,0.18)) drop-shadow(2px 0 0 rgba(0,255,255,0.14)) drop-shadow(-2px 0 0 rgba(160,70,255,0.12));
+  }
+  .hudAtmos{
+    position:absolute; inset:-28%;
+    background:
+      radial-gradient(60% 45% at 50% 40%, rgba(0, 255, 255, 0.18), transparent 60%),
+      radial-gradient(45% 35% at 30% 65%, rgba(160, 70, 255, 0.14), transparent 62%),
+      radial-gradient(45% 35% at 70% 65%, rgba(160, 70, 255, 0.14), transparent 62%),
+      radial-gradient(120% 90% at 50% 120%, rgba(0,0,0,0.78), rgba(0,0,0,0.0) 56%);
+    filter: blur(18px);
+    opacity: .95;
+    transform: translate3d(0,0,0);
+    animation: fogDrift 10s ease-in-out infinite, hudBreath 12s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .hudFilm{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0.0) 45%, rgba(0,0,0,0.70) 100%),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.040) 0px,
+        rgba(255,255,255,.040) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+    opacity: .16;
+    mix-blend-mode: overlay;
+    pointer-events:none;
+  }
+
+  /* Ensure layering: atmosphere behind, content above */
+  #hudEmbers, .hudAtmos, .hudFilm{ z-index: 0; }
+  .hudNoise, .hudSweep, .hudFrame, .hudFrameCorners{ z-index: 1; }
+  .hudContent{ z-index: 2; }
+
+  /* =============================
+   MENU BOX: make it mobile-friendly (no squish)
+   ============================= */
+  .neonFrameWrap{
+    width: min(980px, 100%);
+    margin: 0 auto;
+  }
+  .neonFrame{
+    width: 100%;
+    height: clamp(110px, 22vw, 150px);
+    display:block;
+  }
+  .hudOrn{
+    width: 100%;
+    height: clamp(110px, 22vw, 150px);
+  }
+  .neonFrameText{
+    max-width: min(760px, 92%);
+    padding: 14px 16px;
+  }
+  .hudMainText{
+    font-size: clamp(12px, 2.8vw, 18px);
+    line-height: 1.35;
+  }
+  .hudIntroType{
+    font-size: clamp(12px, 3.2vw, 14px);
+  }
+
+  /* menuHero becomes a simple centering wrapper now (atmosphere moved to HUD) */
+  .menuHero{
+    padding: 0;
+    margin: 0 auto;
+    border-radius: 0;
+    overflow: visible;
+    isolation: auto;
+    background: none !important;
+  }
+  .menuHero::before,
+  .menuHero::after{ content:none !important; }
+
+50%{ transform: translate(14px,-10px) scale(1.06); }
+  }
+
+  #hudEmbers{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    z-index: 1;
+    pointer-events:none;
+
+    /* Plasma render: additive + slight chromatic split */
+    mix-blend-mode: screen;
+
+    /* Smooth 2s pulse (no fast flicker) */
+    animation: plasmaPulse 2s ease-in-out infinite;
+    opacity: .92;
+
+    /* Soft outer glow + subtle chromatic aberration */
+    filter:
+      blur(.30px)
+      drop-shadow(0 0 16px rgba(0,255,255,0.22))
+      drop-shadow(0 0 22px rgba(160,70,255,0.18))
+      drop-shadow(2px 0 0 rgba(0,255,255,0.16))
+      drop-shadow(-2px 0 0 rgba(160,70,255,0.14));
+  }
+
+  /* Make sure the box sits above atmosphere + embers */
+  .menuHero .neonFrameWrap{
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Ornament overlay SVG (side chevrons / corner lines) */
+  .hudOrn{
+    position:absolute;
+    inset: 0;
+    width: min(980px, 100%);
+    height: 150px; /* match .neonFrame */
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events:none;
+    z-index: 3;
+    opacity: .92;
+    filter:
+      drop-shadow(0 0 14px rgba(255,60,90,0.35))
+      drop-shadow(0 0 28px rgba(255,20,40,0.18));
+  }
+
+  .ornLine{
+    fill:none;
+    stroke: rgba(255,80,110,0.22);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .ornChev{
+    fill: rgba(0,0,0,0.10);
+    stroke: rgba(255,80,110,0.35);
+    stroke-width: 3;
+    stroke-linejoin: bevel;
+  }
+  .ornChev2{
+    fill: transparent;
+    stroke: rgba(255,120,150,0.22);
+    stroke-width: 2;
+    stroke-linejoin: bevel;
+  }
+  .ornTick{
+    fill:none;
+    stroke: rgba(255,120,150,0.22);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  /* Slightly reduce padding on smallest screens */
+  @media (max-width: 520px){
+    .menuHero{ padding: 28px 10px; }
+  }
+
+.neonFrame{
+    width: min(920px, 100%);
+    height: 125px;
+    display: block;
+  }
+
+  /* =============================
+   CHANGE PULSE (frame reacts)
+   ============================= */
+  .neonFrameWrap.pulse{
+    animation: hudPulse 260ms ease-out;
+  }
+
+  .neonFrameWrap.pulse .frameTrace{
+    animation:
+      traceRun 1.8s linear infinite,
+      traceSurge 260ms ease-out;
+  }
+
+  
+  /* =============================
+     MAIN MENU HUD PANEL (SVG)
+     Matches the generated "game main menu" frame vibe
+     ============================= */
+  .neonFrame{
+    width: min(980px, 100%);
+    height: 150px;
+    display: block;
+  }
+
+  .framePlate{
+    fill: rgba(20, 0, 0, 0.32);
+    stroke: rgba(255, 70, 70, 0.10);
+    stroke-width: 2;
+  }
+
+  .frameOuter{
+    fill: transparent;
+    stroke: url(#hudStroke);
+    stroke-width: 7;
+    stroke-linejoin: bevel;
+  }
+
+  .frameInner{
+    fill: rgba(0, 0, 0, 0.10);
+    stroke: url(#hudInnerStroke);
+    stroke-width: 3;
+    stroke-linejoin: bevel;
+  }
+
+  .frameTopBar,
+  .frameBottomBar{
+    fill: none;
+    stroke: rgba(255, 110, 140, 0.95);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  .frameTicks{
+    fill: none;
+    stroke: rgba(255, 80, 110, 0.45);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .frameCuts{
+    fill: none;
+    stroke: rgba(255, 120, 150, 0.18);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .frameTrace{
+    fill: transparent;
+    stroke: rgba(255, 140, 170, 1);
+    stroke-width: 5.5;
+    stroke-linejoin: bevel;
+
+    stroke-dasharray: 180 2800;
+    stroke-dashoffset: 0;
+    animation: traceRun 2.25s linear infinite;
+  }
+
+  /* Optional micro-pulse on route change (already used by your JS) */
+  .neonFrameWrap.pulse .frameOuter,
+  .neonFrameWrap.pulse .frameInner{
+    animation: menuSurge 260ms ease-out;
+  }
+  @keyframes menuSurge{
+    0%{ opacity: 1; }
+    45%{ opacity: 1; }
+    100%{ opacity: .92; }
+  }
+.neonFrameWrap{ position: relative; }
+
+  .neonFrameText{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 0 14px;
+    text-align: center;
+    pointer-events: auto;
+  }
+
+  .neonFrameTextInner{
+    width: min(700px, 100%);
+    left: 50px;
+    right: 50px;
+    height: 50%;
+	min-height: 64px;
+    display: grid;
+    place-items: center;
+    padding: 5px 20px;
+    padding-left: 5px;
+    padding-right: 10px;
+
+    overflow-x: visible;
+    overflow-y: visible;
+
+    box-sizing: border-box;
+  }
+
+  
+
+  /* "Glass bed" for text to match the generated render */
+  .neonFrameTextInner{
+  background: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+
+  /* =============================
+   DESKTOP TUNE: shift inner glass bed slightly left
+   (aligns the glass bed with the frame geometry)
+   ============================= */
+  @media (min-width: 521px){
+    .neonFrameTextInner{
+      transform: translateX(-30px);
+    }
+  }
+
+  /* Slightly brighter caret for the "menu" look */
+  .hudCaret{
+    color: rgba(255,160,180,1);
+    text-shadow: 0 0 12px rgba(255,70,100,0.65);
+  }
+
+.neonFrameTextInner::-webkit-scrollbar{ width: 8px; }
+  .neonFrameTextInner::-webkit-scrollbar-track{ background: rgba(255,255,255,0.04); border-radius: 999px; }
+  .neonFrameTextInner::-webkit-scrollbar-thumb{ background: rgba(255,90,90,0.35); border-radius: 999px; }
+
+  .neonFrameTextInner .hudMainType{
+    display: block;
+    width: 100%;
+    max-width: 78ch;
+    line-height: 1.45;
+
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+
+    font-size: clamp(12px, 1.05vw, 15px);
+  }
+
+  /* =============================
+   RESPONSIVE
+   ============================= */
+  @media (max-width: 900px){
+  .hud{ height: calc(var(--vh) * 100); }
+
+  /* Allow the page to scroll normally on mobile.
+     This prevents text from "colliding" when the mobile browser UI changes height. */
+  html, body{
+    height: auto;
+    min-height: calc(var(--vh) * 100);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+  }
+
+  /* Undo the "viewport lock" */
+  body{
+    position: static;
+    inset: auto;
+    width: 100%;
+  }
+}
+
+
+  @media (max-width: 520px){
+  .neonFrameTextInner .hudMainType{
+    letter-spacing: .06em;
+  }
+
+  /* Mobile safety: if the HUD title wraps, prevent line collisions */
+  .neonFrameTextInner [data-hud-main-text]{
+    line-height: 1.2 !important;
+    font-size: 14px !important;
+  }
+
+  /* Mobile safety: the Music welcome text */
+  #musicContentPanel > div{
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    max-width: 100% !important;
+  }
+}
+
+
+  /* =============================
+   MOTION REDUCTION
+   ============================= */
+  @media (prefers-reduced-motion: reduce){
+    #hudEmbers{ display:none !important; }
+    .hudAtmos{ animation: none !important; }
+    .hud, .hudSweep, .hudNoise,
+    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
+      animation: none !important, plasmaPulse 2s ease-in-out infinite;
+    }
+
+    .hudIntroType{ animation: none !important; width: auto; }
+    .hudIntroText.is-active{ animation: none !important; }
+    .hudNavUnderline{ display:none !important; }
+  }
+
+  /* =============================
+   KEYFRAMES
+   ============================= */
+  @keyframes hudAmbientSweep{
+    0%{ transform: translateY(-10%); opacity: 0; }
+    6%{ opacity: .55; }
+    12%{ opacity: .0; }
+    100%{ transform: translateY(140%); opacity: 0; }
+  }
+
+@keyframes hudBreath{
+    0%,100%{ opacity: .90; filter: brightness(1) saturate(1); }
+    50%{ opacity: .98; filter: brightness(1.06) saturate(1.03); }
+  }
+
+  
+  @keyframes plasmaPulse{
+    0%,100%{ opacity: .82; filter: brightness(1) saturate(1); }
+    50%{ opacity: .98; filter: brightness(1.10) saturate(1.08); }
+  }
+
+@keyframes hudBootIn{
+    0%{ opacity:0; transform: translateY(12px) scale(.98); filter: none; }
+    55%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
+    100%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0px); }
+  }
+
+  @keyframes hudNoiseDrift{
+    0%{ transform: translate(0,0); }
+    50%{ transform: translate(-2%, 1%); }
+    100%{ transform: translate(0,0); }
+  }
+
+  @keyframes hudTopbarIn{ to{ opacity: 1; transform: translateY(0); } }
+
+  @keyframes hudSectionIn{
+    0%{ opacity: 0; transform: translateY(10px); filter: none; }
+    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+  }
+
+  @keyframes hudFooterIn{ to{ opacity: 1; transform: translateY(0); } }
+
+  @keyframes hudScanSweep{
+    0%{ opacity: 0; transform: translateX(-85%) rotate(-10deg); }
+    12%{ opacity: .85; }
+    55%{ opacity: .45; }
+    100%{ opacity: 0; transform: translateX(85%) rotate(-10deg); }
+  }
+
+  @keyframes hudPillActivate{
+    0%{ box-shadow: 0 0 0 0 rgba(255,60,60,0); filter: brightness(1); }
+    55%{ box-shadow: 0 0 0 1px rgba(255,60,60,.26), 0 0 28px rgba(255,60,60,.30), inset 0 0 26px rgba(255,60,60,.22); filter: brightness(1.08); }
+    100%{ }
+  }
+
+  @keyframes hudTypeIn{ to{ width: calc(var(--intro-chars) * 1ch); } }
+
+  @keyframes hudLineTypeInPxPx{
+    to{ opacity: 1; }
+  }
+
+  @keyframes hudCaretBlink{
+    0%{ opacity: 0; }
+    50%{ opacity: 1; }
+    100%{ opacity: 0; }
+  }
+
+  @keyframes hudMainScrollBoot{
+    0%{ opacity: 0; transform: translateY(18px); filter: none; }
+    65%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+    78%{ transform: translateY(2px); }
+    100%{ opacity: 1; transform: translateY(0); filter: blur(0px); }
+  }
+
+  @keyframes hudPulse{
+    0%   { transform: scale(1); filter: brightness(1); }
+    40%  { transform: scale(1.012); filter: brightness(1.12); }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
+
+  @keyframes traceSurge{
+    0%   { stroke-width: 12; filter: drop-shadow(0 0 0 rgba(255,90,90,0)); }
+    40%  { stroke-width: 15; filter: drop-shadow(0 0 16px rgba(255,90,90,.55)); }
+    100% { stroke-width: 12; filter: drop-shadow(0 0 0 rgba(255,90,90,0)); }
+  }
+
+  @keyframes traceRun{
+    to { stroke-dashoffset: -2340; }
+  }
+  
+  body.route-music .neonFrameWrap{
+    display: none;
+  }
+
+
+  /* Extra slow smoke layer (separate from hudAtmos) */
+  .hudSmoke{
+    position:absolute;
+    inset:-35%;
+    background:
+      radial-gradient(55% 40% at 20% 55%, rgba(0, 255, 255, 0.08), transparent 62%),
+      radial-gradient(55% 40% at 80% 60%, rgba(0, 255, 255, 0.08), transparent 62%),
+      radial-gradient(90% 70% at 50% 35%, rgba(160, 70, 255, 0.07), transparent 66%),
+      radial-gradient(120% 100% at 50% 120%, rgba(0,0,0,0.72), rgba(0,0,0,0.0) 58%);
+    filter: blur(26px);
+    opacity: .65;
+    transform: translate3d(0,0,0);
+    animation: slowFog 26s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes slowFog{
+    0%,100%{ transform: translate(-8px, 6px) scale(1.02); }
+    50%{ transform: translate(18px,-14px) scale(1.08); }
+  }
+
+  /* Layer order: keep smoke behind content */
+  .hudSmoke{ z-index: 0; }
+
+  /* Nav "go hard" spice: sheen + surge */
+  .hudIntroText::after{
+    content:"";
+    position:absolute; inset:-1px;
+    border-radius: inherit;
+    background: linear-gradient(115deg,
+      transparent 0%,
+      rgba(255,140,170,0.00) 35%,
+      rgba(255,140,170,0.28) 48%,
+      rgba(255,140,170,0.00) 62%,
+      transparent 100%);
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events:none;
+  }
+  .hudIntroText:hover{
+    border-color: rgba(255,110,140,.62);
+    box-shadow:
+      0 0 0 1px rgba(255,60,80,.22),
+      0 0 28px rgba(255,60,80,.34),
+      inset 0 0 18px rgba(255,60,80,.18);
+    filter: brightness(1.10);
+  }
+  .hudIntroText:hover::after{
+    opacity: 1;
+    animation: pillSheen 820ms ease-out;
+  }
+  @keyframes pillSheen{
+    from{  }
+    to{ transform: translateX(120%); }
+  }
+
+  /* Whole HUD reacts briefly on hover/click */
+  #hud.hud-surge .hudFrame,
+  #hud.hud-surge .hudFrameCorners{
+    filter: brightness(1.18);
+  }
+  #hud.hud-surge{
+    animation: hudSurge 240ms ease-out;
+  }
+  @keyframes hudSurge{
+    0%{ filter: brightness(1); }
+    40%{ filter: brightness(1.10); }
+    100%{ filter: brightness(1); }
+  }
+
+
+  /* =============================
+   Remove faint outer HUD border (keep everything else)
+   ============================= */
+  #hud{
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  .hudFrame,
+  .hudFrameCorners{
+    border-color: transparent !important;
+  }
+
+
+  /* =============================
+   KILL faint outer rounded rectangle (container/pseudo outline)
+   Safe: targets only the outer HUD container + its overlay layers
+   ============================= */
+  #hud,
+  #hud::before,
+  #hud::after{
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* If any wrapper around #hud is drawing a subtle frame, neutralize it too */
+  .hud,
+  .hud::before,
+  .hud::after,
+  .hudShell,
+  .hudShell::before,
+  .hudShell::after,
+  .hudPanel,
+  .hudPanel::before,
+  .hudPanel::after{
+    border-color: transparent !important;
+    outline: none !important;
+  }
+
+  /* The vignette/film overlays can "read" like a border when clipped with radius */
+  #hudEmbers,
+  .hudAtmos,
+  .hudSmoke,
+  .hudFilm,
+  .hudNoise,
+  .hudSweep{
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+
+  /* =============================
+   FINAL: remove the faint outer HUD outline completely
+   (it was coming from .hudFrame and .hudFrameCorners)
+   ============================= */
+  .hudFrame{
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .hudFrameCorners::before,
+  .hudFrameCorners::after{
+    border: 0 !important;
+    filter: none !important;
+  }
+
+
+  /* =============================
+   Disable global HUD surge (prevents "movie refresh" feel) - safe override
+   ============================= */
+  #hud.hud-surge{
+    animation: none !important;
+    filter: none !important;
+  }
+  #hud.hud-surge .hudFrame,
+  #hud.hud-surge .hudFrameCorners{
+    filter: none !important;
+  }
+
+
+  /* =============================
+   WIPE CONSTRAINT: keep scan/wipe INSIDE bubbles only
+   - disables HUD-wide wipe layers (topbar/stub)
+   - enables pill-only wipe on route pulse
+   ============================= */
+
+  /* Disable HUD-wide wipe surfaces */
+  .hudTopbar::after,
+  .hudStub::after{
+    animation: none !important;
+    opacity: 0 !important;
+    content: none !important;
+    background: none !important;
+  }
+  .hudSweep{
+    display: none !important;
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  /* Pill-only wipe on pulse (no full-bar wipe) */
+  .hudIntroText{
+    position: relative;
+    overflow: hidden; /* confines wipe to the pill bubble */
+  }
+  .hudIntroText::after{
+    content:"";
+    position:absolute;
+    inset:-35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-85%) rotate(-10deg);
+    opacity: 0;
+    pointer-events:none;
+    mix-blend-mode: screen;
+    z-index: 3;
+  }
+  .hudIntroText.isPulse::after{
+    opacity: 1;
+    animation: hudScanSweep 980ms ease-in-out 1;
+  }
+
+  /* Main text bubble wipe stays bubble-only */
+  .neonFrameTextInner{
+    position: relative;
+    overflow: hidden;
+  }
+  .neonFrameTextInner::after{
+    content:"";
+    position:absolute;
+    inset:-35% -25%;
+    background: linear-gradient(90deg, transparent, rgba(255,60,60,.28), transparent);
+    transform: translateX(-85%) rotate(-10deg);
+    opacity: 0;
+    pointer-events:none;
+    mix-blend-mode: screen;
+    z-index: 3;
+  }
+  .neonFrameWrap.pulse .neonFrameTextInner::after{
+    opacity: 1;
+    animation: hudScanSweep 1050ms ease-in-out 1;
+  }
+
+
+  /* =============================
+   MOBILE TUNE (requested): keep the main bubble/frame aligned on phones
+   Safe overrides only (no layout rewrites)
+   ============================= */
+  @media (max-width: 520px){
+    /* Pull content upward / reduce dead space */
+    .hudContent{
+      padding: 10px 10px;
+      gap: 8px;
+      grid-template-rows:  64px auto 1fr;
+    }
+
+    /* Keep the main frame + ornaments from getting too tall */
+    .neonFrame,
+    .hudOrn{
+      height: 112px;
+    }
+
+    /* Make the inner glass bed fit better on narrow screens */
+    .neonFrameTextInner{
+      left: 18px;
+      right: 18px;
+      height: 74%;
+      padding: 12px 14px;
+    }
+
+    /* Slightly larger, more readable type on mobile */
+    .neonFrameTextInner .hudMainType{
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 32ch;
+    }
+  }
+
+
+  /* =============================
+   MOBILE FIX (requested): center inner text bed to frame
+   ============================= */
+  @media (max-width: 520px){
+    .neonFrameTextInner{
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: calc(100% - 36px); /* matches frame inset */
+    }
+  }
+
+
+  
+/* =============================
+   DESKTOP FIX (requested): widen inner glass bed on LEFT only
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    left: 28px;   /* widened left edge to align with frame guide */
+  }
+}
+
+
+
+/* =============================
+   DESKTOP TUNE: extend inner glass bed 20px to the RIGHT (no reposition)
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    right: -20px; /* extend width to the right only */
+  }
+}
+
+
+
+/* =============================
+   DESKTOP TUNE: widen inner glass bed by 20px (centered; no movement)
+   ============================= */
+@media (min-width: 521px){
+  .neonFrameTextInner{
+    width: min(720px, 100%); /* +20px from the original 700px */
+  }
+}
+
+
+/* =============================
+   MOBILE FIX (requested): lock the inner text bed to the frame geometry
+   (previous left/right rules didn't apply because the element wasn't positioned)
+   ============================= */
+  @media (max-width: 520px){
+    /* remove any centering drift from padding on the overlay */
+    .neonFrameText{
+      padding: 0 !important;
+    }
+
+    /* position the inner bed explicitly with equal insets that match the frame opening */
+    .neonFrameTextInner{
+      position: absolute;
+
+      /* inset tuned to the SVG frame opening (prevents overlap with the end caps) */
+      left: clamp(34px, 8vw, 54px);
+      right: clamp(34px, 8vw, 54px);
+      width: auto !important;
+
+      /* keep it vertically centered in the frame */
+      top: 50%;
+      transform: translateY(-50%);
+
+      height: 74%;
+      padding: 12px 14px !important;
+    }
+  }
+  
+  /* =============================
+   FINAL MOBILE OVERRIDE:
+   keep text wrapping AND keep it inside the frame box
+   ============================= */
+@media (max-width: 520px){
+  /* remove padding drift from the overlay container */
+  .neonFrameText{
+    padding: 0 !important;
+  }
+
+  /* hard-lock the inner bed to the SVG opening */
+  .neonFrameTextInner{
+    position: absolute !important;
+
+    /* equal insets = centered + stays inside end caps */
+    left: clamp(34px, 8vw, 54px) !important;
+    right: clamp(34px, 8vw, 54px) !important;
+    width: auto !important;
+
+    /* vertically center it in the frame */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+
+    /* give it enough vertical room for wrapped lines */
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+
+    /* allow wrapping */
+    overflow: visible !important;
+  }
+
+  /* make sure the typed text wraps like desktop */
+  .neonFrameTextInner .hudMainType,
+  .neonFrameTextInner .hudMainTextBox,
+  .neonFrameTextInner [data-hud-main-text]{
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+}
+
+.hudIntroDisabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.85;
+}
+
+
+  /* =============================
+   ROUTE POLISH (premium):
+   - One-time sheen on route change (no looping)
+   - Driven by JS toggling #hud.route-sheen
+   ============================= */
+  #hudRouteSheen{
+    position:absolute;
+    inset:-30%;
+    pointer-events:none;
+    opacity: 0;
+    z-index: 3; /* above atmosphere, below content */
+    background: linear-gradient(115deg,
+      rgba(0,0,0,0) 0%,
+      rgba(255,140,170,0.00) 38%,
+      rgba(255,140,170,0.22) 48%,
+      rgba(0,200,255,0.14) 56%,
+      rgba(255,140,170,0.00) 64%,
+      rgba(0,0,0,0) 100%);
+    transform: translateX(-120%) rotate(-12deg);
+    mix-blend-mode: screen;
+    filter: blur(0.6px) saturate(1.25);
+    will-change: transform, opacity;
+  }
+
+  #hud.route-sheen #hudRouteSheen{
+    opacity: 1;
+    animation: routeSheenSweep 520ms ease-out 1;
+  }
+
+  @keyframes routeSheenSweep{
+    0%   { transform: translateX(-120%) rotate(-12deg); opacity: 0; }
+    12%  { opacity: 1; }
+    100% { transform: translateX(120%)  rotate(-12deg); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #hudRouteSheen{ display:none !important; }
+  }
+
+
+</style>
+
+  <link rel="stylesheet" href="vmpix-mobile-patch-v2.css?v=2">
+  <script src="vmpix-webview.js?v=2" defer></script>
+
+</head>
+
+<body class="vmpix-shell">
+<div id="app">
+  <section id="view-home" class="view active">
+    <main>
+      <!-- LOGBOOK HUD (Phase 1: shell) -->
+      <div class="hudStage">
+        <div class="hud" id="hud">
+          <!-- HUD-wide atmosphere (full background) -->
+          <canvas id="hudEmbers" aria-hidden="true"></canvas>
+          <div class="hudAtmos" aria-hidden="true"></div>
+                    <div class="hudSmoke" aria-hidden="true"></div>
+<div class="hudFilm" aria-hidden="true"></div>
+<div class="hudNoise" aria-hidden="true"></div>
+          <div class="hudSweep" aria-hidden="true"></div>
+          <div class="hudFrame" aria-hidden="true"></div>
+          <div class="hudFrameCorners" aria-hidden="true"></div>
+
+          <div class="hudContent">
+            <div class="hudTopbar">
+              <a class="hudBrandLink" href="/" data-nav="home">
+                <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
+              </a>
+            </div>
+            <div class="hudStub">
+			<a class="hudIntroText" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
+  <a class="hudIntroText" href="/music" data-nav="music"><svg class="nav-icon nav-icon-wave" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 6 12 9 6 12 18 15 9 18 12 21 12"></polyline></svg><span class="hudIntroType">Music</span></a>
+  <a class="hudIntroText" href="/wrestling" data-nav="wrestling"><svg class="nav-icon nav-icon-lucha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4 Q12 2 18 4 Q20 8 20 12 Q20 18 12 22 Q4 18 4 12 Q4 8 6 4 Z"></path><path d="M8 10 Q10 8 12 10"></path><path d="M12 10 Q14 8 16 10"></path><line x1="12" y1="10" x2="12" y2="14"></line></svg><span class="hudIntroType">Wrestling</span></a>
+  <a class="hudIntroText" href="/calendar" data-nav="calendar"><svg class="nav-icon nav-icon-calendar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="hudIntroType">Calendar</span></a>
+  <a class="hudIntroText" href="/about" data-nav="about"><span class="hudIntroType">About</span></a>
+  <a class="hudIntroText" href="/pricing" data-nav="pricing"><svg class="nav-icon nav-icon-dollar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7.5c0-1.9-1.8-3.5-4-3.5s-4 1.6-4 3.5 1.3 3.1 4 3.5 4 1.6 4 3.5-1.8 3.5-4 3.5-4-1.6-4-3.5"></path><line x1="12" y1="2.5" x2="12" y2="21.5"></line></svg><span class="hudIntroType">Pricing</span></a>
+  <a class="hudIntroText" href="/contact" data-nav="contact"><span class="hudIntroType">Contact</span></a>
+</div>
+
+            <div class="hudStub hudMain">
+  <!-- HUD MAIN (PLAIN) : neon frame removed globally -->
+  <div class="hudMainPlain">
+    <div id="hudMainMount"></div>
+  </div>
+</div>
+</div>
+</div>
+        </div>
+      </div>
+    </main>
+  </section>
+</div>
+
+
+<!-- App modules (keep HUD markup/logic identical; logic moved to separate files) -->
+
+<!-- Analytics (NON-BLOCKING): this MUST NOT prevent the site from loading if the backend is cold/down. -->
+<script async src="https://music-archive-3lfa.onrender.com/analytics.js?v=1"></script>
+
+<!-- Music sub-modules FIRST -->
+<script src="music-archive-bands.js" defer></script>
+<script src="music-archive-shows.js" defer></script>
+
+<!-- Music router LAST -->
+<script src="music-archive.js" defer></script>
+
+<script src="wrestling-archive.js" defer></script>
+<script src="about-archive.js" defer></script>
+<script src="pricing.js" defer></script>
+<script src="contact.js" defer></script>
+<script src="home.js" defer></script>
+
+<!-- Calendar config (must be defined before calendar.js loads) -->
+<script>
+  // Public Google Calendar ICS URL (Settings → Integrate calendar → Public address in iCal format)
+  window.VMPIX_CALENDAR_ICS_URL = 'https://calendar.google.com/calendar/ical/f94c8ef1cb0b3c7e3185134a306540e3b9f3847f3a595d166ca0e4c9b01014a3%40group.calendar.google.com/public/basic.ics';
+  window.VMPIX_CALENDAR_TITLE = 'Calendar';
+  // Helps if Google blocks CORS for the ICS feed
+  window.VMPIX_CALENDAR_ICS_FALLBACK_JINA = true;
+</script>
+<script src="calendar.js" defer></script>
+<script src="hud-app.js" defer></script>
+
+
+
+
+<script>
+  // Fallback boot (for "two-file" deployments):
+  // If music-archive.js / hud-app.js are not present, mount the Bands module directly
+  // into #hudMainMount by creating #musicContentPanel.
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      if (!window.MusicArchive && window.MusicArchiveBands && typeof window.MusicArchiveBands.render === 'function') {
+        var mount = document.getElementById('hudMainMount') || document.body;
+        var panel = document.getElementById('musicContentPanel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.id = 'musicContentPanel';
+          if (mount && mount !== document.body) mount.innerHTML = '';
+          (mount || document.body).appendChild(panel);
+        }
+        panel.innerHTML = window.MusicArchiveBands.render();
+        if (typeof window.MusicArchiveBands.onMount === 'function') {
+          window.MusicArchiveBands.onMount(panel);
+        }
+      }
+    } catch (e) {
+      // Keep the shell visible even if something goes wrong
+      console.error('Bands fallback mount failed:', e);
+    }
+  });
+</script>
+
+</body>
+</html>
+
+

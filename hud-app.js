@@ -845,11 +845,11 @@ async function transitionTo(route){
 
   if (next === currentRoute){
     setActiveTopNav(next);
-    return;
-  }
-
-  if (_isRouting){
-    _queuedRoute = next;
+    try {
+      if (next === 'music' && window.MusicArchive && typeof window.MusicArchive.onEnter === 'function') {
+        window.MusicArchive.onEnter();
+      }
+    } catch (_) {}
     return;
   }
 
@@ -1242,4 +1242,5 @@ window.addEventListener('hashchange', () => {
 
   window.VMPixNavigate = navigateToRoute;
 })();
+
 

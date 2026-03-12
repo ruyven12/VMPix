@@ -1380,7 +1380,11 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
       ? String(mode || '').toLowerCase().trim()
       : 'bands';
     const replace = !!(opts && opts.replace);
-    const target = `/music/${key}${window.location.search || ''}`;
+    const preservePath = !!(opts && opts.preservePath);
+    const currentPath = String(window.location.pathname || '').trim();
+    const target = (preservePath && currentPath.toLowerCase().startsWith(`/music/${key}`))
+      ? `${currentPath}${window.location.search || ''}`
+      : `/music/${key}${window.location.search || ''}`;
 
     try {
       if (replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
@@ -1390,7 +1394,7 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
   function onEnter() {
     try {
       const initialMode = getMusicSubrouteFromPath();
-      if (initialMode) setMode(initialMode, { replace: true });
+      if (initialMode) setMode(initialMode, { replace: true, preservePath: true });
     } catch (_) {}
 
     // Warm the People index and preload the People module so the People tab is fast
@@ -1548,7 +1552,7 @@ function setMode(mode, opts) {
       : 'bands';
 
   try {
-    syncMusicSubroute(key, { replace: !!(opts && opts.replace) });
+    syncMusicSubroute(key, { replace: !!(opts && opts.replace), preservePath: !!(opts && opts.preservePath) });
   } catch (_) {}
 
   try {
