@@ -272,7 +272,7 @@ function pulseFrame(){
     function routePathForKey(route){
     const key = sanitizeRouteKey(route) || 'home';
     if (key === 'home') return '/';
-    if (key === 'music') return '/music/bands';
+    if (key === 'music') return '/music';
     return `/${key}`;
   }
 
@@ -1242,3 +1242,4 @@ window.addEventListener('hashchange', () => {
 
   window.VMPixNavigate = navigateToRoute;
 })();
+

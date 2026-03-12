@@ -1366,12 +1366,12 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
   function getMusicSubrouteFromPath() {
     try {
       const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
-      if (!parts.length) return 'bands';
-      if (String(parts[0] || '').toLowerCase() !== 'music') return 'bands';
+      if (!parts.length) return '';
+      if (String(parts[0] || '').toLowerCase() !== 'music') return '';
       const sub = String(parts[1] || '').toLowerCase().trim();
-      return MUSIC_SUBROUTES.has(sub) ? sub : 'bands';
+      return MUSIC_SUBROUTES.has(sub) ? sub : '';
     } catch (_) {
-      return 'bands';
+      return '';
     }
   }
 
@@ -1390,7 +1390,7 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
   function onEnter() {
     try {
       const initialMode = getMusicSubrouteFromPath();
-      setMode(initialMode, { replace: true });
+      if (initialMode) setMode(initialMode, { replace: true });
     } catch (_) {}
 
     // Warm the People index and preload the People module so the People tab is fast
@@ -1564,4 +1564,6 @@ function setMode(mode, opts) {
 
 window.MusicArchive = { render, onEnter, destroy, setMode };
 })();
+
+
 
