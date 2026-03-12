@@ -287,7 +287,11 @@ function pulseFrame(){
   function syncUrlToRoute(route, opts){
     const key = sanitizeRouteKey(route) || 'home';
     const replace = !!(opts && opts.replace);
-    const target = routePathForKey(key) + (location.search || '');
+    const preservePath = !!(opts && opts.preservePath);
+    const currentPath = String(location.pathname || '').trim();
+    const target = (preservePath && key === 'music' && currentPath.toLowerCase().startsWith('/music/'))
+      ? currentPath + (location.search || '')
+      : routePathForKey(key) + (location.search || '');
     try {
       if (replace) history.replaceState(__VM_BACK_GUARD_STATE, document.title, target);
       else history.pushState(__VM_BACK_GUARD_STATE, document.title, target);
@@ -1035,7 +1039,7 @@ window.addEventListener('hashchange', () => {
 
     if (pathRoute) {
       navigate(pathRoute);
-      syncUrlToRoute(pathRoute, { replace: true });
+      syncUrlToRoute(pathRoute, { replace: true, preservePath: true });
       return;
     }
 
