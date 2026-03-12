@@ -1325,6 +1325,11 @@ color: rgba(226,232,240,0.92);
         border-radius:inherit;
         pointer-events:none;
         z-index:0;
+        background:
+          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 92%, white 12%) 0%, color-mix(in srgb, var(--band-rim-glow) 82%, transparent) 18%, transparent 44%),
+          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 88%, white 10%) 0%, color-mix(in srgb, var(--band-rim-glow) 78%, transparent) 18%, transparent 44%),
+          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 84%, white 8%) 0%, color-mix(in srgb, var(--band-rim-glow) 72%, transparent) 18%, transparent 44%),
+          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 80%, white 6%) 0%, color-mix(in srgb, var(--band-rim-glow) 68%, transparent) 18%, transparent 44%);
         box-shadow:
           inset 0 0 0 1px var(--band-rim-inner),
           inset 0 0 16px rgba(255,255,255,0.025),
@@ -1332,7 +1337,7 @@ color: rgba(226,232,240,0.92);
           0 0 18px var(--band-rim-glow),
           0 0 34px color-mix(in srgb, var(--band-rim-glow) 70%, transparent);
         opacity:.92;
-        transition: box-shadow 200ms ease, opacity 180ms ease;
+        transition: box-shadow 200ms ease, opacity 180ms ease, background 200ms ease;
       }
       .band-card::before{
         content:"";
@@ -1369,6 +1374,11 @@ color: rgba(226,232,240,0.92);
       .band-card:hover::after,
       .band-card:focus-visible::after{
         opacity:1;
+        background:
+          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 100%, white 20%) 0%, color-mix(in srgb, var(--band-rim-glow) 100%, transparent) 22%, transparent 48%),
+          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 96%, white 16%) 0%, color-mix(in srgb, var(--band-rim-glow) 92%, transparent) 22%, transparent 48%),
+          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 92%, white 14%) 0%, color-mix(in srgb, var(--band-rim-glow) 86%, transparent) 22%, transparent 48%),
+          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 88%, white 12%) 0%, color-mix(in srgb, var(--band-rim-glow) 82%, transparent) 22%, transparent 48%);
         box-shadow:
           inset 0 0 0 1px color-mix(in srgb, var(--band-rim-inner) 120%, white 8%),
           inset 0 0 20px rgba(255,255,255,0.035),
