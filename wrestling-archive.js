@@ -647,9 +647,11 @@
       _orangeBoxEl.style.textAlign = 'center';
       _orangeBoxEl.style.pointerEvents = 'auto';
       _orangeBoxEl.innerHTML = `
-        <div class="hudTabs" role="tablist" aria-label="Wrestling sections">
-          <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
-          <div class="hudTab" data-tab="origins" role="tab" aria-selected="false">Origins</div>
+        <div class="archiveHeaderWrap">
+          <div class="archiveModeToggle" role="tablist" aria-label="Wrestling sections">
+            <button class="archiveModeBtn is-active" data-tab="shows" role="tab" aria-selected="true">Shows</button>
+            <button class="archiveModeBtn" data-tab="origins" role="tab" aria-selected="false">Origins</button>
+          </div>
         </div>
         <div class="scanPing" aria-hidden="true"></div>
       `;
