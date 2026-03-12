@@ -731,7 +731,7 @@ async function mountMusicStatsPanel(panel) {
     const pct = Number(stats.progressPct || 0);
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =       '<div class="musicStatsTopLabels">' +
-        '<div class="musicStatsTopHeading is-single">Band Stats</div>' +
+        '<div class="musicStatsTopHeading is-single">Overall Stats</div>' +
       '</div>' +
       '<div class="musicStatsTop">' +
         '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Total Bands</div></div>' +
@@ -1279,9 +1279,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
           @media (max-width: 620px){
             .musicStatsPanel{ padding:14px; border-radius:18px; }
             .musicStatsTopLabels,
-            .musicStatsTop,
             .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: 1fr; }
+            .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
