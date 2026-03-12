@@ -474,6 +474,7 @@
       <div class="archiveHeaderWrap">
         <!-- Section toggle (Bands / Shows / Origins / Project) -->
         <div class="archiveModeToggle" role="tablist" aria-label="Music sections (quick)">
+          <button class="archiveModeBtn" data-mode="stats" role="tab" aria-selected="false">Stats</button>
           <button class="archiveModeBtn is-active" data-mode="bands" role="tab" aria-selected="true">Bands</button>
           <button class="archiveModeBtn" data-mode="shows" role="tab" aria-selected="false">Shows</button>
           <button class="archiveModeBtn" data-mode="people" role="tab" aria-selected="false">People</button>
@@ -532,6 +533,230 @@ function bindArchiveModeToggle(activeMode) {
       { passive: false }
     );
   });
+}
+
+
+const MUSIC_STATS_SHOTS_FALLBACK = 61289;
+let _musicStatsPromise = null;
+
+function getMusicArchiveApiBase() {
+  try {
+    return (typeof window !== 'undefined' && typeof window.MUSIC_ARCHIVE_API_BASE === 'string' && window.MUSIC_ARCHIVE_API_BASE.trim())
+      ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+      : 'https://music-archive-3lfa.onrender.com';
+  } catch (_) {
+    return 'https://music-archive-3lfa.onrender.com';
+  }
+}
+
+function parseMusicCsvLine(line) {
+  const out = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      out.push(cur);
+      cur = '';
+      continue;
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function formatMusicStatNumber(value) {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return '0';
+  try { return n.toLocaleString(); } catch (_) { return String(Math.round(n)); }
+}
+
+function parseTotalShotsFromMusicStatsCsv(text) {
+  const lines = String(text || '').split(/\r?\n/).filter((l) => String(l || '').trim());
+  if (lines.length < 2) return null;
+  const header = parseMusicCsvLine(lines[0]).map((h) => String(h || '').trim().toLowerCase());
+  let idx = header.indexOf('total');
+  if (idx < 0) idx = Math.max(0, header.length - 1);
+  for (let i = 1; i < lines.length; i++) {
+    const row = parseMusicCsvLine(lines[i]);
+    const raw = String((idx >= 0 && idx < row.length) ? row[idx] : '').replace(/[^\d.-]/g, '');
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function formatMusicGeneratedAt(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return 'Unavailable';
+  const d = new Date(raw);
+  if (!Number.isFinite(d.getTime())) return raw;
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    }).format(d);
+  } catch (_) {
+    return d.toLocaleString();
+  }
+}
+
+async function fetchMusicStatsData(forceFresh) {
+  if (_musicStatsPromise && !forceFresh) return _musicStatsPromise;
+
+  _musicStatsPromise = (async () => {
+    const apiBase = getMusicArchiveApiBase();
+    const cacheOpt = forceFresh ? 'no-store' : 'default';
+    const [bandsRes, peopleRes, statsRes] = await Promise.allSettled([
+      fetch(apiBase + '/sheet/bands', { cache: cacheOpt }).then((r) => r.text()),
+      fetch(apiBase + '/index/people', { cache: cacheOpt }).then((r) => r.json()),
+      fetch(apiBase + '/sheet/stats', { cache: cacheOpt }).then((r) => r.text())
+    ]);
+
+    let totalBands = 0;
+    let fullyUpgraded = 0;
+    let inProgress = 0;
+    let notWorkedYet = 0;
+    let archivedSets = 0;
+    let plannedSets = 0;
+
+    if (bandsRes.status === 'fulfilled') {
+      const lines = String(bandsRes.value || '').split(/\r?\n/).filter((l) => String(l || '').trim());
+      const headerLine = lines.shift();
+      if (headerLine) {
+        const header = parseMusicCsvLine(headerLine).map((h) => String(h || '').trim().toLowerCase());
+        const bandIdx = header.indexOf('band');
+        const totalIdx = header.indexOf('total_sets');
+        const archivedIdx = header.indexOf('sets_archive');
+        for (const line of lines) {
+          const cols = parseMusicCsvLine(line);
+          const bandName = String((bandIdx >= 0 ? cols[bandIdx] : '') || '').trim();
+          if (!bandName) continue;
+          totalBands += 1;
+          const totalRaw = String((totalIdx >= 0 ? cols[totalIdx] : '') || '').trim();
+          const archivedRaw = String((archivedIdx >= 0 ? cols[archivedIdx] : '') || '').trim();
+          const total = Number(totalRaw);
+          const archived = Number(archivedRaw);
+          const hasTotal = Number.isFinite(total) && total > 0;
+          const hasArchived = Number.isFinite(archived) && archived >= 0;
+          if (hasTotal) plannedSets += total;
+          if (hasArchived) archivedSets += archived;
+          if (hasTotal && hasArchived) {
+            if (archived >= total) fullyUpgraded += 1;
+            else inProgress += 1;
+          } else {
+            notWorkedYet += 1;
+          }
+        }
+      }
+    }
+
+    const peopleJson = peopleRes.status === 'fulfilled' ? (peopleRes.value || {}) : {};
+    const peopleList = Array.isArray(peopleJson.people) ? peopleJson.people : [];
+    const peopleCount = peopleList.length;
+    const albumCount = Number(peopleJson.albumsScanned || 0) || 0;
+    const generatedAt = String(peopleJson.generatedAt || '').trim();
+    const totalShots = (() => {
+      if (statsRes.status === 'fulfilled') {
+        const parsed = parseTotalShotsFromMusicStatsCsv(statsRes.value);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+      return MUSIC_STATS_SHOTS_FALLBACK;
+    })();
+
+    const progressPct = plannedSets > 0 ? (archivedSets / plannedSets) * 100 : (totalBands > 0 ? (fullyUpgraded / totalBands) * 100 : 0);
+
+    return {
+      totalBands,
+      totalShots,
+      albumCount,
+      peopleCount,
+      fullyUpgraded,
+      inProgress,
+      notWorkedYet,
+      archivedSets,
+      plannedSets,
+      progressPct,
+      generatedAt,
+      generatedAtLabel: formatMusicGeneratedAt(generatedAt)
+    };
+  })().catch((err) => {
+    console.warn('[music] stats load failed', err);
+    return {
+      totalBands: 0,
+      totalShots: MUSIC_STATS_SHOTS_FALLBACK,
+      albumCount: 0,
+      peopleCount: 0,
+      fullyUpgraded: 0,
+      inProgress: 0,
+      notWorkedYet: 0,
+      archivedSets: 0,
+      plannedSets: 0,
+      progressPct: 0,
+      generatedAt: '',
+      generatedAtLabel: 'Unavailable'
+    };
+  });
+
+  return _musicStatsPromise;
+}
+
+function renderMusicStatsPanel() {
+  return     '<div class="musicStatsShell">' +
+      '<div class="musicStatsPanel" id="musicStatsPanel">' +
+        '<div class="musicStatsLoading">Loading Music Stats...</div>' +
+      '</div>' +
+    '</div>';
+}
+
+async function mountMusicStatsPanel(panel) {
+  const scope = panel || document.getElementById('musicContentPanel');
+  const host = scope ? scope.querySelector('#musicStatsPanel') : null;
+  if (!host) return;
+
+  host.innerHTML = '<div class="musicStatsLoading">Loading Music Stats...</div>';
+
+  try {
+    const stats = await fetchMusicStatsData();
+    if (!host.isConnected) return;
+    const pct = Number(stats.progressPct || 0);
+    const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
+    host.innerHTML =       '<div class="musicStatsTop">' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Shots</div></div>' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
+        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
+      '</div>' +
+      '<div class="musicStatsHeading">Archive Status</div>' +
+      '<div class="musicStatsGrid">' +
+        '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
+        '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
+        '<div class="musicStatsChip none"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '</div></div>' +
+        '<div class="musicStatsChip info"><div class="musicStatsChipName">Archived Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.archivedSets) + '</div></div>' +
+        '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
+        '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
+      '</div>' +
+      '<div class="musicStatsFooter">' +
+        '<div class="musicStatsFooterRow">' +
+          '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
+          '<div class="musicStatsFooterUpdated">Last Updated: ' + stats.generatedAtLabel + '</div>' +
+          '<div class="musicStatsFooterPct">' + pctLabel + '</div>' +
+        '</div>' +
+        '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, pct)).toFixed(2) + '%"></div></div>' +
+      '</div>';
+  } catch (_) {
+    if (!host.isConnected) return;
+    host.innerHTML = '<div class="musicStatsError">Stats failed to load.</div>';
+  }
 }
 
 
@@ -830,6 +1055,187 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicProjectBody{ font-size:14px; }
           }
 
+          .musicStatsShell{
+            width:100%;
+            max-width:1080px;
+            margin:0 auto;
+            padding:8px 2px 6px;
+          }
+          .musicStatsPanel{
+            position:relative;
+            overflow:hidden;
+            border-radius:22px;
+            border:1px solid rgba(255,70,110,0.34);
+            background:linear-gradient(180deg, rgba(10,13,28,0.92), rgba(13,16,34,0.82));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 0 1px rgba(255,70,110,0.12), 0 28px 60px rgba(0,0,0,0.28);
+            padding:18px;
+          }
+          .musicStatsPanel::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            pointer-events:none;
+            background:
+              radial-gradient(circle at top left, rgba(255,70,110,0.16), transparent 28%),
+              radial-gradient(circle at top right, rgba(56,189,248,0.12), transparent 26%),
+              linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%);
+            opacity:.9;
+          }
+          .musicStatsPanel > *{ position:relative; z-index:1; }
+          .musicStatsTop{
+            display:grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap:12px;
+          }
+          .musicStatsCard{
+            border-radius:16px;
+            border:1px solid rgba(148,163,184,0.20);
+            background:linear-gradient(180deg, rgba(17,24,39,0.84), rgba(15,23,42,0.60));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(0,0,0,0.18);
+            padding:14px 16px;
+            min-height:84px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            gap:6px;
+          }
+          .musicStatsValue{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:32px;
+            font-weight:900;
+            line-height:1;
+            letter-spacing:.04em;
+            color:rgba(244,246,255,0.98);
+          }
+          .musicStatsLabel{
+            font-size:11px;
+            font-weight:800;
+            letter-spacing:.18em;
+            text-transform:uppercase;
+            color:rgba(226,232,240,0.70);
+          }
+          .musicStatsHeading{
+            margin:18px 0 12px;
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:18px;
+            font-weight:900;
+            letter-spacing:.18em;
+            text-transform:uppercase;
+            color:rgba(233,236,245,0.90);
+          }
+          .musicStatsGrid{
+            display:grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap:12px;
+          }
+          .musicStatsChip{
+            border-radius:15px;
+            border:1px solid rgba(148,163,184,0.22);
+            padding:13px 16px;
+            min-height:68px;
+            background:linear-gradient(180deg, rgba(15,23,42,0.76), rgba(15,23,42,0.54));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+          }
+          .musicStatsChipName{
+            font-size:11px;
+            font-weight:800;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            color:rgba(226,232,240,0.78);
+          }
+          .musicStatsChipValue{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:26px;
+            font-weight:900;
+            line-height:1;
+            color:rgba(244,246,255,0.98);
+          }
+          .musicStatsChip.good{ border-color: rgba(34,197,94,0.34); box-shadow: inset 0 0 0 1px rgba(110,231,183,0.05), 0 0 22px rgba(34,197,94,0.10); }
+          .musicStatsChip.good .musicStatsChipValue{ color:#6ee7b7; }
+          .musicStatsChip.partial{ border-color: rgba(245,158,11,0.34); box-shadow: inset 0 0 0 1px rgba(253,224,71,0.05), 0 0 22px rgba(245,158,11,0.10); }
+          .musicStatsChip.partial .musicStatsChipValue{ color:#fbbf24; }
+          .musicStatsChip.none{ border-color: rgba(244,63,94,0.28); box-shadow: inset 0 0 0 1px rgba(253,164,175,0.04), 0 0 22px rgba(244,63,94,0.08); }
+          .musicStatsChip.none .musicStatsChipValue{ color:#fb7185; }
+          .musicStatsChip.info{ border-color: rgba(56,189,248,0.28); box-shadow: inset 0 0 0 1px rgba(125,211,252,0.04), 0 0 22px rgba(56,189,248,0.08); }
+          .musicStatsChip.info .musicStatsChipValue{ color:#7dd3fc; }
+          .musicStatsFooter{
+            margin-top:16px;
+            border-radius:18px;
+            border:1px solid rgba(148,163,184,0.18);
+            background:linear-gradient(180deg, rgba(15,23,42,0.86), rgba(15,23,42,0.60));
+            padding:14px 16px 16px;
+          }
+          .musicStatsFooterRow{
+            display:grid;
+            grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto;
+            align-items:center;
+            gap:14px;
+            margin-bottom:10px;
+          }
+          .musicStatsFooterLabel,
+          .musicStatsFooterUpdated{
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:.08em;
+            color:rgba(226,232,240,0.78);
+            text-transform:none;
+          }
+          .musicStatsFooterPct{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:28px;
+            font-weight:900;
+            color:rgba(244,246,255,0.98);
+          }
+          .musicStatsBar{
+            position:relative;
+            height:12px;
+            border-radius:999px;
+            overflow:hidden;
+            background:rgba(255,255,255,0.06);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+          }
+          .musicStatsBarFill{
+            position:absolute;
+            inset:0 auto 0 0;
+            width:0%;
+            border-radius:inherit;
+            background:linear-gradient(90deg, rgba(255,70,110,0.92), rgba(245,158,11,0.92));
+            box-shadow: 0 0 18px rgba(255,70,110,0.24);
+            transition: width 260ms ease;
+          }
+          .musicStatsLoading,
+          .musicStatsError{
+            min-height:220px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            font-size:13px;
+            letter-spacing:.12em;
+            text-transform:uppercase;
+            color:rgba(226,232,240,0.72);
+          }
+          .musicStatsError{ color:rgba(251,113,133,0.86); }
+          @media (max-width: 920px){
+            .musicStatsTop,
+            .musicStatsGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .musicStatsFooterRow{ grid-template-columns: 1fr; justify-items:start; }
+            .musicStatsFooterPct{ justify-self:end; }
+          }
+          @media (max-width: 620px){
+            .musicStatsPanel{ padding:14px; border-radius:18px; }
+            .musicStatsTop,
+            .musicStatsGrid{ grid-template-columns: 1fr; }
+            .musicStatsValue{ font-size:28px; }
+            .musicStatsChipValue{ font-size:22px; }
+            .musicStatsFooterPct{ font-size:24px; }
+          }
+
           /* --------------------------------------------------
              ARCHIVES HEADER (Bands / Shows)
              All values below are SAFE TO TUNE
@@ -1089,6 +1495,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       _orangeBoxEl.innerHTML = `
   <div class="hudTabs" role="tablist" aria-label="Music sections">
+    <div class="hudTab" data-tab="stats" role="tab" aria-selected="false">Stats</div>
     <div class="hudTab" data-tab="bands" role="tab" aria-selected="false">Bands</div>
     <div class="hudTab" data-tab="shows" role="tab" aria-selected="false">Shows</div>
         <div class="hudTab" data-tab="people" role="tab" aria-selected="false">People</div>
@@ -1182,10 +1589,21 @@ if (!document.getElementById('musicContentWipeStyles')) {
           // Use data-tab as the stable routing key (text can change)
           const tabKey = (tab.getAttribute('data-tab') || '').trim();
 
-                    // Bands + Shows + People are the driven UI now (use the expanded green viewport)
-                    if (tabKey === 'bands' || tabKey === 'shows' || tabKey === 'people' || label === 'Bands' || label === 'Shows' || label === 'People') {
+                    // Stats + Bands + Shows + People are the driven UI now (use the expanded green viewport)
+                    if (tabKey === 'stats' || tabKey === 'bands' || tabKey === 'shows' || tabKey === 'people' || label === 'Stats' || label === 'Bands' || label === 'Shows' || label === 'People') {
                       setArchiveViewportExpanded(true);
           
+                      if (tabKey === 'stats' || label === 'Stats') {
+                        const html = wrapArchiveModeUI('stats', renderMusicStatsPanel());
+                        wipeSwapContent(html, '', () => {
+                          const panel = document.getElementById('musicContentPanel');
+                          if (panel) panel.scrollTop = 0;
+                          try { mountArchiveModeToggle('stats'); } catch (_) {}
+                          try { mountMusicStatsPanel(panel); } catch (_) {}
+                        });
+                        return;
+                      }
+
                       // Bands (external module)
                       if (tabKey === 'bands' || label === 'Bands') {
                         // Force a fresh mount each time Bands is selected (prevents stale deep-view state)
@@ -1362,8 +1780,9 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
     }
   }
 
-  const MUSIC_SUBROUTES = new Set(['bands', 'shows', 'people', 'origins', 'project']);
+  const MUSIC_SUBROUTES = new Set(['stats', 'bands', 'shows', 'people', 'origins', 'project']);
   const MUSIC_TITLE_BY_MODE = {
+    stats: 'Stats',
     bands: 'Bands',
     shows: 'Shows',
     people: 'People',
@@ -1563,7 +1982,7 @@ _prevBodyOverflowX = null;
 function setMode(mode, opts) {
   const m = String(mode || '').toLowerCase().trim();
   const key =
-    (m === 'bands' || m === 'shows' || m === 'people' || m === 'origins' || m === 'project')
+    (m === 'stats' || m === 'bands' || m === 'shows' || m === 'people' || m === 'origins' || m === 'project')
       ? m
       : 'bands';
 
