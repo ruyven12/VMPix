@@ -269,9 +269,11 @@ function pulseFrame(){
     return 'home';
   }
 
-  function routePathForKey(route){
+    function routePathForKey(route){
     const key = sanitizeRouteKey(route) || 'home';
-    return key === 'home' ? '/' : `/${key}`;
+    if (key === 'home') return '/';
+    if (key === 'music') return '/music/bands';
+    return `/${key}`;
   }
 
   function routeKeyFromAny(v){

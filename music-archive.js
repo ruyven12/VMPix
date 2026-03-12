@@ -10,6 +10,7 @@
   'use strict';
 
   let _mount = null;
+  let _suppressMusicTabUrlSync = false;
 
   // restore state
   let _prevWrapDisplay = null;
@@ -1169,6 +1170,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       _orangeBoxEl.querySelectorAll('.hudTab').forEach((tab) => {
         tab.addEventListener('click', () => {
+          if (!_suppressMusicTabUrlSync) {
+            try { syncMusicSubroute((tab.getAttribute('data-tab') || '').trim(), { replace: false }); } catch (_) {}
+          }
           animateHudTab(tab);
           if (!_contentPanelEl) return;
 
@@ -1357,7 +1361,38 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
     }
   }
 
+  const MUSIC_SUBROUTES = new Set(['bands', 'shows', 'people', 'origins', 'project']);
+
+  function getMusicSubrouteFromPath() {
+    try {
+      const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      if (!parts.length) return 'bands';
+      if (String(parts[0] || '').toLowerCase() !== 'music') return 'bands';
+      const sub = String(parts[1] || '').toLowerCase().trim();
+      return MUSIC_SUBROUTES.has(sub) ? sub : 'bands';
+    } catch (_) {
+      return 'bands';
+    }
+  }
+
+  function syncMusicSubroute(mode, opts) {
+    const key = MUSIC_SUBROUTES.has(String(mode || '').toLowerCase().trim())
+      ? String(mode || '').toLowerCase().trim()
+      : 'bands';
+    const replace = !!(opts && opts.replace);
+    const target = `/music/${key}${window.location.search || ''}`;
+
+    try {
+      if (replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
+      else window.history.pushState({ __vmpixBackGuard: true }, document.title, target);
+    } catch (_) {}
+  }
   function onEnter() {
+    try {
+      const initialMode = getMusicSubrouteFromPath();
+      setMode(initialMode, { replace: true });
+    } catch (_) {}
+
     // Warm the People index and preload the People module so the People tab is fast
     // (prevents first-click cold-start + script-load delays).
     try {
@@ -1505,7 +1540,7 @@ _prevBodyOverflowX = null;
 
   
 // Programmatically switch between Bands/Shows without returning to the Music landing view
-function setMode(mode) {
+function setMode(mode, opts) {
   const m = String(mode || '').toLowerCase().trim();
   const key =
     (m === 'bands' || m === 'shows' || m === 'people' || m === 'origins' || m === 'project')
@@ -1513,10 +1548,17 @@ function setMode(mode) {
       : 'bands';
 
   try {
+    syncMusicSubroute(key, { replace: !!(opts && opts.replace) });
+  } catch (_) {}
+
+  try {
     const tab =
       (_orangeBoxEl && _orangeBoxEl.querySelector(`.hudTab[data-tab="${key}"]`)) ||
       document.querySelector(`.hudTab[data-tab="${key}"]`);
-    if (tab) tab.click();
+    if (tab) {
+      _suppressMusicTabUrlSync = true;
+      try { tab.click(); } finally { _suppressMusicTabUrlSync = false; }
+    }
   } catch (_) {}
 }
 
