@@ -911,10 +911,19 @@ function restoreScrollSnapshot(snapshot) {
   }) {
     if (!containerEl) return;
 
-    const sorted = [...years]
-      .map(Number)
-      .filter(Boolean)
-      .sort((a, b) => b - a);
+    const upcoming = [];
+    const numericYears = [];
+
+    [...years].forEach((value) => {
+      if (isUpcomingSelection(value)) {
+        upcoming.push('Upcoming');
+        return;
+      }
+      const n = Number(value);
+      if (Number.isFinite(n) && n > 0) numericYears.push(n);
+    });
+
+    const sorted = [...upcoming, ...numericYears.sort((a, b) => b - a)];
 
     // Split into visible + overflow
     const visible = [];
@@ -1015,7 +1024,7 @@ function restoreScrollSnapshot(snapshot) {
 
       const yearStr = btn.dataset.year;
       if (!yearStr) return;
-      const year = Number(yearStr);
+      const year = isUpcomingSelection(yearStr) ? 'Upcoming' : Number(yearStr);
 
       closeMenu();
 	  try { btn.focus({ preventScroll: true }); } catch (_) {}
@@ -1354,7 +1363,47 @@ async function ensureShowsLoaded() {
     return Number.isFinite(n) ? n : null;
   }
 
+  function parseShowDateValue(raw) {
+    const parts = String(raw || "")
+      .trim()
+      .split("/");
+    if (parts.length !== 3) return null;
+    const month = Number(parts[0]);
+    const day = Number(parts[1]);
+    let year = Number(parts[2]);
+    if (!Number.isFinite(month) || !Number.isFinite(day) || !Number.isFinite(year)) return null;
+    if (year < 100) year += 2000;
+    const dateObj = new Date(year, month - 1, day);
+    if (Number.isNaN(dateObj.getTime())) return null;
+    dateObj.setHours(0, 0, 0, 0);
+    return dateObj;
+  }
+
+  function isUpcomingSelection(value) {
+    return String(value || "").trim().toLowerCase() === "upcoming";
+  }
+
+  function getUpcomingShows(allShows) {
+    if (!Array.isArray(allShows) || !allShows.length) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return allShows
+      .filter((s) => {
+        const dt = parseShowDateValue(s?.date);
+        return !!(dt && dt.getTime() >= today.getTime());
+      })
+      .sort((a, b) => {
+        const at = parseShowDateValue(a?.date);
+        const bt = parseShowDateValue(b?.date);
+        const av = at ? at.getTime() : 0;
+        const bv = bt ? bt.getTime() : 0;
+        return av - bv;
+      });
+  }
+
   function getShowsForYear(year, allShows) {
+    if (isUpcomingSelection(year)) return getUpcomingShows(allShows);
     const yr = Number(year);
     if (!Array.isArray(allShows) || !allShows.length) return [];
     return allShows.filter((s) => yearFromShowDate(s.date) === yr);
@@ -1914,6 +1963,16 @@ async function fetchJsonSafe(url, opts) {
 
     containerEl.innerHTML = "";
 
+    if (!Array.isArray(shows) || !shows.length) {
+      const empty = document.createElement("div");
+      empty.className = "showsNote";
+      empty.textContent = isUpcomingSelection(year)
+        ? "No upcoming shows are listed yet."
+        : "No shows are listed for " + year + ".";
+      containerEl.appendChild(empty);
+      return;
+    }
+
     const grid = document.createElement("div");
     grid.className = "showsGrid";
     containerEl.appendChild(grid);
@@ -2029,7 +2088,7 @@ header.appendChild(posterWrap);
     try { _wakeBackendOnce(); } catch (_) {}
 
     const years = [
-      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
+      'Upcoming', 2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
       2014, 2013, 2012, 2011, 2010, 2009,
     ];
 
@@ -2045,7 +2104,7 @@ header.appendChild(posterWrap);
     const persisted = loadShowsState();
 
     // If the parent app re-mounts Shows when switching tabs, restore last viewed year
-    let activeYear = Number(persisted.activeYear || 2025);
+    let activeYear = persisted.activeYear || 2025;
     if (!years.includes(activeYear)) activeYear = years[0] || 2025;
 
     const pillClass = "YearPill";
