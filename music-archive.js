@@ -731,8 +731,7 @@ async function mountMusicStatsPanel(panel) {
     const pct = Number(stats.progressPct || 0);
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =       '<div class="musicStatsTopLabels">' +
-        '<div class="musicStatsTopHeading">Band Stats</div>' +
-        '<div class="musicStatsTopHeading is-empty"></div>' +
+        '<div class="musicStatsTopHeading is-single">Band Stats</div>' +
       '</div>' +
       '<div class="musicStatsTop">' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
@@ -740,7 +739,6 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
       '</div>' +
-      '<div class="musicStatsHeading">Band Stats</div>' +
       '<div class="musicStatsGrid">' +
         '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
         '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
@@ -1094,7 +1092,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsTopLabels{
             display:grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: 1fr;
             gap:12px;
             margin-bottom:10px;
           }
@@ -1107,8 +1105,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
             text-transform:uppercase;
             color:rgba(233,236,245,0.90);
           }
-          .musicStatsTopHeading.is-empty{
-            visibility:hidden;
+          .musicStatsTopHeading.is-single{
+            justify-self:center;
+            width:max-content;
           }
           .musicStatsLowerHeading{
             margin:14px 0 10px;
