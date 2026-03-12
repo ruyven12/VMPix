@@ -3436,7 +3436,6 @@ const pollDelayMs = 2000;
       </div>
     `;
   }
-
   function onMount(panelEl) {
     panelRoot = panelEl || document.getElementById('musicContentPanel') || document.body;
 
@@ -3508,8 +3507,36 @@ const pollDelayMs = 2000;
     _buildPromise.then((idx) => {
       if (token !== _lastRenderToken) return;
       if (statusEl) statusEl.textContent = '';
-      renderPeopleList(idx || new Map());
+      if (_view && _view.mode === 'person' && _view.person) {
+        showPerson(_view.person, token);
+      } else {
+        renderPeopleList(idx || new Map());
+      }
     });
+  }
+
+  function openPerson(personName) {
+    const who = _safeTrim(personName);
+    if (!who) return;
+    _view = { mode: 'person', person: who, albumKeys: [] };
+
+    if (!panelRoot) return;
+
+    const token = ++_lastRenderToken;
+    const statusEl = panelRoot.querySelector('#peopleStatus');
+    if (statusEl) statusEl.textContent = '';
+
+    if (_peopleIndex) {
+      showPerson(who, token);
+      return;
+    }
+
+    if (_buildPromise) {
+      _buildPromise.then(() => {
+        if (token !== _lastRenderToken) return;
+        if (_peopleIndex) showPerson(who, token);
+      }).catch(() => {});
+    }
   }
 
   function destroy() {
@@ -3519,9 +3546,5 @@ const pollDelayMs = 2000;
     _lastRenderToken += 1;
   }
 
-  window.MusicArchivePeople = { render, onMount, destroy };
+  window.MusicArchivePeople = { render, onMount, destroy, openPerson };
 })();
-
-
-
-

@@ -3455,6 +3455,26 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
       listEl.appendChild(group);
     });
   }
+
+  async function openPersonInPeopleTab(personName) {
+    const who = String(personName || '').trim();
+    if (!who) return false;
+
+    try { window.MusicArchive?.setMode?.('people'); } catch (_) {}
+
+    for (let i = 0; i < 30; i++) {
+      try {
+        const api = window.MusicArchivePeople;
+        if (api && typeof api.openPerson === 'function') {
+          api.openPerson(who);
+          return true;
+        }
+      } catch (_) {}
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
+    }
+
+    return false;
+  }
 async function downloadZipFromServer(items, suggestedName){
     // items: [{ url, filename }]
     const name = (suggestedName || "photos").replace(/[^a-z0-9-_]+/gi, "-").slice(0, 80) || "photos";
@@ -5403,17 +5423,6 @@ const grid = document.createElement("div");
       wrap.appendChild(toolbar);
     }
 
-    const albumKey = info.album?.AlbumKey || info.album?.Key || info.albumKey || "";
-
-    function prettyKeyword(s) {
-      const t = String(s || "").trim();
-      if (!t) return "";
-      return t
-        .split(/\s+/)
-        .map((p) => p ? (p.charAt(0).toUpperCase() + p.slice(1)) : "")
-        .join(" ");
-    }
-
     async function renderAlbumKeywords() {
       kwChips.innerHTML = "";
       const kws = await fetchAlbumKeywords(albumKey || info.albumKey || info.album?.AlbumKey || info.album?.Key || "");
@@ -5427,15 +5436,28 @@ const grid = document.createElement("div");
         return;
       }
 
+      function prettyKeyword(s) {
+        const t = String(s || "").trim();
+        if (!t) return "";
+        return t
+          .split(/\s+/)
+          .map((p) => p ? (p.charAt(0).toUpperCase() + p.slice(1)) : "")
+          .join(" ");
+      }
+
       list.forEach((kw) => {
         const chip = document.createElement("span");
         chip.className = "albumKeywordChip";
         chip.textContent = prettyKeyword(kw);
         chip.style.cursor = "pointer";
-        chip.title = "Click to see other albums containing this keyword";
-        chip.addEventListener("click", (e) => {
+        chip.title = "Click to open this person in People";
+        chip.addEventListener("click", async (e) => {
           e.preventDefault();
           e.stopPropagation();
+
+          const ok = await openPersonInPeopleTab(kw);
+          if (ok) return;
+
           openAlsoAppearsModal(kw, {
             region: info.region,
             letter: info.letter,
