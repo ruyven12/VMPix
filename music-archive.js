@@ -730,33 +730,38 @@ async function mountMusicStatsPanel(panel) {
     if (!host.isConnected) return;
     const pct = Number(stats.progressPct || 0);
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
-    host.innerHTML =       '<div class="musicStatsTopLabels">' +
-        '<div class="musicStatsTopHeading is-single">Overall Stats</div>' +
-      '</div>' +
-      '<div class="musicStatsTop">' +
-        '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Total Bands</div></div>' +
-        '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Total Shots</div></div>' +
-      '</div>' +
-      '<div class="musicStatsGrid">' +
-        '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
-        '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
-        '<div class="musicStatsChip none"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '</div></div>' +
-        '<div class="musicStatsChip info"><div class="musicStatsChipName">Archived Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.archivedSets) + '</div></div>' +
-        '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
-        '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
-      '</div>' +
-      '<div class="musicStatsLowerHeading">People Stats</div>' +
-      '<div class="musicStatsPeopleRow">' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
-        '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
-      '</div>' +
-      '<div class="musicStatsFooter">' +
-        '<div class="musicStatsFooterRow">' +
-          '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
-          '<div class="musicStatsFooterUpdated">Last Updated: ' + stats.generatedAtLabel + '</div>' +
-          '<div class="musicStatsFooterPct">' + pctLabel + '</div>' +
+    host.innerHTML =       '<div class="musicStatsSection musicStatsSectionTop">' +
+        '<div class="musicStatsTopLabels">' +
+          '<div class="musicStatsTopHeading is-single">Overall Stats</div>' +
         '</div>' +
-        '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, pct)).toFixed(2) + '%"></div></div>' +
+        '<div class="musicStatsTop">' +
+          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Total Bands</div></div>' +
+          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Total Shots</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="musicStatsSeparator" aria-hidden="true"></div>' +
+      '<div class="musicStatsSection musicStatsSectionBody">' +
+        '<div class="musicStatsGrid">' +
+          '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
+          '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
+          '<div class="musicStatsChip none"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '</div></div>' +
+          '<div class="musicStatsChip info"><div class="musicStatsChipName">Archived Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.archivedSets) + '</div></div>' +
+          '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
+          '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
+        '</div>' +
+        '<div class="musicStatsLowerHeading">People Stats</div>' +
+        '<div class="musicStatsPeopleRow">' +
+          '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
+          '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
+        '</div>' +
+        '<div class="musicStatsFooter">' +
+          '<div class="musicStatsFooterRow">' +
+            '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
+            '<div class="musicStatsFooterUpdated">Last Updated: ' + stats.generatedAtLabel + '</div>' +
+            '<div class="musicStatsFooterPct">' + pctLabel + '</div>' +
+          '</div>' +
+          '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, pct)).toFixed(2) + '%"></div></div>' +
+        '</div>' +
       '</div>';
   } catch (_) {
     if (!host.isConnected) return;
@@ -1087,6 +1092,37 @@ if (!document.getElementById('musicContentWipeStyles')) {
             opacity:.9;
           }
           .musicStatsPanel > *{ position:relative; z-index:1; }
+          .musicStatsSection{
+            border-radius:18px;
+            border:1px solid rgba(148,163,184,0.16);
+            background:linear-gradient(180deg, rgba(15,23,42,0.48), rgba(15,23,42,0.28));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025);
+            padding:14px;
+          }
+          .musicStatsSectionTop{
+            margin-bottom:0;
+          }
+          .musicStatsSectionBody{
+            margin-top:0;
+          }
+          .musicStatsSeparator{
+            position:relative;
+            height:3px;
+            margin:10px 14px 12px;
+            border-radius:999px;
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(56,189,248,0.22) 16%, rgba(255,70,110,0.72) 50%, rgba(245,158,11,0.42) 82%, rgba(255,255,255,0) 100%);
+            box-shadow: 0 0 10px rgba(255,70,110,0.20), 0 0 18px rgba(56,189,248,0.10);
+            overflow:hidden;
+          }
+          .musicStatsSeparator::after{
+            content:"";
+            position:absolute;
+            inset:0;
+            border-radius:inherit;
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+            opacity:.72;
+            filter: blur(.2px);
+          }
           .musicStatsTop{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1278,6 +1314,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           @media (max-width: 620px){
             .musicStatsPanel{ padding:14px; border-radius:18px; }
+            .musicStatsSection{ padding:12px; }
+            .musicStatsSeparator{ margin:10px 8px 12px; }
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
             .musicStatsGrid{ grid-template-columns: 1fr; }
