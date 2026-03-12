@@ -730,7 +730,11 @@ async function mountMusicStatsPanel(panel) {
     if (!host.isConnected) return;
     const pct = Number(stats.progressPct || 0);
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
-    host.innerHTML =       '<div class="musicStatsTop">' +
+    host.innerHTML =       '<div class="musicStatsTopLabels">' +
+        '<div class="musicStatsTopHeading">Band Stats</div>' +
+        '<div class="musicStatsTopHeading">People Stats</div>' +
+      '</div>' +
+      '<div class="musicStatsTop">' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Bands</div></div>' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Shots</div></div>' +
         '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
@@ -1087,6 +1091,21 @@ if (!document.getElementById('musicContentWipeStyles')) {
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap:12px;
           }
+          .musicStatsTopLabels{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap:12px;
+            margin-bottom:10px;
+          }
+          .musicStatsTopHeading{
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:15px;
+            font-weight:900;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            color:rgba(233,236,245,0.90);
+          }
           .musicStatsCard{
             border-radius:16px;
             border:1px solid rgba(148,163,184,0.20);
@@ -1222,6 +1241,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsError{ color:rgba(251,113,133,0.86); }
           @media (max-width: 920px){
+            .musicStatsTopLabels,
             .musicStatsTop,
             .musicStatsGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsFooterRow{ grid-template-columns: 1fr; justify-items:start; }
@@ -1229,8 +1249,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           @media (max-width: 620px){
             .musicStatsPanel{ padding:14px; border-radius:18px; }
+            .musicStatsTopLabels,
             .musicStatsTop,
             .musicStatsGrid{ grid-template-columns: 1fr; }
+            .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
             .musicStatsFooterPct{ font-size:24px; }
