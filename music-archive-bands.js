@@ -5423,6 +5423,7 @@ const grid = document.createElement("div");
       wrap.appendChild(toolbar);
     }
 
+    const albumKey = info.album?.AlbumKey || info.album?.Key || info.albumKey || "";
     async function renderAlbumKeywords() {
       kwChips.innerHTML = "";
       const kws = await fetchAlbumKeywords(albumKey || info.albumKey || info.album?.AlbumKey || info.album?.Key || "");
