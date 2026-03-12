@@ -2734,11 +2734,7 @@ async function hydrateAlbumThumbs(albumKeys) {
 
 // ================== PERSON ALBUM CAPTION MATCH SHOTS ==================
 function _captionNamesFromString(captionText){
-  const raw = String(captionText || '').trim();
-  if (!raw) return [];
-  // Semicolon-delimited (your vmpix convention); also allow commas as a fallback.
-  const parts = raw.split(';').join(';').split(';').map((x) => String(x || '').trim()).filter(Boolean);
-  return parts;
+  return parsePeopleCaption(captionText);
 }
 
 function _captionHasPerson(captionText, personName){
