@@ -2,9 +2,6 @@ services:
   - type: static_site
     name: vmpix
     routes:
-      - type: redirect
-        source: /music
-        destination: /music/bands
       - type: rewrite
         source: /*
         destination: /index.html
