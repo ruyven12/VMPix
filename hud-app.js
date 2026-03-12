@@ -97,7 +97,7 @@
     }
 
     // Pointer-follow glow hotspot + magnetic micro-motion (desktop only; harmless on touch)
-    pills.forEach(pill => {
+        pills.forEach(pill => {
       pill.addEventListener('pointermove', (e) => {
         const r = pill.getBoundingClientRect();
         const x = (e.clientX - r.left);
@@ -105,16 +105,12 @@
         pill.style.setProperty('--mx', x + 'px');
         pill.style.setProperty('--my', y + 'px');
 
-        // magnetic: tiny, premium (cap to ~4px)
         const nx = (x / Math.max(1, r.width)) - 0.5;
         const ny = (y / Math.max(1, r.height)) - 0.5;
         const tx = Math.max(-4, Math.min(4, nx * 8));
         const ty = Math.max(-3, Math.min(3, ny * 6));
         pill.style.setProperty('--tx', tx.toFixed(2) + 'px');
         pill.style.setProperty('--ty', ty.toFixed(2) + 'px');
-
-        // underline tracks hover (disabled)
-        // moveUnderlineTo(pill);
       }, { passive: true });
 
       pill.addEventListener('pointerleave', () => {
@@ -122,19 +118,31 @@
         pill.style.removeProperty('--my');
         pill.style.removeProperty('--tx');
         pill.style.removeProperty('--ty');
-
-        // snap underline back to active (disabled)
-        // const active = document.querySelector('.hudStub [data-nav].is-active') || null;
-        // if (active) moveUnderlineTo(active);
-        // else clearUnderline();
       }, { passive: true });
 
-      // Quick "press" pulse
-      pill.addEventListener('click', () => {
+      pill.addEventListener('click', (e) => {
         pill.classList.remove('is-press');
         void pill.offsetWidth;
         pill.classList.add('is-press');
         window.setTimeout(() => pill.classList.remove('is-press'), 260);
+
+        if (e.defaultPrevented) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (typeof e.button === 'number' && e.button !== 0) return;
+
+        const route = pill.getAttribute('data-nav') || 'home';
+        e.preventDefault();
+        navigateToRoute(route);
+      });
+    });
+
+    Array.from(document.querySelectorAll('.hudBrandLink[data-nav]')).forEach(link => {
+      link.addEventListener('click', (e) => {
+        if (e.defaultPrevented) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (typeof e.button === 'number' && e.button !== 0) return;
+        e.preventDefault();
+        navigateToRoute(link.getAttribute('data-nav') || 'home');
       });
     });
 
@@ -255,7 +263,7 @@ function pulseFrame(){
     }
   }
 
-  function currentRouteKey(){
+    function currentRouteKey(){
     const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());
     if (hashRoute) return hashRoute;
 
@@ -263,6 +271,39 @@ function pulseFrame(){
     if (pathRoute) return pathRoute;
 
     return 'home';
+  }
+
+  function routePathForKey(route){
+    const key = sanitizeRouteKey(route) || 'home';
+    return key === 'home' ? '/' : `/${key}`;
+  }
+
+  function routeKeyFromAny(v){
+    const raw = String(v || '').trim();
+    if (!raw) return 'home';
+    if (raw.startsWith('#')) return sanitizeRouteKey(raw.replace(/^#\/?/, '').trim()) || 'home';
+    if (raw.startsWith('/')) return sanitizeRouteKey(raw.replace(/^\/+|\/+$/g, '').split('/')[0]) || 'home';
+    return sanitizeRouteKey(raw) || 'home';
+  }
+
+  function syncUrlToRoute(route, opts){
+    const key = sanitizeRouteKey(route) || 'home';
+    const replace = !!(opts && opts.replace);
+    const target = routePathForKey(key) + (location.search || '');
+    try {
+      if (replace) history.replaceState(__VM_BACK_GUARD_STATE, document.title, target);
+      else history.pushState(__VM_BACK_GUARD_STATE, document.title, target);
+    } catch (_) {
+      location.hash = '#/' + key;
+      return;
+    }
+    try { setLastHash('#/' + key); } catch (_) {}
+  }
+
+  function navigateToRoute(route, opts){
+    const key = routeKeyFromAny(route);
+    syncUrlToRoute(key, opts);
+    navigate(key);
   }
 
   // Keep your exact copy (same as inline)
@@ -974,7 +1015,6 @@ function navigate(route){
 window.addEventListener('hashchange', () => {
     const h = normalizeHash(location.hash || '');
     if (!h){
-      // A back/navigation cleared the hash. If pathname routing is active, use that.
       if (routeKeyFromPath()) {
         navigate(currentRouteKey());
         return;
@@ -983,20 +1023,26 @@ window.addEventListener('hashchange', () => {
       return;
     }
     setLastHash(h);
-    navigate(currentRouteKey());
+    const route = currentRouteKey();
+    navigate(route);
+    syncUrlToRoute(route, { replace: true });
   });
 
-    (function(){
+      (function(){
     installBackGuard();
-    // Prefer hash routes when present, but also accept clean pathname routes like /music.
     const nh = normalizeHash(location.hash || '');
     const pathRoute = routeKeyFromPath();
     if (!nh && !pathRoute){
-      location.hash = '#/home';
-      return; // hashchange will drive navigation
+      syncUrlToRoute('home', { replace: true });
+      navigate('home');
+      return;
     }
     if (nh) setLastHash(nh);
-    navigate(currentRouteKey());
+    const route = currentRouteKey();
+    navigate(route);
+    if (nh || pathRoute) {
+      syncUrlToRoute(route, { replace: true });
+    }
   })();
   // =============================
   // MAIN MENU ATMOSPHERE: Embers canvas (copied exactly from your HUD)
@@ -1197,3 +1243,5 @@ window.addEventListener('hashchange', () => {
   })();
 
 })();
+
+window.VMPixNavigate = navigateToRoute;

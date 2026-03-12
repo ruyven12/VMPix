@@ -153,9 +153,13 @@
 
     // Wire quick nav buttons (no external deps)
     _mount.querySelectorAll('[data-go]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const to = btn.getAttribute('data-go') || '#/home';
-        location.hash = to;
+            btn.addEventListener('click', () => {
+        const to = btn.getAttribute('data-go') || '/';
+        if (typeof window.VMPixNavigate === 'function') {
+          window.VMPixNavigate(to);
+          return;
+        }
+        location.href = to;
       }, { passive: true });
     });
   }
