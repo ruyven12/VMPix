@@ -3496,23 +3496,34 @@ async function downloadZipFromServer(items, suggestedName){
 
   
   function bestFullUrl(img) {
-    const preferred = imageUrlCandidates(img, true);
-    if (preferred.length) return preferred[0];
+    const direct = [
+      img?.OriginalUrl,
+      img?.LargestImageUrl,
+      img?.OriginalImageUrl,
+      img?.OriginalSizeUrl,
+      img?.ArchivedSizeUrl,
+      img?.ImageUrl,
+    ].map((u) => String(u || '').trim()).filter(Boolean);
+    if (direct.length) return direct[0];
 
-    const upgraded = upgradeSmugToOriginal(
-      String(
-        img?.Url ||
-        img?.LargeUrl ||
-        img?.XLargeUrl ||
-        img?.X2LargeUrl ||
-        img?.X3LargeUrl ||
-        img?.MediumUrl ||
-        img?.SmallUrl ||
-        img?.ThumbnailUrl ||
-        ''
-      ).trim()
-    );
-    return upgraded || '';
+    const upgradeBases = [
+      img?.Url,
+      img?.X3LargeUrl,
+      img?.X2LargeUrl,
+      img?.XLargeUrl,
+      img?.LargeUrl,
+      img?.MediumUrl,
+      img?.SmallUrl,
+      img?.ThumbnailUrl,
+      img?.TinyUrl,
+    ];
+    for (const base of upgradeBases) {
+      const upgraded = upgradeSmugToOriginal(String(base || '').trim());
+      if (upgraded) return upgraded;
+    }
+
+    const preferred = imageUrlCandidates(img, true);
+    return preferred.length ? preferred[0] : '';
   }
 
   function imageUrlCandidates(img, preferFull) {
@@ -3524,6 +3535,14 @@ async function downloadZipFromServer(items, suggestedName){
           img?.OriginalSizeUrl,
           img?.ArchivedSizeUrl,
           img?.ImageUrl,
+          upgradeSmugToOriginal(img?.Url),
+          upgradeSmugToOriginal(img?.X3LargeUrl),
+          upgradeSmugToOriginal(img?.X2LargeUrl),
+          upgradeSmugToOriginal(img?.XLargeUrl),
+          upgradeSmugToOriginal(img?.LargeUrl),
+          upgradeSmugToOriginal(img?.MediumUrl),
+          upgradeSmugToOriginal(img?.SmallUrl),
+          upgradeSmugToOriginal(img?.ThumbnailUrl),
           img?.X3LargeUrl,
           img?.X2LargeUrl,
           img?.XLargeUrl,
@@ -5665,6 +5684,7 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
 
 
 
