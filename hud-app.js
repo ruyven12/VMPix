@@ -233,9 +233,36 @@ function pulseFrame(){
     }catch(_){ }
   }
 
+    const VALID_ROUTE_KEYS = new Set(['home','music','wrestling','calendar','about','pricing','contact']);
+
+  function sanitizeRouteKey(v){
+    const key = String(v || '').trim().toLowerCase();
+    return VALID_ROUTE_KEYS.has(key) ? key : '';
+  }
+
   function routeKeyFromHash(){
     const hash = location.hash || '#/home';
-    return (hash.replace(/^#\/?/, '').trim() || 'home').toLowerCase();
+    return sanitizeRouteKey(hash.replace(/^#\/?/, '').trim() || 'home') || 'home';
+  }
+
+  function routeKeyFromPath(){
+    try {
+      const path = String(location.pathname || '').trim();
+      const seg = path.replace(/^\/+|\/+$/g, '').split('/')[0] || '';
+      return sanitizeRouteKey(seg);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function currentRouteKey(){
+    const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());
+    if (hashRoute) return hashRoute;
+
+    const pathRoute = routeKeyFromPath();
+    if (pathRoute) return pathRoute;
+
+    return 'home';
   }
 
   // Keep your exact copy (same as inline)
@@ -901,8 +928,9 @@ function navigate(route){
     try { sessionStorage.setItem(LAST_HASH_KEY, nh); } catch(_){}
   }
 
-  function restoreHash(){
+    function restoreHash(){
     if (_restoringHash) return;
+    if (routeKeyFromPath()) return;
     _restoringHash = true;
     const last = getLastHash() || '#/home';
     // Use normal assignment so the user can still back out if they choose.
@@ -928,43 +956,47 @@ function navigate(route){
     // Seed a guard entry so the first Back press doesn't jump out of the app.
     try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
 
-    window.addEventListener('popstate', () => {
+        window.addEventListener('popstate', () => {
       // Re-seed the guard so repeated Back presses stay in-app.
-      try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){}
+      try { history.pushState(__VM_BACK_GUARD_STATE, document.title, location.href); } catch(_){ }
 
       const h = normalizeHash(location.hash || '');
-      if (!h){
+      const pathRoute = routeKeyFromPath();
+      if (!h && !pathRoute){
         restoreHash();
         return;
       }
-      // If we got here with a valid hash, keep app state consistent.
-      setLastHash(h);
-      navigate(routeKeyFromHash());
+      if (h) setLastHash(h);
+      navigate(currentRouteKey());
     });
   }
 
 window.addEventListener('hashchange', () => {
     const h = normalizeHash(location.hash || '');
     if (!h){
-      // A back/navigation cleared the hash — restore last in-site route.
+      // A back/navigation cleared the hash. If pathname routing is active, use that.
+      if (routeKeyFromPath()) {
+        navigate(currentRouteKey());
+        return;
+      }
       restoreHash();
       return;
     }
     setLastHash(h);
-    navigate(routeKeyFromHash());
+    navigate(currentRouteKey());
   });
 
-  (function(){
+    (function(){
     installBackGuard();
-    // On first entry (no hash), ALWAYS default to Home.
-    // This prevents an accidental session resume to a heavy route (Music/Wrestling) that can trigger a cold-start delay.
+    // Prefer hash routes when present, but also accept clean pathname routes like /music.
     const nh = normalizeHash(location.hash || '');
-    if (!nh){
+    const pathRoute = routeKeyFromPath();
+    if (!nh && !pathRoute){
       location.hash = '#/home';
       return; // hashchange will drive navigation
     }
-    setLastHash(nh);
-    navigate(routeKeyFromHash());
+    if (nh) setLastHash(nh);
+    navigate(currentRouteKey());
   })();
   // =============================
   // MAIN MENU ATMOSPHERE: Embers canvas (copied exactly from your HUD)
