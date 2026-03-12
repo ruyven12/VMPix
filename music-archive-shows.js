@@ -2154,8 +2154,8 @@ function ensureStickyYears() {
 
     const yearStr = btn.dataset.year;
     if (!yearStr) return;
-    const year = Number(yearStr);
-    if (!Number.isFinite(year)) return;
+    const year = isUpcomingSelection(yearStr) ? 'Upcoming' : Number(yearStr);
+    if (!isUpcomingSelection(yearStr) && !Number.isFinite(year)) return;
 
     // Close menu if open
     try {
