@@ -1296,7 +1296,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             gap:4px;
           }
           .musicStatsChipName{
-            font-size:11px;
+            font-size:41px;
             font-weight:800;
             letter-spacing:.16em;
 			text-transform: none;
