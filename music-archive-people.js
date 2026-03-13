@@ -1287,86 +1287,69 @@ function ensurePeopleStyles() {
     .peopleArchiveIntro{
       width: 100%;
       margin: 8px auto 14px;
-      padding: 14px 18px 16px;
+      padding: 6px 10px 10px;
       text-align: center;
     }
 
     .peopleArchiveIntroTitle{
-      position: relative;
-      z-index: 2;
-      margin: 0 0 8px;
-      width: 100%;
+      margin: 2px 0 14px;
+      text-align: center;
       font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 13px;
-      line-height: 1.2;
+      font-size: 24px;
       font-weight: 900;
-      letter-spacing: .1em;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      color: rgba(232,236,244,0.96);
-      text-shadow: 0 0 14px rgba(255,92,138,0.10);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap: 16px;
-    }
-
-    .peopleArchiveIntroTitle::before,
-    .peopleArchiveIntroTitle::after{
-      content:"";
-      display:block;
-      width: clamp(56px, 22vw, 240px);
-      height: 2px;
-      flex: 0 0 auto;
-      border-radius: 999px;
-      box-shadow: 0 0 14px rgba(255,70,110,0.22);
-      opacity: 1;
-    }
-
-    .peopleArchiveIntroTitle::before{
-      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.78), rgba(255,70,110,0.22));
-    }
-
-    .peopleArchiveIntroTitle::after{
-      background: linear-gradient(90deg, rgba(255,70,110,0.22), rgba(255,70,110,0.78), rgba(255,70,110,0));
+      color: rgba(236,241,250,0.94);
     }
 
     .peopleArchiveIntroDivider{
-      width: min(100%, 1180px);
-      height: 1px;
-      margin: 12px auto 0;
+      position: relative;
+      height: 3px;
+      margin: 8px 19px 10px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.42), rgba(255,70,110,0));
-      box-shadow: 0 0 12px rgba(255,70,110,0.14);
-      opacity: .95;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+      box-shadow: 0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
+      overflow: hidden;
+    }
+
+    .peopleArchiveIntroDivider::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+      opacity:.72;
+      filter: blur(.2px);
     }
 
     .peopleArchiveIntroBody{
-      position: relative;
-      z-index: 2;
-      max-width: 980px;
-      margin: 0 auto;
-      font-size: 12px;
-      line-height: 1.22;
-      color: rgba(190,201,220,0.9);
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: rgba(212,223,242,0.74);
+      text-transform: none;
+      line-height: 1.18;
     }
 
     @media (max-width: 720px){
       .peopleArchiveIntro{
-        padding: 12px 12px 14px;
-        margin-bottom: 12px;
+        padding: 4px 8px 8px;
+        margin-bottom: 10px;
       }
       .peopleArchiveIntroTitle{
-        font-size: 11px;
-        letter-spacing: .08em;
-        gap: 10px;
+        margin: 0 0 10px;
+        font-size: 16px;
+        letter-spacing: .1em;
       }
-      .peopleArchiveIntroTitle::before,
-      .peopleArchiveIntroTitle::after{
-        width: clamp(24px, 16vw, 110px);
+      .peopleArchiveIntroDivider{
+        height: 2px;
+        margin: 6px 12px 8px;
       }
       .peopleArchiveIntroBody{
         font-size: 11px;
-        line-height: 1.2;
+        line-height: 1.16;
       }
     }
 
@@ -3882,13 +3865,8 @@ const pollDelayMs = 2000;
         </div>
         <div class="peopleArchiveIntro" aria-label="People Archive Introduction">
           <div class="peopleArchiveIntroTitle">The Archive - Filter By Band</div>
-          <div class="peopleArchiveIntroBody">
-            Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based,
-            Regional being New England-based, National being USA-based, and International being around the world. From
-            there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not
-            touched yet.
-          </div>
           <div class="peopleArchiveIntroDivider" aria-hidden="true"></div>
+          <div class="peopleArchiveIntroBody">Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based, Regional being New England-based, National being USA-based, and International being around the world. From there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not touched yet.</div>
         </div>
         <!-- A-Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
