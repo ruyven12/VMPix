@@ -751,6 +751,8 @@ async function mountMusicStatsPanel(panel) {
     const fullyPct = safeTotalBands > 0 ? (Number(stats.fullyUpgraded || 0) / safeTotalBands) * 100 : 0;
     const inProgressPct = safeTotalBands > 0 ? (Number(stats.inProgress || 0) / safeTotalBands) * 100 : 0;
     const notWorkedPct = safeTotalBands > 0 ? (Number(stats.notWorkedYet || 0) / safeTotalBands) * 100 : 0;
+    const peopleIndexPct = Number(stats.totalShots || 0) > 0 ? (Number(stats.photosIndexed || 0) / Number(stats.totalShots || 0)) * 100 : 0;
+    const peoplePctLabel = Number.isFinite(peopleIndexPct) ? peopleIndexPct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =
       '<div class="musicStatsSection musicStatsSectionBody">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
@@ -788,9 +790,9 @@ async function mountMusicStatsPanel(panel) {
           '<div class="musicStatsFooterRow">' +
             '<div class="musicStatsFooterLabel">Indexing Progress:</div>' +
             '<div class="musicStatsFooterUpdated">Last updated: ' + stats.generatedAtLabel + '</div>' +
-            '<div class="musicStatsFooterPct">' + pctLabel + '</div>' +
+            '<div class="musicStatsFooterPct">' + peoplePctLabel + '</div>' +
           '</div>' +
-          '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, pct)).toFixed(2) + '%"></div></div>' +
+          '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, peopleIndexPct)).toFixed(2) + '%"></div></div>' +
         '</div>' +
       '</div>';
   } catch (_) {
@@ -1483,7 +1485,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsFooterRow{
             display:grid;
-            grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto;
+            grid-template-columns: minmax(0, 1fr) minmax(220px, auto) minmax(0, 1fr);
             align-items:center;
             gap:14px;
             margin-bottom:10px;
@@ -1501,6 +1503,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:28px;
             font-weight:900;
             color:rgba(244,246,255,0.98);
+            justify-self:end;
+          }
+          .musicStatsFooterUpdated{
+            justify-self:center;
+            text-align:center;
           }
           .musicStatsBar{
             position:relative;
