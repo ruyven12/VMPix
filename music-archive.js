@@ -665,6 +665,10 @@ async function fetchMusicStatsData(forceFresh) {
     const peopleJson = peopleRes.status === 'fulfilled' ? (peopleRes.value || {}) : {};
     const peopleList = Array.isArray(peopleJson.people) ? peopleJson.people : [];
     const peopleCount = peopleList.length;
+    const photosIndexed = peopleList.reduce((sum, person) => {
+      const n = Number(person && person.photoCount);
+      return sum + (Number.isFinite(n) ? n : 0);
+    }, 0);
     const albumCount = Number(peopleJson.albumsScanned || 0) || 0;
     const generatedAt = String(peopleJson.generatedAt || '').trim();
     const totalShots = (() => {
@@ -685,6 +689,7 @@ async function fetchMusicStatsData(forceFresh) {
       totalShots,
       albumCount,
       peopleCount,
+      photosIndexed,
       fullyUpgraded,
       inProgress,
       notWorkedYet,
@@ -704,6 +709,7 @@ async function fetchMusicStatsData(forceFresh) {
       totalShots: MUSIC_STATS_SHOTS_FALLBACK,
       albumCount: 0,
       peopleCount: 0,
+      photosIndexed: 0,
       fullyUpgraded: 0,
       inProgress: 0,
       notWorkedYet: 0,
@@ -773,10 +779,15 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsContextChip"><span class="musicStatsContextValue">' + formatMusicStatNumber(stats.totalShots) + '</span><span class="musicStatsContextLabel">Total Shots</span></div>' +
         '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
         '<div class="musicStatsLowerHeading">People Stats</div>' +
+        '<div class="musicStatsPeopleGrid">' +
+          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People Tagged</div></div>' +
+          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.photosIndexed) + '</div><div class="musicStatsLabel">Photos Indexed</div></div>' +
+          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
+        '</div>' +
         '<div class="musicStatsFooter">' +
           '<div class="musicStatsFooterRow">' +
-            '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
-            '<div class="musicStatsFooterUpdated">Last Updated: ' + stats.generatedAtLabel + '</div>' +
+            '<div class="musicStatsFooterLabel">Indexing Progress:</div>' +
+            '<div class="musicStatsFooterUpdated">Last updated: ' + stats.generatedAtLabel + '</div>' +
             '<div class="musicStatsFooterPct">' + pctLabel + '</div>' +
           '</div>' +
           '<div class="musicStatsBar"><div class="musicStatsBarFill" style="width:' + Math.max(0, Math.min(100, pct)).toFixed(2) + '%"></div></div>' +
@@ -1160,6 +1171,12 @@ if (!document.getElementById('musicContentWipeStyles')) {
             gap:12px;
             margin:0 0 14px;
           }
+          .musicStatsPeopleGrid{
+            display:grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap:12px;
+            margin:0 0 14px;
+          }
           .musicStatsContextChip{
             margin:12px auto 8px;
             width:max-content;
@@ -1530,7 +1547,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
             .musicStatsGrid,
-            .musicStatsPhotoGrid{ grid-template-columns: 1fr; }
+            .musicStatsPhotoGrid,
+            .musicStatsPeopleGrid{ grid-template-columns: 1fr; }
             .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
