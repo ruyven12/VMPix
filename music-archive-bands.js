@@ -3943,6 +3943,38 @@ async function downloadZipFromServer(items, suggestedName){
 
     setNext();
   }
+
+  async function downloadImageFile(url, filename) {
+    const src = String(url || '').trim();
+    const name = String(filename || 'photo.jpg').trim() || 'photo.jpg';
+    if (!src || src === '#') return false;
+
+    try {
+      const res = await fetch(src, { mode: 'cors', credentials: 'omit' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      return true;
+    } catch (_) {
+      try {
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = name;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (_) {}
+      return false;
+    }
+  }
 function ensureLightbox() {
     if (lightboxEl) return;
 
@@ -3981,9 +4013,11 @@ function ensureLightbox() {
     dlBtn.href = "#";
     dlBtn.target = "_blank";
     dlBtn.rel = "noopener";
-    dlBtn.addEventListener("click", (e) => {
-      // Best-effort: some browsers block download attribute for cross-origin; opening in new tab still works.
+    dlBtn.addEventListener("click", async (e) => {
       if (dlBtn.href === "#") { e.preventDefault(); return; }
+      e.preventDefault();
+      const filename = String(dlBtn.getAttribute("download") || `photo-${lightboxIndex + 1}.jpg`).trim() || `photo-${lightboxIndex + 1}.jpg`;
+      await downloadImageFile(dlBtn.href, filename);
     });
 
     // Hide by default (logic still updates href in showAt)
