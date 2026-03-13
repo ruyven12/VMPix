@@ -768,7 +768,7 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsPhotoGrid">' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotNotUpgraded) + '</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotsOnSite) + '</div><div class="musicStatsShotLabel">On Site</div></div>' +
-          '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">On Site</div></div>' +
+          '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">Percent Done</div></div>' +
         '</div>' +
         '<div class="musicStatsFooter">' +
           '<div class="musicStatsFooterRow">' +
