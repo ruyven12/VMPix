@@ -1345,10 +1345,10 @@ color: rgba(226,232,240,0.92);
         position: relative;
         overflow: hidden;
         isolation: isolate;
-        --band-rim: rgba(148,163,184,0.34);
-        --band-rim-glow: rgba(148,163,184,0.16);
-        --band-rim-inner: rgba(255,255,255,0.08);
-        background:rgba(255,255,255,0.04);
+        --band-rim: rgba(148,163,184,0.26);
+        --band-rim-glow: rgba(148,163,184,0.10);
+        --band-rim-inner: rgba(255,255,255,0.06);
+        background:rgba(10,14,24,0.34);
         border:1px solid rgba(255,255,255,0.10);
         border-radius:16px;
         padding:12px;
@@ -1364,17 +1364,17 @@ color: rgba(226,232,240,0.92);
         pointer-events:none;
         z-index:0;
         background:
-          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 92%, white 12%) 0%, color-mix(in srgb, var(--band-rim-glow) 82%, transparent) 18%, transparent 44%),
-          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 88%, white 10%) 0%, color-mix(in srgb, var(--band-rim-glow) 78%, transparent) 18%, transparent 44%),
-          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 84%, white 8%) 0%, color-mix(in srgb, var(--band-rim-glow) 72%, transparent) 18%, transparent 44%),
-          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 80%, white 6%) 0%, color-mix(in srgb, var(--band-rim-glow) 68%, transparent) 18%, transparent 44%);
+          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 58%, white 4%) 0%, color-mix(in srgb, var(--band-rim-glow) 44%, transparent) 12%, transparent 30%),
+          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 56%, white 4%) 0%, color-mix(in srgb, var(--band-rim-glow) 40%, transparent) 12%, transparent 30%),
+          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 52%, white 2%) 0%, color-mix(in srgb, var(--band-rim-glow) 36%, transparent) 12%, transparent 30%),
+          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 50%, white 2%) 0%, color-mix(in srgb, var(--band-rim-glow) 34%, transparent) 12%, transparent 30%);
         box-shadow:
           inset 0 0 0 1px var(--band-rim-inner),
-          inset 0 0 16px rgba(255,255,255,0.025),
-          0 0 0 1px color-mix(in srgb, var(--band-rim) 72%, transparent),
-          0 0 18px var(--band-rim-glow),
-          0 0 34px color-mix(in srgb, var(--band-rim-glow) 70%, transparent);
-        opacity:.92;
+          inset 0 0 12px rgba(255,255,255,0.018),
+          0 0 0 1px color-mix(in srgb, var(--band-rim) 54%, transparent),
+          0 0 12px var(--band-rim-glow),
+          0 0 22px color-mix(in srgb, var(--band-rim-glow) 46%, transparent);
+        opacity:.82;
         transition: box-shadow 200ms ease, opacity 180ms ease, background 200ms ease;
       }
       .band-card::before{
@@ -1405,7 +1405,7 @@ color: rgba(226,232,240,0.92);
         transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease, transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
       }
       .band-card:hover{
-        background:rgba(255,255,255,0.06);
+        background:rgba(14,18,30,0.44);
         transform: translateY(-1px);
         box-shadow: inset 0 0 0 1px var(--band-rim-inner), 0 14px 30px rgba(0,0,0,0.28), 0 0 0 1px color-mix(in srgb, var(--band-rim) 46%, transparent);
       }
@@ -1413,16 +1413,16 @@ color: rgba(226,232,240,0.92);
       .band-card:focus-visible::after{
         opacity:1;
         background:
-          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 100%, white 20%) 0%, color-mix(in srgb, var(--band-rim-glow) 100%, transparent) 22%, transparent 48%),
-          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 96%, white 16%) 0%, color-mix(in srgb, var(--band-rim-glow) 92%, transparent) 22%, transparent 48%),
-          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 92%, white 14%) 0%, color-mix(in srgb, var(--band-rim-glow) 86%, transparent) 22%, transparent 48%),
-          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 88%, white 12%) 0%, color-mix(in srgb, var(--band-rim-glow) 82%, transparent) 22%, transparent 48%);
+          radial-gradient(circle at 10px 10px, color-mix(in srgb, var(--band-rim) 76%, white 8%) 0%, color-mix(in srgb, var(--band-rim-glow) 64%, transparent) 14%, transparent 34%),
+          radial-gradient(circle at calc(100% - 10px) 10px, color-mix(in srgb, var(--band-rim) 72%, white 6%) 0%, color-mix(in srgb, var(--band-rim-glow) 58%, transparent) 14%, transparent 34%),
+          radial-gradient(circle at 10px calc(100% - 10px), color-mix(in srgb, var(--band-rim) 68%, white 4%) 0%, color-mix(in srgb, var(--band-rim-glow) 54%, transparent) 14%, transparent 34%),
+          radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), color-mix(in srgb, var(--band-rim) 66%, white 4%) 0%, color-mix(in srgb, var(--band-rim-glow) 50%, transparent) 14%, transparent 34%);
         box-shadow:
-          inset 0 0 0 1px color-mix(in srgb, var(--band-rim-inner) 120%, white 8%),
-          inset 0 0 20px rgba(255,255,255,0.035),
-          0 0 0 1px color-mix(in srgb, var(--band-rim) 88%, transparent),
-          0 0 24px color-mix(in srgb, var(--band-rim-glow) 120%, transparent),
-          0 0 52px color-mix(in srgb, var(--band-rim-glow) 88%, transparent);
+          inset 0 0 0 1px color-mix(in srgb, var(--band-rim-inner) 108%, white 4%),
+          inset 0 0 16px rgba(255,255,255,0.024),
+          0 0 0 1px color-mix(in srgb, var(--band-rim) 72%, transparent),
+          0 0 18px color-mix(in srgb, var(--band-rim-glow) 78%, transparent),
+          0 0 30px color-mix(in srgb, var(--band-rim-glow) 54%, transparent);
       }
       .band-card:hover::before,
       .band-card:focus-visible::before{
@@ -1479,38 +1479,38 @@ color: rgba(226,232,240,0.92);
          Note: these are only used in the band LIST (#results), not the band detail view.
       */
       #results .band-card.setsGood{
-        --band-rim: rgba(34,197,94,0.58);
-        --band-rim-glow: rgba(45,212,191,0.22);
-        --band-rim-inner: rgba(110,231,183,0.10);
-        background: rgba(34,197,94,0.14);
+        --band-rim: rgba(34,197,94,0.44);
+        --band-rim-glow: rgba(45,212,191,0.14);
+        --band-rim-inner: rgba(110,231,183,0.08);
+        background: rgba(34,197,94,0.10);
         border-color: rgba(34,197,94,0.28);
       }
       #results .band-card.setsPartial{
-        --band-rim: rgba(245,158,11,0.62);
-        --band-rim-glow: rgba(251,191,36,0.24);
-        --band-rim-inner: rgba(253,224,71,0.10);
-        background: rgba(245,158,11,0.14);
+        --band-rim: rgba(245,158,11,0.46);
+        --band-rim-glow: rgba(251,191,36,0.15);
+        --band-rim-inner: rgba(253,224,71,0.08);
+        background: rgba(245,158,11,0.10);
         border-color: rgba(245,158,11,0.28);
       }
       #results .band-card.setsNone{
-        --band-rim: rgba(148,163,184,0.48);
-        --band-rim-glow: rgba(56,189,248,0.18);
-        --band-rim-inner: rgba(148,163,184,0.09);
-        background: rgba(148,163,184,0.12);
+        --band-rim: rgba(148,163,184,0.36);
+        --band-rim-glow: rgba(56,189,248,0.12);
+        --band-rim-inner: rgba(148,163,184,0.07);
+        background: rgba(148,163,184,0.09);
         border-color: rgba(148,163,184,0.22);
       }
       #results .band-card.setsGood:hover{
-        background: rgba(34,197,94,0.18);
+        background: rgba(34,197,94,0.13);
         border-color: rgba(34,197,94,0.42);
         box-shadow: inset 0 0 0 1px var(--band-rim-inner), 0 16px 34px rgba(6,78,59,0.22), 0 0 0 1px rgba(34,197,94,0.20);
       }
       #results .band-card.setsPartial:hover{
-        background: rgba(245,158,11,0.18);
+        background: rgba(245,158,11,0.13);
         border-color: rgba(245,158,11,0.42);
         box-shadow: inset 0 0 0 1px var(--band-rim-inner), 0 16px 34px rgba(120,53,15,0.24), 0 0 0 1px rgba(245,158,11,0.22);
       }
       #results .band-card.setsNone:hover{
-        background: rgba(148,163,184,0.16);
+        background: rgba(148,163,184,0.12);
         border-color: rgba(148,163,184,0.34);
         box-shadow: inset 0 0 0 1px var(--band-rim-inner), 0 16px 34px rgba(30,41,59,0.24), 0 0 0 1px rgba(56,189,248,0.16);
       }
