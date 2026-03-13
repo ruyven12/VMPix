@@ -1112,8 +1112,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             padding:8px 2px 6px;
           }
           .musicStatsPanel{
-            --musicStatsBorderBase: rgba(108, 154, 255, 0.22);
-            --musicStatsBorderStrong: rgba(129, 189, 255, 0.30);
+            --musicStatsBorderBase: rgba(112, 196, 255, 0.42);
+            --musicStatsBorderStrong: rgba(145, 214, 255, 0.56);
             --musicStatsTextStrong: rgba(244,247,255,0.98);
             --musicStatsTextMuted: rgba(212,223,242,0.74);
             --musicStatsSuccess: #64e3ba;
@@ -1125,7 +1125,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             border-radius:22px;
             border:1px solid var(--musicStatsBorderBase);
             background:transparent;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 0 1px rgba(103,203,255,0.05), 0 0 32px rgba(24,82,140,0.10), 0 24px 54px rgba(0,0,0,0.22);
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.08), 0 0 0 1px rgba(103,203,255,0.18), 0 0 18px rgba(103,203,255,0.20), 0 0 42px rgba(24,82,140,0.16), 0 24px 54px rgba(0,0,0,0.22);
             padding:18px;
           }
           .musicStatsPanel::before{
@@ -1140,9 +1140,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsPanel > *{ position:relative; z-index:1; }
           .musicStatsSection{
             border-radius:18px;
-            border:1px solid rgba(120,165,255,0.16);
+            border:1px solid rgba(116,196,255,0.28);
             background:linear-gradient(180deg, rgba(14,22,42,0.50), rgba(10,18,36,0.30));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 18px rgba(16,36,74,0.08);
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.05), 0 0 14px rgba(103,203,255,0.10), 0 0 24px rgba(16,36,74,0.10);
             padding:14px;
           }
           .musicStatsSectionTop{
@@ -1161,8 +1161,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             height:3px;
             margin:15px 19px 17px;
             border-radius:999px;
-            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.16) 18%, rgba(103,203,255,0.34) 50%, rgba(100,227,186,0.16) 82%, rgba(255,255,255,0) 100%);
-            box-shadow: 0 0 10px rgba(103,203,255,0.12), 0 0 18px rgba(100,227,186,0.06);
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+            box-shadow: 0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
             overflow:hidden;
           }
           .musicStatsSeparator::after{
@@ -1222,9 +1222,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
             gap:10px;
             padding:9px 18px;
             border-radius:999px;
-            border:1px solid rgba(116,176,255,0.24);
+            border:1px solid rgba(112,196,255,0.38);
             background:linear-gradient(180deg, rgba(14,22,40,0.92), rgba(10,17,33,0.70));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 16px rgba(103,203,255,0.08);
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.05), 0 0 14px rgba(103,203,255,0.16), 0 0 26px rgba(103,203,255,0.08);
             text-align:center;
           }
           .musicStatsContextValue{
@@ -1299,9 +1299,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsCard{
             border-radius:16px;
-            border:1px solid rgba(120,165,255,0.18);
+            border:1px solid rgba(112,196,255,0.30);
             background:linear-gradient(180deg, rgba(16,24,43,0.86), rgba(11,19,36,0.64));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), 0 0 14px rgba(17,34,66,0.10);
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.05), 0 0 12px rgba(103,203,255,0.14), 0 0 22px rgba(17,34,66,0.10);
             padding:14px 16px;
             min-height:84px;
             display:flex;
@@ -1341,11 +1341,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsChip{
             border-radius:15px;
-            border:1px solid rgba(120,165,255,0.18);
+            border:1px solid rgba(112,196,255,0.30);
             padding:13px 16px;
             min-height:68px;
             background:linear-gradient(180deg, rgba(14,22,42,0.82), rgba(10,18,36,0.58));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 12px rgba(16,36,74,0.08);
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.045), 0 0 12px rgba(103,203,255,0.14), 0 0 24px rgba(16,36,74,0.10);
             display:flex;
             align-items:center;
             justify-content:space-between;
@@ -1365,8 +1365,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
               linear-gradient(180deg, rgba(13,18,36,0.95), rgba(11,17,34,0.74)),
               linear-gradient(90deg, rgba(255,255,255,0.03), transparent 42%);
             box-shadow:
-              inset 0 0 0 1px rgba(255,255,255,0.035),
+              inset 0 0 0 1px rgba(190,236,255,0.05),
               inset 0 0 26px rgba(255,255,255,0.02),
+              0 0 16px rgba(103,203,255,0.12),
               0 0 18px rgba(0,0,0,0.18);
           }
           .musicStatsChipMeter::before{
@@ -1465,21 +1466,23 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsFooter{
             margin-top:16px;
             border-radius:18px;
-            border:1px solid rgba(120,165,255,0.18);
+            border:1px solid rgba(112,196,255,0.30);
             background:linear-gradient(180deg, rgba(14,22,42,0.88), rgba(10,18,36,0.62));
+            box-shadow: inset 0 0 0 1px rgba(190,236,255,0.04), 0 0 12px rgba(103,203,255,0.12), 0 0 22px rgba(16,36,74,0.08);
             padding:14px 16px 16px;
           }
           .musicStatsShotCard{
             position:relative;
             border-radius:16px;
-            border:1px solid rgba(120,165,255,0.18);
+            border:1px solid rgba(112,196,255,0.30);
             background:
               linear-gradient(180deg, rgba(20,25,42,0.90), rgba(15,20,36,0.66)),
               linear-gradient(90deg, rgba(255,255,255,0.03), transparent 48%);
             box-shadow:
-              inset 0 0 0 1px rgba(255,255,255,0.03),
+              inset 0 0 0 1px rgba(190,236,255,0.04),
               inset 0 10px 20px rgba(255,255,255,0.015),
-              0 0 14px rgba(16,36,74,0.10);
+              0 0 12px rgba(103,203,255,0.12),
+              0 0 22px rgba(16,36,74,0.08);
             min-height:70px;
             padding:14px 16px;
             display:flex;
