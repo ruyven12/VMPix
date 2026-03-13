@@ -1112,12 +1112,20 @@ if (!document.getElementById('musicContentWipeStyles')) {
             padding:8px 2px 6px;
           }
           .musicStatsPanel{
+            --musicStatsBorderBase: rgba(108, 154, 255, 0.22);
+            --musicStatsBorderStrong: rgba(129, 189, 255, 0.30);
+            --musicStatsTextStrong: rgba(244,247,255,0.98);
+            --musicStatsTextMuted: rgba(212,223,242,0.74);
+            --musicStatsSuccess: #64e3ba;
+            --musicStatsWarning: #f6c44d;
+            --musicStatsDanger: #ff7a99;
+            --musicStatsAccent: #67cbff;
             position:relative;
             overflow:hidden;
             border-radius:22px;
-            border:1px solid rgba(255,70,110,0.34);
+            border:1px solid var(--musicStatsBorderBase);
             background:transparent;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 0 1px rgba(255,70,110,0.10), 0 24px 54px rgba(0,0,0,0.22);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 0 1px rgba(103,203,255,0.05), 0 0 32px rgba(24,82,140,0.10), 0 24px 54px rgba(0,0,0,0.22);
             padding:18px;
           }
           .musicStatsPanel::before{
@@ -1132,9 +1140,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsPanel > *{ position:relative; z-index:1; }
           .musicStatsSection{
             border-radius:18px;
-            border:1px solid rgba(148,163,184,0.16);
-            background:linear-gradient(180deg, rgba(15,23,42,0.48), rgba(15,23,42,0.28));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025);
+            border:1px solid rgba(120,165,255,0.16);
+            background:linear-gradient(180deg, rgba(14,22,42,0.50), rgba(10,18,36,0.30));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 0 18px rgba(16,36,74,0.08);
             padding:14px;
           }
           .musicStatsSectionTop{
@@ -1153,8 +1161,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             height:3px;
             margin:15px 19px 17px;
             border-radius:999px;
-            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(56,189,248,0.22) 16%, rgba(255,70,110,0.72) 50%, rgba(245,158,11,0.42) 82%, rgba(255,255,255,0) 100%);
-            box-shadow: 0 0 10px rgba(255,70,110,0.20), 0 0 18px rgba(56,189,248,0.10);
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.16) 18%, rgba(103,203,255,0.34) 50%, rgba(100,227,186,0.16) 82%, rgba(255,255,255,0) 100%);
+            box-shadow: 0 0 10px rgba(103,203,255,0.12), 0 0 18px rgba(100,227,186,0.06);
             overflow:hidden;
           }
           .musicStatsSeparator::after{
@@ -1178,7 +1186,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:13px;
             font-weight:700;
             letter-spacing:.08em;
-            color:rgba(226,232,240,0.76);
+            color:var(--musicStatsTextMuted);
             text-transform:none;
           }
           .musicStatsTop{
@@ -1214,9 +1222,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
             gap:10px;
             padding:9px 18px;
             border-radius:999px;
-            border:1px solid rgba(125,211,252,0.18);
-            background:linear-gradient(180deg, rgba(16,23,40,0.88), rgba(12,19,34,0.66));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 16px rgba(56,189,248,0.06);
+            border:1px solid rgba(116,176,255,0.24);
+            background:linear-gradient(180deg, rgba(14,22,40,0.92), rgba(10,17,33,0.70));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 16px rgba(103,203,255,0.08);
             text-align:center;
           }
           .musicStatsContextValue{
@@ -1224,13 +1232,13 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:22px;
             font-weight:900;
             line-height:1;
-            color:rgba(244,246,255,0.97);
+            color:var(--musicStatsTextStrong);
           }
           .musicStatsContextLabel{
             font-size:11px;
             font-weight:800;
             letter-spacing:.14em;
-            color:rgba(226,232,240,0.72);
+            color:var(--musicStatsTextMuted);
             text-transform:uppercase;
           }
           .musicStatsCardTop{
@@ -1267,7 +1275,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             letter-spacing:.14em;
             text-transform:uppercase;
-            color:rgba(233,236,245,0.94);
+            color:rgba(236,241,250,0.94);
           }
           .musicStatsLowerHeading{
             margin:14px 0 10px;
@@ -1277,7 +1285,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             letter-spacing:.16em;
             text-transform:uppercase;
-            color:rgba(233,236,245,0.90);
+            color:rgba(236,241,250,0.90);
           }
           .musicStatsMidHeading{
             margin:0 0 12px;
@@ -1287,13 +1295,13 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             letter-spacing:.16em;
             text-transform:uppercase;
-            color:rgba(233,236,245,0.90);
+            color:rgba(236,241,250,0.90);
           }
           .musicStatsCard{
             border-radius:16px;
-            border:1px solid rgba(148,163,184,0.20);
-            background:linear-gradient(180deg, rgba(17,24,39,0.84), rgba(15,23,42,0.60));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(0,0,0,0.18);
+            border:1px solid rgba(120,165,255,0.18);
+            background:linear-gradient(180deg, rgba(16,24,43,0.86), rgba(11,19,36,0.64));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), 0 0 14px rgba(17,34,66,0.10);
             padding:14px 16px;
             min-height:84px;
             display:flex;
@@ -1307,14 +1315,14 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             line-height:1;
             letter-spacing:.04em;
-            color:rgba(244,246,255,0.98);
+            color:var(--musicStatsTextStrong);
           }
           .musicStatsLabel{
             font-size:11px;
             font-weight:800;
             letter-spacing:.18em;
             text-transform:uppercase;
-            color:rgba(226,232,240,0.70);
+            color:var(--musicStatsTextMuted);
           }
           .musicStatsHeading{
             margin:18px 0 12px;
@@ -1324,7 +1332,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             letter-spacing:.18em;
             text-transform:uppercase;
-            color:rgba(233,236,245,0.90);
+            color:rgba(236,241,250,0.90);
           }
           .musicStatsGrid{
             display:grid;
@@ -1333,11 +1341,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsChip{
             border-radius:15px;
-            border:1px solid rgba(148,163,184,0.22);
+            border:1px solid rgba(120,165,255,0.18);
             padding:13px 16px;
             min-height:68px;
-            background:linear-gradient(180deg, rgba(15,23,42,0.76), rgba(15,23,42,0.54));
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+            background:linear-gradient(180deg, rgba(14,22,42,0.82), rgba(10,18,36,0.58));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 12px rgba(16,36,74,0.08);
             display:flex;
             align-items:center;
             justify-content:space-between;
@@ -1359,7 +1367,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             box-shadow:
               inset 0 0 0 1px rgba(255,255,255,0.035),
               inset 0 0 26px rgba(255,255,255,0.02),
-              0 0 18px rgba(0,0,0,0.22);
+              0 0 18px rgba(0,0,0,0.18);
           }
           .musicStatsChipMeter::before{
             content:"";
@@ -1408,7 +1416,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:26px;
             font-weight:900;
             line-height:1;
-            color:rgba(244,246,255,0.98);
+            color:var(--musicStatsTextStrong);
             text-shadow: 0 0 10px color-mix(in srgb, currentColor 20%, transparent);
           }
           .musicStatsChipTotal{
@@ -1422,7 +1430,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:12px;
             font-weight:800;
             letter-spacing:.14em;
-            color:rgba(226,232,240,0.80);
+            color:rgba(220,228,242,0.80);
           }
           .musicStatsChipRail{
             position:relative;
@@ -1441,37 +1449,37 @@ if (!document.getElementById('musicContentWipeStyles')) {
             width:0%;
             border-radius:inherit;
             background:linear-gradient(90deg, currentColor 0%, color-mix(in srgb, currentColor 78%, #ffd54a 22%) 100%);
-            box-shadow: 0 0 14px currentColor, 0 0 28px color-mix(in srgb, currentColor 52%, transparent);
+            box-shadow: 0 0 12px color-mix(in srgb, currentColor 68%, transparent), 0 0 22px color-mix(in srgb, currentColor 42%, transparent);
           }
-          .musicStatsChip.good{ border-color: rgba(34,197,94,0.34); box-shadow: inset 0 0 0 1px rgba(110,231,183,0.05), 0 0 22px rgba(34,197,94,0.10); }
-          .musicStatsChip.good .musicStatsChipValue{ color:#6ee7b7; }
-          .musicStatsChip.good.musicStatsChipMeter{ color:#6ee7b7; border-color: rgba(45,212,191,0.34); box-shadow: inset 0 0 0 1px rgba(110,231,183,0.08), 0 0 24px rgba(45,212,191,0.10); }
-          .musicStatsChip.partial{ border-color: rgba(245,158,11,0.34); box-shadow: inset 0 0 0 1px rgba(253,224,71,0.05), 0 0 22px rgba(245,158,11,0.10); }
-          .musicStatsChip.partial .musicStatsChipValue{ color:#fbbf24; }
-          .musicStatsChip.partial.musicStatsChipMeter{ color:#fbbf24; border-color: rgba(245,158,11,0.38); box-shadow: inset 0 0 0 1px rgba(253,224,71,0.07), 0 0 24px rgba(245,158,11,0.12); }
-          .musicStatsChip.none{ border-color: rgba(244,63,94,0.28); box-shadow: inset 0 0 0 1px rgba(253,164,175,0.04), 0 0 22px rgba(244,63,94,0.08); }
-          .musicStatsChip.none .musicStatsChipValue{ color:#fb7185; }
-          .musicStatsChip.none.musicStatsChipMeter{ color:#fb7185; border-color: rgba(244,63,94,0.34); box-shadow: inset 0 0 0 1px rgba(253,164,175,0.06), 0 0 24px rgba(244,63,94,0.10); }
-          .musicStatsChip.info{ border-color: rgba(56,189,248,0.28); box-shadow: inset 0 0 0 1px rgba(125,211,252,0.04), 0 0 22px rgba(56,189,248,0.08); }
-          .musicStatsChip.info .musicStatsChipValue{ color:#7dd3fc; }
+          .musicStatsChip.good{ border-color: color-mix(in srgb, var(--musicStatsSuccess) 40%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsSuccess) 10%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsSuccess) 16%, transparent); }
+          .musicStatsChip.good .musicStatsChipValue{ color:var(--musicStatsSuccess); }
+          .musicStatsChip.good.musicStatsChipMeter{ color:var(--musicStatsSuccess); border-color: color-mix(in srgb, var(--musicStatsSuccess) 44%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsSuccess) 12%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsSuccess) 16%, transparent); }
+          .musicStatsChip.partial{ border-color: color-mix(in srgb, var(--musicStatsWarning) 42%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsWarning) 10%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsWarning) 16%, transparent); }
+          .musicStatsChip.partial .musicStatsChipValue{ color:var(--musicStatsWarning); }
+          .musicStatsChip.partial.musicStatsChipMeter{ color:var(--musicStatsWarning); border-color: color-mix(in srgb, var(--musicStatsWarning) 46%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsWarning) 12%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsWarning) 16%, transparent); }
+          .musicStatsChip.none{ border-color: color-mix(in srgb, var(--musicStatsDanger) 36%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsDanger) 8%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsDanger) 14%, transparent); }
+          .musicStatsChip.none .musicStatsChipValue{ color:var(--musicStatsDanger); }
+          .musicStatsChip.none.musicStatsChipMeter{ color:var(--musicStatsDanger); border-color: color-mix(in srgb, var(--musicStatsDanger) 42%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsDanger) 10%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsDanger) 14%, transparent); }
+          .musicStatsChip.info{ border-color: color-mix(in srgb, var(--musicStatsAccent) 34%, var(--musicStatsBorderStrong)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--musicStatsAccent) 8%, transparent), 0 0 18px color-mix(in srgb, var(--musicStatsAccent) 14%, transparent); }
+          .musicStatsChip.info .musicStatsChipValue{ color:var(--musicStatsAccent); }
           .musicStatsFooter{
             margin-top:16px;
             border-radius:18px;
-            border:1px solid rgba(148,163,184,0.18);
-            background:linear-gradient(180deg, rgba(15,23,42,0.86), rgba(15,23,42,0.60));
+            border:1px solid rgba(120,165,255,0.18);
+            background:linear-gradient(180deg, rgba(14,22,42,0.88), rgba(10,18,36,0.62));
             padding:14px 16px 16px;
           }
           .musicStatsShotCard{
             position:relative;
             border-radius:16px;
-            border:1px solid rgba(148,163,184,0.20);
+            border:1px solid rgba(120,165,255,0.18);
             background:
               linear-gradient(180deg, rgba(20,25,42,0.90), rgba(15,20,36,0.66)),
               linear-gradient(90deg, rgba(255,255,255,0.03), transparent 48%);
             box-shadow:
               inset 0 0 0 1px rgba(255,255,255,0.03),
               inset 0 10px 20px rgba(255,255,255,0.015),
-              0 0 18px rgba(0,0,0,0.16);
+              0 0 14px rgba(16,36,74,0.10);
             min-height:70px;
             padding:14px 16px;
             display:flex;
@@ -1490,11 +1498,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
             opacity:.55;
           }
           .musicStatsShotCardPercent{
-            border-color: rgba(244,63,94,0.24);
+            border-color: color-mix(in srgb, var(--musicStatsAccent) 38%, var(--musicStatsBorderStrong));
             box-shadow:
-              inset 0 0 0 1px rgba(253,164,175,0.04),
+              inset 0 0 0 1px color-mix(in srgb, var(--musicStatsAccent) 8%, transparent),
               inset 0 10px 20px rgba(255,255,255,0.015),
-              0 0 18px rgba(244,63,94,0.08);
+              0 0 18px color-mix(in srgb, var(--musicStatsAccent) 14%, transparent);
           }
           .musicStatsShotValue{
             position:relative;
@@ -1504,10 +1512,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             line-height:1;
             letter-spacing:.03em;
-            color:rgba(244,246,255,0.97);
+            color:var(--musicStatsTextStrong);
           }
           .musicStatsShotCardPercent .musicStatsShotValue{
-            color:#fda4af;
+            color:var(--musicStatsAccent);
           }
           .musicStatsShotLabel{
             position:relative;
@@ -1515,7 +1523,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:12px;
             font-weight:800;
             letter-spacing:.08em;
-            color:rgba(226,232,240,0.76);
+            color:var(--musicStatsTextMuted);
             text-transform:none;
           }
           .musicStatsFooterRow{
@@ -1530,14 +1538,14 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:12px;
             font-weight:800;
             letter-spacing:.08em;
-            color:rgba(226,232,240,0.78);
+            color:var(--musicStatsTextMuted);
             text-transform:none;
           }
           .musicStatsFooterPct{
             font-family:"Orbitron", system-ui, sans-serif;
             font-size:28px;
             font-weight:900;
-            color:rgba(244,246,255,0.98);
+            color:var(--musicStatsAccent);
             justify-self:end;
           }
           .musicStatsFooterUpdated{
@@ -1549,16 +1557,16 @@ if (!document.getElementById('musicContentWipeStyles')) {
             height:12px;
             border-radius:999px;
             overflow:hidden;
-            background:rgba(255,255,255,0.06);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+            background:rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035);
           }
           .musicStatsBarFill{
             position:absolute;
             inset:0 auto 0 0;
             width:0%;
             border-radius:inherit;
-            background:linear-gradient(90deg, rgba(255,70,110,0.92), rgba(245,158,11,0.92));
-            box-shadow: 0 0 18px rgba(255,70,110,0.24);
+            background:linear-gradient(90deg, color-mix(in srgb, var(--musicStatsAccent) 88%, white 12%), color-mix(in srgb, var(--musicStatsSuccess) 82%, var(--musicStatsAccent) 18%));
+            box-shadow: 0 0 16px color-mix(in srgb, var(--musicStatsAccent) 24%, transparent);
             transition: width 260ms ease;
           }
           .musicStatsLoading,
