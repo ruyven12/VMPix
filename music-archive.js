@@ -843,7 +843,7 @@ async function mountMusicStatsPanel(panel) {
       '<div class="musicStatsIntroText">Welcome to the Stats section of the Music side. This page serves as a data housing of the entire archive, giving you an in-depth look into individual statistics for it. More to come soon!</div>' +
       '<div class="musicStatsSeparator musicStatsSeparatorOuter" aria-hidden="true"></div>' +
       '<div class="musicStatsSection musicStatsSectionBand" data-music-stats-section="band">' +
-        '<div class="musicStatsMidHeading">Band Stats</div>' +
+        '<div class="musicStatsMidHeading">Reimaging Project - Band Stats</div>' +
         '<div class="musicStatsGrid">' +
           '<div class="musicStatsChip good musicStatsChipMeter">' +
             '<div class="musicStatsChipTop"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue" data-animate-value="' + Number(stats.fullyUpgraded || 0) + '" data-animate-type="number" data-animate-decimals="0">0</div><div class="musicStatsChipPct" data-animate-value="' + fullyPct.toFixed(1) + '" data-animate-type="percent" data-animate-decimals="1">0.0%</div></div></div>' +
@@ -862,7 +862,7 @@ async function mountMusicStatsPanel(panel) {
       '</div>' +
       '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
       '<div class="musicStatsSection musicStatsSectionPhoto" data-music-stats-section="photo">' +
-        '<div class="musicStatsLowerHeading">Individual Photo Stats</div>' +
+        '<div class="musicStatsLowerHeading">Reimaging Project - Individual Photo Stats</div>' +
         '<div class="musicStatsPhotoGrid">' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue" data-animate-value="' + Number(stats.shotNotUpgraded || 0) + '" data-animate-type="number" data-animate-decimals="0">0</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue" data-animate-value="' + Number(stats.shotsOnSite || 0) + '" data-animate-type="number" data-animate-decimals="0">0</div><div class="musicStatsShotLabel">On Site</div></div>' +
