@@ -110,6 +110,70 @@
         padding-top: 8px;
         padding-bottom: 84px; /* room for bottom nav on small screens */
       }
+
+      .showsArchiveIntro{
+        width: 100%;
+        margin: 6px auto 8px;
+        padding: 6px 10px 10px;
+        text-align: center;
+      }
+      .showsArchiveIntroTitle{
+        margin: 2px 0 14px;
+        text-align: center;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(236,241,250,0.94);
+      }
+      .showsArchiveIntroDivider{
+        position: relative;
+        height: 3px;
+        margin: 8px 19px 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+        box-shadow: 0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
+        overflow: hidden;
+      }
+      .showsArchiveIntroDivider::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:inherit;
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+        opacity:.72;
+        filter: blur(.2px);
+      }
+      .showsArchiveIntroBody{
+        margin: 0 0 8px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        color: rgba(212,223,242,0.74);
+        text-transform: none;
+        line-height: 1.18;
+      }
+      @media (max-width: 720px){
+        .showsArchiveIntro{
+          padding: 4px 8px 8px;
+          margin-bottom: 10px;
+        }
+        .showsArchiveIntroTitle{
+          margin: 0 0 10px;
+          font-size: 16px;
+          letter-spacing: .1em;
+        }
+        .showsArchiveIntroDivider{
+          height: 2px;
+          margin: 6px 12px 8px;
+        }
+        .showsArchiveIntroBody{
+          font-size: 11px;
+          line-height: 1.16;
+        }
+      }
       /* Year pills row (styled to match the main nav tabs look) */
       #showsYearsMount{
         display:flex;
@@ -2105,6 +2169,11 @@ header.appendChild(posterWrap);
 
     return `
       <div class=\"showsWrap\">
+        <div class=\"showsArchiveIntro\" aria-label=\"Shows Archive Introduction\">
+          <div class=\"showsArchiveIntroTitle\">The Archive - Filter By Band</div>
+          <div class=\"showsArchiveIntroDivider\" aria-hidden=\"true\"></div>
+          <div class=\"showsArchiveIntroBody\">Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based, Regional being New England-based, National being USA-based, and International being around the world. From there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not touched yet.</div>
+        </div>
         <div id=\"showsYearsMount\"></div>
         <div id="showsYearContent" class="showsNote">Select a year from the list.</div>
       </div>
