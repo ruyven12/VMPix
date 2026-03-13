@@ -1827,8 +1827,6 @@ color: rgba(226,232,240,0.92);
         display:flex;
         align-items:center;
         gap: 10px;
-        justify-content:flex-end;
-        margin-left:auto;
       }
       .lightboxCounter{
         font-size: 11px;
@@ -1989,7 +1987,7 @@ color: rgba(226,232,240,0.92);
       @media (max-width: 620px){
         .lightboxShell{ height: 94vh; }
         .lightboxTopbar{ justify-content:flex-start; flex-wrap:wrap; }
-        .lightboxActions{ flex-wrap:wrap; width:100%; gap:8px; }
+        .lightboxActions{ flex-wrap:wrap; }
         .lightboxStage{ padding: 6px 46px; }
         .lightboxNavBtn{ width: 44px; height: 44px; font-size:16px; }
         .lightboxNavPrev{ left: 2px; }
@@ -3993,7 +3991,7 @@ function ensureLightbox() {
 
     const line2 = document.createElement("div");
     line2.className = "line2";
-    line2.textContent = "Left/Right navigate - Esc close";
+    line2.textContent = "←/→ navigate • Esc close";
 
     titleBox.appendChild(line1);
     titleBox.appendChild(line2);
@@ -4004,7 +4002,7 @@ function ensureLightbox() {
 
     const dlBtn = document.createElement("a");
     dlBtn.className = "lightboxDownloadBtn";
-    dlBtn.textContent = "Download";
+    dlBtn.textContent = "Download ⭳";
     dlBtn.href = "#";
     dlBtn.target = "_blank";
     dlBtn.rel = "noopener";
@@ -4020,7 +4018,7 @@ function ensureLightbox() {
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "lightboxCloseBtn";
-    closeBtn.textContent = "Close";
+    closeBtn.textContent = "Close ✕";
     closeBtn.onclick = () => destroyLightbox();
 
     topbar.appendChild(titleBox);
@@ -4038,13 +4036,13 @@ function ensureLightbox() {
     const prevBtn = document.createElement("button");
     prevBtn.className = "lightboxNavBtn lightboxNavPrev";
     prevBtn.type = "button";
-    prevBtn.textContent = "<";
+    prevBtn.textContent = "←";
     prevBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex - 1); };
 
     const nextBtn = document.createElement("button");
     nextBtn.className = "lightboxNavBtn lightboxNavNext";
     nextBtn.type = "button";
-    nextBtn.textContent = ">";
+    nextBtn.textContent = "→";
     nextBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex + 1); };
 
     stage.appendChild(lightboxImg);
@@ -4125,7 +4123,7 @@ function ensureLightbox() {
     meta.appendChild(hint);
 
 
-    hint.textContent = "Arrow keys navigate - Esc closes";
+    hint.textContent = "Arrow keys navigate • Esc closes";
 
     const actions = document.createElement("div");
     actions.className = "lightboxActions";
@@ -4166,13 +4164,13 @@ function ensureLightbox() {
     const prevBtn = document.createElement("button");
     prevBtn.className = "lightboxNavBtn lightboxNavPrev";
     prevBtn.type = "button";
-    prevBtn.textContent = "<";
+    prevBtn.textContent = "\u2190";
     prevBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex - 1); };
 
     const nextBtn = document.createElement("button");
     nextBtn.className = "lightboxNavBtn lightboxNavNext";
     nextBtn.type = "button";
-    nextBtn.textContent = ">";
+    nextBtn.textContent = "\u2192";
     nextBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex + 1); };
 
     stage.appendChild(lightboxImg);
@@ -5708,7 +5706,7 @@ const grid = document.createElement("div");
 
       hint = document.createElement("div");
       hint.className = "selectHint";
-      hint.textContent = "Arrow keys navigate - Esc closes";
+      hint.textContent = "Tip: In Select mode, click thumbnails to add/remove.";
 
       statusLine = document.createElement("div");
       statusLine.className = "zipStatus";
