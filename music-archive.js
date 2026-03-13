@@ -745,16 +745,7 @@ async function mountMusicStatsPanel(panel) {
     const fullyPct = safeTotalBands > 0 ? (Number(stats.fullyUpgraded || 0) / safeTotalBands) * 100 : 0;
     const inProgressPct = safeTotalBands > 0 ? (Number(stats.inProgress || 0) / safeTotalBands) * 100 : 0;
     const notWorkedPct = safeTotalBands > 0 ? (Number(stats.notWorkedYet || 0) / safeTotalBands) * 100 : 0;
-    host.innerHTML =       '<div class="musicStatsSection musicStatsSectionTop">' +
-        '<div class="musicStatsTopLabels">' +
-          '<div class="musicStatsTopHeading is-single">Overall Stats</div>' +
-        '</div>' +
-        '<div class="musicStatsTop">' +
-          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalBands) + '</div><div class="musicStatsLabel">Total Bands</div></div>' +
-          '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsLabel">Total Shots</div></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="musicStatsSeparator" aria-hidden="true"></div>' +
+    host.innerHTML =
       '<div class="musicStatsSection musicStatsSectionBody">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
