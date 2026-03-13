@@ -762,6 +762,7 @@ async function mountMusicStatsPanel(panel) {
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, notWorkedPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
         '</div>' +
+        '<div class="musicStatsContextChip"><span class="musicStatsContextValue">' + formatMusicStatNumber(stats.totalBands) + '</span><span class="musicStatsContextLabel">Total Bands</span></div>' +
         '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
         '<div class="musicStatsLowerHeading">Individual Photo Stats</div>' +
         '<div class="musicStatsPhotoGrid">' +
@@ -1157,6 +1158,35 @@ if (!document.getElementById('musicContentWipeStyles')) {
             gap:12px;
             margin:0 0 14px;
           }
+          .musicStatsContextChip{
+            margin:12px auto 8px;
+            width:max-content;
+            max-width:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            padding:9px 18px;
+            border-radius:999px;
+            border:1px solid rgba(125,211,252,0.18);
+            background:linear-gradient(180deg, rgba(16,23,40,0.88), rgba(12,19,34,0.66));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 16px rgba(56,189,248,0.06);
+            text-align:center;
+          }
+          .musicStatsContextValue{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:22px;
+            font-weight:900;
+            line-height:1;
+            color:rgba(244,246,255,0.97);
+          }
+          .musicStatsContextLabel{
+            font-size:11px;
+            font-weight:800;
+            letter-spacing:.14em;
+            color:rgba(226,232,240,0.72);
+            text-transform:uppercase;
+          }
           .musicStatsCardTop{
             text-align:center;
             align-items:center;
@@ -1504,6 +1534,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
             .musicStatsChipTotal{ font-size:13px; }
+            .musicStatsContextChip{ width:100%; }
+            .musicStatsContextValue{ font-size:20px; }
             .musicStatsShotValue{ font-size:26px; }
             .musicStatsFooterPct{ font-size:24px; }
           }
