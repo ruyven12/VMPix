@@ -1544,7 +1544,6 @@ async function ensureShowsLoaded(opts) {
 
         <div class="showsDetailSection">
           <div class="showsDetailSectionTitle">BANDS ON THIS BILL:</div>
-		  <div class="showsDetailSectionTitle">(Heads up, these are just placeholders, check the Bands section for the individual band shots. This will be fixed later.)</div>
           <div class="showsDetailBands bandGrid" data-detail-bands="1">
             ${bandCount ? `` : `<div class="showsDetailEmpty">No bands listed for this show.</div>`}
           </div>
@@ -2170,9 +2169,9 @@ header.appendChild(posterWrap);
     return `
       <div class=\"showsWrap\">
         <div class=\"showsArchiveIntro\" aria-label=\"Shows Archive Introduction\">
-          <div class=\"showsArchiveIntroTitle\">The Archive - Filter By Band</div>
+          <div class=\"showsArchiveIntroTitle\">The Archive - Filter By Show</div>
           <div class=\"showsArchiveIntroDivider\" aria-hidden=\"true\"></div>
-          <div class=\"showsArchiveIntroBody\">Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based, Regional being New England-based, National being USA-based, and International being around the world. From there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not touched yet.</div>
+          <div class=\"showsArchiveIntroBody\">Welcome to the Archives, sorted by Shows. This tab rebuilds each show that I have been to in my lifetime and have photos for, and returns all the bands that were on specific dates. Soon candids will be added, but not just yet.</div>
         </div>
         <div id=\"showsYearsMount\"></div>
         <div id="showsYearContent" class="showsNote">Select a year from the list.</div>
