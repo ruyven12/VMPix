@@ -1295,6 +1295,7 @@ function ensurePeopleStyles() {
       position: relative;
       z-index: 2;
       margin: 0 0 8px;
+      width: 100%;
       font-family: "Orbitron", system-ui, sans-serif;
       font-size: 13px;
       line-height: 1.2;
@@ -1306,20 +1307,27 @@ function ensurePeopleStyles() {
       display:flex;
       align-items:center;
       justify-content:center;
-      gap: 14px;
+      gap: 16px;
     }
 
     .peopleArchiveIntroTitle::before,
     .peopleArchiveIntroTitle::after{
       content:"";
-      flex: 1 1 0;
-      max-width: 235px;
-      min-width: 44px;
-      height: 1px;
+      display:block;
+      width: clamp(56px, 22vw, 240px);
+      height: 2px;
+      flex: 0 0 auto;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.45), rgba(255,70,110,0));
-      box-shadow: 0 0 12px rgba(255,70,110,0.16);
-      opacity: .9;
+      box-shadow: 0 0 14px rgba(255,70,110,0.22);
+      opacity: 1;
+    }
+
+    .peopleArchiveIntroTitle::before{
+      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.78), rgba(255,70,110,0.22));
+    }
+
+    .peopleArchiveIntroTitle::after{
+      background: linear-gradient(90deg, rgba(255,70,110,0.22), rgba(255,70,110,0.78), rgba(255,70,110,0));
     }
 
     .peopleArchiveIntroDivider{
@@ -1354,8 +1362,7 @@ function ensurePeopleStyles() {
       }
       .peopleArchiveIntroTitle::before,
       .peopleArchiveIntroTitle::after{
-        max-width: 110px;
-        min-width: 24px;
+        width: clamp(24px, 16vw, 110px);
       }
       .peopleArchiveIntroBody{
         font-size: 11px;
