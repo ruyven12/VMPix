@@ -759,9 +759,6 @@ async function mountMusicStatsPanel(panel) {
             '<div class="musicStatsChipTop"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + notWorkedPct.toFixed(1) + '%</div></div></div>' +
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, notWorkedPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
-          '<div class="musicStatsChip info"><div class="musicStatsChipName">Archived Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.archivedSets) + '</div></div>' +
-          '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
-          '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
         '</div>' +
         '<div class="musicStatsLowerHeading">People Stats</div>' +
         '<div class="musicStatsPeopleRow">' +
@@ -1231,8 +1228,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsGrid{
             display:grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap:12px;
+            grid-template-columns: minmax(0, 1fr);
+            gap:14px;
           }
           .musicStatsChip{
             border-radius:15px;
