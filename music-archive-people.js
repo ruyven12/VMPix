@@ -1322,6 +1322,16 @@ function ensurePeopleStyles() {
       opacity: .9;
     }
 
+    .peopleArchiveIntroDivider{
+      width: min(100%, 1180px);
+      height: 1px;
+      margin: 12px auto 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.42), rgba(255,70,110,0));
+      box-shadow: 0 0 12px rgba(255,70,110,0.14);
+      opacity: .95;
+    }
+
     .peopleArchiveIntroBody{
       position: relative;
       z-index: 2;
