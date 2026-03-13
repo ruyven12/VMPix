@@ -1797,76 +1797,91 @@ color: rgba(226,232,240,0.92);
         display: flex;
         align-items: center;
         justify-content: center;
-        background:
-          radial-gradient(120% 120% at 50% 48%, rgba(16,24,39,0.16) 0%, rgba(0,0,0,0.54) 44%, rgba(0,0,0,0.92) 100%),
-          rgba(0,0,0,0.92);
-        padding: 0;
+        background: rgba(0,0,0,0.94);
+        padding: 18px 0 0;
         overflow: hidden;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
       }
       .lightboxShell{
-        width: min(1280px, 96vw);
-        height: min(860px, 92vh);
-        max-height: 92vh;
+        width: min(1320px, 92vw);
+        height: min(900px, 94vh);
+        max-height: 94vh;
         display:flex;
         flex-direction:column;
         align-items:stretch;
         justify-content:space-between;
-        gap: 10px;
+        gap: 12px;
         position: relative;
       }
       .lightboxTopbar{
         display:flex;
         align-items:center;
-        justify-content:flex-end;
-        gap: 10px;
-        padding: 14px 14px 8px;
+        justify-content:space-between;
+        gap: 16px;
+        padding: 0 2px;
+      }
+      .lightboxMeta{
+        min-width: 0;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap: 2px;
+      }
+      .lightboxMeta .line1{
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(244,247,255,0.92);
+      }
+      .lightboxMeta .line2{
+        display:none;
       }
       .lightboxActions{
         display:flex;
         align-items:center;
-        gap: 10px;
+        justify-content:flex-end;
+        gap: 8px;
       }
       .lightboxCounter{
         font-size: 11px;
         letter-spacing: .12em;
-        opacity: .76;
+        opacity: .82;
         white-space: nowrap;
+        color: rgba(244,247,255,0.88);
       }
 
-      .lightboxDownloadBtn{
-        background: rgba(8,12,22,0.62);
-        border: 1px solid rgba(125,211,252,0.24);
+      .lightboxDownloadBtn,
+      .lightboxCloseBtn{
         border-radius: 999px;
-        padding: 7px 13px;
+        padding: 7px 14px;
         cursor:pointer;
-        font-size: 12px;
-        color: rgba(226,232,240,0.92);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: rgba(244,247,255,0.92);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      }
+      .lightboxDownloadBtn{
+        background: rgba(8,10,16,0.92);
+        border: 1px solid rgba(255,255,255,0.12);
         text-decoration:none;
         display:inline-flex;
         align-items:center;
         gap:6px;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 14px rgba(56,189,248,0.08);
       }
       .lightboxDownloadBtn:hover{
-        border-color: rgba(125,211,252,0.44);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 18px rgba(56,189,248,0.14);
+        border-color: rgba(255,90,120,0.34);
       }
 
       .lightboxCloseBtn{
-        background: rgba(8,12,22,0.62);
-        border: 1px solid rgba(148,163,184,0.25);
-        border-radius: 999px;
-        padding: 7px 13px;
-        cursor:pointer;
-        font-size: 12px;
-        color: rgba(226,232,240,0.92);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 14px rgba(148,163,184,0.06);
+        background: rgba(8,10,16,0.92);
+        border: 1px solid rgba(255,90,120,0.28);
       }
       .lightboxCloseBtn:hover{
-        border-color: rgba(244,114,182,0.34);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 18px rgba(244,114,182,0.10);
+        border-color: rgba(255,90,120,0.5);
       }
 
       .lightboxStage{
@@ -1876,18 +1891,19 @@ color: rgba(226,232,240,0.92);
         display:flex;
         align-items:center;
         justify-content:center;
-        padding: 6px 72px;
+        padding: 18px 18px 98px;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        background: rgba(4,6,12,0.78);
+        overflow: hidden;
       }
       .lightboxStage::before{
         content:"";
         position:absolute;
         inset:0;
-        border-radius:24px;
+        border-radius:18px;
         pointer-events:none;
-        background:
-          radial-gradient(90% 85% at 50% 50%, rgba(103,203,255,0.06) 0%, rgba(0,0,0,0) 54%),
-          linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
-        border:1px solid rgba(255,255,255,0.04);
+        background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
       }
       .lightboxImg{
@@ -1896,10 +1912,10 @@ color: rgba(226,232,240,0.92);
         width: auto;
         height: auto;
         object-fit: contain;
-        border-radius: 18px;
-        border: 1px solid rgba(148,163,184,0.18);
-        background: rgba(6,10,18,0.60);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 24px 60px rgba(0,0,0,0.62), 0 0 26px rgba(56,189,248,0.08);
+        border-radius: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: 0 18px 42px rgba(0,0,0,0.42);
         opacity: 0;
         transition: opacity 220ms ease;
         position: relative;
@@ -1908,92 +1924,100 @@ color: rgba(226,232,240,0.92);
 
       .lightboxNavBtn{
         position:absolute;
-        top:50%;
-        transform: translateY(-50%);
-        background: rgba(6,10,18,0.72);
-        border: 1px solid rgba(125,211,252,0.18);
-        color: rgba(226,232,240,0.92);
-        width: 56px;
-        height: 56px;
-        border-radius: 999px;
+        bottom: 14px;
+        top: auto;
+        transform: none;
+        background: rgba(8,10,16,0.94);
+        border: 1px solid rgba(255,90,120,0.18);
+        color: rgba(244,247,255,0.92);
+        width: calc(50% - 24px);
+        height: 30px;
+        border-radius: 6px;
         cursor:pointer;
         display:flex;
         align-items:center;
         justify-content:center;
-        font-size: 19px;
-        backdrop-filter: blur(10px);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(56,189,248,0.10);
-        z-index: 2;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        backdrop-filter: blur(8px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        z-index: 3;
       }
       .lightboxNavBtn:hover{
-        border-color: rgba(125,211,252,0.42);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 24px rgba(56,189,248,0.16);
+        border-color: rgba(255,90,120,0.42);
       }
-      .lightboxNavPrev{ left: 6px; }
-      .lightboxNavNext{ right: 6px; }
+      .lightboxNavPrev{ left: 14px; }
+      .lightboxNavNext{ right: 14px; }
 
       .lightboxStripWrap{
-        padding: 0 10px 10px;
+        margin-top: -88px;
+        padding: 0 18px 0;
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
       }
       .lightboxStrip{
-        padding: 12px 14px 14px;
+        padding: 10px 12px;
         overflow-x: auto;
         overflow-y: hidden;
         display:flex;
         gap: 8px;
         align-items:center;
         scroll-behavior: smooth;
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(8,12,22,0.82), rgba(8,12,22,0.60));
-        border: 1px solid rgba(125,211,252,0.14);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 18px rgba(56,189,248,0.06);
+        border-radius: 0;
+        background: linear-gradient(180deg, rgba(2,4,10,0), rgba(2,4,10,0.82) 30%, rgba(2,4,10,0.96));
+        border-top: 1px solid rgba(255,255,255,0.06);
+        pointer-events: auto;
       }
       .lightboxStrip::-webkit-scrollbar{
-        height:10px;
+        height:8px;
       }
       .lightboxStrip::-webkit-scrollbar-track{
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.06);
         border-radius:999px;
       }
       .lightboxStrip::-webkit-scrollbar-thumb{
-        background: rgba(148,163,184,0.48);
+        background: rgba(148,163,184,0.34);
         border-radius:999px;
       }
       .lightboxThumb{
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
+        width: 72px;
+        height: 72px;
+        border-radius: 8px;
         object-fit: cover;
-        border: 1px solid rgba(255,255,255,0.12);
-        opacity: .68;
+        border: 1px solid rgba(255,255,255,0.08);
+        opacity: .34;
         cursor:pointer;
         flex: 0 0 auto;
         transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-        background: rgba(255,255,255,0.04);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.24);
+        background: rgba(255,255,255,0.03);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.20);
       }
       .lightboxThumb:hover{
-        opacity: .92;
+        opacity: .72;
         transform: translateY(-1px);
-        border-color: rgba(125,211,252,0.32);
-        box-shadow: 0 10px 22px rgba(0,0,0,0.30), 0 0 16px rgba(56,189,248,0.10);
+        border-color: rgba(255,90,120,0.24);
+        box-shadow: 0 10px 22px rgba(0,0,0,0.26);
       }
       .lightboxThumb.active{
         opacity: 1;
-        border-color: rgba(125,211,252,0.84);
-        box-shadow: 0 0 0 1px rgba(125,211,252,0.28), 0 0 20px rgba(56,189,248,0.16);
+        border-color: rgba(255,255,255,0.22);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(0,0,0,0.26);
       }
 
       @media (max-width: 620px){
-        .lightboxShell{ height: 94vh; }
-        .lightboxTopbar{ justify-content:flex-start; flex-wrap:wrap; }
-        .lightboxActions{ flex-wrap:wrap; }
-        .lightboxStage{ padding: 6px 46px; }
-        .lightboxNavBtn{ width: 44px; height: 44px; font-size:16px; }
-        .lightboxNavPrev{ left: 2px; }
-        .lightboxNavNext{ right: 2px; }
-        .lightboxStrip{ padding-bottom: 10px; }
-        .lightboxThumb{ width: 52px; height: 52px; }
+        .lightbox{ padding-top: 12px; }
+        .lightboxShell{ width: min(96vw, 1320px); height: 95vh; }
+        .lightboxTopbar{ align-items:flex-start; gap: 10px; }
+        .lightboxActions{ flex-wrap:wrap; justify-content:flex-end; }
+        .lightboxStage{ padding: 12px 12px 88px; }
+        .lightboxNavBtn{ width: calc(50% - 18px); }
+        .lightboxNavPrev{ left: 12px; }
+        .lightboxNavNext{ right: 12px; }
+        .lightboxStripWrap{ margin-top: -80px; padding: 0 12px; }
+        .lightboxThumb{ width: 58px; height: 58px; }
       }
 
       /* lightbox (legacy)
@@ -4114,7 +4138,7 @@ function ensureLightbox() {
     const topbar = document.createElement("div");
     topbar.className = "lightboxTopbar";
     const meta = document.createElement("div");
-    meta.style.display = "none";
+    meta.className = "lightboxMeta";
     const line1 = document.createElement("div");
     const line2 = document.createElement("div");
     const hint = document.createElement("div");
@@ -4164,13 +4188,13 @@ function ensureLightbox() {
     const prevBtn = document.createElement("button");
     prevBtn.className = "lightboxNavBtn lightboxNavPrev";
     prevBtn.type = "button";
-    prevBtn.textContent = "\u2190";
+    prevBtn.textContent = "Prev";
     prevBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex - 1); };
 
     const nextBtn = document.createElement("button");
     nextBtn.className = "lightboxNavBtn lightboxNavNext";
     nextBtn.type = "button";
-    nextBtn.textContent = "\u2192";
+    nextBtn.textContent = "Next";
     nextBtn.onclick = (e) => { e.stopPropagation(); showAt(lightboxIndex + 1); };
 
     stage.appendChild(lightboxImg);
@@ -4274,7 +4298,7 @@ function ensureLightbox() {
 
     try {
       const l1 = lightboxEl._line1;
-      if (l1) l1.textContent = band || "Photo Viewer";
+      if (l1) l1.textContent = `Photo ${counterText}`;
       const l2 = lightboxEl._line2;
       if (l2) l2.textContent = [show || album, fn].filter(Boolean).join(" • ");
       const c = lightboxEl._counter;
