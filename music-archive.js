@@ -1242,7 +1242,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsGrid{
             display:grid;
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap:14px;
           }
           .musicStatsChip{
@@ -1497,8 +1497,8 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsSeparator{ margin:15px 13px 17px; }
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
-            .musicStatsGrid,
             .musicStatsPhotoGrid{ grid-template-columns: 1fr; }
+            .musicStatsGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
