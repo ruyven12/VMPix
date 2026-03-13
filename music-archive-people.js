@@ -1303,6 +1303,23 @@ function ensurePeopleStyles() {
       text-transform: uppercase;
       color: rgba(232,236,244,0.96);
       text-shadow: 0 0 14px rgba(255,92,138,0.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 14px;
+    }
+
+    .peopleArchiveIntroTitle::before,
+    .peopleArchiveIntroTitle::after{
+      content:"";
+      flex: 1 1 0;
+      max-width: 235px;
+      min-width: 44px;
+      height: 1px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,70,110,0), rgba(255,70,110,0.45), rgba(255,70,110,0));
+      box-shadow: 0 0 12px rgba(255,70,110,0.16);
+      opacity: .9;
     }
 
     .peopleArchiveIntroBody{
@@ -1323,6 +1340,12 @@ function ensurePeopleStyles() {
       .peopleArchiveIntroTitle{
         font-size: 11px;
         letter-spacing: .08em;
+        gap: 10px;
+      }
+      .peopleArchiveIntroTitle::before,
+      .peopleArchiveIntroTitle::after{
+        max-width: 110px;
+        min-width: 24px;
       }
       .peopleArchiveIntroBody{
         font-size: 11px;
