@@ -3949,8 +3949,10 @@ async function downloadZipFromServer(items, suggestedName){
     const name = String(filename || 'photo.jpg').trim() || 'photo.jpg';
     if (!src || src === '#') return false;
 
+    const fetchUrl = `${API_BASE}/show-poster?url=${encodeURIComponent(src)}`;
+
     try {
-      const res = await fetch(src, { mode: 'cors', credentials: 'omit' });
+      const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -3963,15 +3965,6 @@ async function downloadZipFromServer(items, suggestedName){
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
       return true;
     } catch (_) {
-      try {
-        const a = document.createElement('a');
-        a.href = src;
-        a.download = name;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } catch (_) {}
       return false;
     }
   }
