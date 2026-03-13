@@ -754,8 +754,8 @@ async function mountMusicStatsPanel(panel) {
     const peopleIndexPct = Number(stats.totalShots || 0) > 0 ? (Number(stats.photosIndexed || 0) / Number(stats.totalShots || 0)) * 100 : 0;
     const peoplePctLabel = Number.isFinite(peopleIndexPct) ? peopleIndexPct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =
-      '<div class="musicStatsSection musicStatsSectionBody">' +
-        '<div class="musicStatsMainTitle">Archive Statistics</div>' +
+      '<div class="musicStatsMainTitle">Archive Statistics</div>' +
+      '<div class="musicStatsSection musicStatsSectionBand">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
           '<div class="musicStatsChip good musicStatsChipMeter">' +
@@ -772,7 +772,9 @@ async function mountMusicStatsPanel(panel) {
           '</div>' +
         '</div>' +
         '<div class="musicStatsContextChip"><span class="musicStatsContextValue">' + formatMusicStatNumber(stats.totalBands) + '</span><span class="musicStatsContextLabel">Total Bands</span></div>' +
-        '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+      '</div>' +
+      '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+      '<div class="musicStatsSection musicStatsSectionPhoto">' +
         '<div class="musicStatsLowerHeading">Individual Photo Stats</div>' +
         '<div class="musicStatsPhotoGrid">' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotNotUpgraded) + '</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
@@ -780,7 +782,9 @@ async function mountMusicStatsPanel(panel) {
           '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">Percent Done</div></div>' +
         '</div>' +
         '<div class="musicStatsContextChip"><span class="musicStatsContextValue">' + formatMusicStatNumber(stats.totalShots) + '</span><span class="musicStatsContextLabel">Total Shots</span></div>' +
-        '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+      '</div>' +
+      '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+      '<div class="musicStatsSection musicStatsSectionPeople">' +
         '<div class="musicStatsLowerHeading">People Stats</div>' +
         '<div class="musicStatsPeopleGrid">' +
           '<div class="musicStatsCard musicStatsCardTop"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People Tagged</div></div>' +
@@ -1136,6 +1140,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
           .musicStatsSectionBody{
             margin-top:0;
           }
+          .musicStatsSectionBand,
+          .musicStatsSectionPhoto,
+          .musicStatsSectionPeople{
+            margin:0;
+          }
           .musicStatsSeparator{
             position:relative;
             height:3px;
@@ -1236,7 +1245,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             width:max-content;
           }
           .musicStatsMainTitle{
-            margin:0 0 14px;
+            margin:2px 0 14px;
             text-align:center;
             font-family:"Orbitron", system-ui, sans-serif;
             font-size:20px;
