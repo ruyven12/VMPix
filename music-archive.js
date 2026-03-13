@@ -866,7 +866,7 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsPhotoGrid">' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue" data-animate-value="' + Number(stats.shotNotUpgraded || 0) + '" data-animate-type="number" data-animate-decimals="0">0</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue" data-animate-value="' + Number(stats.shotsOnSite || 0) + '" data-animate-type="number" data-animate-decimals="0">0</div><div class="musicStatsShotLabel">On Site</div></div>' +
-          '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue" data-animate-value="' + shotsOnSitePct.toFixed(2) + '" data-animate-type="percent" data-animate-decimals="2">0.00%</div><div class="musicStatsShotLabel">Percent Done</div></div>' +
+          '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue" data-animate-value="' + Number(stats.shotsOnSitePct || 0).toFixed(2) + '" data-animate-type="percent" data-animate-decimals="2">0.00%</div><div class="musicStatsShotLabel">Percent Done</div></div>' +
         '</div>' +
         '<div class="musicStatsContextChip"><span class="musicStatsContextValue" data-animate-value="' + Number(stats.totalShots || 0) + '" data-animate-type="number" data-animate-decimals="0">0</span><span class="musicStatsContextLabel">Total Shots</span></div>' +
       '</div>' +
