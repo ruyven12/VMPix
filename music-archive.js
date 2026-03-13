@@ -756,7 +756,7 @@ async function mountMusicStatsPanel(panel) {
     host.innerHTML =
       '<div class="musicStatsMainTitle">Archive Statistics</div>' +
       '<div class="musicStatsSeparator musicStatsSeparatorOuter" aria-hidden="true"></div>' +
-      '<div class="musicStatsIntroText">test 1, 2, 3, 4</div>' +
+      '<div class="musicStatsIntroText">Welcome to the Stats section of the Music side. This page serves as a data housing of the entire archive, giving you an in-depth look into individual statistics for it. More to come soon!</div>' +
       '<div class="musicStatsSeparator musicStatsSeparatorOuter" aria-hidden="true"></div>' +
       '<div class="musicStatsSection musicStatsSectionBand">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
