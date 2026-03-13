@@ -1248,6 +1248,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
             min-height:96px;
             padding:12px 16px 14px;
             overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+            justify-content:flex-start;
             background:
               radial-gradient(circle at 8% 50%, rgba(255,255,255,0.06), transparent 20%),
               linear-gradient(180deg, rgba(13,18,36,0.95), rgba(11,17,34,0.74)),
