@@ -540,7 +540,6 @@ const MUSIC_STATS_SHOTS_FALLBACK = 61289;
 const MUSIC_STATS_NOT_UPGRADED_FALLBACK = 22506;
 const MUSIC_STATS_ON_SITE_FALLBACK = 36342;
 let _musicStatsPromise = null;
-let _pendingMusicMode = '';
 
 function getMusicArchiveApiBase() {
   try {
@@ -2250,12 +2249,6 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
 
       // Default: keep original auto-sizing unless Archives is selected
       setArchiveViewportExpanded(false);
-
-      if (_pendingMusicMode) {
-        window.requestAnimationFrame(() => {
-          try { setMode(_pendingMusicMode, { replace: true, preservePath: true }); } catch (_) {}
-        });
-      }
     }
   }
 
@@ -2465,41 +2458,19 @@ function setMode(mode, opts) {
       ? m
       : 'bands';
 
-  _pendingMusicMode = key;
-
   try {
     syncMusicSubroute(key, { replace: !!(opts && opts.replace), preservePath: !!(opts && opts.preservePath) });
   } catch (_) {}
 
-  const tryActivateMode = (remaining) => {
-    try {
-      const modeBtn =
-        document.querySelector(`#archiveModeToggleMount .archiveModeBtn[data-mode="${key}"]`) ||
-        (_contentPanelEl && _contentPanelEl.querySelector(`.archiveModeBtn[data-mode="${key}"]`));
-      if (modeBtn) {
-        try { modeBtn.click(); } finally { _pendingMusicMode = ''; }
-        return;
-      }
-
-      const tab =
-        (_orangeBoxEl && _orangeBoxEl.querySelector(`.hudTab[data-tab="${key}"]`)) ||
-        document.querySelector(`.hudTab[data-tab="${key}"]`);
-      if (tab) {
-        _suppressMusicTabUrlSync = true;
-        try { tab.click(); } finally {
-          _suppressMusicTabUrlSync = false;
-          _pendingMusicMode = '';
-        }
-        return;
-      }
-    } catch (_) {}
-
-    if ((remaining || 0) > 0) {
-      window.requestAnimationFrame(() => tryActivateMode((remaining || 0) - 1));
+  try {
+    const tab =
+      (_orangeBoxEl && _orangeBoxEl.querySelector(`.hudTab[data-tab="${key}"]`)) ||
+      document.querySelector(`.hudTab[data-tab="${key}"]`);
+    if (tab) {
+      _suppressMusicTabUrlSync = true;
+      try { tab.click(); } finally { _suppressMusicTabUrlSync = false; }
     }
-  };
-
-  tryActivateMode(8);
+  } catch (_) {}
 }
 
 window.MusicArchive = { render, onEnter, destroy, setMode };
