@@ -755,6 +755,9 @@ async function mountMusicStatsPanel(panel) {
     const peoplePctLabel = Number.isFinite(peopleIndexPct) ? peopleIndexPct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =
       '<div class="musicStatsMainTitle">Archive Statistics</div>' +
+      '<div class="musicStatsSeparator musicStatsSeparatorOuter" aria-hidden="true"></div>' +
+      '<div class="musicStatsIntroText">test 1, 2, 3, 4</div>' +
+      '<div class="musicStatsSeparator musicStatsSeparatorOuter" aria-hidden="true"></div>' +
       '<div class="musicStatsSection musicStatsSectionBand">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
@@ -1165,6 +1168,18 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsSeparatorInner{
             margin:16px 5px 14px;
+          }
+          .musicStatsSeparatorOuter{
+            margin:8px 19px 10px;
+          }
+          .musicStatsIntroText{
+            margin:0 0 8px;
+            text-align:center;
+            font-size:13px;
+            font-weight:700;
+            letter-spacing:.08em;
+            color:rgba(226,232,240,0.76);
+            text-transform:none;
           }
           .musicStatsTop{
             display:grid;
@@ -1578,6 +1593,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsPeopleGrid{ grid-template-columns: 1fr; }
             .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsMainTitle{ font-size:18px; }
+            .musicStatsSeparatorOuter{ margin:8px 13px 10px; }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
