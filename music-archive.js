@@ -1263,7 +1263,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             margin:2px 0 14px;
             text-align:center;
             font-family:"Orbitron", system-ui, sans-serif;
-            font-size:20px;
+            font-size:24px;
             font-weight:900;
             letter-spacing:.14em;
             text-transform:uppercase;
