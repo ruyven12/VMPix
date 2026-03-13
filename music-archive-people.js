@@ -2409,95 +2409,201 @@ function ensurePeopleStyles() {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0,0,0,0.86);
+  background:
+    radial-gradient(120% 120% at 50% 48%, rgba(16,24,39,0.16) 0%, rgba(0,0,0,0.54) 44%, rgba(0,0,0,0.92) 100%),
+    rgba(0,0,0,0.92);
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: 0;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .peopleLightbox.is-open{ display:flex; }
 .peopleLightboxInner{
-  width: min(1200px, 96vw);
-  height: min(90vh, calc(100vh - 36px));
-  max-height: 90vh;
+  width: min(1280px, 96vw);
+  height: min(860px, 92vh);
+  max-height: 92vh;
   display:flex;
   flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
   gap: 10px;
+  position: relative;
 }
 .peopleLightboxTop{
   display:flex;
   align-items:center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 10px;
+  padding: 14px 14px 8px;
   font-family: "Orbitron", system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: .14em;
   text-transform: uppercase;
   opacity: .9;
 }
+.peopleLightboxActions{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
 .peopleLightboxBtn{
   cursor:pointer;
-  border:0;
-  background: rgba(0,0,0,0.25);
-  box-shadow: 0 0 0 1px rgba(255,70,110,0.25) inset;
-  color: rgba(255,255,255,0.92);
-  border-radius: 9px;
-  padding: 10px 14px;
-  min-height: 44px;
+  border: 1px solid rgba(148,163,184,0.25);
+  background: rgba(8,12,22,0.62);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 14px rgba(148,163,184,0.06);
+  color: rgba(226,232,240,0.92);
+  border-radius: 999px;
+  padding: 7px 13px;
+  min-height: auto;
   font-weight: 900;
-  font-size: 10px;
-  letter-spacing: .14em;
+  font-size: 12px;
+  letter-spacing: .12em;
   text-transform: uppercase;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap: 8px;
+  gap: 6px;
   touch-action: manipulation;
 }
+.peopleLightboxBtn:hover{
+  border-color: rgba(244,114,182,0.34);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 18px rgba(244,114,182,0.10);
+}
 .peopleLightboxStage{
+  position: relative;
   flex: 1;
   min-height: 0;
   display:flex;
   align-items:center;
   justify-content:center;
-  background: rgba(0,0,0,0.18);
-  border-radius: 16px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+  padding: 6px 72px;
   overflow: hidden;
 }
+.peopleLightboxStage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:24px;
+  pointer-events:none;
+  background:
+    radial-gradient(90% 85% at 50% 50%, rgba(103,203,255,0.06) 0%, rgba(0,0,0,0) 54%),
+    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
+}
 .peopleLightboxStage img{
-  width: auto;
-  height: auto;
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
-  object-position: center center;
-  aspect-ratio: auto;
+  width: auto;
+  height: auto;
   display:block;
+  object-fit: contain;
+  border-radius: 18px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(6,10,18,0.60);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 24px 60px rgba(0,0,0,0.62), 0 0 26px rgba(56,189,248,0.08);
+  position: relative;
+  z-index: 1;
 }
-.peopleLightboxNav{
+.peopleLightboxStage .peopleLightboxBtn{
+  position:absolute;
+  top:50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  font-size: 19px;
+  line-height: 1;
+  background: rgba(6,10,18,0.72);
+  border: 1px solid rgba(125,211,252,0.18);
+  color: rgba(226,232,240,0.92);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(56,189,248,0.10);
+  z-index: 2;
+}
+.peopleLightboxStage .peopleLightboxBtn:hover{
+  border-color: rgba(125,211,252,0.42);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 0 24px rgba(56,189,248,0.16);
+}
+.peopleLightboxBtn.peopleLightboxPrev{ left: 6px; }
+.peopleLightboxBtn.peopleLightboxNext{ right: 6px; }
+.peopleLightboxStripWrap{
+  padding: 0 10px 10px;
+}
+.peopleLightboxStrip{
+  padding: 12px 14px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
   display:flex;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  align-items:center;
+  scroll-behavior: smooth;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(8,12,22,0.82), rgba(8,12,22,0.60));
+  border: 1px solid rgba(125,211,252,0.14);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 0 18px rgba(56,189,248,0.06);
 }
-.peopleLightboxNav .peopleLightboxBtn{ flex: 1; justify-content:center; }
+.peopleLightboxStrip::-webkit-scrollbar{
+  height:10px;
+}
+.peopleLightboxStrip::-webkit-scrollbar-track{
+  background: rgba(255,255,255,0.08);
+  border-radius:999px;
+}
+.peopleLightboxStrip::-webkit-scrollbar-thumb{
+  background: rgba(148,163,184,0.48);
+  border-radius:999px;
+}
+.peopleLightboxThumb{
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.12);
+  opacity: .68;
+  cursor:pointer;
+  flex: 0 0 auto;
+  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  background: rgba(255,255,255,0.04);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.24);
+}
+.peopleLightboxThumb:hover{
+  opacity: .92;
+  transform: translateY(-1px);
+  border-color: rgba(125,211,252,0.32);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.30), 0 0 16px rgba(56,189,248,0.10);
+}
+.peopleLightboxThumb.active{
+  opacity: 1;
+  border-color: rgba(125,211,252,0.84);
+  box-shadow: 0 0 0 1px rgba(125,211,252,0.28), 0 0 20px rgba(56,189,248,0.16);
+}
 @media (max-width: 640px){
-  .peopleLightbox{
-    padding: 10px;
-  }
   .peopleLightboxInner{
-    width: 100%;
-    height: calc(100vh - 20px);
-    max-height: none;
-    gap: 8px;
+    height: 94vh;
   }
   .peopleLightboxTop{
-    font-size: 9px;
-    letter-spacing: .12em;
+    justify-content:flex-start;
+    flex-wrap:wrap;
   }
-  .peopleLightboxNav{
-    gap: 8px;
+  .peopleLightboxActions{
+    flex-wrap:wrap;
   }
+  .peopleLightboxStage{
+    padding: 6px 46px;
+  }
+  .peopleLightboxStage .peopleLightboxBtn{
+    width: 44px;
+    height: 44px;
+    font-size:16px;
+  }
+  .peopleLightboxBtn.peopleLightboxPrev{ left: 2px; }
+  .peopleLightboxBtn.peopleLightboxNext{ right: 2px; }
+  .peopleLightboxStrip{ padding-bottom: 10px; }
+  .peopleLightboxThumb{ width: 52px; height: 52px; }
 }
 
 `;
@@ -3098,18 +3204,22 @@ function _ensurePeopleLightbox(){
 
   const el = document.createElement('div');
   el.className = 'peopleLightbox';
-  el.innerHTML = `
+  el.innerHTML = 
+`
     <div class="peopleLightboxInner" role="dialog" aria-modal="true" aria-label="Photo viewer">
       <div class="peopleLightboxTop">
-        <div id="peopleLightboxCounter">Photo</div>
-        <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close</button>
+        <div class="peopleLightboxActions">
+          <div id="peopleLightboxCounter">1 / 1</div>
+          <button type="button" class="peopleLightboxBtn" data-peoplelb="close">Close</button>
+        </div>
       </div>
       <div class="peopleLightboxStage">
+        <button type="button" class="peopleLightboxBtn peopleLightboxPrev" data-peoplelb="prev" aria-label="Previous photo">&#8592;</button>
         <img id="peopleLightboxImg" alt="" />
+        <button type="button" class="peopleLightboxBtn peopleLightboxNext" data-peoplelb="next" aria-label="Next photo">&#8594;</button>
       </div>
-      <div class="peopleLightboxNav">
-          <button type="button" class="peopleLightboxBtn" data-peoplelb="prev">Prev</button>
-          <button type="button" class="peopleLightboxBtn" data-peoplelb="next">Next</button>
+      <div class="peopleLightboxStripWrap">
+        <div class="peopleLightboxStrip" id="peopleLightboxStrip"></div>
       </div>
     </div>
   `;
@@ -3117,8 +3227,8 @@ function _ensurePeopleLightbox(){
 
   _peopleLightboxEl = el;
   _peopleLightboxImg = el.querySelector('#peopleLightboxImg');
+  _peopleLightboxEl._strip = el.querySelector('#peopleLightboxStrip');
 
-  // Handle lightbox controls directly on the overlay so they work outside panelRoot.
   el.addEventListener('click', (ev) => {
     const tgt = ev.target;
     if (!tgt) return;
@@ -3131,15 +3241,21 @@ function _ensurePeopleLightbox(){
       if (act === 'close') { _closePeopleLightbox(); return; }
       if (act === 'prev') { _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
       if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+      if (act === 'thumb') {
+        const idx = Number(btn.getAttribute('data-idx') || 0);
+        _peopleLightboxShow(idx);
+        return;
+      }
     }
 
     const img = _peopleLightboxImg;
+    const strip = _peopleLightboxEl ? _peopleLightboxEl._strip : null;
     if (img && (tgt === img || (tgt.closest && tgt.closest('#peopleLightboxImg')))) return;
+    if (strip && (tgt === strip || (tgt.closest && tgt.closest('#peopleLightboxStrip')))) return;
 
     _closePeopleLightbox();
   });
 
-  // Keyboard controls
   window.addEventListener('keydown', (ev) => {
     if (!_peopleLightboxEl || !_peopleLightboxEl.classList.contains('is-open')) return;
     if (ev.key === 'Escape') { ev.preventDefault(); _closePeopleLightbox(); return; }
@@ -3165,8 +3281,20 @@ async function _peopleLightboxShow(nextIndex){
   const item = list[idx] || {};
   const imageKey = _safeTrim(item.imageKey);
   const counter = _peopleLightboxEl.querySelector('#peopleLightboxCounter');
+  const strip = _peopleLightboxEl._strip;
   try { _peopleLightboxImg.removeAttribute('src'); } catch(_) {}
-  if (counter) counter.textContent = `Photo ${idx + 1} / ${list.length}`;
+  if (counter) counter.textContent = (idx + 1) + ' / ' + list.length;
+  if (strip) {
+    try {
+      Array.from(strip.querySelectorAll('.peopleLightboxThumb')).forEach((thumbEl, thumbIdx) => {
+        thumbEl.classList.toggle('active', thumbIdx === idx);
+      });
+      const active = strip.querySelector('.peopleLightboxThumb.active');
+      if (active && active.scrollIntoView) {
+        active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    } catch(_) {}
+  }
   const thumb = _safeTrim(item.thumbUrl);
   const full = await _getFullUrlForImageKey(imageKey, thumb);
   if (full) {
@@ -3179,6 +3307,18 @@ function openPeopleLightbox(list, index){
   _peopleLightboxList = Array.isArray(list) ? list : [];
   _peopleLightboxIndex = Math.max(0, Number(index || 0));
   if (!_peopleLightboxEl) return;
+
+  const strip = _peopleLightboxEl._strip;
+  if (strip) {
+    try {
+      strip.innerHTML = _peopleLightboxList.map((item, idx) => {
+        const thumb = _safeTrim(item && item.thumbUrl);
+        const active = idx === _peopleLightboxIndex ? ' active' : '';
+        return '<img class="peopleLightboxThumb' + active + '" data-peoplelb="thumb" data-idx="' + idx + '" src="' + escapeHtml(thumb) + '" alt="Thumbnail ' + (idx + 1) + '" loading="lazy" decoding="async" />';
+      }).join('');
+    } catch(_) {}
+  }
+
   _peopleLightboxEl.classList.add('is-open');
   try { document.body.style.overflow = 'hidden'; } catch(_) {}
   _peopleLightboxShow(_peopleLightboxIndex);
@@ -3276,6 +3416,16 @@ function openPeopleLightbox(list, index){
       if (act === 'close') { _closePeopleLightbox(); return; }
       if (act === 'prev') { _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
       if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+      if (act === 'thumb') {
+        const idx = Number(btn.getAttribute('data-idx') || 0);
+        _peopleLightboxShow(idx);
+        return;
+      }
+      if (act === 'thumb') {
+        const idx = Number(btn.getAttribute('data-idx') || 0);
+        _peopleLightboxShow(idx);
+        return;
+      }
     }
 
     // Stats collapsible toggle
