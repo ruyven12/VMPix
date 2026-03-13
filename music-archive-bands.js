@@ -1790,51 +1790,16 @@ color: rgba(226,232,240,0.92);
         position: relative;
       }
       .lightboxTopbar{
-        display:grid;
-        grid-template-columns:minmax(0, 1fr) auto;
-        align-items:start;
-        gap: 16px;
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap: 10px;
         padding: 14px 14px 8px;
-      }
-      .lightboxMeta{
-        display:flex;
-        flex-direction:column;
-        gap: 8px;
-        min-width:0;
-      }
-      .lightboxTitle{
-        display:flex;
-        flex-direction:column;
-        gap: 4px;
-        min-width:0;
-      }
-      .lightboxTitle .line1{
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .06em;
-        opacity: .92;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .lightboxTitle .line2{
-        font-size: 11px;
-        opacity: .70;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .lightboxHint{
-        font-size: 10px;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: rgba(226,232,240,0.60);
       }
       .lightboxActions{
         display:flex;
         align-items:center;
         gap: 10px;
-        justify-self:end;
       }
       .lightboxCounter{
         font-size: 11px;
@@ -1994,8 +1959,8 @@ color: rgba(226,232,240,0.92);
 
       @media (max-width: 620px){
         .lightboxShell{ height: 94vh; }
-        .lightboxTopbar{ grid-template-columns: 1fr; gap:10px; }
-        .lightboxActions{ justify-self:start; flex-wrap:wrap; }
+        .lightboxTopbar{ justify-content:flex-start; flex-wrap:wrap; }
+        .lightboxActions{ flex-wrap:wrap; }
         .lightboxStage{ padding: 6px 46px; }
         .lightboxNavBtn{ width: 44px; height: 44px; font-size:16px; }
         .lightboxNavPrev{ left: 2px; }
@@ -4007,29 +3972,17 @@ function ensureLightbox() {
 
     const topbar = document.createElement("div");
     topbar.className = "lightboxTopbar";
-
     const meta = document.createElement("div");
-    meta.className = "lightboxMeta";
-
-    const titleBox = document.createElement("div");
-    titleBox.className = "lightboxTitle";
-
+    meta.style.display = "none";
     const line1 = document.createElement("div");
-    line1.className = "line1";
-    line1.textContent = "";
-
     const line2 = document.createElement("div");
-    line2.className = "line2";
-    line2.textContent = "";
-
     const hint = document.createElement("div");
-    hint.className = "lightboxHint";
-    hint.textContent = "Arrow keys navigate • Esc closes";
-
-    titleBox.appendChild(line1);
-    titleBox.appendChild(line2);
-    meta.appendChild(titleBox);
+    meta.appendChild(line1);
+    meta.appendChild(line2);
     meta.appendChild(hint);
+
+
+    hint.textContent = "Arrow keys navigate • Esc closes";
 
     const actions = document.createElement("div");
     actions.className = "lightboxActions";
