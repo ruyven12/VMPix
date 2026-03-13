@@ -1302,6 +1302,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             align-items:flex-start;
             justify-content:space-between;
             gap:14px;
+            padding:4px 6px 0 8px;
           }
           .musicStatsChipMeta{
             display:flex;
