@@ -3831,7 +3831,7 @@ const pollDelayMs = 2000;
     return `
       <div id="people-root" style="width:100%;">
         <div class="peopleHeaderTop">
-          <div class="peopleHeaderTitle">The Individual Index</div>
+          
           <div id="peopleStatus" class="peopleHeaderStatus"></div>
           ${SHOW_REBUILD_BUTTON ? `
             <button type="button" id="peopleRebuildBtn"
