@@ -3864,9 +3864,9 @@ const pollDelayMs = 2000;
           ` : ''}
         </div>
         <div class="peopleArchiveIntro" aria-label="People Archive Introduction">
-          <div class="peopleArchiveIntroTitle">The Archive - Filter By Band</div>
+          <div class="peopleArchiveIntroTitle">The Archive - Filter By People</div>
           <div class="peopleArchiveIntroDivider" aria-hidden="true"></div>
-          <div class="peopleArchiveIntroBody">Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based, Regional being New England-based, National being USA-based, and International being around the world. From there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not touched yet.</div>
+          <div class="peopleArchiveIntroBody">Welcome to the Archives, sorted by individual people. This section reads off who is tagged in individual photos and brings just those tagged specific shots to view. It is split up by first-name lettering, so make your selection below:</div>
         </div>
         <!-- A-Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
