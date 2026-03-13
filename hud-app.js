@@ -88,8 +88,8 @@
         }
 
         .hudIntroText{
-          font-size: clamp(11px, 2.9vw, 13px) !important;
-          padding: 6px 10px !important;
+          font-size: clamp(10px, 2.55vw, 12px) !important;
+          padding: 6px 9px !important;
           max-width: calc(50vw - 22px);
           transform: none !important;
         }
@@ -110,9 +110,13 @@
 
       @media (max-width: 520px){
         .hudIntroText{
-          font-size: 11px !important;
-          padding: 6px 9px !important;
+          font-size: clamp(9px, 2.8vw, 10.5px) !important;
+          padding: 5px 8px !important;
           max-width: calc(50vw - 18px);
+        }
+
+        .hudIntroType{
+          letter-spacing: .05em !important;
         }
       }
     `;

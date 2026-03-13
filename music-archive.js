@@ -1777,10 +1777,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
             }
 
             .archiveModeBtn{
-              min-width: clamp(92px, 28vw, 132px);
-              padding: 8px 10px;
-              font-size: clamp(11px, 2.8vw, 13px);
-              letter-spacing: .08em;
+              min-width: clamp(88px, 26vw, 126px);
+              padding: 8px 9px;
+              font-size: clamp(10px, 2.45vw, 12px);
+              letter-spacing: .06em;
             }
           }
 
@@ -1793,9 +1793,9 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
             .archiveModeBtn{
               min-width: calc(50% - 6px);
-              padding: 8px 8px;
-              font-size: 11px;
-              letter-spacing: .05em;
+              padding: 7px 7px;
+              font-size: clamp(9px, 2.9vw, 10.5px);
+              letter-spacing: .03em;
             }
           }
 

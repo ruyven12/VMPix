@@ -284,7 +284,34 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
         max-height: 100%;
         min-height: 0;
         box-sizing: border-box;
+        position: relative;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,108,140,0.68) rgba(18,12,26,0.28);
         padding-bottom: 28px; /* prevents last line from feeling clipped */
+      }
+      #musicContentPanel::-webkit-scrollbar{
+        width: 8px;
+      }
+      #musicContentPanel::-webkit-scrollbar-track{
+        background: rgba(18,12,26,0.26);
+        border-radius: 999px;
+      }
+      #musicContentPanel::-webkit-scrollbar-thumb{
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255,130,154,0.92), rgba(255,76,120,0.72));
+        box-shadow: 0 0 10px rgba(255,90,130,0.30);
+      }
+      #musicContentPanel::after{
+        content:"";
+        position: sticky;
+        left: 0;
+        bottom: 0;
+        display: block;
+        width: 100%;
+        height: 26px;
+        margin-top: -26px;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(7,9,18,0), rgba(7,9,18,0.72) 78%, rgba(7,9,18,0.92));
       }
 
 
@@ -2327,6 +2354,18 @@ color: rgba(226,232,240,0.92);
           justify-content: center;
           text-align: center;
         }
+        .band-name{
+          font-size: 13px;
+          line-height: 1.08;
+        }
+        .band-count,
+        .band-meta{
+          font-size: 11px;
+        }
+        .pill{
+          font-size: 10px;
+          padding: 3px 8px;
+        }
         .selectToolbar{
           gap: 8px;
           padding: 0 4px;
@@ -2355,6 +2394,19 @@ color: rgba(226,232,240,0.92);
         }
         .albumKeywordChip{
           width: 100%;
+        }
+        .band-name{
+          font-size: 12px;
+        }
+        .band-count,
+        .band-meta{
+          font-size: 10px;
+          letter-spacing: .04em;
+        }
+        .band-logo{
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
         }
       }
 
