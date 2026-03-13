@@ -1299,6 +1299,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-size:11px;
             font-weight:800;
             letter-spacing:.16em;
+			text-transform: none;
             color:rgba(226,232,240,0.78);
           }
           .musicStatsChipValue{
