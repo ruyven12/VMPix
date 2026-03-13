@@ -874,3 +874,5 @@
 
   window.WrestlingArchive = { render, onEnter, destroy, setMode };
 })();
+
+

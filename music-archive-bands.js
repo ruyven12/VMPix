@@ -5849,7 +5849,7 @@ const grid = document.createElement("div");
     if (!albumKey) {
       const msg = document.createElement("div");
       msg.style.opacity = "0.85";
-      msg.textContent = "Album key missing; can’t load photos.";
+      msg.textContent = "Album key missing; can't load photos.";
       grid.appendChild(msg);
       return;
     }
@@ -6074,6 +6074,8 @@ try {
 
   window.MusicArchiveBands = { render, onMount };
 })();
+
+
 
 
 
