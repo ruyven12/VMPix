@@ -537,6 +537,8 @@ function bindArchiveModeToggle(activeMode) {
 
 
 const MUSIC_STATS_SHOTS_FALLBACK = 61289;
+const MUSIC_STATS_NOT_UPGRADED_FALLBACK = 22506;
+const MUSIC_STATS_ON_SITE_FALLBACK = 36342;
 let _musicStatsPromise = null;
 
 function getMusicArchiveApiBase() {
@@ -673,6 +675,9 @@ async function fetchMusicStatsData(forceFresh) {
       return MUSIC_STATS_SHOTS_FALLBACK;
     })();
 
+    const shotNotUpgraded = MUSIC_STATS_NOT_UPGRADED_FALLBACK;
+    const shotsOnSite = MUSIC_STATS_ON_SITE_FALLBACK;
+    const shotsOnSitePct = totalShots > 0 ? (shotsOnSite / totalShots) * 100 : 0;
     const progressPct = plannedSets > 0 ? (archivedSets / plannedSets) * 100 : (totalBands > 0 ? (fullyUpgraded / totalBands) * 100 : 0);
 
     return {
@@ -685,6 +690,9 @@ async function fetchMusicStatsData(forceFresh) {
       notWorkedYet,
       archivedSets,
       plannedSets,
+      shotNotUpgraded,
+      shotsOnSite,
+      shotsOnSitePct,
       progressPct,
       generatedAt,
       generatedAtLabel: formatMusicGeneratedAt(generatedAt)
@@ -701,6 +709,9 @@ async function fetchMusicStatsData(forceFresh) {
       notWorkedYet: 0,
       archivedSets: 0,
       plannedSets: 0,
+      shotNotUpgraded: MUSIC_STATS_NOT_UPGRADED_FALLBACK,
+      shotsOnSite: MUSIC_STATS_ON_SITE_FALLBACK,
+      shotsOnSitePct: MUSIC_STATS_SHOTS_FALLBACK > 0 ? (MUSIC_STATS_ON_SITE_FALLBACK / MUSIC_STATS_SHOTS_FALLBACK) * 100 : 0,
       progressPct: 0,
       generatedAt: '',
       generatedAtLabel: 'Unavailable'
@@ -760,10 +771,13 @@ async function mountMusicStatsPanel(panel) {
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, notWorkedPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
         '</div>' +
-        '<div class="musicStatsLowerHeading">People Stats</div>' +
-        '<div class="musicStatsPeopleRow">' +
-          '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.albumCount) + '</div><div class="musicStatsLabel">Albums</div></div>' +
-          '<div class="musicStatsCard"><div class="musicStatsValue">' + formatMusicStatNumber(stats.peopleCount) + '</div><div class="musicStatsLabel">People</div></div>' +
+        '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+        '<div class="musicStatsLowerHeading">Individual Photo Stats</div>' +
+        '<div class="musicStatsPhotoGrid">' +
+          '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsShotLabel">Total Shots</div></div>' +
+          '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotNotUpgraded) + '</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
+          '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotsOnSite) + '</div><div class="musicStatsShotLabel">On Site</div></div>' +
+          '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">On Site</div></div>' +
         '</div>' +
         '<div class="musicStatsFooter">' +
           '<div class="musicStatsFooterRow">' +
@@ -1132,12 +1146,21 @@ if (!document.getElementById('musicContentWipeStyles')) {
             opacity:.72;
             filter: blur(.2px);
           }
+          .musicStatsSeparatorInner{
+            margin:16px 5px 14px;
+          }
           .musicStatsTop{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap:12px;
           }
           .musicStatsPeopleRow{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap:12px;
+            margin:0 0 14px;
+          }
+          .musicStatsPhotoGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap:12px;
@@ -1360,6 +1383,63 @@ if (!document.getElementById('musicContentWipeStyles')) {
             background:linear-gradient(180deg, rgba(15,23,42,0.86), rgba(15,23,42,0.60));
             padding:14px 16px 16px;
           }
+          .musicStatsShotCard{
+            position:relative;
+            border-radius:16px;
+            border:1px solid rgba(148,163,184,0.20);
+            background:
+              linear-gradient(180deg, rgba(20,25,42,0.90), rgba(15,20,36,0.66)),
+              linear-gradient(90deg, rgba(255,255,255,0.03), transparent 48%);
+            box-shadow:
+              inset 0 0 0 1px rgba(255,255,255,0.03),
+              inset 0 10px 20px rgba(255,255,255,0.015),
+              0 0 18px rgba(0,0,0,0.16);
+            min-height:70px;
+            padding:14px 16px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            overflow:hidden;
+          }
+          .musicStatsShotCard::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            border-radius:inherit;
+            pointer-events:none;
+            background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent 38%, rgba(255,255,255,0.02));
+            opacity:.55;
+          }
+          .musicStatsShotCardPercent{
+            border-color: rgba(244,63,94,0.24);
+            box-shadow:
+              inset 0 0 0 1px rgba(253,164,175,0.04),
+              inset 0 10px 20px rgba(255,255,255,0.015),
+              0 0 18px rgba(244,63,94,0.08);
+          }
+          .musicStatsShotValue{
+            position:relative;
+            z-index:1;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:30px;
+            font-weight:900;
+            line-height:1;
+            letter-spacing:.03em;
+            color:rgba(244,246,255,0.97);
+          }
+          .musicStatsShotCardPercent .musicStatsShotValue{
+            color:#fda4af;
+          }
+          .musicStatsShotLabel{
+            position:relative;
+            z-index:1;
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:.08em;
+            color:rgba(226,232,240,0.76);
+            text-transform:none;
+          }
           .musicStatsFooterRow{
             display:grid;
             grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto;
@@ -1425,12 +1505,14 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsSeparator{ margin:15px 13px 17px; }
             .musicStatsTopLabels,
             .musicStatsPeopleRow,
-            .musicStatsGrid{ grid-template-columns: 1fr; }
+            .musicStatsGrid,
+            .musicStatsPhotoGrid{ grid-template-columns: 1fr; }
             .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
             .musicStatsChipTotal{ font-size:13px; }
+            .musicStatsShotValue{ font-size:26px; }
             .musicStatsFooterPct{ font-size:24px; }
           }
 
