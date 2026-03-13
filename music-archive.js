@@ -766,7 +766,6 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
         '<div class="musicStatsLowerHeading">Individual Photo Stats</div>' +
         '<div class="musicStatsPhotoGrid">' +
-          '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.totalShots) + '</div><div class="musicStatsShotLabel">Total Shots</div></div>' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotNotUpgraded) + '</div><div class="musicStatsShotLabel">Not Upgraded</div></div>' +
           '<div class="musicStatsShotCard"><div class="musicStatsShotValue">' + formatMusicStatNumber(stats.shotsOnSite) + '</div><div class="musicStatsShotLabel">On Site</div></div>' +
           '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">On Site</div></div>' +
@@ -1154,7 +1153,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
           }
           .musicStatsPhotoGrid{
             display:grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap:12px;
             margin:0 0 14px;
           }
