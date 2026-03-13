@@ -49,6 +49,77 @@
     el.style.setProperty('--intro-chars', n);
   });
 
+  function ensureHudResponsiveNavStyles(){
+    if (document.getElementById('hudResponsiveNavStyles')) return;
+
+    const s = document.createElement('style');
+    s.id = 'hudResponsiveNavStyles';
+    s.textContent = `
+      html{
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+
+      @media (max-width: 760px){
+        .hudContent{
+          grid-template-rows: auto auto minmax(0, 1fr) !important;
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+        }
+
+        .hudTopbar{
+          padding: 10px 12px !important;
+        }
+
+        .hudBrandImg{
+          height: 58px !important;
+          max-width: min(72vw, 240px) !important;
+          object-fit: contain;
+        }
+
+        .hudContent > .hudStub:not(.hudMain){
+          display: flex !important;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          gap: 8px 10px;
+          padding: 10px 6px 8px !important;
+          overflow: visible !important;
+        }
+
+        .hudIntroText{
+          font-size: clamp(11px, 2.9vw, 13px) !important;
+          padding: 6px 10px !important;
+          max-width: calc(50vw - 22px);
+          transform: none !important;
+        }
+
+        .hudIntroType{
+          width: auto !important;
+          overflow: visible !important;
+          animation: none !important;
+          white-space: nowrap;
+          letter-spacing: .08em !important;
+        }
+
+        .hudStub.hudMain{
+          min-height: 0 !important;
+          margin-top: 8px !important;
+        }
+      }
+
+      @media (max-width: 520px){
+        .hudIntroText{
+          font-size: 11px !important;
+          padding: 6px 9px !important;
+          max-width: calc(50vw - 18px);
+        }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  ensureHudResponsiveNavStyles();
+
   
   // =============================
   // NAV PILL HI-TECH INTERACTION

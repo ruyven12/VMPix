@@ -1764,6 +1764,41 @@ if (!document.getElementById('musicContentWipeStyles')) {
               0 0 26px rgba(255,90,120,0.75);
           }
 
+          @media (max-width: 760px){
+            .archiveHeaderWrap{
+              margin-top: 8px;
+            }
+
+            .archiveModeToggle{
+              width: min(100%, 680px);
+              gap: 8px;
+              padding: 8px;
+              border-radius: 28px;
+            }
+
+            .archiveModeBtn{
+              min-width: clamp(92px, 28vw, 132px);
+              padding: 8px 10px;
+              font-size: clamp(11px, 2.8vw, 13px);
+              letter-spacing: .08em;
+            }
+          }
+
+          @media (max-width: 520px){
+            .archiveModeToggle{
+              gap: 6px;
+              padding: 7px;
+              border-radius: 26px;
+            }
+
+            .archiveModeBtn{
+              min-width: calc(50% - 6px);
+              padding: 8px 8px;
+              font-size: 11px;
+              letter-spacing: .05em;
+            }
+          }
+
           /* -------------------------------------------------- */
 
           @keyframes musicContentWipeOut{

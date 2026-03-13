@@ -2296,6 +2296,68 @@ color: rgba(226,232,240,0.92);
         .albumRowMeta{ width: 100%; }
       }
 
+      @media (max-width: 760px){
+        .photosTop{
+          justify-content: center;
+          gap: 12px;
+        }
+        .backToBandsBtn,
+        .backToAlbumsBtn,
+        .selectBtn{
+          font-size: 11px !important;
+          letter-spacing: .06em !important;
+          padding: 7px 10px !important;
+        }
+        .albumKeywordBox{
+          padding: 12px 10px;
+          border-radius: 16px;
+        }
+        .albumKeywordTitle{
+          font-size: clamp(16px, 4.8vw, 22px);
+          line-height: 1.2;
+          letter-spacing: .06em;
+        }
+        .albumKeywordChips{
+          gap: 6px;
+        }
+        .albumKeywordChip{
+          font-size: 11px;
+          padding: 6px 9px;
+          white-space: normal;
+          justify-content: center;
+          text-align: center;
+        }
+        .selectToolbar{
+          gap: 8px;
+          padding: 0 4px;
+        }
+        .selectHint{
+          font-size: 10px;
+          letter-spacing: .08em;
+        }
+      }
+
+      @media (max-width: 520px){
+        .photosWrap{
+          padding-bottom: 22px;
+        }
+        .photosTop{
+          flex-direction: column;
+          align-items: center;
+        }
+        .albumKeywordBox{
+          width: min(100%, 92vw);
+          padding: 12px 9px;
+        }
+        .albumKeywordTitle{
+          font-size: 15px;
+          letter-spacing: .04em;
+        }
+        .albumKeywordChip{
+          width: 100%;
+        }
+      }
+
       /* ===== Initial load: hide crumbs + legend until data is ready ===== */
       .bandsWrap.is-loading #crumbs{ display:none !important; }
       .bandsWrap.is-loading #status-legend{ display:none !important; }
