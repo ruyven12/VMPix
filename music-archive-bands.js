@@ -4662,104 +4662,11 @@ function animateReimagingStats(overallEl){
         document.getElementById("bands-overall");
       if (!overallEl) return;
 
-      const list = getAllBandsOverall();
-      let good = 0, partial = 0, none = 0;
-
-      (list || []).forEach((b) => {
-        const cls = setsStateClass(b);
-        if (cls === "setsGood") good++;
-        else if (cls === "setsPartial") partial++;
-        else none++;
-      });
-
-      const total = (list || []).length;
-
-      const pct = (n) => {
-        if (!total) return "0.0%";
-        const p = (n * 100) / total;
-        return `${p.toFixed(1)}%`;
-      };
-
       overallEl.innerHTML = `
-  <button class="reimagingStatsHdr" type="button" aria-expanded="false" aria-controls="reimagingStatsBody">Archive Statistics<span class="chev">▾</span></button>
-
-  <div class="reimagingStatsBody" id="reimagingStatsBody">
   <div class="reimagingStatsTitle">Archive Statistics</div>
   <div class="reimagingStatsSeparator" aria-hidden="true"></div>
   <div class="reimagingStatsIntro">Welcome to the Stats section of the Music side. This page serves as a data housing of the entire archive, giving you an in-depth look into individual statistics for it. More to come soon!</div>
-  <div class="reimagingStatsSeparator" aria-hidden="true"></div>
-
-  <div class="overallStatsGrid">
-    <div class="statsCol">
-      <div class="statsRow" style="text-align:center">${total}   Total Bands</div>
-	  <div class="statsRow good" style="text-align:center">${good}   Fully Upgraded</div>
-	  <div class="statsRow partial" style="text-align:center">${partial}   In Progress</div>
-	  <div class="statsRow none" style="text-align:center">${none}   Not Worked Yet</div>
-	</div>
-	<div class="statsCol">
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-total-files">${Number(FIXMETA_STATIC.totalFilesNum||0).toLocaleString()}</strong>  *  Total Shots</div>
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-not-upgraded">${Number(FIXMETA_STATIC.notUpgradedNum||0).toLocaleString()}</strong>  *  Not Upgraded</div>
-		  <div class="statsRow" style="text-align:center"><strong id="fixmeta-on-site">${Number(FIXMETA_STATIC.onSiteNum||0).toLocaleString()}</strong>  *  On Site</div>
-		  <div class="statsRow statsPctRow" style="text-align:center"><span class="pctWrap"><span class="pctRing" aria-hidden="true"><svg viewBox="0 0 40 40" focusable="false" aria-hidden="true"><circle class="pctBg" cx="20" cy="20" r="14"></circle><circle class="pctFg" cx="20" cy="20" r="14"></circle></svg></span><span class="pctVal"><strong id="fixmeta-percent">${(typeof FIXMETA_STATIC.pctOnSiteNum === "number" ? FIXMETA_STATIC.pctOnSiteNum.toFixed(2) : "0.00")}</strong>%</span></span><span class="pctLabel"></span></div>
-	</div>
-   </div>
-
-<div class="overallStatsBar" aria-hidden="true">
-  <div class="seg good" data-pct="${(total ? (good*100/total) : 0)}"></div>
-  <div class="seg partial" data-pct="${(total ? (partial*100/total) : 0)}"></div>
-  <div class="seg none" data-pct="${(total ? (none*100/total) : 0)}"></div>
-</div>
-
-</div>
 `;
-// Collapsible: header always visible; body expands on click.
-      try{
-        overallEl.classList.remove("is-open");
-        const hdr = overallEl.querySelector(".reimagingStatsHdr");
-        const body = overallEl.querySelector(".reimagingStatsBody");
-        if (hdr && body){
-          // start collapsed
-          hdr.setAttribute("aria-expanded", "false");
-          body.style.maxHeight = "0px";
-
-          const open = () => {
-            overallEl.classList.add("is-open");
-            hdr.setAttribute("aria-expanded", "true");
-
-            // measure + expand
-            const h = body.scrollHeight || 0;
-            body.style.maxHeight = h ? (h + "px") : "1200px";
-
-            // replay the reveal animation each time you expand
-            try{
-              if (overallEl.dataset) overallEl.dataset.reimagingAnimRan = "0";
-            } catch(_){}
-            animateReimagingStats(overallEl);
-          };
-
-          const close = () => {
-            overallEl.classList.remove("is-open");
-            hdr.setAttribute("aria-expanded", "false");
-            body.style.maxHeight = "0px";
-          };
-
-          hdr.addEventListener("click", () => {
-            const isOpen = overallEl.classList.contains("is-open");
-            if (isOpen) close();
-            else open();
-          });
-
-          // If layout changes (e.g., responsive), keep max-height in sync while open
-          window.requestAnimationFrame(() => {
-            try{
-              if (overallEl.classList.contains("is-open")){
-                const hh = body.scrollHeight || 0;
-                if (hh) body.style.maxHeight = hh + "px";
-              }
-            } catch(_){}
-          });
-        }
-      } catch(_){}
 
     } catch(_){}
   }
