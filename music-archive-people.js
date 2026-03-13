@@ -3840,6 +3840,15 @@ const pollDelayMs = 2000;
             </button>
           ` : ''}
         </div>
+        <div class="peopleArchiveIntro" aria-label="People Archive Introduction">
+          <div class="peopleArchiveIntroTitle">The Archive - Filter By Band</div>
+          <div class="peopleArchiveIntroBody">
+            Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based,
+            Regional being New England-based, National being USA-based, and International being around the world. From
+            there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not
+            touched yet.
+          </div>
+        </div>
         <!-- A-Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
           <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
