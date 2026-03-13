@@ -748,15 +748,15 @@ async function mountMusicStatsPanel(panel) {
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
           '<div class="musicStatsChip good musicStatsChipMeter">' +
-            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + fullyPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '<span class="musicStatsChipTotal"></span></div><div class="musicStatsChipPct">' + fullyPct.toFixed(1) + '%</div></div></div>' +
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, fullyPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
           '<div class="musicStatsChip partial musicStatsChipMeter">' +
-            '<div class="musicStatsChipTop"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + inProgressPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '<span class="musicStatsChipTotal"></span></div><div class="musicStatsChipPct">' + inProgressPct.toFixed(1) + '%</div></div></div>' +
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, inProgressPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
           '<div class="musicStatsChip none musicStatsChipMeter">' +
-            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + notWorkedPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '<span class="musicStatsChipTotal"></span></div><div class="musicStatsChipPct">' + notWorkedPct.toFixed(1) + '%</div></div></div>' +
             '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, notWorkedPct)).toFixed(2) + '%"></div></div>' +
           '</div>' +
         '</div>' +
