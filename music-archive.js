@@ -755,6 +755,7 @@ async function mountMusicStatsPanel(panel) {
     const peoplePctLabel = Number.isFinite(peopleIndexPct) ? peopleIndexPct.toFixed(2) + '%' : '0.00%';
     host.innerHTML =
       '<div class="musicStatsSection musicStatsSectionBody">' +
+        '<div class="musicStatsMainTitle">Archive Statistics</div>' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
           '<div class="musicStatsChip good musicStatsChipMeter">' +
@@ -1234,6 +1235,16 @@ if (!document.getElementById('musicContentWipeStyles')) {
             justify-self:center;
             width:max-content;
           }
+          .musicStatsMainTitle{
+            margin:0 0 14px;
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:20px;
+            font-weight:900;
+            letter-spacing:.14em;
+            text-transform:uppercase;
+            color:rgba(233,236,245,0.94);
+          }
           .musicStatsLowerHeading{
             margin:14px 0 10px;
             text-align:center;
@@ -1557,6 +1568,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsPhotoGrid,
             .musicStatsPeopleGrid{ grid-template-columns: 1fr; }
             .musicStatsTop{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .musicStatsMainTitle{ font-size:18px; }
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
