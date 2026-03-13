@@ -701,214 +701,6 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
         }
       }
 
-      /* ===== Bands detail surface consistency sweep ===== */
-      .bandSurfaceMessage{
-        width: 100%;
-        padding: 14px 16px;
-        border-radius: 16px;
-        text-align: center;
-        color: rgba(226,232,240,0.82);
-        background: linear-gradient(180deg, rgba(10,16,30,0.76), rgba(8,12,22,0.62));
-        border: 1px solid rgba(118,164,255,0.14);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(0,0,0,0.28);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-sizing: border-box;
-      }
-      .albumKeywordBox{
-        background:
-          radial-gradient(circle at top center, rgba(77,160,255,0.16), transparent 58%),
-          linear-gradient(180deg, rgba(8,14,30,0.86), rgba(6,10,22,0.72));
-        border: 1px solid rgba(106,168,255,0.18);
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.07),
-          0 16px 36px rgba(0,0,0,0.34);
-      }
-      .albumKeywordTitle{
-        color: rgba(244,247,255,0.96);
-        text-shadow: 0 1px 14px rgba(69,145,255,0.12);
-      }
-      .albumKeywordLabel{
-        color: rgba(198,214,236,0.78);
-      }
-      .albumKeywordChip{
-        background: rgba(8,14,28,0.54);
-        border-color: rgba(106,168,255,0.20);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-      }
-      .albumKeywordChip:hover{
-        border-color: rgba(255,90,120,0.44);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 20px rgba(255,90,120,0.10);
-      }
-      .albumKeywordEmpty{
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 14px;
-        text-align: center;
-        background: rgba(255,255,255,0.04);
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
-        color: rgba(226,232,240,0.72);
-      }
-      .alsoModalOverlay{
-        position: fixed;
-        inset: 0;
-        z-index: 12000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(2,6,16,0.78);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-      }
-      .alsoModal{
-        width: min(860px, 100%);
-        max-height: min(86vh, 860px);
-        overflow: hidden;
-        border-radius: 24px;
-        background: linear-gradient(180deg, rgba(10,14,28,0.96), rgba(8,12,22,0.90));
-        border: 1px solid rgba(255,90,120,0.24);
-        box-shadow: 0 22px 70px rgba(0,0,0,0.48), 0 0 0 1px rgba(255,255,255,0.04) inset;
-        display: flex;
-        flex-direction: column;
-      }
-      .alsoModalHeader{
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 18px 20px 14px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        background: linear-gradient(180deg, rgba(255,90,120,0.12), rgba(255,90,120,0.04));
-      }
-      .alsoModalHeaderInner{
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .alsoModalName{
-        font-family: "Orbitron", system-ui, sans-serif;
-        font-size: 24px;
-        font-weight: 900;
-        letter-spacing: .02em;
-        color: rgba(244,247,255,0.97);
-      }
-      .alsoModalTitle{
-        font-family: "Orbitron", system-ui, sans-serif;
-        font-size: 11px;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: rgba(198,214,236,0.78);
-      }
-      .alsoModalMeta,
-      .alsoModalBody{
-        font-size: 12px;
-        letter-spacing: .08em;
-        color: rgba(226,232,240,0.74);
-      }
-      .alsoModalBody{
-        padding: 12px 20px 0;
-      }
-      .alsoModalClose{
-        flex: 0 0 auto;
-        padding: 8px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: rgba(10,14,24,0.62);
-        color: rgba(244,247,255,0.92);
-        cursor: pointer;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-      }
-      .alsoModalClose:hover{
-        border-color: rgba(255,90,120,0.42);
-      }
-      .alsoModalList{
-        padding: 14px 20px 20px;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .alsoModalGroup{
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .alsoModalGroupHdr{
-        font-family: "Orbitron", system-ui, sans-serif;
-        font-size: 12px;
-        font-weight: 900;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: rgba(255,170,194,0.88);
-      }
-      .alsoModalItem{
-        border-radius: 18px;
-        padding: 12px 14px;
-        background: linear-gradient(180deg, rgba(12,18,32,0.88), rgba(8,12,22,0.76));
-        border: 1px solid rgba(106,168,255,0.16);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 28px rgba(0,0,0,0.28);
-        cursor: pointer;
-        transition: transform 140ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-      }
-      .alsoModalItem:hover{
-        transform: translateY(-1px);
-        border-color: rgba(255,90,120,0.34);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px rgba(0,0,0,0.34);
-        filter: brightness(1.03);
-      }
-      .alsoModalItemRow{
-        display: grid;
-        grid-template-columns: 72px minmax(0, 1fr);
-        gap: 14px;
-        align-items: center;
-      }
-      .alsoModalItemDate{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .alsoModalPosterIcon,
-      .alsoModalPosterFallback{
-        width: 64px;
-        height: 64px;
-        border-radius: 14px;
-        display: block;
-        object-fit: cover;
-        background: radial-gradient(circle at top center, rgba(77,160,255,0.18), rgba(8,12,22,0.92));
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 10px 20px rgba(0,0,0,0.26);
-      }
-      .alsoModalItemMain{
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .alsoModalItemTitle{
-        font-family: "Orbitron", system-ui, sans-serif;
-        font-size: 17px;
-        font-weight: 900;
-        color: rgba(244,247,255,0.96);
-        line-height: 1.2;
-      }
-      .alsoModalItemSub{
-        font-size: 12px;
-        letter-spacing: .08em;
-        color: rgba(198,214,236,0.74);
-      }
-      @media (max-width: 640px){
-        .alsoModalOverlay{ padding: 14px; }
-        .alsoModal{ max-height: 90vh; border-radius: 20px; }
-        .alsoModalHeader{ padding: 16px 16px 12px; flex-direction: column; }
-        .alsoModalClose{ align-self: flex-start; }
-        .alsoModalBody{ padding: 10px 16px 0; }
-        .alsoModalList{ padding: 12px 16px 16px; }
-        .alsoModalItemRow{ grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
-        .alsoModalPosterIcon,
-        .alsoModalPosterFallback{ width: 56px; height: 56px; border-radius: 12px; }
-        .alsoModalItemTitle{ font-size: 15px; }
-      }
       /* ===== Initial load: hide crumbs + legend until data is ready ===== */
       .bandsWrap.is-loading #crumbs{ display:none !important; }
       .bandsWrap.is-loading #status-legend{ display:none !important; }
@@ -2112,7 +1904,7 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
 
     nameEl.textContent = personName;
     if (metaEl) metaEl.textContent = "";
-    bodyEl.textContent = "Searching albums...";
+    bodyEl.textContent = "Searching albums…";
     listEl.innerHTML = "";
     overlay.style.display = "flex";
 
@@ -3795,7 +3587,6 @@ const members = document.createElement("div");
       const folderPath = cleanFolderPath(bandObj?.smug_folder || "");
       if (!folderPath) {
         const msg = document.createElement("div");
-        msg.className = "bandSurfaceMessage";
         msg.style.opacity = "0.85";
         msg.textContent = "No SmugMug folder set for this band in the Bands sheet.";
         albumsGrid.appendChild(msg);
@@ -3804,11 +3595,10 @@ const members = document.createElement("div");
 
       // Fast first reveal: show UI immediately, then load albums async.
       const loading = document.createElement("div");
-      loading.className = "bandSurfaceMessage";
       loading.style.opacity = "0.85";
       loading.style.textAlign = "center";
       loading.style.padding = "10px 0";
-      loading.textContent = "Loading albums...";
+      loading.textContent = "Loading albums…";
       albumsGrid.appendChild(loading);
 
       let albums = [];
@@ -3824,7 +3614,6 @@ const members = document.createElement("div");
 
       if (!albums.length) {
         const msg = document.createElement("div");
-        msg.className = "bandSurfaceMessage";
         msg.style.opacity = "0.85";
         msg.style.textAlign = "center";
         msg.style.padding = "10px 0";
