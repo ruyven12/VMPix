@@ -771,6 +771,8 @@ async function mountMusicStatsPanel(panel) {
           '<div class="musicStatsShotCard musicStatsShotCardPercent"><div class="musicStatsShotValue">' + stats.shotsOnSitePct.toFixed(2) + '%</div><div class="musicStatsShotLabel">Percent Done</div></div>' +
         '</div>' +
         '<div class="musicStatsContextChip"><span class="musicStatsContextValue">' + formatMusicStatNumber(stats.totalShots) + '</span><span class="musicStatsContextLabel">Total Shots</span></div>' +
+        '<div class="musicStatsSeparator musicStatsSeparatorInner" aria-hidden="true"></div>' +
+        '<div class="musicStatsLowerHeading">People Stats</div>' +
         '<div class="musicStatsFooter">' +
           '<div class="musicStatsFooterRow">' +
             '<div class="musicStatsFooterLabel">Indexing Progress</div>' +
