@@ -4663,9 +4663,9 @@ function animateReimagingStats(overallEl){
       if (!overallEl) return;
 
       overallEl.innerHTML = `
-  <div class="reimagingStatsTitle">Archive Statistics</div>
+  <div class="reimagingStatsTitle">The Archive - Filter By Band</div>
   <div class="reimagingStatsSeparator" aria-hidden="true"></div>
-  <div class="reimagingStatsIntro">Welcome to the Stats section of the Music side. This page serves as a data housing of the entire archive, giving you an in-depth look into individual statistics for it. More to come soon!</div>
+  <div class="reimagingStatsIntro">Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based, Regional being New England-based, National being USA-based, and International being around the world. From there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not touched yet.</div>
 `;
 
     } catch(_){}
