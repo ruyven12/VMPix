@@ -471,7 +471,8 @@ function _formatLongDateFromShort(dateText) {
         day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true
       }).format(date);
       return `Last updated: ${formatted}`;
     } catch (_) {
@@ -3777,4 +3778,5 @@ const pollDelayMs = 2000;
 
   window.MusicArchivePeople = { render, onMount, destroy, openPerson };
 })();
+
 

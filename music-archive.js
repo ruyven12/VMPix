@@ -605,7 +605,8 @@ function formatMusicGeneratedAt(value) {
   if (!Number.isFinite(d.getTime())) return raw;
   try {
     return new Intl.DateTimeFormat(undefined, {
-      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+        hour12: true
     }).format(d);
   } catch (_) {
     return d.toLocaleString();
@@ -2510,6 +2511,7 @@ function setMode(mode, opts) {
 
 window.MusicArchive = { render, onEnter, destroy, setMode };
 })();
+
 
 
 
