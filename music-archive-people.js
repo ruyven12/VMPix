@@ -1283,52 +1283,6 @@ function ensurePeopleStyles() {
       pointer-events:none;
     }
 
-
-    .peopleArchiveIntro{
-      width: 100%;
-      margin: 8px auto 18px;
-      padding: 18px 20px 20px;
-      text-align: center;
-    }
-
-    .peopleArchiveIntroTitle{
-      position: relative;
-      z-index: 2;
-      margin: 0 0 12px;
-      font-family: "Orbitron", system-ui, sans-serif;
-      font-size: 14px;
-      line-height: 1.2;
-      font-weight: 900;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: rgba(232,236,244,0.96);
-      text-shadow: 0 0 14px rgba(255,92,138,0.10);
-    }
-
-    .peopleArchiveIntroBody{
-      position: relative;
-      z-index: 2;
-      max-width: 980px;
-      margin: 0 auto;
-      font-size: 13px;
-      line-height: 1.28;
-      color: rgba(190,201,220,0.9);
-    }
-
-    @media (max-width: 720px){
-      .peopleArchiveIntro{
-        padding: 16px 14px 18px;
-      }
-      .peopleArchiveIntroTitle{
-        font-size: 12px;
-        letter-spacing: .1em;
-      }
-      .peopleArchiveIntroBody{
-        font-size: 12px;
-        line-height: 1.25;
-      }
-    }
-
     .peopleStatsHdr{
       width: 100%;
       text-align:center;
@@ -3839,16 +3793,64 @@ const pollDelayMs = 2000;
             </button>
           ` : ''}
         </div>
-        <div class="peopleStatsBlock peopleArchiveIntro" aria-label="People Archive Introduction">
-          <div class="peopleArchiveIntroTitle">The Archive - Filter By Band</div>
-          <div class="peopleArchiveIntroBody">
-            Welcome to the Archives, sorted by Band. The band section is split up into regions - Local being Maine-based,
-            Regional being New England-based, National being USA-based, and International being around the world. From
-            there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not
-            touched yet.
+
+                <!-- People Stats + Top 3 (collapsible) -->
+        <div id="peopleStatsWrap" class="peopleStatsCollapsible is-collapsed" aria-label="People Stats">
+          <div id="peopleStatsToggle" class="peopleStatsHdr peopleStatsHdrToggle" role="button" tabindex="0"
+               aria-expanded="false" aria-controls="peopleStatsContent">
+            <span>Archive System Status</span>
+            <span class="peopleStatsToggleIcon" aria-hidden="true">&#9662;</span>
+          </div>
+
+          <div id="peopleStatsContent" class="peopleStatsContent" style="display:none;">
+            <div class="peopleStatsBlock" aria-label="People Stats dashboard">
+              <div class="peopleStatsDashboard" role="group" aria-label="People stats tiles">
+                <div class="peopleDashCard">
+                  <div id="peopleStatPeople" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">People Tagged</div>
+                </div>
+                <div class="peopleDashCard">
+                  <div id="peopleStatPhotos" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Photos Indexed</div>
+                </div>
+                <div class="peopleDashCard">
+                  <div id="peopleStatAlbums" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Albums</div>
+                </div>
+                <div class="peopleDashCard">
+                  <div id="peopleStatTotalShots" class="peopleStatValue">0</div>
+                  <div class="peopleStatSub">Total Shots</div>
+                </div>
+              </div>
+
+              <div class="peopleDashBottom">
+                <div class="peopleDashProgress">
+                  <div class="peopleDashProgressRow">
+  <div class="peopleDashProgressLabel">Indexing Progress:</div>
+  <div id="peopleStatUpdated" class="peopleDashProgressMeta">Last updated: --</div>
+  <div class="peopleDashProgressRight">
+    <div id="peopleStatPercent" class="peopleDashProgressPct">0.00%</div>
+  </div>
+</div>
+                  <div class="peopleDashBar" aria-hidden="true">
+                    <div id="peopleDashBarFill" class="peopleDashBarFill"></div>
+                  </div>
+                </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Top 3 (display-only; no click/routing) -->
+            <div id="peopleTopStats"></div>
           </div>
         </div>
 
+
+        <!-- A-Z filter (darkens letters with no entries) -->
+        <div class="peopleLetterRow">
+          <div id="peopleLetterNav" class="peopleLetterNav" aria-label="People A to Z filter"></div>
+        </div>
         <div id="peopleFilterMeta" class="peopleFilterMeta"></div>
 
         <div id="peopleList"></div>
