@@ -730,6 +730,10 @@ async function mountMusicStatsPanel(panel) {
     if (!host.isConnected) return;
     const pct = Number(stats.progressPct || 0);
     const pctLabel = Number.isFinite(pct) ? pct.toFixed(2) + '%' : '0.00%';
+    const safeTotalBands = Math.max(0, Number(stats.totalBands || 0));
+    const fullyPct = safeTotalBands > 0 ? (Number(stats.fullyUpgraded || 0) / safeTotalBands) * 100 : 0;
+    const inProgressPct = safeTotalBands > 0 ? (Number(stats.inProgress || 0) / safeTotalBands) * 100 : 0;
+    const notWorkedPct = safeTotalBands > 0 ? (Number(stats.notWorkedYet || 0) / safeTotalBands) * 100 : 0;
     host.innerHTML =       '<div class="musicStatsSection musicStatsSectionTop">' +
         '<div class="musicStatsTopLabels">' +
           '<div class="musicStatsTopHeading is-single">Overall Stats</div>' +
@@ -743,9 +747,18 @@ async function mountMusicStatsPanel(panel) {
       '<div class="musicStatsSection musicStatsSectionBody">' +
         '<div class="musicStatsMidHeading">Band Stats</div>' +
         '<div class="musicStatsGrid">' +
-          '<div class="musicStatsChip good"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '</div></div>' +
-          '<div class="musicStatsChip partial"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '</div></div>' +
-          '<div class="musicStatsChip none"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '</div></div>' +
+          '<div class="musicStatsChip good musicStatsChipMeter">' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Fully Upgraded</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.fullyUpgraded) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + fullyPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, fullyPct)).toFixed(2) + '%"></div></div>' +
+          '</div>' +
+          '<div class="musicStatsChip partial musicStatsChipMeter">' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">In Progress</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.inProgress) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + inProgressPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, inProgressPct)).toFixed(2) + '%"></div></div>' +
+          '</div>' +
+          '<div class="musicStatsChip none musicStatsChipMeter">' +
+            '<div class="musicStatsChipTop"><div class="musicStatsChipName">Not Worked Yet</div><div class="musicStatsChipMeta"><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.notWorkedYet) + '<span class="musicStatsChipTotal"> / ' + formatMusicStatNumber(stats.totalBands) + '</span></div><div class="musicStatsChipPct">' + notWorkedPct.toFixed(1) + '%</div></div></div>' +
+            '<div class="musicStatsChipRail"><div class="musicStatsChipFill" style="width:' + Math.max(0, Math.min(100, notWorkedPct)).toFixed(2) + '%"></div></div>' +
+          '</div>' +
           '<div class="musicStatsChip info"><div class="musicStatsChipName">Archived Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.archivedSets) + '</div></div>' +
           '<div class="musicStatsChip info"><div class="musicStatsChipName">Planned Sets</div><div class="musicStatsChipValue">' + formatMusicStatNumber(stats.plannedSets) + '</div></div>' +
           '<div class="musicStatsChip info"><div class="musicStatsChipName">Completion</div><div class="musicStatsChipValue">' + pctLabel + '</div></div>' +
@@ -1233,6 +1246,54 @@ if (!document.getElementById('musicContentWipeStyles')) {
             justify-content:space-between;
             gap:12px;
           }
+          .musicStatsChipMeter{
+            position:relative;
+            min-height:96px;
+            padding:12px 16px 14px;
+            overflow:hidden;
+            background:
+              radial-gradient(circle at 8% 50%, rgba(255,255,255,0.06), transparent 20%),
+              linear-gradient(180deg, rgba(13,18,36,0.95), rgba(11,17,34,0.74)),
+              linear-gradient(90deg, rgba(255,255,255,0.03), transparent 42%);
+            box-shadow:
+              inset 0 0 0 1px rgba(255,255,255,0.035),
+              inset 0 0 26px rgba(255,255,255,0.02),
+              0 0 18px rgba(0,0,0,0.22);
+          }
+          .musicStatsChipMeter::before{
+            content:"";
+            position:absolute;
+            left:14px;
+            right:14px;
+            top:12px;
+            height:1px;
+            border-radius:999px;
+            background:linear-gradient(90deg, rgba(255,255,255,0.24), rgba(255,255,255,0.04) 18%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 82%, rgba(255,255,255,0.16));
+            opacity:.46;
+            pointer-events:none;
+          }
+          .musicStatsChipMeter::after{
+            content:"";
+            position:absolute;
+            inset:10px;
+            border-radius:12px;
+            border:1px solid color-mix(in srgb, currentColor 42%, transparent);
+            clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+            opacity:.26;
+            pointer-events:none;
+          }
+          .musicStatsChipTop{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+          }
+          .musicStatsChipMeta{
+            display:flex;
+            flex-direction:column;
+            align-items:flex-end;
+            gap:4px;
+          }
           .musicStatsChipName{
             font-size:11px;
             font-weight:800;
@@ -1246,13 +1307,49 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:900;
             line-height:1;
             color:rgba(244,246,255,0.98);
+            text-shadow: 0 0 10px color-mix(in srgb, currentColor 20%, transparent);
+          }
+          .musicStatsChipTotal{
+            font-size:15px;
+            font-weight:800;
+            letter-spacing:.08em;
+            color:rgba(226,232,240,0.76);
+          }
+          .musicStatsChipPct{
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:.14em;
+            color:rgba(226,232,240,0.80);
+          }
+          .musicStatsChipRail{
+            position:relative;
+            margin-top:13px;
+            height:12px;
+            border-radius:999px;
+            overflow:hidden;
+            background:
+              repeating-linear-gradient(90deg, rgba(255,255,255,0.065) 0 12px, rgba(255,255,255,0.012) 12px 16px),
+              linear-gradient(180deg, rgba(3,8,20,0.92), rgba(12,18,34,0.72));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 3px 8px rgba(0,0,0,0.28);
+          }
+          .musicStatsChipFill{
+            position:absolute;
+            inset:0 auto 0 0;
+            width:0%;
+            border-radius:inherit;
+            background:linear-gradient(90deg, currentColor 0%, color-mix(in srgb, currentColor 78%, #ffd54a 22%) 100%);
+            box-shadow: 0 0 14px currentColor, 0 0 28px color-mix(in srgb, currentColor 52%, transparent);
           }
           .musicStatsChip.good{ border-color: rgba(34,197,94,0.34); box-shadow: inset 0 0 0 1px rgba(110,231,183,0.05), 0 0 22px rgba(34,197,94,0.10); }
           .musicStatsChip.good .musicStatsChipValue{ color:#6ee7b7; }
+          .musicStatsChip.good.musicStatsChipMeter{ color:#6ee7b7; border-color: rgba(45,212,191,0.34); box-shadow: inset 0 0 0 1px rgba(110,231,183,0.08), 0 0 24px rgba(45,212,191,0.10); }
           .musicStatsChip.partial{ border-color: rgba(245,158,11,0.34); box-shadow: inset 0 0 0 1px rgba(253,224,71,0.05), 0 0 22px rgba(245,158,11,0.10); }
           .musicStatsChip.partial .musicStatsChipValue{ color:#fbbf24; }
+          .musicStatsChip.partial.musicStatsChipMeter{ color:#fbbf24; border-color: rgba(245,158,11,0.38); box-shadow: inset 0 0 0 1px rgba(253,224,71,0.07), 0 0 24px rgba(245,158,11,0.12); }
           .musicStatsChip.none{ border-color: rgba(244,63,94,0.28); box-shadow: inset 0 0 0 1px rgba(253,164,175,0.04), 0 0 22px rgba(244,63,94,0.08); }
           .musicStatsChip.none .musicStatsChipValue{ color:#fb7185; }
+          .musicStatsChip.none.musicStatsChipMeter{ color:#fb7185; border-color: rgba(244,63,94,0.34); box-shadow: inset 0 0 0 1px rgba(253,164,175,0.06), 0 0 24px rgba(244,63,94,0.10); }
           .musicStatsChip.info{ border-color: rgba(56,189,248,0.28); box-shadow: inset 0 0 0 1px rgba(125,211,252,0.04), 0 0 22px rgba(56,189,248,0.08); }
           .musicStatsChip.info .musicStatsChipValue{ color:#7dd3fc; }
           .musicStatsFooter{
@@ -1332,6 +1429,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
             .musicStatsTopHeading{ font-size:14px; }
             .musicStatsValue{ font-size:28px; }
             .musicStatsChipValue{ font-size:22px; }
+            .musicStatsChipTotal{ font-size:13px; }
             .musicStatsFooterPct{ font-size:24px; }
           }
 
