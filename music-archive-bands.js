@@ -651,7 +651,7 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
   font-size: 20px;
   font-weight: 900;
   letter-spacing: .12em;
-  text-transform: none !important;
+  text-transform: uppercase !important;
 }
 #bands-overall .reimagingStatsHdr:hover{
   color: rgba(226,232,240,0.98);
@@ -683,6 +683,44 @@ try { console.log("[music-archive] API_BASE =", API_BASE); } catch (_) {}
 @media (prefers-reduced-motion: reduce){
   #bands-overall .reimagingStatsHdr .chev{ transition: none !important; }
   #bands-overall .reimagingStatsBody{ transition: none !important; }
+}
+
+#bands-overall .reimagingStatsTitle{
+  margin: 2px 0 14px;
+  text-align: center;
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(236,241,250,0.94);
+}
+#bands-overall .reimagingStatsSeparator{
+  position: relative;
+  height: 3px;
+  margin: 8px 19px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+  box-shadow: 0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
+  overflow: hidden;
+}
+#bands-overall .reimagingStatsSeparator::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+  opacity:.72;
+  filter: blur(.2px);
+}
+#bands-overall .reimagingStatsIntro{
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: rgba(212,223,242,0.74);
+  text-transform: none;
 }
 
 
@@ -4643,9 +4681,13 @@ function animateReimagingStats(overallEl){
       };
 
       overallEl.innerHTML = `
-  <button class="reimagingStatsHdr" type="button" aria-expanded="false" aria-controls="reimagingStatsBody">"Reimaging Project" Stats:<span class="chev">▾</span></button>
+  <button class="reimagingStatsHdr" type="button" aria-expanded="false" aria-controls="reimagingStatsBody">Archive Statistics<span class="chev">▾</span></button>
 
   <div class="reimagingStatsBody" id="reimagingStatsBody">
+  <div class="reimagingStatsTitle">Archive Statistics</div>
+  <div class="reimagingStatsSeparator" aria-hidden="true"></div>
+  <div class="reimagingStatsIntro">Welcome to the Stats section of the Music side. This page serves as a data housing of the entire archive, giving you an in-depth look into individual statistics for it. More to come soon!</div>
+  <div class="reimagingStatsSeparator" aria-hidden="true"></div>
 
   <div class="overallStatsGrid">
     <div class="statsCol">
