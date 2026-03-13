@@ -3881,6 +3881,7 @@ const pollDelayMs = 2000;
             there it is split into letter groupings. Green boxes are fully done bands, Yellow are in progress, and Grey is not
             touched yet.
           </div>
+          <div class="peopleArchiveIntroDivider" aria-hidden="true"></div>
         </div>
         <!-- A-Z filter (darkens letters with no entries) -->
         <div class="peopleLetterRow">
