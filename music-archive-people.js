@@ -3199,6 +3199,38 @@ async function _getFullUrlForImageKey(imageKey, fallbackThumbUrl){
   }
 }
 
+function _peopleLightboxFilename(item, index, fullUrl){
+  const rawKey = _safeTrim(item && item.imageKey) || ('photo-' + (Number(index || 0) + 1));
+  const base = rawKey.replace(/\.(jpg|jpeg|png|webp)$/i, '') || ('photo-' + (Number(index || 0) + 1));
+  const match = String(fullUrl || '').match(/\.(jpg|jpeg|png|webp)(?:\?|$)/i);
+  const ext = ((match && match[1]) ? match[1] : 'jpg').toLowerCase();
+  return base + '.' + (ext === 'jpeg' ? 'jpg' : ext);
+}
+
+async function _downloadPeopleImageFile(url, filename){
+  const src = String(url || '').trim();
+  const name = String(filename || 'photo.jpg').trim() || 'photo.jpg';
+  if (!src || src === '#') return false;
+
+  const fetchUrl = API_BASE + '/show-poster?url=' + encodeURIComponent(src);
+  try {
+    const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function _ensurePeopleLightbox(){
   if (_peopleLightboxEl && _peopleLightboxImg) return;
 
@@ -3228,6 +3260,7 @@ function _ensurePeopleLightbox(){
   _peopleLightboxEl = el;
   _peopleLightboxImg = el.querySelector('#peopleLightboxImg');
   _peopleLightboxEl._strip = el.querySelector('#peopleLightboxStrip');
+  _peopleLightboxEl._dlBtn = el.querySelector('[data-peoplelb="download"]');
 
   el.addEventListener('click', (ev) => {
     const tgt = ev.target;
@@ -3241,6 +3274,12 @@ function _ensurePeopleLightbox(){
       if (act === 'close') { _closePeopleLightbox(); return; }
       if (act === 'prev') { _peopleLightboxShow(_peopleLightboxIndex - 1); return; }
       if (act === 'next') { _peopleLightboxShow(_peopleLightboxIndex + 1); return; }
+      if (act === 'download') {
+        const src = _safeTrim(_peopleLightboxEl && _peopleLightboxEl._downloadUrl);
+        const filename = _safeTrim(_peopleLightboxEl && _peopleLightboxEl._downloadName) || ('photo-' + (_peopleLightboxIndex + 1) + '.jpg');
+        _downloadPeopleImageFile(src, filename);
+        return;
+      }
       if (act === 'thumb') {
         const idx = Number(btn.getAttribute('data-idx') || 0);
         _peopleLightboxShow(idx);
@@ -3282,6 +3321,7 @@ async function _peopleLightboxShow(nextIndex){
   const imageKey = _safeTrim(item.imageKey);
   const counter = _peopleLightboxEl.querySelector('#peopleLightboxCounter');
   const strip = _peopleLightboxEl._strip;
+  const dlBtn = _peopleLightboxEl._dlBtn;
   try { _peopleLightboxImg.removeAttribute('src'); } catch(_) {}
   if (counter) counter.textContent = (idx + 1) + ' / ' + list.length;
   if (strip) {
@@ -3297,6 +3337,15 @@ async function _peopleLightboxShow(nextIndex){
   }
   const thumb = _safeTrim(item.thumbUrl);
   const full = await _getFullUrlForImageKey(imageKey, thumb);
+  const filename = _peopleLightboxFilename(item, idx, full || thumb);
+  try {
+    _peopleLightboxEl._downloadUrl = full || '';
+    _peopleLightboxEl._downloadName = filename;
+    if (dlBtn) {
+      dlBtn.style.pointerEvents = full ? 'auto' : 'none';
+      dlBtn.style.opacity = full ? '1' : '0.55';
+    }
+  } catch(_) {}
   if (full) {
     try { _peopleLightboxImg.src = full; } catch(_) {}
   }
