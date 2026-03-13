@@ -2114,76 +2114,9 @@ function ensurePeopleStyles() {
       .peopleTimelineTitle{ font-size: 18px; }
     }
     @media (max-width: 720px){
-      .peopleTimelineWrap{ --peopleTlX: 20px; }
-      .peopleTimelineItem{
-        grid-template-columns: 30px 72px minmax(0, 1fr);
-        gap: 10px;
-        padding: 11px;
-        margin: 12px 0;
-      }
-      .peopleTimelinePosterCol{ width: 72px; }
-      .peoplePosterBox{ width: 68px; height: 68px; border-radius: 12px; }
-      .peopleTimelineTitle{
-        font-size: 16px;
-        white-space: normal;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-      }
-      .peopleTimelineMetaDate{
-        font-size: 11px;
-        letter-spacing: .02em;
-      }
+      .peopleTimelineTitle{ font-size: 16px; }
       .peopleTimelinePerson{ font-size: 15px; }
       .peopleTimelineBtn{ padding: 9px 14px; border-radius: 14px; }
-      .peopleAlbumDropHdr{
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .peopleAlbumDropActions{
-        width: 100%;
-      }
-      .peopleAlbumDropToggle{
-        width: 100%;
-        justify-content: center;
-      }
-    }
-    @media (max-width: 560px){
-      .peopleTimelineWrap{ --peopleTlX: 16px; }
-      .peopleTimelineItem{
-        grid-template-columns: 24px minmax(0, 1fr);
-        padding: 10px;
-      }
-      .peopleTimelineNode{
-        width: 14px;
-        height: 14px;
-      }
-      .peopleTimelineDateCol{
-        grid-column: 2;
-        justify-content: flex-start;
-        padding-top: 0;
-        margin-bottom: 2px;
-      }
-      .peopleTimelinePosterCol{
-        grid-column: 2;
-        justify-content: flex-start;
-        width: 100%;
-      }
-      .peoplePosterBox{ width: 76px; height: 76px; }
-      .peopleTimelineBody{
-        grid-column: 2;
-        padding: 0;
-      }
-      .peopleTimelineActions{
-        justify-content: stretch;
-      }
-      .peopleTimelineBtn{
-        width: 100%;
-        justify-content: center;
-      }
-      .peopleAlbumDrop{
-        padding: 10px;
-      }
     }
 
     /* ===== People: Top stats (display-only; no click/routing) ===== */
