@@ -170,7 +170,7 @@
             <div class="vmpixBootRow">
               <div class="vmpixSpinner" aria-hidden="true"></div>
               <div class="vmpixBootText">
-                <div class="vmpixBootTitle">Waking the archive…</div>
+                <div class="vmpixBootTitle">Waking the archive...</div>
                 <div class="vmpixBootSub">If this is the first visit, the server may need a moment to wake.</div>
               </div>
             </div>
@@ -3121,8 +3121,8 @@ function renderPhotoGrid(gridEl, images, opts) {
 
     ensureWrestlingKeywordSearchModal();
     if (_waKwModalTitle) _waKwModalTitle.textContent = kw;
-    if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums: Searching…";
-    setKwBodyStatus("Searching albums…");
+    if (_waKwModalCount) _waKwModalCount.textContent = "Also appears in these albums: Searching...";
+    setKwBodyStatus("Searching albums...");
 
     let albums = [];
     try {

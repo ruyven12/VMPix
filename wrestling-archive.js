@@ -753,13 +753,13 @@
           }
 
           if (label === 'Notes') {
-            wipeSwapContent('', `Notes – Coming Soon`);
+            wipeSwapContent('', `Notes - Coming Soon`);
             return;
           }
 
           wipeSwapContent(
-            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
-            `${label} – Coming Soon`
+            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} - Coming Soon</div>`,
+            `${label} - Coming Soon`
           );
         });
       });

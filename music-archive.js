@@ -2138,7 +2138,7 @@ return;
                         const mountPeople = () => {
                           const html =
                             window.MusicArchivePeople?.render?.() ||
-                            `<div style="opacity:.8; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">People – Coming Soon</div>`;
+                            `<div style="opacity:.8; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">People - Coming Soon</div>`;
 
                           wipeSwapContent(html, '', () => {
                             const panel = document.getElementById('musicContentPanel');
@@ -2162,7 +2162,7 @@ return;
                           if (existing) {
                             existing.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                             existing.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
-                            wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                            wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People...</div>`, '');
                             return;
                           }
 
@@ -2173,7 +2173,7 @@ return;
                           s.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                           s.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                           document.head.appendChild(s);
-                          wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                          wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People...</div>`, '');
                           return;
                         } catch (_) {
                           mountPeople();
@@ -2266,8 +2266,8 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
             return;
           }// Updates (or anything else)
           wipeSwapContent(
-            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
-            `${label} – Coming Soon`
+            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} - Coming Soon</div>`,
+            `${label} - Coming Soon`
           );
         });
       });

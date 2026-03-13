@@ -1773,6 +1773,17 @@ function ensurePeopleStyles() {
     }
     @media (max-width: 699px){
       #people-root.is-list #peopleList{ grid-template-columns: 1fr; }
+      .peopleLetterNav{
+        width: min(100%, 96vw);
+        gap: 5px;
+        padding: 6px;
+      }
+      .peopleLetterBtn{
+        min-width: 34px;
+        padding: 5px 8px;
+        font-size: 11px;
+        letter-spacing: .1em;
+      }
     }
 
 
@@ -1847,9 +1858,19 @@ function ensurePeopleStyles() {
     }
 
     @media (max-width: 520px){
-      .peopleRow{ padding: 10px 10px; }
+      .peopleRow{
+        padding: 10px 10px;
+        align-items:flex-start;
+        flex-direction:column;
+      }
+      .peopleMetrics{
+        width:100%;
+        flex-wrap:wrap;
+        gap: 8px;
+      }
       .peopleMetric{ padding: 6px 9px; font-size: 11px; }
       .peopleName{ font-size: 12.5px; }
+      .peopleFilterMeta{ margin-bottom: 8px; }
     }
     /* Timeline autosize (safe override): keep the rail aligned without allowing the grid to overflow horizontally */
     .peopleTimelineWrap{
@@ -3778,5 +3799,6 @@ const pollDelayMs = 2000;
 
   window.MusicArchivePeople = { render, onMount, destroy, openPerson };
 })();
+
 
 
