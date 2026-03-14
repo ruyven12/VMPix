@@ -441,10 +441,21 @@
     if (yearOptions.length) handleSelectYear(yearOptions[0]);
 
     const detailSlug = getShowDetailSlugFromPath();
+    const matchDetailSlug = getMatchDetailSlugFromPath();
     if (detailSlug) {
       const detailRow = findShowByDateSlug(detailSlug);
       const detailYear = detailRow ? yearFromDateString((detailRow.show_date || detailRow.date || "").trim()) : null;
       if (detailRow && detailYear != null) {
+        LAST_LIST_CTX = { year: (detailYear != null ? Number(detailYear) : null) };
+        if (matchDetailSlug) {
+          handleSelectYear(detailYear);
+          const matchAlbum = getWAMatchAlbumFromRow(detailRow, matchDetailSlug);
+          if (matchAlbum && matchAlbum.url) {
+            openMatchAlbumInPanel(matchAlbum.url, matchAlbum.title, matchAlbum.slug, detailRow, { syncUrl: false });
+            resetPanelScroll();
+            return;
+          }
+        }
         handleSelectYear(detailYear);
         setCrumbs(`Shows for ${detailYear}`);
         showShowDetail(detailRow, detailYear, { syncUrl: false });
@@ -1605,6 +1616,26 @@
     }
   }
 
+  function normalizeWAMatchSlug(value) {
+    const raw = String(value || "").trim().toLowerCase();
+    let m = raw.match(/^part[-_](\d+)$/);
+    if (m) return "part-" + String(Number(m[1]));
+    m = raw.match(/^match[-_](\d+)$/);
+    if (m) return "part-" + String(Number(m[1]));
+    return "";
+  }
+
+  function getMatchDetailSlugFromPath() {
+    try {
+      const parts = String(window.location.pathname || "").trim().replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+      if (String(parts[0] || "").toLowerCase() !== "wrestling") return "";
+      if (String(parts[1] || "").toLowerCase() !== "shows") return "";
+      return normalizeWAMatchSlug(parts[3] || "");
+    } catch (_) {
+      return "";
+    }
+  }
+
   function syncShowsPathForDetail(slug, opts) {
     const clean = /^\d{6}$/.test(String(slug || "").trim()) ? String(slug).trim() : "";
     const path = clean ? (`/wrestling/shows/${clean}`) : "/wrestling/shows";
@@ -1613,6 +1644,113 @@
     try {
       window.history[method]({}, "", target);
     } catch (_) {}
+  }
+
+  function syncShowsPathForMatch(showSlug, matchSlug, opts) {
+    const cleanShow = /^\d{6}$/.test(String(showSlug || "").trim()) ? String(showSlug).trim() : "";
+    const cleanMatch = normalizeWAMatchSlug(matchSlug);
+    if (!cleanShow || !cleanMatch) {
+      syncShowsPathForDetail(cleanShow, opts);
+      return;
+    }
+    const target = `/wrestling/shows/${cleanShow}/${cleanMatch}` + (window.location.search || "");
+    const method = (opts && opts.replace) ? "replaceState" : "pushState";
+    try {
+      window.history[method]({}, "", target);
+    } catch (_) {}
+  }
+
+  function waPickFirst(obj, keys) {
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      if (!k) continue;
+      const v = obj && Object.prototype.hasOwnProperty.call(obj, k) ? obj[k] : undefined;
+      if (v !== undefined && v !== null && String(v).trim() !== "") return String(v).trim();
+    }
+    return "";
+  }
+
+  function getWAMatchField(obj, i, field) {
+    const n = Number(i);
+    const dash = `match-${n}`;
+    const under = `match_${n}`;
+    const legacy = `part_${n}`;
+    const suffixes = [`_${field}`, `-${field}`];
+    const keys = [];
+    for (let s = 0; s < suffixes.length; s++) {
+      const suf = suffixes[s];
+      keys.push(`${dash}${suf}`);
+      keys.push(`${under}${suf}`);
+    }
+    keys.push(`${legacy}_${field}`);
+    return waPickFirst(obj, keys);
+  }
+
+  function resolveWAMatchUrl(urlCell, showRow) {
+    const raw = String(urlCell || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("/")) return SMUG_ORIGIN.replace(/\/$/, "") + raw;
+
+    function inferShowBaseUrl(r) {
+      const base = String((r && (r.show_url || r.showurl || r.showUrl || r.show)) || "").trim();
+      if (base) return base;
+
+      const poster = String((r && (r.show_poster || r.poster_url)) || "").trim();
+      if (poster) {
+        try {
+          const u = new URL(poster);
+          const parts = String(u.pathname || "").split("/").filter(Boolean);
+          for (let i = 0; i < parts.length - 2; i++) {
+            if (String(parts[i]).toLowerCase() === "wrestling" && /^\d{6}$/.test(parts[i + 2])) {
+              return SMUG_ORIGIN.replace(/\/$/, "") + "/" + parts.slice(i, i + 3).join("/");
+            }
+          }
+        } catch (_) {}
+      }
+
+      const rawDate = String((r && (r.show_date || r.date)) || "").trim();
+      const mmddyy = showDateSlugFromRaw(rawDate);
+      if (mmddyy) {
+        const fedFolder = (function () {
+          const v = String((r && (r.show_folder || r.fed || r.promotion || r.company || r.show_company || r.showCompany)) || "").trim();
+          if (!v) return "";
+          let t = v.replace(/wrestling/ig, " ").trim();
+          t = t.split(/[-â€“â€”|]/)[0].trim();
+          t = t.split(/\s+/)[0].trim();
+          t = t.replace(/[^A-Za-z0-9]/g, "");
+          return t;
+        })();
+        return SMUG_ORIGIN.replace(/\/$/, "") + "/Wrestling/" + (fedFolder || "Limitless") + "/" + mmddyy;
+      }
+      return "";
+    }
+
+    const base2 = inferShowBaseUrl(showRow);
+    if (base2) return base2.replace(/\/$/, "") + "/" + raw.replace(/^\//, "");
+    return raw;
+  }
+
+  function getWAMatchAlbumFromRow(showRow, matchSlug) {
+    const clean = normalizeWAMatchSlug(matchSlug);
+    const m = clean.match(/^part-(\d+)$/);
+    if (!showRow || !m) return null;
+    const idx = Number(m[1]);
+    if (!Number.isFinite(idx) || idx < 1) return null;
+
+    const type = getWAMatchField(showRow, idx, "type");
+    const stip = getWAMatchField(showRow, idx, "stip");
+    const partTitle = getWAMatchField(showRow, idx, "title");
+    const people = getWAMatchField(showRow, idx, "people");
+    const urlCell = getWAMatchField(showRow, idx, "url");
+    const url = resolveWAMatchUrl(urlCell, showRow);
+    if (!type && !stip && !partTitle && !people && !url) return null;
+
+    return {
+      slug: clean,
+      url: url,
+      title: buildMatchHeader(type, stip, partTitle)
+    };
   }
 
   function findShowByDateSlug(slug) {
@@ -2065,7 +2203,7 @@ const base2 = inferShowBaseUrl(showRow);
 
 
     for (let i = 1; i <= 10; i++) {
-      const matchId = `match-${i}`;
+      const matchId = `part-${i}`;
       const type = getMatchField(row, i, "type");
       const stip = getMatchField(row, i, "stip");
       const partTitle = getMatchField(row, i, "title");
@@ -2152,11 +2290,17 @@ const base2 = inferShowBaseUrl(showRow);
   }
 
   // ================== MATCH ALBUM (Bands-style photos grid inside HUD) ==================
-  async function openMatchAlbumInPanel(matchUrl, matchTitle, matchId, showRow) {
+  async function openMatchAlbumInPanel(matchUrl, matchTitle, matchId, showRow, opts) {
     const resultsEl = getResultsEl();
     const yearRow = getYearGroupsEl();
     const crumbsEl = getCrumbsEl();
     if (!resultsEl) return;
+
+    const showSlug = showDateSlugFromRaw((showRow && (showRow.show_date || showRow.date || "")) || "");
+    const cleanMatchSlug = normalizeWAMatchSlug(matchId);
+    if ((!opts || opts.syncUrl !== false) && showSlug && cleanMatchSlug) {
+      syncShowsPathForMatch(showSlug, cleanMatchSlug, { replace: !!(opts && opts.replace) });
+    }
 
     // Keep year pills + crumbs hidden (we're inside detail already)
     try { if (yearRow) yearRow.style.display = "none"; } catch (_) {}
@@ -2178,7 +2322,7 @@ const base2 = inferShowBaseUrl(showRow);
     backBtn.addEventListener("click", function () {
       runNeonShutterTransition(function () {
       // Re-render the show detail (keeps all styles consistent)
-      showShowDetail(showRow, (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null);
+      showShowDetail(showRow, (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null, { replace: true });
       resetPanelScroll();
     
       });
