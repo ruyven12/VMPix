@@ -477,8 +477,8 @@ function pulseFrame(){
         musicBase + '/health',
         musicBase + '/index/people',
         musicBase + '/sheet/bands',
-        wrestleBase + '/health',
-        wrestleBase + '/sheet/shows'
+        wrestleBase + '/sheet/shows',
+        wrestleBase + '/'
       ];
 
       targets.forEach((url) => {
@@ -521,8 +521,8 @@ function pulseFrame(){
       musicBase + '/health',
       musicBase + '/index/people',
       musicBase + '/sheet/bands',
-      wrestleBase + '/health',
-      wrestleBase + '/sheet/shows'
+      wrestleBase + '/sheet/shows',
+      wrestleBase + '/'
     ];
   }
 

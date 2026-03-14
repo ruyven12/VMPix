@@ -10,6 +10,59 @@ function eh(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
 function esc(s){const v=String(s||''); try{ if(CSS&&CSS.escape)return CSS.escape(v);}catch(_){} return v.replace(/\\/g,'\\\\').replace(/"/g,'\\"');}
 function csv(line){const o=[];let c='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){c+='"';i++;}else q=!q;}else if(ch===','&&!q){o.push(c.trim());c='';}else c+=ch;}o.push(c.trim());return o;}
 async function jfirst(urls){let err=null;for(const u of (urls||[])){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok){err=new Error('HTTP '+r.status);continue;}const t=await r.text();if(t&&/^[\s]*</.test(t)){err=new Error('html');continue;}return JSON.parse(t||'null');}catch(e){err=e;}} throw err||new Error('fetch');}
+const _WAKE_KEY='vm_wrestling_people_wake_v1';
+let _wakePromise=null;
+const _sleep=(ms)=>new Promise((r)=>setTimeout(r,ms));
+async function _fetchWithTimeout(url,opts){const timeoutMs=Number(opts&&opts.timeoutMs)||15000;const options=Object.assign({},opts||{});delete options.timeoutMs;let ac=null,timer=null;try{if(typeof AbortController!=='undefined'){ac=new AbortController();options.signal=options.signal||ac.signal;timer=setTimeout(()=>{try{ac.abort();}catch(_){}},timeoutMs);}}catch(_){}try{return await fetch(url,options);}finally{if(timer)clearTimeout(timer);}}
+async function _wakeBackendOnce(){try{const ts=Number(sessionStorage.getItem(_WAKE_KEY)||0);if(Number.isFinite(ts)&&ts&&(Date.now()-ts)<600000)return;}catch(_){} if(_wakePromise)return _wakePromise; _wakePromise=(async()=>{const candidates=[`${API_BASE}/sheet/shows`,`${API_BASE}/index/people`,`${API_BASE}/`];for(const u of candidates){try{await _fetchWithTimeout(u,{method:'GET',cache:'no-store',timeoutMs:5000});break;}catch(_){await _sleep(200);}} try{sessionStorage.setItem(_WAKE_KEY,String(Date.now()));}catch(_){} })().finally(()=>{_wakePromise=null;}); return _wakePromise;}
+function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;const s=document.createElement('style');s.id='waPeopleStyles';s.textContent=`
+  .waPeopleHead{padding:10px 18px 6px;}
+  .waPeopleIntro{padding:6px 0 14px;text-align:center;}
+  .waPeopleIntroDivider{height:1px;margin:0 auto 14px;max-width:92%;background:linear-gradient(90deg,rgba(255,70,110,0),rgba(255,82,124,.9) 18%,rgba(255,110,150,.95) 50%,rgba(255,82,124,.9) 82%,rgba(255,70,110,0));box-shadow:0 0 14px rgba(255,92,138,.28);}
+  .waPeopleIntroDivider:last-child{margin:14px auto 0;}
+  .waPeopleIntroTitle{color:#f1e8ef;font-size:clamp(28px,2.6vw,40px);line-height:1.04;letter-spacing:.06em;text-shadow:0 0 16px rgba(255,120,170,.18);}
+  .waPeopleIntroBody{max-width:1040px;margin:12px auto 0;color:rgba(225,214,224,.88);font-size:clamp(12px,1.1vw,15px);line-height:1.32;letter-spacing:.03em;}
+  .waPeopleMeta{margin:8px auto 10px;text-align:center;color:rgba(226,205,220,.82);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+  .waPeopleLetterNav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto 18px;padding:0 12px;}
+  .waPeopleLetterBtn,.waPeopleJump,.waPeopleBack{border:1px solid rgba(255,118,156,.38);background:linear-gradient(180deg,rgba(35,18,35,.92),rgba(20,10,23,.92));color:#ead9e7;border-radius:999px;padding:8px 14px;font:inherit;letter-spacing:.05em;cursor:pointer;box-shadow:0 0 0 1px rgba(255,120,164,.08) inset,0 0 12px rgba(255,86,134,.12);transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;}
+  .waPeopleLetterBtn:hover,.waPeopleJump:hover,.waPeopleBack:hover{transform:translateY(-1px);border-color:rgba(255,132,170,.62);box-shadow:0 0 18px rgba(255,90,142,.2);}
+  .waPeopleLetterBtn.is-active{background:linear-gradient(180deg,rgba(255,115,152,.98),rgba(226,76,118,.92));color:#250813;box-shadow:0 0 20px rgba(255,104,150,.45);}
+  .waPeopleLetterBtn.is-disabled{opacity:.35;cursor:default;box-shadow:none;}
+  .waPeopleBody{padding:4px 18px 22px;}
+  .waPeopleGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .waPeopleCard,.waPeopleAppearanceCard{width:100%;text-align:left;border:1px solid rgba(128,142,255,.16);border-radius:18px;background:linear-gradient(180deg,rgba(31,29,46,.86),rgba(19,17,31,.92));box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
+  .waPeopleCard{padding:18px;cursor:pointer;}
+  .waPeopleCardName,.waPeopleDetailTitle{color:#f3e7ef;font-size:clamp(18px,1.6vw,26px);line-height:1.08;}
+  .waPeopleCardMeta,.waPeopleDetailMeta,.waPeopleAppearanceEyebrow{margin-top:8px;color:rgba(255,130,164,.84);font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+  .waPeopleCardSub,.waPeopleAppearanceSub,.waPeopleShotStatus,.waPeopleShotEmpty{margin-top:8px;color:rgba(226,214,223,.82);font-size:13px;line-height:1.35;}
+  .waPeopleDetailHead{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px;}
+  .waPeopleDetailList{display:grid;gap:14px;}
+  .waPeopleAppearanceCard{padding:16px 18px;}
+  .waPeopleAppearanceTitle{margin-top:5px;color:#efe2ea;font-size:20px;line-height:1.1;}
+  .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  .waPeopleShotPanel{margin-top:14px;}
+  .waPeopleShotGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px;}
+  .waPeopleShotThumb,.waPeopleLightboxThumb{padding:0;border:1px solid rgba(120,138,255,.18);background:rgba(17,15,28,.88);border-radius:14px;overflow:hidden;cursor:pointer;}
+  .waPeopleShotThumb img,.waPeopleLightboxThumb img{display:block;width:100%;height:100%;object-fit:cover;}
+  .waPeopleEmpty{padding:24px 18px;text-align:center;color:rgba(226,214,223,.78);}
+  .waPeopleLightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(4,3,8,.82);backdrop-filter:blur(8px);z-index:10000;}
+  .waPeopleLightbox.is-open{display:flex;}
+  .waPeopleLightboxInner{width:min(1100px,96vw);max-height:92vh;display:flex;flex-direction:column;gap:14px;}
+  .waPeopleLightboxTop{display:flex;justify-content:flex-end;}
+  .waPeopleLightboxStage{display:flex;justify-content:center;align-items:center;min-height:0;}
+  .waPeopleLightboxImg{max-width:100%;max-height:72vh;border-radius:18px;border:1px solid rgba(138,154,255,.2);box-shadow:0 0 28px rgba(0,0,0,.45);}
+  .waPeopleLightboxStrip{display:flex;gap:8px;overflow:auto;padding:6px 2px 2px;}
+  .waPeopleLightboxThumb{flex:0 0 88px;height:66px;}
+  .waPeopleLightboxThumb.active{border-color:rgba(255,125,164,.72);box-shadow:0 0 18px rgba(255,92,140,.28);}
+  @media (max-width: 680px){
+    .waPeopleHead{padding:8px 10px 4px;}
+    .waPeopleBody{padding:4px 10px 18px;}
+    .waPeopleIntroTitle{font-size:clamp(22px,7vw,30px);}
+    .waPeopleIntroBody{font-size:12px;}
+    .waPeopleCard,.waPeopleAppearanceCard{border-radius:16px;}
+    .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+`;document.head.appendChild(s);}
 function render(){return `
       <div id="waPeopleRoot" style="width:100%; max-width:1200px; margin:0 auto;">
         <div class="waPeopleHead">
@@ -45,6 +98,7 @@ function matchField(obj,i,f){const n=Number(i),keys=[`match-${n}_${f}`,`match_${
 function matchSlug(urlCell,idx){const raw=String(urlCell||'').trim(); if(raw&&!/^https?:\/\//i.test(raw)&&!raw.startsWith('/')) return raw.toLowerCase().replace(/[^a-z0-9\-_ ]+/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'')||`match-${idx}`; return `match-${idx}`;}
 function matchTitle(type,stip,title){return String(stip||'').trim()||String(title||'').trim()||String(type||'').trim()||'Match Album';}
 function splitPeople(raw){const src=String(raw||'').trim(); if(!src)return[]; return Array.from(new Set(src.split(/[;,]/).map(v=>String(v||'').replace(/\s+/g,' ').trim()).filter(Boolean)));}
+function buildPeopleIndex(rows){const map=new Map();(Array.isArray(rows)?rows:[]).forEach((row)=>{const showDateRaw=String((row&&row.show_date)||row?.date||'').trim();const showDatePretty=prettyDate(showDateRaw);const showTitle=String((row&&(row.show_name||row.show||row.title||row.event||row.event_name))||'').trim()||(showDatePretty||'Show');const baseShowSlug=showSlug(showDateRaw);for(let idx=1;idx<=12;idx++){const names=splitPeople(matchField(row,idx,'people'));if(!names.length)continue;const type=matchField(row,idx,'type');const stip=matchField(row,idx,'stip');const title=matchField(row,idx,'title');const urlCell=matchField(row,idx,'url');const partSlug=matchSlug(urlCell,idx);const route=baseShowSlug?`/wrestling/shows/${baseShowSlug}/${partSlug}`:`/wrestling/shows`;const albumUrl=resolveMatchUrl(urlCell,row);const detailTitle=matchTitle(type,stip,title);names.forEach((person)=>{const key=String(person||'').trim().toLowerCase();if(!key)return;if(!map.has(key))map.set(key,{person:String(person||'').trim(),slug:slugPerson(person),appearances:[]});map.get(key).appearances.push({showTitle,showDateRaw,showDatePretty,sortKey:sortVal(showDateRaw),partIndex:idx,type:String(type||'').trim(),stip:String(stip||'').trim(),detailTitle,route,albumUrl});});}});map.forEach((entry)=>{entry.appearances.sort((a,b)=>(Number(b.sortKey)||0)-(Number(a.sortKey)||0)||String(b.detailTitle||'').localeCompare(String(a.detailTitle||'')));});return map;}
 function captionNames(c){const src=String(c||'').trim(); if(!src)return[]; const seen=new Set(),out=[]; src.split(';').map(v=>String(v||'').trim()).filter(Boolean).forEach(p=>{const k=p.toLowerCase(); if(!seen.has(k)){seen.add(k); out.push(p);}}); return out;}
 function captionHas(c,name){const who=String(name||'').trim().toLowerCase(); return !!captionNames(c).find(p=>String(p||'').trim().toLowerCase()===who);}
 function resolveMatchUrl(urlCell,row){const raw=String(urlCell||'').trim(); if(!raw)return''; if(/^https?:\/\//i.test(raw))return raw; if(raw.startsWith('/'))return SMUG.replace(/\/$/,'')+raw; const base=String((row&&(row.show_url||row.showurl||row.showUrl||row.show))||'').trim(); if(base)return base.replace(/\/$/,'')+'/'+raw.replace(/^\//,''); const ds=showSlug((row&&(row.show_date||row.date))||''); return ds?`${SMUG}/Wrestling/Limitless/${ds}/${raw.replace(/^\//,'')}`:raw;}

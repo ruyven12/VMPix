@@ -95,10 +95,9 @@
 
     _wakePromise = (async () => {
       const candidates = [
-        `${API_BASE}/health`,
-        `${API_BASE}/ping`,
-        `${API_BASE}/`,
         `${API_BASE}/sheet/shows`,
+        `${API_BASE}/`,
+        `${API_BASE}/ping`,
       ];
 
       for (let i = 0; i < candidates.length; i++) {
