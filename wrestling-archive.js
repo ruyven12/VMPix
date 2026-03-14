@@ -529,6 +529,14 @@
             0 0 0 1px rgba(255,255,255,0.45) inset,
             0 0 26px rgba(255,90,120,0.75);
         }
+        .archiveModeBtn.is-disabled{
+          opacity:.5;
+          cursor:default;
+          filter:saturate(.75);
+        }
+        .archiveModeBtn.is-disabled:hover{
+          color:rgba(255,190,200,0.75);
+        }
 
         .wrestlingPlaceholder{
           width:100%;
@@ -785,9 +793,9 @@
         <div class="archiveHeaderWrap">
           <div class="archiveModeToggle" role="tablist" aria-label="Wrestling sections">
             <button class="archiveModeBtn" data-tab="shows" role="tab" aria-selected="false">Shows</button>
-            <button class="archiveModeBtn" data-tab="people" role="tab" aria-selected="false">People</button>
-            <button class="archiveModeBtn" data-tab="stats" role="tab" aria-selected="false">Stats</button>
+            <button class="archiveModeBtn is-disabled" data-tab="people" data-disabled="1" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1">Performers (Coming Soon)</button>
             <button class="archiveModeBtn" data-tab="origins" role="tab" aria-selected="false">Origins</button>
+            <button class="archiveModeBtn is-disabled" data-tab="stats" data-disabled="1" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1">Stats (Coming Soon)</button>
           </div>
         </div>
         <div class="scanPing" aria-hidden="true"></div>
@@ -797,6 +805,7 @@
         tab.addEventListener('click', async () => {
           const modeKey = String(tab.getAttribute('data-tab') || '').trim().toLowerCase();
           const label = tab.textContent.trim();
+          if (String(tab.getAttribute('data-disabled') || '') === '1') return;
           if (!_suppressWrestlingTabUrlSync) {
             try { syncWrestlingSubroute(modeKey, { replace: false }); } catch (_) {}
           }
