@@ -179,7 +179,7 @@
 
           <div class="waShowsIntro" aria-label="Wrestling Shows Introduction">
             <div class="waShowsIntroDivider" aria-hidden="true"></div>
-            <div class="waShowsIntroTitle">The Archive - Filter By Show</div>
+            <div class="waShowsIntroTitle">The Archives - Filter By Show</div>
             <div class="waShowsIntroBody">Welcome to the Archives, sorted by show. This section is split by year and lets you drill into individual event cards, match and segment breakdowns, and photo sets that are tied to each event. More data and archive depth will be added here over time.</div>
             <div class="waShowsIntroDivider" aria-hidden="true"></div>
           </div>
