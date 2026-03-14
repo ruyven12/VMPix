@@ -1618,11 +1618,21 @@
 
   function normalizeWAMatchSlug(value) {
     const raw = String(value || "").trim().toLowerCase();
-    let m = raw.match(/^part[-_](\d+)$/);
-    if (m) return "part-" + String(Number(m[1]));
-    m = raw.match(/^match[-_](\d+)$/);
-    if (m) return "part-" + String(Number(m[1]));
-    return "";
+    if (!raw) return "";
+    return raw
+      .replace(/[^a-z0-9\-_ ]+/g, "")
+      .replace(/[\s_]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function getWAMatchRouteSlug(urlCell, idx) {
+    const raw = String(urlCell || "").trim();
+    if (raw && !/^https?:\/\//i.test(raw) && !raw.startsWith("/")) {
+      const clean = normalizeWAMatchSlug(raw);
+      if (clean) return clean;
+    }
+    return "match-" + String(Number(idx) || 1);
   }
 
   function getMatchDetailSlugFromPath() {
@@ -1733,24 +1743,24 @@
 
   function getWAMatchAlbumFromRow(showRow, matchSlug) {
     const clean = normalizeWAMatchSlug(matchSlug);
-    const m = clean.match(/^part-(\d+)$/);
-    if (!showRow || !m) return null;
-    const idx = Number(m[1]);
-    if (!Number.isFinite(idx) || idx < 1) return null;
-
-    const type = getWAMatchField(showRow, idx, "type");
-    const stip = getWAMatchField(showRow, idx, "stip");
-    const partTitle = getWAMatchField(showRow, idx, "title");
-    const people = getWAMatchField(showRow, idx, "people");
-    const urlCell = getWAMatchField(showRow, idx, "url");
-    const url = resolveWAMatchUrl(urlCell, showRow);
-    if (!type && !stip && !partTitle && !people && !url) return null;
-
-    return {
-      slug: clean,
-      url: url,
-      title: buildMatchHeader(type, stip, partTitle)
-    };
+    if (!showRow || !clean) return null;
+    for (let idx = 1; idx <= 10; idx++) {
+      const type = getWAMatchField(showRow, idx, "type");
+      const stip = getWAMatchField(showRow, idx, "stip");
+      const partTitle = getWAMatchField(showRow, idx, "title");
+      const people = getWAMatchField(showRow, idx, "people");
+      const urlCell = getWAMatchField(showRow, idx, "url");
+      const slug = getWAMatchRouteSlug(urlCell, idx);
+      if (slug !== clean) continue;
+      const url = resolveWAMatchUrl(urlCell, showRow);
+      if (!type && !stip && !partTitle && !people && !url) return null;
+      return {
+        slug: slug,
+        url: url,
+        title: buildMatchHeader(type, stip, partTitle)
+      };
+    }
+    return null;
   }
 
   function findShowByDateSlug(slug) {
@@ -2203,12 +2213,12 @@ const base2 = inferShowBaseUrl(showRow);
 
 
     for (let i = 1; i <= 10; i++) {
-      const matchId = `part-${i}`;
       const type = getMatchField(row, i, "type");
       const stip = getMatchField(row, i, "stip");
       const partTitle = getMatchField(row, i, "title");
       const people = getMatchField(row, i, "people");
       const urlCell = getMatchField(row, i, "url");
+      const matchId = getWAMatchRouteSlug(urlCell, i);
       const matchUrl = resolveMatchUrl(urlCell, row);
 
       if (!type && !stip && !partTitle && !people) continue;
