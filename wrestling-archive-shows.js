@@ -177,6 +177,11 @@
             <div class="vmpixShimmer" aria-hidden="true"></div>
           </div>
 
+          <div class="waShowsIntro" aria-label="Wrestling Shows Introduction">
+            <div class="waShowsIntroTitle">The Archive - Filter By Show</div>
+            <div class="waShowsIntroBody">Welcome to the Archives, sorted by show. This section is split by year and lets you drill into individual event cards, match and segment breakdowns, and photo sets that are tied to each event. More data and archive depth will be added here over time.</div>
+          </div>
+
           <div id="waCrumbs"
                style="font-size:15px; opacity:.85; text-align:center; margin-top:6px;"></div>
 
@@ -549,6 +554,55 @@
       @keyframes vmpixShimmer{
         0%{ transform: translateX(-80%); }
         100%{ transform: translateX(180%); }
+      }
+
+      .waShowsIntro{
+        width:100%;
+        max-width:980px;
+        margin: 12px auto 10px;
+        text-align:center;
+      }
+      .waShowsIntroTitle{
+        font-family:"Orbitron", system-ui, sans-serif !important;
+        font-size:24px;
+        font-weight:900;
+        letter-spacing:.12em;
+        text-transform:none !important;
+        color:rgba(236,241,250,0.95);
+        margin-bottom:12px;
+      }
+      .waShowsIntroBody{
+        max-width:920px;
+        margin:0 auto;
+        font-size:13px;
+        font-weight:700;
+        letter-spacing:.04em;
+        line-height:1.25;
+        color:rgba(212,223,242,0.78);
+        text-transform:none !important;
+      }
+      @media (max-width: 760px){
+        .waShowsIntro{
+          margin: 10px auto 8px;
+          padding: 0 6px;
+        }
+        .waShowsIntroTitle{
+          font-size:20px;
+          letter-spacing:.08em;
+        }
+        .waShowsIntroBody{
+          font-size:12px;
+          line-height:1.3;
+        }
+      }
+      @media (max-width: 520px){
+        .waShowsIntroTitle{
+          font-size:16px;
+          letter-spacing:.05em;
+        }
+        .waShowsIntroBody{
+          font-size:11px;
+        }
       }
 
 
