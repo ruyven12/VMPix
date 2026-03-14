@@ -178,8 +178,10 @@
           </div>
 
           <div class="waShowsIntro" aria-label="Wrestling Shows Introduction">
+            <div class="waShowsIntroDivider" aria-hidden="true"></div>
             <div class="waShowsIntroTitle">The Archive - Filter By Show</div>
             <div class="waShowsIntroBody">Welcome to the Archives, sorted by show. This section is split by year and lets you drill into individual event cards, match and segment breakdowns, and photo sets that are tied to each event. More data and archive depth will be added here over time.</div>
+            <div class="waShowsIntroDivider" aria-hidden="true"></div>
           </div>
 
           <div id="waCrumbs"
@@ -571,6 +573,25 @@
         color:rgba(236,241,250,0.95);
         margin-bottom:12px;
       }
+      .waShowsIntroDivider{
+        position:relative;
+        height:3px;
+        width:min(100%, 960px);
+        margin: 0 auto 12px;
+        border-radius:999px;
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+        box-shadow:0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
+        overflow:hidden;
+      }
+      .waShowsIntroDivider::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:inherit;
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+        opacity:.72;
+        filter: blur(.2px);
+      }
       .waShowsIntroBody{
         max-width:920px;
         margin:0 auto;
@@ -585,6 +606,9 @@
         .waShowsIntro{
           margin: 10px auto 8px;
           padding: 0 6px;
+        }
+        .waShowsIntroDivider{
+          margin: 0 auto 10px;
         }
         .waShowsIntroTitle{
           font-size:20px;
