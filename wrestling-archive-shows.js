@@ -575,12 +575,13 @@
       }
       .waShowsIntroDivider{
         position:relative;
-        height:3px;
+        display:block;
+        height:2px;
         width:min(100%, 960px);
-        margin: 0 auto 12px;
+        margin: 0 auto 14px;
         border-radius:999px;
-        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
-        box-shadow:0 0 12px rgba(103,203,255,0.22), 0 0 24px rgba(100,227,186,0.10);
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,84,120,0.18) 10%, rgba(255,84,120,0.62) 50%, rgba(255,84,120,0.18) 90%, rgba(255,255,255,0) 100%);
+        box-shadow:0 0 10px rgba(255,84,120,0.26), 0 0 18px rgba(255,84,120,0.16);
         overflow:hidden;
       }
       .waShowsIntroDivider::after{
@@ -588,8 +589,8 @@
         position:absolute;
         inset:0;
         border-radius:inherit;
-        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
-        opacity:.72;
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,220,228,0.40) 50%, rgba(255,255,255,0) 100%);
+        opacity:.9;
         filter: blur(.2px);
       }
       .waShowsIntroBody{
