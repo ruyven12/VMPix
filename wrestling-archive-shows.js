@@ -561,7 +561,7 @@
       .waShowsIntro{
         width:100%;
         max-width:980px;
-        margin: 12px auto 10px;
+        margin: 12px auto 18px;
         text-align:center;
       }
       .waShowsIntroTitle{
@@ -595,7 +595,7 @@
       }
       .waShowsIntroBody{
         max-width:920px;
-        margin:0 auto;
+        margin:0 auto 16px;
         font-size:13px;
         font-weight:700;
         letter-spacing:.04em;
@@ -605,7 +605,7 @@
       }
       @media (max-width: 760px){
         .waShowsIntro{
-          margin: 10px auto 8px;
+          margin: 10px auto 14px;
           padding: 0 6px;
         }
         .waShowsIntroDivider{
@@ -616,6 +616,7 @@
           letter-spacing:.08em;
         }
         .waShowsIntroBody{
+          margin:0 auto 12px;
           font-size:12px;
           line-height:1.3;
         }
@@ -626,6 +627,7 @@
           letter-spacing:.05em;
         }
         .waShowsIntroBody{
+          margin:0 auto 10px;
           font-size:11px;
         }
       }
