@@ -15,6 +15,12 @@
     }
     return '/wrestling-archive-shows.js';
   })();
+  const PEOPLE_SCRIPT_SRC = (function(){
+    if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
+      return './wrestling-archive-people.js';
+    }
+    return '/wrestling-archive-people.js';
+  })();
 
   let _mount = null;
 
@@ -57,13 +63,14 @@
   // typing timer
   let _typeTimer = null;
   let _showsMountTimer = null;
+  let _peopleMountTimer = null;
 
   let _suppressWrestlingTabUrlSync = false;
 
   const WRESTLING_SUBROUTES = new Set(['shows', 'people', 'stats', 'origins']);
   const WRESTLING_TITLE_BY_MODE = {
     shows: 'Wrestling Shows',
-    people: 'Wrestling People',
+    people: 'Wrestling Performers',
     stats: 'Wrestling Stats',
     origins: 'Origins of Wrestling'
   };
@@ -215,7 +222,7 @@
   function setPanelMode(mode) {
     if (!_contentPanelEl) return;
 
-    if (mode === 'shows') {
+    if (mode === 'shows' || mode === 'people') {
       _contentPanelEl.style.display = 'flex';
       _contentPanelEl.style.alignItems = '';
       _contentPanelEl.style.justifyContent = '';
@@ -793,7 +800,7 @@
         <div class="archiveHeaderWrap">
           <div class="archiveModeToggle" role="tablist" aria-label="Wrestling sections">
             <button class="archiveModeBtn" data-tab="shows" role="tab" aria-selected="false">Shows</button>
-            <button class="archiveModeBtn is-disabled" data-tab="people" data-disabled="1" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1">Performers (Coming Soon)</button>
+            <button class="archiveModeBtn" data-tab="people" role="tab" aria-selected="false">Performers</button>
             <button class="archiveModeBtn" data-tab="origins" role="tab" aria-selected="false">Origins</button>
             <button class="archiveModeBtn is-disabled" data-tab="stats" data-disabled="1" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1">Stats (Coming Soon)</button>
           </div>
@@ -816,6 +823,10 @@
           if (_showsMountTimer) {
             window.clearTimeout(_showsMountTimer);
             _showsMountTimer = null;
+          }
+          if (_peopleMountTimer) {
+            window.clearTimeout(_peopleMountTimer);
+            _peopleMountTimer = null;
           }
 
           if (modeKey === 'shows') {
@@ -854,20 +865,43 @@
             return;
           }
 
+          if (modeKey === 'people') {
+            setPanelMode('people');
+            setArchiveViewportExpanded(true);
+
+            const ok = await ensureWrestlingPeopleLoaded();
+            if (!ok) {
+              wipeSwapContent(
+                `<div style="opacity:.75; font-size:13px; line-height:1.6;">
+                   <strong>Performers module not loaded.</strong><br>
+                   Confirm this file exists on the site:<br>
+                   <code>${PEOPLE_SCRIPT_SRC}</code>
+                 </div>`,
+                ''
+              );
+              return;
+            }
+
+            const html = window.WrestlingArchivePeople?.render?.() || '';
+            wipeSwapContent(html, '');
+
+            _peopleMountTimer = window.setTimeout(() => {
+              const panel = document.getElementById('wrestlingContentPanel');
+              if (!panel) return;
+
+              const mode = (panel.dataset && panel.dataset.mode) ? panel.dataset.mode : null;
+              if (mode && mode !== 'people') return;
+              if (!panel.querySelector('#waPeopleRoot')) return;
+
+              window.WrestlingArchivePeople?.onMount?.(panel);
+            }, 220);
+
+            return;
+          }
+
           // other tabs
           setArchiveViewportExpanded(false);
           setPanelMode('default');
-
-          if (modeKey === 'people') {
-            wipeSwapContent(
-              renderWrestlingPlaceholderCard({
-                title: 'The Archive - Filter By People',
-                body: 'This section will become the Wrestling-side people index, built from wrestler and person tags across the archive.\n\nFor now, this placeholder is in place so the shell, routing, and tab flow are ready before the data module is added.'
-              }),
-              ''
-            );
-            return;
-          }
 
           if (modeKey === 'stats') {
             wipeSwapContent(
@@ -922,6 +956,39 @@
     } catch (_) {}
   }
 
+  function ensureWrestlingPeopleLoaded() {
+    if (window.WrestlingArchivePeople && typeof window.WrestlingArchivePeople.render === 'function') {
+      return Promise.resolve(true);
+    }
+
+    const existing = document.querySelector('script[data-wa-people="1"]');
+    if (existing) {
+      return new Promise((resolve) => {
+        const start = Date.now();
+        const t = setInterval(() => {
+          if (window.WrestlingArchivePeople?.render) {
+            clearInterval(t);
+            resolve(true);
+          } else if (Date.now() - start > 2500) {
+            clearInterval(t);
+            resolve(false);
+          }
+        }, 50);
+      });
+    }
+
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = PEOPLE_SCRIPT_SRC;
+      s.async = true;
+      s.defer = true;
+      s.dataset.waPeople = '1';
+      s.onload = () => resolve(!!window.WrestlingArchivePeople?.render);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+
 
   function setMode(mode, opts) {
     const m = String(mode || '').toLowerCase().trim();
@@ -948,6 +1015,14 @@
     if (_typeTimer) {
       window.clearInterval(_typeTimer);
       _typeTimer = null;
+    }
+    if (_showsMountTimer) {
+      window.clearTimeout(_showsMountTimer);
+      _showsMountTimer = null;
+    }
+    if (_peopleMountTimer) {
+      window.clearTimeout(_peopleMountTimer);
+      _peopleMountTimer = null;
     }
 
     const hudMainBox = document.querySelector('.hudStub.hudMain');
