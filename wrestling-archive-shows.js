@@ -153,6 +153,8 @@
   // ================== STATE ==================
   let SHOWS = [];
   let YEARS = [];
+  let _waActiveYear = null;
+  let _waYearSelectHandler = null;
 
   // Mounted DOM + handlers
   let _panel = null;
@@ -201,6 +203,186 @@
     `;
   }
 
+  function parseWAShowDateValue(raw) {
+    const str = String(raw || "").trim();
+    if (!str) return null;
+
+    let year = 0;
+    let month = 0;
+    let day = 0;
+
+    let m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (m) {
+      month = Number(m[1]);
+      day = Number(m[2]);
+      year = Number(m[3].length === 2 ? ("20" + m[3]) : m[3]);
+    } else {
+      m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return null;
+      year = Number(m[1]);
+      month = Number(m[2]);
+      day = Number(m[3]);
+    }
+
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+    const dt = new Date(year, month - 1, day);
+    if (Number.isNaN(dt.getTime())) return null;
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  }
+
+  function isWAUpcomingSelection(value) {
+    return String(value || "").trim().toLowerCase() === "upcoming";
+  }
+
+  function getWAUpcomingShows(allShows) {
+    if (!Array.isArray(allShows) || !allShows.length) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return allShows
+      .filter((row) => {
+        const dt = parseWAShowDateValue(row && (row.show_date || row.date || ""));
+        return !!(dt && dt.getTime() >= today.getTime());
+      })
+      .sort((a, b) => {
+        const at = parseWAShowDateValue(a && (a.show_date || a.date || ""));
+        const bt = parseWAShowDateValue(b && (b.show_date || b.date || ""));
+        return (at ? at.getTime() : 0) - (bt ? bt.getTime() : 0);
+      });
+  }
+
+  function mountWAYearsPillsOverflow(opts) {
+    const containerEl = opts && opts.containerEl;
+    if (!containerEl) return;
+
+    const years = Array.isArray(opts && opts.years) ? opts.years.slice() : [];
+    const activeYear = opts ? opts.activeYear : null;
+    const onSelectYear = opts && opts.onSelectYear;
+    const maxVisible = Number(opts && opts.maxVisible) || 6;
+
+    const upcoming = [];
+    const numericYears = [];
+    years.forEach((value) => {
+      if (isWAUpcomingSelection(value)) {
+        upcoming.push("Upcoming");
+        return;
+      }
+      const n = Number(value);
+      if (Number.isFinite(n) && n > 0) numericYears.push(n);
+    });
+
+    const sorted = [...upcoming, ...numericYears.sort((a, b) => b - a)];
+    const visible = [];
+    const overflow = [];
+    sorted.forEach((y) => {
+      if (visible.length < maxVisible) visible.push(y);
+      else overflow.push(y);
+    });
+
+    if (overflow.includes(activeYear) && visible.length) {
+      const lastVisible = visible[visible.length - 1];
+      visible[visible.length - 1] = activeYear;
+      overflow.splice(overflow.indexOf(activeYear), 1);
+      overflow.push(lastVisible);
+      overflow.sort((a, b) => {
+        if (isWAUpcomingSelection(a)) return -1;
+        if (isWAUpcomingSelection(b)) return 1;
+        return Number(b) - Number(a);
+      });
+    }
+
+    containerEl.innerHTML = `
+      <div class="yearsNav">
+        <div class="yearsPills" role="tablist" aria-label="Select a year">
+          ${visible.map((y) => `
+            <button type="button"
+              class="YearPill ${y === activeYear ? "YearPillActive" : ""}"
+              data-year="${y}"
+              role="tab"
+              aria-selected="${y === activeYear ? "true" : "false"}">${y}</button>
+          `).join("")}
+        </div>
+        ${overflow.length ? `
+          <div class="yearsMore">
+            <button type="button" class="YearPill" data-years-more="1" aria-haspopup="menu" aria-expanded="false">More ▾</button>
+            <div class="yearsMenu" role="menu" aria-label="More years">
+              ${overflow.map((y) => `<button type="button" class="menuItem" role="menuitem" data-year="${y}">${y}</button>`).join("")}
+            </div>
+          </div>
+        ` : ""}
+      </div>
+    `;
+
+    const yearsNav = containerEl.querySelector(".yearsNav");
+    const moreBtn = containerEl.querySelector('[data-years-more="1"]');
+    const menu = containerEl.querySelector(".yearsMenu");
+
+    function closeMenu() {
+      if (!menu || !moreBtn) return;
+      menu.classList.remove("isOpen");
+      moreBtn.setAttribute("aria-expanded", "false");
+    }
+
+    if (containerEl._yearsClickHandler) {
+      containerEl.removeEventListener("click", containerEl._yearsClickHandler);
+    }
+
+    containerEl._yearsClickHandler = (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      if (btn.dataset.yearsMore === "1") {
+        if (!menu) return;
+        const isOpen = menu.classList.contains("isOpen");
+        menu.classList.toggle("isOpen", !isOpen);
+        btn.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+        return;
+      }
+
+      const yearStr = btn.dataset.year;
+      if (!yearStr) return;
+      const year = isWAUpcomingSelection(yearStr) ? "Upcoming" : Number(yearStr);
+      closeMenu();
+      if (typeof onSelectYear === "function") onSelectYear(year);
+    };
+
+    containerEl.addEventListener("click", containerEl._yearsClickHandler);
+
+    const onDocClick = (e) => {
+      if (!menu) return;
+      if (!yearsNav || !yearsNav.contains(e.target)) closeMenu();
+    };
+    const onDocKey = (e) => {
+      if (e.key === "Escape") closeMenu();
+    };
+    document.addEventListener("click", onDocClick, { capture: true });
+    document.addEventListener("keydown", onDocKey);
+
+    return function cleanup() {
+      document.removeEventListener("click", onDocClick, { capture: true });
+      document.removeEventListener("keydown", onDocKey);
+    };
+  }
+
+  function refreshWAYearsNav(activeYear, onSelectYear) {
+    const rowEl = getYearGroupsEl();
+    if (!rowEl) return;
+    const selectHandler = onSelectYear || _waYearSelectHandler;
+    const filtered = (YEARS || []).filter((y) => y >= MIN_YEAR && y <= MAX_YEAR).sort((a, b) => b - a);
+    const yearOptions = getWAUpcomingShows(SHOWS).length ? ['Upcoming', ...filtered] : filtered.slice();
+    if (rowEl._yearsCleanup) {
+      try { rowEl._yearsCleanup(); } catch (_) {}
+      rowEl._yearsCleanup = null;
+    }
+    rowEl._yearsCleanup = mountWAYearsPillsOverflow({
+      containerEl: rowEl,
+      years: yearOptions,
+      activeYear: activeYear,
+      maxVisible: 6,
+      onSelectYear: selectHandler
+    });
+  }
+
   // ================== MOUNT ==================
   async function onMount(panelEl) {
     ensureShowsStyles();
@@ -243,40 +425,32 @@
       .filter((y) => y >= MIN_YEAR && y <= MAX_YEAR)
       .sort((a, b) => b - a);
 
-    renderYearBubbles(filtered);
+    const yearOptions = getWAUpcomingShows(SHOWS).length ? ['Upcoming', ...filtered] : filtered.slice();
+
+    function handleSelectYear(year) {
+      _waActiveYear = year;
+      _waYearSelectHandler = handleSelectYear;
+      try { refreshWAYearsNav(_waActiveYear, handleSelectYear); } catch (_) {}
+
+      if (isWAUpcomingSelection(year)) setCrumbs('Upcoming');
+      else setCrumbs(`Shows for ${year}`);
+      renderShowsCards(getShowsForYear(year), year);
+      resetPanelScroll();
+    }
+
+    if (yearOptions.length) handleSelectYear(yearOptions[0]);
 
     const detailSlug = getShowDetailSlugFromPath();
     if (detailSlug) {
       const detailRow = findShowByDateSlug(detailSlug);
       const detailYear = detailRow ? yearFromDateString((detailRow.show_date || detailRow.date || "").trim()) : null;
       if (detailRow && detailYear != null) {
-        try {
-          const rowEl = getYearGroupsEl();
-          if (rowEl) {
-            const btns = Array.prototype.slice.call(rowEl.querySelectorAll(".letter-pill"));
-            btns.forEach((b) => b.classList.toggle("active", String((b.textContent || "")).trim() === String(detailYear)));
-          }
-        } catch (_) {}
+        handleSelectYear(detailYear);
         setCrumbs(`Shows for ${detailYear}`);
         showShowDetail(detailRow, detailYear, { syncUrl: false });
         resetPanelScroll();
         return;
       }
-    }
-
-    // Auto-select the newest year so the view isn't empty on load (matches live app feel)
-    if (filtered && filtered.length) {
-      const newest = filtered[0];
-      try {
-        const rowEl = getYearGroupsEl();
-        if (rowEl) {
-          const btns = Array.prototype.slice.call(rowEl.querySelectorAll(".letter-pill"));
-          btns.forEach((b) => b.classList.toggle("active", String((b.textContent || "")).trim() === String(newest)));
-        }
-      } catch (_) {}
-      setCrumbs(`Shows for ${newest}`);
-      renderShowsCards(getShowsForYear(newest), newest);
-      resetPanelScroll();
     }
   }
 
@@ -748,27 +922,110 @@
       /* Scoped: Wrestling Shows detail view */
       #waShowsRoot, #waShowsRoot * { text-transform: none !important; }
 
-      /* Year pills (scoped) */
-      #waShowsRoot .letter-pill{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        letter-spacing: .10em;
-        font-size: 12px;
-        padding: 9px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.14);
+      #waYearGroups{
+        display:flex;
+        padding: 10px 10px;
+        margin: 10px auto 8px;
+        backdrop-filter: blur(6px);
         background: rgba(0,0,0,0.18);
-        color: rgba(226,232,240,0.92);
-        cursor: pointer;
-        transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        flex-wrap:wrap;
+        gap: 12px;
+        justify-content:center;
+        align-items:center;
       }
-      #waShowsRoot .letter-pill:hover{
+      .yearsNav{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap: 10px;
+        width:100%;
+      }
+      .yearsPills{
+        display:flex;
+        flex-wrap:wrap;
+        gap: 12px;
+        justify-content:center;
+        align-items:center;
+      }
+      .yearsMore{ position:relative; }
+      .yearsMenu{
+        display:none;
+        position:absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 60;
+        min-width: 170px;
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      }
+      .yearsMenu.isOpen{ display:block; }
+      .yearsMenu .menuItem{
+        width:100%;
+        text-align:left;
+        cursor:pointer;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border:0;
+        background: transparent;
+        color: rgba(255,255,255,0.86);
+        font-size: 12px;
+        font-family: "Orbitron", system-ui, sans-serif;
+      }
+      .yearsMenu .menuItem:hover{ background: rgba(255,255,255,0.08); }
+      .YearPill{
+        cursor:pointer;
+        appearance:none;
+        border: 0;
+        background: transparent;
+        padding: 10px 8px;
+        border-radius: 10px;
+        color: rgba(255,255,255,0.58);
+        font-family: 'Orbitron', system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        user-select:none;
+        line-height:1;
+        position: relative;
+        transition: color .12s ease, transform .08s ease, background .12s ease;
+      }
+      .YearPill:hover{
+        color: rgba(255,255,255,0.82);
+        background: rgba(255,255,255,0.04);
         transform: translateY(-1px);
-        border-color: rgba(200,0,0,0.55);
-        background: rgba(0,0,0,0.26);
       }
-      #waShowsRoot .letter-pill.active{
-        border-color: rgba(200,0,0,0.90);
-        box-shadow: 0 0 0 2px rgba(200,0,0,0.18);
+      .YearPill:focus-visible{
+        outline: 2px solid rgba(236,72,153,0.55);
+        outline-offset: 2px;
+      }
+      .YearPill::after{
+        content:"";
+        position:absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 4px;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(236,72,153,0.9);
+        box-shadow: 0 0 10px rgba(236,72,153,0.35);
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity .12s ease, transform .12s ease;
+      }
+      .YearPill:hover::after{
+        opacity: 0.35;
+        transform: translateY(0px);
+      }
+      .YearPillActive{
+        color: rgba(255,255,255,0.92);
+      }
+      .YearPillActive::after{
+        opacity: 1;
+        transform: translateY(0);
       }
 
 
@@ -1372,7 +1629,11 @@
 
   function extractYearsFromShows(shows) {
     const set = new Set();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     (shows || []).forEach((s) => {
+      const dt = parseWAShowDateValue(s && (s.date || s.show_date || ""));
+      if (!dt || dt.getTime() >= today.getTime()) return;
       const yr = yearFromDateString(s.date || s.show_date || "");
       if (yr) set.add(yr);
     });
@@ -1380,11 +1641,16 @@
   }
 
   function getShowsForYear(year) {
+    if (isWAUpcomingSelection(year)) return getWAUpcomingShows(SHOWS || []);
     const yr = Number(year);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     return (SHOWS || []).filter((row) => {
       const raw = (row.show_date || row.date || "").trim();
       const y = yearFromDateString(raw);
-      return y === yr;
+      if (y !== yr) return false;
+      const dt = parseWAShowDateValue(raw);
+      return !!(dt && dt.getTime() < today.getTime());
     });
   }
 
@@ -1590,16 +1856,13 @@
 
         const y = (LAST_LIST_CTX && LAST_LIST_CTX.year != null) ? LAST_LIST_CTX.year : null;
         if (y != null) {
-          setCrumbs(`Shows for ${y}`);
+          _waActiveYear = y;
+          try { refreshWAYearsNav(_waActiveYear, null); } catch (_) {}
+          if (isWAUpcomingSelection(y)) setCrumbs('Upcoming');
+          else setCrumbs(`Shows for ${y}`);
           const rows = getShowsForYear(y);
           renderShowsCards(rows, y);
           syncShowsPathForDetail("", { replace: true });
-
-          // Re-activate the year pill visually
-          try {
-            const btns = yearRow ? Array.from(yearRow.querySelectorAll(".letter-pill")) : [];
-            btns.forEach((b) => b.classList.toggle("active", String(b.textContent || "").trim() === String(y)));
-          } catch (_) {}
         } else {
           // If we somehow do not know the year, just clear results
           clearResults();
