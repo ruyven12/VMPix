@@ -60,7 +60,31 @@
 
   let _suppressWrestlingTabUrlSync = false;
 
-  const WRESTLING_SUBROUTES = new Set(['shows', 'origins']);
+  const WRESTLING_SUBROUTES = new Set(['shows', 'people', 'stats', 'origins']);
+  const WRESTLING_TITLE_BY_MODE = {
+    shows: 'Wrestling Shows',
+    people: 'Wrestling People',
+    stats: 'Wrestling Stats',
+    origins: 'Origins of Wrestling'
+  };
+
+  function setWrestlingDocumentTitle(mode, fallback) {
+    try {
+      const label = String(fallback || WRESTLING_TITLE_BY_MODE[String(mode || '').toLowerCase().trim()] || 'Wrestling').trim();
+      document.title = label ? (label + ' | VMPix') : 'VMPix';
+    } catch (_) {}
+  }
+
+  function renderWrestlingPlaceholderCard(opts) {
+    const title = String(opts && opts.title || 'Coming Soon').trim();
+    const body = String(opts && opts.body || '').trim();
+    return '' +
+      '<div class="wrestlingPlaceholder">' +
+        '<div class="wrestlingPlaceholderTitle">' + title + '</div>' +
+        '<div class="wrestlingPlaceholderSeparator" aria-hidden="true"></div>' +
+        '<div class="wrestlingPlaceholderBody">' + body + '</div>' +
+      '</div>';
+  }
 
   function getWrestlingSubrouteFromPath() {
     try {
@@ -506,6 +530,84 @@
             0 0 26px rgba(255,90,120,0.75);
         }
 
+        .wrestlingPlaceholder{
+          width:100%;
+          max-width:900px;
+          margin:0 auto;
+          text-align:center;
+        }
+        .wrestlingPlaceholderTitle{
+          font-family:"Orbitron", system-ui, sans-serif;
+          font-size:24px;
+          font-weight:900;
+          letter-spacing:.12em;
+          text-transform:none;
+          color:rgba(244,247,255,0.96);
+          margin-bottom:14px;
+        }
+        .wrestlingPlaceholderSeparator{
+          height:3px;
+          margin:0 auto 16px;
+          width:min(100%, 820px);
+          border-radius:999px;
+          background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.24) 18%, rgba(103,203,255,0.62) 50%, rgba(100,227,186,0.22) 82%, rgba(255,255,255,0) 100%);
+          box-shadow:0 0 12px rgba(103,203,255,0.20), 0 0 24px rgba(100,227,186,0.08);
+        }
+        .wrestlingPlaceholderBody{
+          max-width:760px;
+          margin:0 auto;
+          font-size:14px;
+          line-height:1.7;
+          letter-spacing:.04em;
+          color:rgba(212,223,242,0.82);
+          text-transform:none;
+          white-space:pre-wrap;
+        }
+
+        @media (max-width: 760px){
+          .archiveModeToggle{
+            width:min(100%, 680px);
+            gap:8px;
+            padding:8px;
+            border-radius:28px;
+          }
+          .archiveModeBtn{
+            min-width:clamp(88px, 26vw, 126px);
+            padding:8px 9px;
+            font-size:clamp(10px, 2.45vw, 12px);
+            letter-spacing:.06em;
+          }
+          .wrestlingPlaceholderTitle{
+            font-size:20px;
+            letter-spacing:.08em;
+          }
+          .wrestlingPlaceholderBody{
+            font-size:13px;
+          }
+        }
+
+        @media (max-width: 520px){
+          .archiveModeToggle{
+            gap:6px;
+            padding:7px;
+            border-radius:26px;
+          }
+          .archiveModeBtn{
+            min-width:calc(50% - 6px);
+            padding:7px 7px;
+            font-size:clamp(9px, 2.9vw, 10.5px);
+            letter-spacing:.03em;
+          }
+          .wrestlingPlaceholderTitle{
+            font-size:17px;
+            letter-spacing:.05em;
+          }
+          .wrestlingPlaceholderBody{
+            font-size:12px;
+            line-height:1.6;
+          }
+        }
+
         #wrestlingInfoStrip .scanPing{
           pointer-events:none;
           position:absolute;
@@ -600,7 +702,7 @@
     _mount.innerHTML = `<span data-hud-main-text
       style="font-size:16px; line-height:1; letter-spacing:.14em; text-transform:none;
              display:inline-block; transform:translateY(${WRESTLING_TITLE_VISUAL_NUDGE});">
-      
+      The World of Wrestling
     </span>`;
 
     const hudMain = document.querySelector('.hudStub.hudMain');
@@ -683,6 +785,8 @@
         <div class="archiveHeaderWrap">
           <div class="archiveModeToggle" role="tablist" aria-label="Wrestling sections">
             <button class="archiveModeBtn" data-tab="shows" role="tab" aria-selected="false">Shows</button>
+            <button class="archiveModeBtn" data-tab="people" role="tab" aria-selected="false">People</button>
+            <button class="archiveModeBtn" data-tab="stats" role="tab" aria-selected="false">Stats</button>
             <button class="archiveModeBtn" data-tab="origins" role="tab" aria-selected="false">Origins</button>
           </div>
         </div>
@@ -691,9 +795,12 @@
 
       _orangeBoxEl.querySelectorAll('.archiveModeBtn').forEach((tab) => {
         tab.addEventListener('click', async () => {
+          const modeKey = String(tab.getAttribute('data-tab') || '').trim().toLowerCase();
+          const label = tab.textContent.trim();
           if (!_suppressWrestlingTabUrlSync) {
-            try { syncWrestlingSubroute((tab.getAttribute('data-tab') || '').trim(), { replace: false }); } catch (_) {}
+            try { syncWrestlingSubroute(modeKey, { replace: false }); } catch (_) {}
           }
+          try { setWrestlingDocumentTitle(modeKey); } catch (_) {}
           animateHudTab(tab);
 
           // prevent stale Shows mounts from firing after tab switches
@@ -702,9 +809,7 @@
             _showsMountTimer = null;
           }
 
-          const label = tab.textContent.trim();
-
-          if (label === 'Shows') {
+          if (modeKey === 'shows') {
             setPanelMode('shows');
             setArchiveViewportExpanded(true);
 
@@ -744,15 +849,40 @@
           setArchiveViewportExpanded(false);
           setPanelMode('default');
 
-          if (label === 'Origins') {
+          if (modeKey === 'people') {
             wipeSwapContent(
-              '',
-              `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.\n\nHowever, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
+              renderWrestlingPlaceholderCard({
+                title: 'The Archive - Filter By People',
+                body: 'This section will become the Wrestling-side people index, built from wrestler and person tags across the archive.\n\nFor now, this placeholder is in place so the shell, routing, and tab flow are ready before the data module is added.'
+              }),
+              ''
             );
             return;
           }
 
-          if (label === 'Notes') {
+          if (modeKey === 'stats') {
+            wipeSwapContent(
+              renderWrestlingPlaceholderCard({
+                title: 'Archive Statistics',
+                body: 'This page will house the Wrestling-side archive totals, indexing progress, and other project-level stats once the backend and source data are finalized.\n\nFor now, this placeholder keeps the section live in the shell so we can build the real stats module next without changing navigation again.'
+              }),
+              ''
+            );
+            return;
+          }
+
+          if (modeKey === 'origins') {
+            wipeSwapContent(
+              renderWrestlingPlaceholderCard({
+                title: 'The Origins of Wrestling',
+                body: `Limitless Wrestling has been a mainstay in my life since December 2021 when one of my friends suggested that I go to this indie wrestling event. Personally, I've been a fan of wrestling most of my life and have gone to many events ranging from WWE house shows to Wrestlemania 35 in NYJ/NYC.\n\nHowever, that one event sparked my love for indie wrestling and haven't looked back since. On this page (for now), all of the 2024 events and newer will be available, with 2023 and before being available down the road. Be on the lookout for that content!`
+              }),
+              ''
+            );
+            return;
+          }
+
+          if (modeKey === '__legacy_stats__') {
             wipeSwapContent('', `Notes – Coming Soon`);
             return;
           }
@@ -778,12 +908,8 @@
         setMode(initialMode, { replace: true, preservePath: true });
         return;
       }
-
-      const btns = _orangeBoxEl ? _orangeBoxEl.querySelectorAll('.archiveModeBtn') : [];
-      btns.forEach((b) => {
-        b.classList.remove('is-active');
-        try { b.setAttribute('aria-selected', 'false'); } catch (_) {}
-      });
+      setWrestlingDocumentTitle('shows');
+      setMode('shows', { replace: true, preservePath: true });
     } catch (_) {}
   }
 
@@ -791,6 +917,7 @@
   function setMode(mode, opts) {
     const m = String(mode || '').toLowerCase().trim();
     const key = WRESTLING_SUBROUTES.has(m) ? m : 'shows';
+    try { setWrestlingDocumentTitle(key); } catch (_) {}
 
     try {
       syncWrestlingSubroute(key, { replace: !!(opts && opts.replace), preservePath: !!(opts && opts.preservePath) });
