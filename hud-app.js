@@ -591,6 +591,20 @@ function pulseFrame(){
     navigate(key);
   }
 
+  async function __vmAdminFetch(path, options){
+    const base =
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com';
+    let token = '';
+    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    const headers = Object.assign({
+      Accept: 'application/json'
+    }, (options && options.headers) || {});
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`${base}${path}`, Object.assign({ cache: 'no-store', headers }, options || {}));
+  }
+
   // Keep your exact copy (same as inline)
   const ROUTE_COPY = {
     // Home supports HTML so you can style + edit copy easily.
@@ -955,14 +969,17 @@ music: {
               <div style="color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Access Approved</div>
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:30px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1.02;">Admin Control</div>
               <div style="margin-top:10px; color:rgba(225,208,220,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.45;">This is the first protected admin shell. The route is live and session-gated, and the tool cards below are ready for the next phase.</div>
+              <div id="vmAdminStatusLine" style="margin-top:12px; color:rgba(166,235,210,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Checking backend access...</div>
               <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:18px;">
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">People Index Tools</div>
                   <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Rebuild, inspect, and validate people-index data.</div>
+                  <div id="vmAdminPeopleMeta" style="margin-top:10px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Waiting for rebuild status...</div>
+                  <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:132px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Cache / Rebuild</div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Snapshot controls and warm-cache management will land here.</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">This pass gives you a protected rebuild trigger for the Wrestling people snapshot.</div>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Site Controls</div>
@@ -980,9 +997,55 @@ music: {
           return;
         }
         verifyAdminAccess().then((ok) => {
-          if (ok) return;
-          navigateToRoute('home', { replace: true });
-          openAdminModal();
+          if (!ok) {
+            navigateToRoute('home', { replace: true });
+            openAdminModal();
+            return;
+          }
+          const statusEl = document.getElementById('vmAdminStatusLine');
+          const metaEl = document.getElementById('vmAdminPeopleMeta');
+          const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
+          if (statusEl) statusEl.textContent = 'Backend access approved';
+
+          if (rebuildBtn) {
+            rebuildBtn.addEventListener('click', async () => {
+              rebuildBtn.disabled = true;
+              if (statusEl) statusEl.textContent = 'Rebuilding wrestling people index...';
+              try {
+                const res = await __vmAdminFetch('/admin/people-index/rebuild', {
+                  method: 'POST'
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data || !data.ok) {
+                  throw new Error((data && data.error) || 'rebuild failed');
+                }
+                if (statusEl) statusEl.textContent = 'People index rebuild complete';
+                if (metaEl) {
+                  const generatedAt = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'Unknown';
+                  metaEl.textContent = `${Number(data.totalPeople || 0)} people • ${Number(data.totalAppearances || 0)} appearances • rebuilt ${generatedAt}`;
+                }
+              } catch (_) {
+                if (statusEl) statusEl.textContent = 'Rebuild failed';
+              } finally {
+                rebuildBtn.disabled = false;
+              }
+            }, { once: false });
+          }
+
+          __vmAdminFetch('/admin/verify', { method: 'GET' })
+            .then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+              if (!ok) {
+                if (statusEl) statusEl.textContent = 'Backend verification failed';
+                return;
+              }
+              if (statusEl && data && data.expiresAt) {
+                statusEl.textContent = `Backend access approved until ${new Date(data.expiresAt).toLocaleString()}`;
+              }
+            })
+            .catch(() => {
+              if (statusEl) statusEl.textContent = 'Backend access approved';
+            });
         });
       },
       onLeave(){}
