@@ -41,21 +41,25 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleCountChip{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,120,164,.26);background:rgba(15,10,22,.86);color:rgba(239,228,236,.92);font-size:12px;letter-spacing:.03em;box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;}
   .waPeopleDetailHead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px;}
   .waPeopleDetailTop{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
+  .waPeopleDetailTitle{color:rgba(239,232,238,.92);font-size:13px;font-weight:900;letter-spacing:.02em;text-transform:none;}
+  .waPeopleDetailMeta{margin-top:2px;color:rgba(216,199,213,.72);font-size:10px;letter-spacing:.1em;text-transform:uppercase;}
   .waPeopleDetailStats{text-align:right;color:rgba(232,219,229,.82);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
   .waPeopleDetailList{display:grid;gap:16px;}
-  .waPeopleAppearanceCard{padding:18px 20px;}
+  .waPeopleAppearanceCard{padding:16px 18px;}
   .waPeopleAppearanceShell{display:grid;gap:14px;}
   .waPeopleAppearanceTop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;}
   .waPeopleAppearanceTitleWrap{min-width:0;}
-  .waPeopleAppearanceEyebrow{margin-top:0;}
-  .waPeopleAppearanceTitle{margin-top:4px;color:#f4ebf1;font-size:clamp(28px,2.1vw,36px);line-height:1.02;letter-spacing:.04em;text-transform:uppercase;}
-  .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;align-items:center;}
+  .waPeopleAppearanceEyebrow{margin-top:0;color:rgba(255,130,164,.82);font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+  .waPeopleAppearanceTitle{margin-top:4px;color:rgba(239,232,238,.96);font-size:clamp(20px,1.65vw,24px);font-weight:900;line-height:1.08;letter-spacing:.01em;text-transform:none;}
+  .waPeopleAppearanceSub{margin-top:4px;color:rgba(216,199,213,.78);font-size:12px;letter-spacing:.03em;text-transform:none;}
+  .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;align-items:center;}
+  .waPeopleJump{padding:7px 11px;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;}
   .waPeopleJump.is-secondary{border-color:rgba(128,142,255,.2);background:rgba(18,14,30,.7);color:rgba(236,228,234,.92);}
   .waPeopleShotPanel{margin-top:2px;border-top:1px solid rgba(255,96,144,.16);padding-top:14px;}
   .waPeopleShotHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:12px;}
   .waPeopleShotHeaderCopy{min-width:0;}
-  .waPeopleShotStatus{margin-top:0;color:#f1e7ee;font-size:18px;font-weight:700;line-height:1.05;}
-  .waPeopleShotHint{margin-top:4px;color:rgba(224,208,220,.66);font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+  .waPeopleShotStatus{margin-top:0;color:#f1e7ee;font-size:14px;font-weight:900;line-height:1.05;}
+  .waPeopleShotHint{margin-top:4px;color:rgba(224,208,220,.66);font-size:10px;letter-spacing:.12em;text-transform:uppercase;}
   .waPeopleShotGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-top:0;}
   .waPeopleShotThumb,.waPeopleLightboxThumb{padding:0;border:1px solid rgba(120,138,255,.18);background:rgba(17,15,28,.88);border-radius:14px;overflow:hidden;cursor:pointer;}
   .waPeopleShotThumb{position:relative;display:block;}
@@ -82,7 +86,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleCardName{font-size:15px;}
     .waPeopleDetailHead,.waPeopleAppearanceTop,.waPeopleShotHeader{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
-    .waPeopleAppearanceTitle{font-size:clamp(22px,7vw,28px);}
+    .waPeopleAppearanceTitle{font-size:clamp(18px,6vw,22px);}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
 `;document.head.appendChild(s);}
@@ -142,7 +146,7 @@ async function shotsForAppearance(app,person){const who=String(person||'').trim(
   function letterForName(name){const s=String(name||'').trim(); if(!s)return'#'; const ch=s[0].toUpperCase(); return (ch>='A'&&ch<='Z')?ch:'#';}
   function renderLetters(){const nav=root&&root.querySelector('#waPeopleLetterNav'); if(!nav)return; if(view.mode==='person'){nav.style.display='none';return;} nav.style.display=''; const counts={}; for(let i=65;i<=90;i++)counts[String.fromCharCode(i)]=0; peopleMap.forEach(e=>{const L=letterForName(e.person); counts[L]=(counts[L]||0)+1;}); const mk=(label,key,disabled)=>`<button type="button" class="waPeopleLetterBtn${((!key&&!activeLetter)||(activeLetter===key))?' is-active':''}${disabled?' is-disabled':''}" data-letter="${eh(key||'ALL')}" ${disabled?'disabled':''}>${eh(label)}</button>`; let html=mk('All','',false); for(let i=65;i<=90;i++){const L=String.fromCharCode(i); html+=mk(L,L,!counts[L]);} nav.innerHTML=html; }
   function renderList(){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entries=Array.from(peopleMap.values()).filter(e=>!activeLetter||letterForName(e.person)===activeLetter).sort((a,b)=>a.person.localeCompare(b.person)); if(!entries.length){body.innerHTML='<div class="waPeopleEmpty">No performers matched that letter yet. Try another letter or switch back to All.</div>'; return;} body.innerHTML=`<div class="waPeopleGrid">${entries.map(e=>`<button type="button" class="waPeopleCard" data-person="${eh(e.person)}" aria-label="Open ${eh(e.person)}"><div class="waPeopleCardInfo"><div class="waPeopleCardName">${eh(e.person)}</div></div><div class="waPeopleCardCounts"><span class="waPeopleCountChip">${(Number(e.photoCount)||e.appearances.length||0).toLocaleString()}</span></div></button>`).join('')}</div>`; }
-  function renderPerson(name){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entry=peopleMap.get(String(name||'').toLowerCase()); if(!entry){view={mode:'list',person:''}; syncPeoplePath('',{replace:true}); renderLetters(); renderList(); return;} const apps=Array.isArray(entry.appearances)?entry.appearances:[]; body.innerHTML=`<div class="waPeopleDetailHead"><div class="waPeopleDetailTop"><button type="button" class="waPeopleBack" data-action="back">Back</button><div class="waPeopleDetailTitle">${eh(entry.person)}</div></div><div class="waPeopleDetailStats">Albums: ${apps.length.toLocaleString()}</div></div><div class="waPeopleDetailList">${apps.map(item=>`<div class="waPeopleAppearanceCard"><div class="waPeopleAppearanceShell"><div class="waPeopleAppearanceTop"><div class="waPeopleAppearanceTitleWrap"><div class="waPeopleAppearanceEyebrow">${eh(item.showTitle)}</div><div class="waPeopleAppearanceTitle">${eh(item.detailTitle)}</div><div class="waPeopleAppearanceSub">${eh(appearanceMeta(item))}</div></div><div class="waPeopleAppearanceActions"><button type="button" class="waPeopleJump" data-route="${eh(item.route)}">Open Match</button><button type="button" class="waPeopleJump is-secondary" data-load-shots="${eh(item.route)}">Load Tagged Shots</button></div></div><div class="waPeopleShotPanel" data-shot-panel="${eh(item.route)}" style="display:none;"></div></div></div>`).join('')}</div>`; }
+  function renderPerson(name){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entry=peopleMap.get(String(name||'').toLowerCase()); if(!entry){view={mode:'list',person:''}; syncPeoplePath('',{replace:true}); renderLetters(); renderList(); return;} const apps=Array.isArray(entry.appearances)?entry.appearances:[]; body.innerHTML=`<div class="waPeopleDetailHead"><div class="waPeopleDetailTop"><button type="button" class="waPeopleBack" data-action="back">Back</button></div><div class="waPeopleDetailStats"><div class="waPeopleDetailTitle">${eh(entry.person)}</div><div class="waPeopleDetailMeta">Albums: ${apps.length.toLocaleString()}</div></div></div><div class="waPeopleDetailList">${apps.map(item=>`<div class="waPeopleAppearanceCard"><div class="waPeopleAppearanceShell"><div class="waPeopleAppearanceTop"><div class="waPeopleAppearanceTitleWrap"><div class="waPeopleAppearanceEyebrow">${eh(item.showTitle)}</div><div class="waPeopleAppearanceTitle">${eh(item.detailTitle)}</div><div class="waPeopleAppearanceSub">${eh(appearanceMeta(item))}</div></div><div class="waPeopleAppearanceActions"><button type="button" class="waPeopleJump" data-route="${eh(item.route)}">Open Match</button><button type="button" class="waPeopleJump is-secondary" data-load-shots="${eh(item.route)}">Load Tagged Shots</button></div></div><div class="waPeopleShotPanel" data-shot-panel="${eh(item.route)}" style="display:none;"></div></div></div>`).join('')}</div>`; }
   function renderCurrent(){renderMeta(); renderLetters(); if(view.mode==='person'&&view.person)renderPerson(view.person); else renderList(); }
   function syncPeoplePath(personName,opts){const slug=slugPerson(personName); const path=slug?`/wrestling/people/${slug}`:'/wrestling/people'; const target=path+(window.location.search||''); const method=(opts&&opts.replace)?'replaceState':'pushState'; try{window.history[method]({},'',target);}catch(_){}}
   function openPerson(personName,opts){const who=String(personName||'').trim(); if(!who)return; view={mode:'person',person:who}; if(!opts||opts.syncUrl!==false)syncPeoplePath(who,{replace:!!(opts&&opts.replace)}); renderCurrent(); try{const p=panel||document.getElementById('wrestlingContentPanel'); if(p)p.scrollTop=0;}catch(_){}}
