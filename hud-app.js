@@ -132,7 +132,25 @@
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
     const ADMIN_PASSWORD = '101815';
+    const ADMIN_UNLOCK_KEY = 'vm_admin_unlocked_v1';
     let adminModal = null;
+    const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
+
+    function setAdminUnlockedUI(unlocked){
+      if (!adminPill) return;
+      adminPill.classList.toggle('is-admin-unlocked', !!unlocked);
+      adminPill.classList.toggle('is-disabled', !unlocked);
+      adminPill.setAttribute('aria-expanded', 'false');
+    }
+
+    function isAdminUnlocked(){
+      try { return sessionStorage.getItem(ADMIN_UNLOCK_KEY) === '1'; } catch (_) { return false; }
+    }
+
+    function markAdminUnlocked(){
+      try { sessionStorage.setItem(ADMIN_UNLOCK_KEY, '1'); } catch (_) {}
+      setAdminUnlockedUI(true);
+    }
 
     function ensureAdminModal(){
       if (adminModal && adminModal.parentNode) return adminModal;
@@ -198,6 +216,7 @@
       const el = ensureAdminModal();
       if (!el) return;
       el.classList.remove('is-open');
+      if (adminPill) adminPill.setAttribute('aria-expanded', 'false');
     }
 
     function submitAdminPassword(){
@@ -207,6 +226,7 @@
       const err = el.querySelector('#hudAdminError');
       const value = input ? String(input.value || '').trim() : '';
       if (value === ADMIN_PASSWORD) {
+        markAdminUnlocked();
         if (err) err.textContent = 'Password accepted';
         window.setTimeout(() => closeAdminModal(), 220);
       } else if (err) {
@@ -289,6 +309,11 @@
 
         if (pill.hasAttribute('data-admin-trigger')) {
           e.preventDefault();
+          if (isAdminUnlocked()) {
+            setAdminUnlockedUI(true);
+            return;
+          }
+          pill.setAttribute('aria-expanded', 'true');
           openAdminModal();
           return;
         }
@@ -322,6 +347,8 @@
       const active = document.querySelector('.hudStub [data-nav].is-active') || null;
       if (active) moveUnderlineTo(active);
     });
+
+    setAdminUnlockedUI(isAdminUnlocked());
   })();
 
 function pulseFrame(){
