@@ -30,7 +30,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleIntroDivider:last-child{margin:14px auto 0;}
   .waPeopleIntroTitle{color:#f1e8ef;font-size:clamp(28px,2.6vw,40px);line-height:1.04;letter-spacing:.06em;text-shadow:0 0 16px rgba(255,120,170,.18);}
   .waPeopleIntroBody{max-width:1040px;margin:12px auto 0;color:rgba(225,214,224,.88);font-size:clamp(12px,1.1vw,15px);line-height:1.32;letter-spacing:.03em;}
-  .waPeopleMeta{margin:8px auto 14px;text-align:center;color:rgba(226,205,220,.82);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+  .waPeopleMeta{margin:8px auto 14px;text-align:center;color:rgba(226,205,220,.82);font-size:12px;letter-spacing:.08em;text-transform:none;}
   .waPeopleLetterNav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 auto 12px;padding:6px 8px;max-width:1060px;border:1px solid rgba(255,92,140,.18);border-radius:999px;background:rgba(0,0,0,.14);box-shadow:0 0 0 1px rgba(255,150,184,.04) inset;font-family:"Orbitron",system-ui,sans-serif;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
   .waPeopleLetterBtn,.waPeopleJump,.waPeopleBack{border:1px solid rgba(255,118,156,.18);background:rgba(0,0,0,.12);color:#ead9e7;border-radius:999px;padding:5px 9px;font-family:"Orbitron",system-ui,sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 0 0 1px rgba(255,120,164,.04) inset;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;}
   .waPeopleLetterBtn:hover,.waPeopleJump:hover,.waPeopleBack:hover{transform:translateY(-1px);border-color:rgba(255,132,170,.62);box-shadow:0 0 18px rgba(255,90,142,.2);}
@@ -128,7 +128,7 @@ function render(){return `
           <div class="waPeopleIntro" aria-label="Wrestling Performers Introduction">
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
             <div class="waPeopleIntroTitle">The Archive - Filter By Performer</div>
-            <div class="waPeopleIntroBody">Welcome to the Wrestling people side. This pass reads performer names from the photo caption field only, so shots with empty captions will not create performer entries.</div>
+            <div class="waPeopleIntroBody">Welcome to the Wrestling side, filtered by performer. This is an incomplete list so far, but individually tagged shots will appear in this section for easier individual search. Keep checking back as data gets added.</div>
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
           </div>
           <div id="waPeopleMeta" class="waPeopleMeta"></div>
