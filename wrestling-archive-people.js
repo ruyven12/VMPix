@@ -4,7 +4,7 @@ const API_BASE=((window&&window.WRESTLING_ARCHIVE_API_BASE)||'https://wrestling-
 const SMUG='https://vmpix.smugmug.com';
 const SHOWS_ENDPOINT=`${API_BASE}/sheet/shows`;
 const PEOPLE_SHEET_ENDPOINT=`${API_BASE}/sheet/people`;
-const CATEGORY_ORDER=['Performers','Legends','Referees','Guests','Announcers-Commentary','Crew','Fans','Miscellaneous'];
+const CATEGORY_ORDER=['Performers','Managers','Legends','Referees','Guests','Announcers-Commentary','Crew','Fans','Miscellaneous'];
 let panel=null,root=null,mountToken=0,shows=[],peopleMap=new Map(),view={mode:'list',person:''},activeLetter=null;
 let rosterMap=new Map();
 let collapsedCategories=new Set();
