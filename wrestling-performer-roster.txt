@@ -25,8 +25,8 @@ Brad Baylor|Performers|
 Channing Thomas|Performers|
 Donovan Dijak|Legends|Dijak,Donovan Dijak
 Gabby Forza|Performers|
-J Heru|Performers|J-Heru
-JT Dunn|Performers|J T Dunn
+J Heru|Performers|
+JT Dunn|Performers|
 Leo Sparrow|Performers|
 Megan Bayne|Performers|
 Milo Mirra|Performers|
