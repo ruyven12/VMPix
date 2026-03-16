@@ -1,0 +1,37 @@
+﻿# Format:
+# Display Name|Category|Aliases (optional, comma-separated)
+#
+# Allowed categories, in display order:
+# Performers
+# Legends
+# Referees
+# Guests
+# Announcers-Commentary
+# Crew
+# Fans
+#
+# Examples:
+# Aaron Rourke|Performers|
+# Rich Palladino|Announcers-Commentary|Rich P
+
+Aaron Rourke|Performers|
+Aiden Aggro|Performers|
+Ace Romero|Performers|
+Alec Price|Performers|
+Anthony Greene|Performers|
+BK Westbrook|Performers|
+Brad Baylor|Performers|
+Channing Thomas|Performers|
+Donovan Dijak|Legends|Dijak,Donovan Dijak
+Gabby Forza|Performers|
+J Heru|Performers|J-Heru
+JT Dunn|Performers|J T Dunn
+Leo Sparrow|Performers|
+Megan Bayne|Performers|
+Milo Mirra|Performers|
+Nick Zabenko|Guests|
+Rich Palladino|Announcers-Commentary|
+Ricky Smokes|Performers|
+Titus Alexander|Performers|
+TJ Crawford|Performers|
+
