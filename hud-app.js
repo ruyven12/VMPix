@@ -228,7 +228,10 @@
       if (value === ADMIN_PASSWORD) {
         markAdminUnlocked();
         if (err) err.textContent = 'Password accepted';
-        window.setTimeout(() => closeAdminModal(), 220);
+        window.setTimeout(() => {
+          closeAdminModal();
+          navigateToRoute('admin');
+        }, 220);
       } else if (err) {
         err.textContent = 'Incorrect password';
       }
@@ -311,6 +314,7 @@
           e.preventDefault();
           if (isAdminUnlocked()) {
             setAdminUnlockedUI(true);
+            navigateToRoute('admin');
             return;
           }
           pill.setAttribute('aria-expanded', 'true');
@@ -441,7 +445,7 @@ function pulseFrame(){
     }catch(_){ }
   }
 
-    const VALID_ROUTE_KEYS = new Set(['home','music','wrestling','calendar','about','pricing','contact']);
+    const VALID_ROUTE_KEYS = new Set(['home','music','wrestling','calendar','about','pricing','contact','admin']);
 
   function sanitizeRouteKey(v){
     const key = String(v || '').trim().toLowerCase();
@@ -539,8 +543,9 @@ function pulseFrame(){
     calendar: "Calendar - Coming Soon",
     about: "About Me - Coming Soon",
     pricing: "Pricing - Coming Soon",
-    contact: "Contact - Coming Soon"
-};
+    contact: "Contact - Coming Soon",
+    admin: "Admin Control"
+  };
 
   // Helper: render a typed-text span into the mount (same HUD behavior)
   function renderTypedShell(m){
@@ -863,6 +868,44 @@ music: {
           Contact.destroy();
         }
       }
+    },
+
+    admin: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        m.innerHTML = `
+          <div style="width:min(940px,100%); margin:0 auto; padding:18px 18px 24px;">
+            <div style="border:1px solid rgba(255,70,110,.22); border-radius:18px; padding:18px; background:linear-gradient(180deg,rgba(20,10,23,.78),rgba(10,7,14,.82)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;">
+              <div style="color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Access Approved</div>
+              <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:30px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1.02;">Admin Control</div>
+              <div style="margin-top:10px; color:rgba(225,208,220,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.45;">This is the first protected admin shell. The route is live and session-gated, and the tool cards below are ready for the next phase.</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:18px;">
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">People Index Tools</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Rebuild, inspect, and validate people-index data.</div>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Cache / Rebuild</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Snapshot controls and warm-cache management will land here.</div>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Site Controls</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Reserved for future admin actions and internal utilities.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+      onEnter(){
+        if (!isAdminUnlocked()) {
+          navigateToRoute('home', { replace: true });
+          openAdminModal();
+          return;
+        }
+      },
+      onLeave(){}
     }
   };
 
