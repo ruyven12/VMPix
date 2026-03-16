@@ -7,7 +7,7 @@ const PEOPLE_SHEET_ENDPOINT=`${API_BASE}/sheet/people`;
 const CATEGORY_ORDER=['Performers','Managers','Legends','Referees','Guests','Announcers-Commentary','Crew','Fans','Miscellaneous'];
 let panel=null,root=null,mountToken=0,shows=[],peopleMap=new Map(),view={mode:'list',person:''},activeLetter=null;
 let rosterMap=new Map();
-let collapsedCategories=new Set();
+let collapsedCategories=new Set(CATEGORY_ORDER);
 const shotCache=new Map(), fullUrlByKey=new Map();
 let lbEl=null, lbImg=null, lbIndex=0, lbList=[];
 function eh(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
