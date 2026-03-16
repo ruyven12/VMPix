@@ -22,3 +22,36 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
   - Avoid deep reference-chasing: prefer opening only files directly linked from `SKILL.md` unless you're blocked.
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+
+## Project Rules
+- Treat the Wrestling side as an active first-class area of this workspace. Do not treat it as secondary to Music.
+- For future threads, assume Wrestling is the default focus whenever the user asks for archive work, fixes, rebuilds, routing, people index work, show data work, or admin tool work unless the user explicitly says Music or another section.
+- Prefer making the change directly in this workspace instead of telling the user what to edit manually.
+- The Wrestling frontend source of truth in this workspace is:
+  - `hud-app.js`
+  - `wrestling-archive.js`
+  - `wrestling-archive-shows.js`
+  - `wrestling-archive-people.js`
+  - `index.html`
+- The deployed Wrestling backend currently lives outside this workspace and is referenced by `https://wrestling-archive.onrender.com`. When a task depends on backend behavior, say that clearly and continue as far as possible from this repo instead of stopping early.
+- Preserve the existing VMPix visual system and route shell unless the user asks for a redesign. Wrestling should feel native to the same site, not like a separate temporary add-on.
+- Prefer operational improvements that reduce repeat manual work. Good examples:
+  - adding or improving rebuild tools
+  - documenting the workflow
+  - creating validation scripts
+  - centralizing config
+  - reducing hard-coded one-off steps
+- The Wrestling admin route is part of the intended workflow. Rebuild and verification tools should be treated as production-facing maintenance features, not throwaway debug code.
+- If a Wrestling task requires changes in both frontend and backend, complete the frontend side here and document exactly what backend counterpart is still needed.
+- When adding new Wrestling logic, keep the path and naming conventions aligned with the existing route structure:
+  - `/wrestling`
+  - `/wrestling/shows/...`
+  - `/wrestling/people/...`
+- Do not remove or weaken existing Music functionality while improving Wrestling unless the user explicitly asks for a shared refactor.
+- If the user asks for "make it work" on the Wrestling side, prefer this order:
+  1) fix broken runtime behavior
+  2) stabilize data/rebuild flow
+  3) improve admin tooling
+  4) document the workflow
+  5) polish UX
+- Reference `WRESTLING-WORKFLOW.md` for repo-specific operating guidance before inventing a new process.
