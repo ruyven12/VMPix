@@ -131,8 +131,11 @@
   (function(){
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
-    const ADMIN_PASSWORD = '101815';
-    const ADMIN_UNLOCK_KEY = 'vm_admin_unlocked_v1';
+    const ADMIN_TOKEN_KEY = 'vm_admin_token_v1';
+    const ADMIN_AUTH_API_BASE =
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
 
@@ -143,13 +146,49 @@
       adminPill.setAttribute('aria-expanded', 'false');
     }
 
-    function isAdminUnlocked(){
-      try { return sessionStorage.getItem(ADMIN_UNLOCK_KEY) === '1'; } catch (_) { return false; }
+    function getAdminToken(){
+      try { return String(sessionStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) { return ''; }
     }
 
-    function markAdminUnlocked(){
-      try { sessionStorage.setItem(ADMIN_UNLOCK_KEY, '1'); } catch (_) {}
+    function isAdminUnlocked(){
+      return !!getAdminToken();
+    }
+
+    function markAdminUnlocked(token){
+      if (!token) return;
+      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, String(token)); } catch (_) {}
       setAdminUnlockedUI(true);
+    }
+
+    function clearAdminUnlocked(){
+      try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
+      setAdminUnlockedUI(false);
+    }
+
+    async function verifyAdminAccess(){
+      const token = getAdminToken();
+      if (!token) {
+        clearAdminUnlocked();
+        return false;
+      }
+      try {
+        const res = await fetch(`${ADMIN_AUTH_API_BASE}/admin/verify`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!res.ok) {
+          clearAdminUnlocked();
+          return false;
+        }
+        setAdminUnlockedUI(true);
+        return true;
+      } catch (_) {
+        return true;
+      }
     }
 
     function ensureAdminModal(){
@@ -160,7 +199,7 @@
         <div class="hudAdminCard" role="dialog" aria-modal="true" aria-label="Admin Access">
           <div class="hudAdminEyebrow">Restricted</div>
           <div class="hudAdminTitle">Admin Access</div>
-          <div class="hudAdminBody">Enter the password to continue. This is only the access prompt for now, so no admin route will open yet.</div>
+          <div class="hudAdminBody">Enter the password to continue. This access is now verified through the backend before the Admin route unlocks.</div>
           <input class="hudAdminField" id="hudAdminPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Password" />
           <div class="hudAdminError" id="hudAdminError"></div>
           <div class="hudAdminActions">
@@ -219,21 +258,45 @@
       if (adminPill) adminPill.setAttribute('aria-expanded', 'false');
     }
 
-    function submitAdminPassword(){
+    async function submitAdminPassword(){
       const el = ensureAdminModal();
       if (!el) return;
       const input = el.querySelector('#hudAdminPassword');
       const err = el.querySelector('#hudAdminError');
+      const submitBtn = el.querySelector('[data-admin-action="submit"]');
       const value = input ? String(input.value || '').trim() : '';
-      if (value === ADMIN_PASSWORD) {
-        markAdminUnlocked();
-        if (err) err.textContent = 'Password accepted';
+      if (err) err.textContent = '';
+      if (!value) {
+        if (err) err.textContent = 'Enter the password';
+        return;
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        const res = await fetch(`${ADMIN_AUTH_API_BASE}/admin/auth`, {
+          method: 'POST',
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({ password: value })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data || !data.ok || !data.token) {
+          clearAdminUnlocked();
+          if (err) err.textContent = (data && data.error === 'invalid password') ? 'Incorrect password' : 'Unable to verify access right now';
+          return;
+        }
+        markAdminUnlocked(data.token);
+        if (err) err.textContent = 'Access approved';
         window.setTimeout(() => {
           closeAdminModal();
           navigateToRoute('admin');
         }, 220);
-      } else if (err) {
-        err.textContent = 'Incorrect password';
+      } catch (_) {
+        if (err) err.textContent = 'Unable to reach admin auth service';
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     }
 
@@ -313,8 +376,15 @@
         if (pill.hasAttribute('data-admin-trigger')) {
           e.preventDefault();
           if (isAdminUnlocked()) {
-            setAdminUnlockedUI(true);
-            navigateToRoute('admin');
+            verifyAdminAccess().then((ok) => {
+              if (ok) {
+                setAdminUnlockedUI(true);
+                navigateToRoute('admin');
+                return;
+              }
+              pill.setAttribute('aria-expanded', 'true');
+              openAdminModal();
+            });
             return;
           }
           pill.setAttribute('aria-expanded', 'true');
@@ -352,7 +422,12 @@
       if (active) moveUnderlineTo(active);
     });
 
-    setAdminUnlockedUI(isAdminUnlocked());
+    if (isAdminUnlocked()) {
+      setAdminUnlockedUI(true);
+      verifyAdminAccess().then((ok) => { if (!ok) clearAdminUnlocked(); });
+    } else {
+      setAdminUnlockedUI(false);
+    }
   })();
 
 function pulseFrame(){
@@ -904,6 +979,11 @@ music: {
           openAdminModal();
           return;
         }
+        verifyAdminAccess().then((ok) => {
+          if (ok) return;
+          navigateToRoute('home', { replace: true });
+          openAdminModal();
+        });
       },
       onLeave(){}
     }
