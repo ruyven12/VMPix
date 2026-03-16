@@ -131,6 +131,88 @@
   (function(){
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
+    const ADMIN_PASSWORD = '101815';
+    let adminModal = null;
+
+    function ensureAdminModal(){
+      if (adminModal && adminModal.parentNode) return adminModal;
+      const el = document.createElement('div');
+      el.className = 'hudAdminModal';
+      el.innerHTML = `
+        <div class="hudAdminCard" role="dialog" aria-modal="true" aria-label="Admin Access">
+          <div class="hudAdminEyebrow">Restricted</div>
+          <div class="hudAdminTitle">Admin Access</div>
+          <div class="hudAdminBody">Enter the password to continue. This is only the access prompt for now, so no admin route will open yet.</div>
+          <input class="hudAdminField" id="hudAdminPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Password" />
+          <div class="hudAdminError" id="hudAdminError"></div>
+          <div class="hudAdminActions">
+            <button type="button" class="hudAdminBtn" data-admin-action="cancel">Cancel</button>
+            <button type="button" class="hudAdminBtn is-primary" data-admin-action="submit">Unlock</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(el);
+      adminModal = el;
+
+      el.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('[data-admin-action]') : null;
+        if (btn) {
+          const act = btn.getAttribute('data-admin-action') || '';
+          if (act === 'cancel') closeAdminModal();
+          if (act === 'submit') submitAdminPassword();
+          return;
+        }
+        if (e.target === el) closeAdminModal();
+      });
+
+      const input = el.querySelector('#hudAdminPassword');
+      if (input) {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitAdminPassword();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeAdminModal();
+          }
+        });
+      }
+
+      return el;
+    }
+
+    function openAdminModal(){
+      const el = ensureAdminModal();
+      if (!el) return;
+      el.classList.add('is-open');
+      const err = el.querySelector('#hudAdminError');
+      const input = el.querySelector('#hudAdminPassword');
+      if (err) err.textContent = '';
+      if (input) {
+        input.value = '';
+        window.setTimeout(() => { try { input.focus(); } catch (_) {} }, 20);
+      }
+    }
+
+    function closeAdminModal(){
+      const el = ensureAdminModal();
+      if (!el) return;
+      el.classList.remove('is-open');
+    }
+
+    function submitAdminPassword(){
+      const el = ensureAdminModal();
+      if (!el) return;
+      const input = el.querySelector('#hudAdminPassword');
+      const err = el.querySelector('#hudAdminError');
+      const value = input ? String(input.value || '').trim() : '';
+      if (value === ADMIN_PASSWORD) {
+        if (err) err.textContent = 'Password accepted';
+        window.setTimeout(() => closeAdminModal(), 220);
+      } else if (err) {
+        err.textContent = 'Incorrect password';
+      }
+    }
 
     // Nav underline rail (single element that slides between pills)
     // NOTE: Disabled for now (user request: kill underline). Keep code path in place
@@ -204,6 +286,12 @@
         if (e.defaultPrevented) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (typeof e.button === 'number' && e.button !== 0) return;
+
+        if (pill.hasAttribute('data-admin-trigger')) {
+          e.preventDefault();
+          openAdminModal();
+          return;
+        }
 
         const route = pill.getAttribute('data-nav') || 'home';
         e.preventDefault();

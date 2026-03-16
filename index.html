@@ -475,10 +475,110 @@
     animation: hudPillActivate 220ms ease-out;
   }
   .hudIntroText.is-disabled{
-    opacity: .42;
-    filter: saturate(.72);
-    pointer-events: none;
-    cursor: default;
+    opacity: .58;
+    filter: saturate(.76);
+  }
+  .hudAdminModal{
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(2,2,6,.74);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+  }
+  .hudAdminModal.is-open{ display:flex; }
+  .hudAdminCard{
+    width: min(420px, 94vw);
+    padding: 18px 18px 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(20,10,23,.96), rgba(12,7,16,.96));
+    border: 1px solid rgba(255,70,110,.28);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.10), 0 0 28px rgba(255,70,110,.16), 0 16px 42px rgba(0,0,0,.45);
+  }
+  .hudAdminEyebrow{
+    color: rgba(255,130,164,.86);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .hudAdminTitle{
+    margin-top: 6px;
+    color: rgba(245,236,242,.96);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    line-height: 1.04;
+  }
+  .hudAdminBody{
+    margin-top: 10px;
+    color: rgba(225,208,220,.82);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .hudAdminField{
+    width: 100%;
+    margin-top: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,70,110,.24);
+    background: rgba(0,0,0,.22);
+    color: rgba(245,236,242,.96);
+    padding: 11px 12px;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 13px;
+    letter-spacing: .08em;
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .hudAdminField:focus{
+    border-color: rgba(255,110,150,.54);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.16), 0 0 18px rgba(255,70,110,.14);
+  }
+  .hudAdminError{
+    min-height: 16px;
+    margin-top: 10px;
+    color: rgba(255,130,164,.92);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .hudAdminActions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .hudAdminBtn{
+    appearance: none;
+    border: 1px solid rgba(255,70,110,.24);
+    background: rgba(0,0,0,.16);
+    color: rgba(245,236,242,.94);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .hudAdminBtn:hover{
+    border-color: rgba(255,70,110,.44);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.12), 0 0 18px rgba(255,70,110,.10);
+  }
+  .hudAdminBtn.is-primary{
+    background: linear-gradient(180deg, rgba(255,96,140,.96), rgba(224,72,114,.92));
+    color: rgba(34,8,18,.96);
+    border-color: rgba(255,120,154,.48);
   }
 
   .hudIntroText:active{ transform: translateY(1px); }
@@ -1802,7 +1902,7 @@
   <a class="hudIntroText" href="/about" data-nav="about"><span class="hudIntroType">About</span></a>
   <a class="hudIntroText" href="/pricing" data-nav="pricing"><svg class="nav-icon nav-icon-dollar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7.5c0-1.9-1.8-3.5-4-3.5s-4 1.6-4 3.5 1.3 3.1 4 3.5 4 1.6 4 3.5-1.8 3.5-4 3.5-4-1.6-4-3.5"></path><line x1="12" y1="2.5" x2="12" y2="21.5"></line></svg><span class="hudIntroType">Pricing</span></a>
   <a class="hudIntroText" href="/contact" data-nav="contact"><span class="hudIntroType">Contact</span></a>
-  <a class="hudIntroText is-disabled" href="#" aria-disabled="true" tabindex="-1"><svg class="nav-icon nav-icon-lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span class="hudIntroType">Admin</span></a>
+  <a class="hudIntroText is-disabled" href="#" data-admin-trigger="1" aria-haspopup="dialog" aria-expanded="false"><svg class="nav-icon nav-icon-lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span class="hudIntroType">Admin</span></a>
 </div>
 
             <div class="hudStub hudMain">
