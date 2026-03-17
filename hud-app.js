@@ -661,26 +661,39 @@ function pulseFrame(){
       { label: 'Sessions', value: formatVmAdminNumber(totals.sessions) }
     ];
     const summaryHtml = summary.map((item) => `
-      <div style="border:1px solid rgba(255,70,110,.16); border-radius:14px; padding:14px; background:rgba(0,0,0,.18);">
-        <div style="color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;">${escapeVmAdminHtml(item.label)}</div>
-        <div style="margin-top:8px; color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:24px; font-weight:900; letter-spacing:.02em;">${escapeVmAdminHtml(item.value)}</div>
+      <div style="position:relative; overflow:hidden; border:1px solid rgba(255,70,110,.2); border-radius:16px; padding:16px 16px 14px; background:linear-gradient(180deg,rgba(15,10,22,.92),rgba(8,8,15,.84)); box-shadow:0 12px 28px rgba(0,0,0,.22);">
+        <div style="position:absolute; inset:auto -10% 0 auto; width:84px; height:84px; border-radius:999px; background:radial-gradient(circle,rgba(70,214,255,.16),rgba(70,214,255,0)); pointer-events:none;"></div>
+        <div style="color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;">${escapeVmAdminHtml(item.label)}</div>
+        <div style="margin-top:10px; color:rgba(250,241,245,.98); font-family:'Orbitron',system-ui,sans-serif; font-size:30px; font-weight:900; letter-spacing:.01em; line-height:1;">${escapeVmAdminHtml(item.value)}</div>
       </div>
     `).join('');
     const sectionsHtml = sections.length
-      ? sections.slice(0, 6).map((item) => `
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.06);">
-            <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'Unknown')}</div>
-            <div style="color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))} events / ${escapeVmAdminHtml(formatVmAdminNumber(item.pageviews))} views</div>
+      ? sections.slice(0, 6).map((item) => {
+          const events = Number(item && item.events || 0);
+          const pageviews = Number(item && item.pageviews || 0);
+          const barWidth = Math.max(8, Math.min(100, events));
+          return `
+          <div style="padding:10px 0 12px; border-bottom:1px solid rgba(255,255,255,.06);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'Unknown')}</div>
+              <div style="color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminNumber(events))} evt / ${escapeVmAdminHtml(formatVmAdminNumber(pageviews))} view</div>
+            </div>
+            <div style="margin-top:7px; height:7px; border-radius:999px; background:rgba(255,255,255,.05); overflow:hidden;">
+              <div style="width:${barWidth}%; height:100%; border-radius:999px; background:linear-gradient(90deg,rgba(255,80,132,.86),rgba(89,225,255,.8));"></div>
+            </div>
           </div>
-        `).join('')
+        `;
+        }).join('')
       : `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">No analytics data yet for this range.</div>`;
     return `
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px;">${summaryHtml}</div>
-      <div style="margin-top:14px;">
-        <div style="color:rgba(255,130,164,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Section Split</div>
+      <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;">${summaryHtml}</div>
+      <div style="margin-top:18px; padding:14px; border:1px solid rgba(255,255,255,.05); border-radius:16px; background:linear-gradient(180deg,rgba(8,8,16,.68),rgba(10,10,18,.42));">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div style="color:rgba(255,130,164,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Section Split</div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Last ingest ${escapeVmAdminHtml(formatVmAdminDate(data && data.lastIngestAt))}</div>
+        </div>
         <div style="margin-top:8px;">${sectionsHtml}</div>
       </div>
-      <div style="margin-top:12px; color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Last ingest: ${escapeVmAdminHtml(formatVmAdminDate(data && data.lastIngestAt))}</div>
     `;
   }
 
@@ -694,39 +707,42 @@ function pulseFrame(){
 
   function renderVmAdminAnalyticsRoutes(items){
     return renderVmAdminAnalyticsList(items, (item, index) => `
-      <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06);">
-        <div style="color:rgba(255,130,164,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
+      <div style="display:grid; grid-template-columns:36px minmax(0,1fr) auto; gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:999px; border:1px solid rgba(255,80,132,.2); background:rgba(255,80,132,.08); color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
         <div>
-          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.35;">${escapeVmAdminHtml(item.route || 'Unknown route')}</div>
-          <div style="margin-top:3px; color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}</div>
+          <div style="color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:800; line-height:1.35;">${escapeVmAdminHtml(item.route || 'Unknown route')}</div>
+          <div style="margin-top:4px; color:rgba(120,224,252,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}</div>
         </div>
-        <div style="text-align:right; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))} evt<br>${escapeVmAdminHtml(formatVmAdminNumber(item.pageviews))} view</div>
+        <div style="text-align:right;">
+          <div style="color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))}<span style="margin-left:4px; color:rgba(214,198,210,.64); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;">evt</span></div>
+          <div style="margin-top:4px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminNumber(item.pageviews))} view</div>
+        </div>
       </div>
     `, 'No route data yet.');
   }
 
   function renderVmAdminAnalyticsEntities(items){
     return renderVmAdminAnalyticsList(items, (item, index) => `
-      <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06);">
-        <div style="color:rgba(255,130,164,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
+      <div style="display:grid; grid-template-columns:36px minmax(0,1fr) auto; gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:999px; border:1px solid rgba(255,80,132,.2); background:rgba(120,224,252,.08); color:rgba(120,224,252,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
         <div>
-          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.35;">${escapeVmAdminHtml(item.entity_label || item.entity_id || 'Unknown entity')}</div>
-          <div style="margin-top:3px; color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.entity_type || 'entity')}</div>
+          <div style="color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:800; line-height:1.35;">${escapeVmAdminHtml(item.entity_label || item.entity_id || 'Unknown entity')}</div>
+          <div style="margin-top:4px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.entity_type || 'entity')}</div>
         </div>
-        <div style="text-align:right; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))}</div>
+        <div style="text-align:right; color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:13px; font-weight:900;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))}</div>
       </div>
     `, 'No entity activity yet.');
   }
 
   function renderVmAdminAnalyticsEvents(items){
     return renderVmAdminAnalyticsList(items, (item) => `
-      <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="padding:11px 0 12px; border-bottom:1px solid rgba(255,255,255,.06);">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700;">${escapeVmAdminHtml(item.event_name || 'event')}</div>
-          <div style="color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminDate(item.occurred_at || item.received_at))}</div>
+          <div style="color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.event_name || 'event')}</div>
+          <div style="color:rgba(208,222,232,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminDate(item.occurred_at || item.received_at))}</div>
         </div>
-        <div style="margin-top:5px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.route || item.section || 'Unknown route')}</div>
-        <div style="margin-top:3px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}${item.source ? ` / ${escapeVmAdminHtml(item.source)}` : ''}</div>
+        <div style="margin-top:6px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(item.route || item.section || 'Unknown route')}</div>
+        <div style="margin-top:4px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}${item.source ? ` / ${escapeVmAdminHtml(item.source)}` : ''}</div>
       </div>
     `, 'No recent events yet.');
   }
@@ -1203,54 +1219,77 @@ music: {
         const m = mount();
         if (!m) return;
         m.innerHTML = `
-          <div style="width:min(940px,100%); margin:0 auto; padding:18px 18px 24px;">
-            <div style="border:1px solid rgba(255,70,110,.22); border-radius:18px; padding:18px; background:linear-gradient(180deg,rgba(20,10,23,.78),rgba(10,7,14,.82)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;">
-              <div style="color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Access Approved</div>
-              <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:30px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1.02;">Admin Control</div>
-              <div style="margin-top:10px; color:rgba(225,208,220,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.45;">This is the protected admin shell for rebuild tools and site-wide analytics. The cards below now pull directly from the new backend event pipeline.</div>
-              <div id="vmAdminStatusLine" style="margin-top:12px; color:rgba(166,235,210,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Checking backend access...</div>
-              <div id="vmAdminAnalyticsStatus" style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Preparing analytics dashboard...</div>
-              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:18px;">
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">People Index Tools</div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Rebuild, inspect, and validate people-index data.</div>
-                  <div id="vmAdminPeopleMeta" style="margin-top:10px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Waiting for rebuild status...</div>
-                  <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:132px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
+          <div style="width:min(1040px,100%); margin:0 auto; padding:18px 18px 28px;">
+            <div style="position:relative; overflow:hidden; border:1px solid rgba(255,70,110,.24); border-radius:22px; padding:20px; background:
+              radial-gradient(circle at top right, rgba(86,216,255,.12), transparent 34%),
+              radial-gradient(circle at bottom left, rgba(255,74,131,.12), transparent 36%),
+              linear-gradient(180deg,rgba(18,10,24,.82),rgba(8,7,14,.9)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset, 0 20px 50px rgba(0,0,0,.28);">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex-wrap:wrap;">
+                <div style="min-width:min(100%,420px); max-width:620px;">
+                  <div style="color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Admin Analytics</div>
+                  <div style="margin-top:7px; color:rgba(245,236,242,.98); font-family:'Orbitron',system-ui,sans-serif; font-size:32px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1;">Control Center</div>
+                  <div style="margin-top:12px; color:rgba(225,208,220,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.6;">A live readout for route traffic, entity activity, and recent site behavior, styled to feel native to the VMPix shell instead of a temporary admin utility.</div>
                 </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
+                <div style="display:flex; flex-direction:column; gap:8px; min-width:240px; align-items:flex-start;">
+                  <div id="vmAdminStatusLine" style="padding:9px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(166,235,210,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking backend access...</div>
+                  <div id="vmAdminAnalyticsStatus" style="padding:9px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.06); background:rgba(7,10,18,.56); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Preparing analytics dashboard...</div>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:20px;">
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">People Index Tools</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Rebuild, inspect, and validate the wrestling people index from the same Admin shell.</div>
+                  <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:34px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Waiting for rebuild status...</div>
+                  <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                    <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Analytics Range</div>
+                    <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Window</div>
                     <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
                       <option value="24h">24h</option>
                       <option value="7d" selected>7d</option>
                       <option value="30d">30d</option>
                     </select>
                   </div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Switch the live reporting window and refresh the new analytics cards without leaving Admin.</div>
-                  <button type="button" id="vmAdminAnalyticsRefresh" style="margin-top:12px; min-width:132px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Change the reporting range and pull a fresh pass without leaving the dashboard.</div>
+                  <button type="button" id="vmAdminAnalyticsRefresh" style="margin-top:12px; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
                 </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Site Controls</div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Reserved for future admin actions, validation utilities, and maintenance checks.</div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Site Controls</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Reserved for future validation utilities, maintenance actions, and operational tools.</div>
+                  <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <div style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); color:rgba(208,222,232,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Protected</div>
+                    <div style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); color:rgba(208,222,232,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Live Feed</div>
+                  </div>
                 </div>
               </div>
-              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:18px;">
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
-                  <div id="vmAdminAnalyticsOverview" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
+              <div style="display:grid; grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr); gap:16px; margin-top:20px;">
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:260px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div>
+                      <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase;">Primary Readout</div>
+                      <div style="margin-top:5px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
+                    </div>
+                  </div>
+                  <div id="vmAdminAnalyticsOverview" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
                 </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
-                  <div id="vmAdminAnalyticsRoutes" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
+                <div style="display:grid; grid-template-rows:minmax(240px,1fr) minmax(240px,1fr); gap:16px;">
+                  <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74));">
+                    <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
+                    <div id="vmAdminAnalyticsRoutes" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
+                  </div>
+                  <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74));">
+                    <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
+                    <div id="vmAdminAnalyticsEntities" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
+                  </div>
                 </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
-                  <div id="vmAdminAnalyticsEntities" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
+              </div>
+              <div style="margin-top:18px; border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:240px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                  <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
+                  <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first</div>
                 </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
-                  <div id="vmAdminAnalyticsEvents" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
-                </div>
+                <div id="vmAdminAnalyticsEvents" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
               </div>
             </div>
           </div>
