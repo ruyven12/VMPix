@@ -4,31 +4,15 @@
   // logo+name only v2
   "use strict";
 
-  // ----- Analytics alias -----
-  // Some handlers call `safetrack(...)` (lowercase). Ensure it exists so clicks don't throw.
+  // ----- Analytics helper -----
   function safetrack(eventName, payload) {
     try {
-      if (typeof window.trackEvent === "function") {
-        const inferredRoute = (() => {
-          try {
-            const h = String(window.location.hash || '').trim();
-            if (h) return h.replace(/^#/, '').split('?')[0];
-            return String(window.location.pathname || '').trim();
-          } catch (_) {
-            return '';
-          }
-        })();
-
-        const merged = Object.assign(
-          {
-            route: inferredRoute || '',
-            view: 'bands',
-            source: 'music_bands'
-          },
-          (payload && typeof payload === 'object') ? payload : {}
-        );
-        return window.trackEvent(String(eventName || ""), merged);
-      }
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== "function") return;
+      return window.VMPixAnalytics.track(String(eventName || ""), Object.assign({
+        source: "music_bands",
+        section: "music",
+        subsection: "bands"
+      }, (payload && typeof payload === "object") ? payload : {}));
     } catch (_) {}
   }
 
@@ -4252,13 +4236,19 @@ function ensureLightbox() {
 
     // Analytics: individual photo view
     try {
-      safetrack('photo_open', {
-        band: band,
-        show: show,
-        album: album,
-        photo: fn || String(url || ''),
-        category: 'lightbox',
-        extra: { index: idx + 1, total: currentViewList.length }
+      safetrack('music_photo_open', {
+        entity_type: 'photo',
+        entity_id: fn || String(url || ''),
+        entity_label: fn || String(show || album || 'Photo'),
+        meta: {
+          band: band,
+          show: show,
+          album: album,
+          photo: fn || String(url || ''),
+          category: 'lightbox',
+          index: idx + 1,
+          total: currentViewList.length
+        }
       });
     } catch (_) {}
 
@@ -4313,12 +4303,17 @@ function ensureLightbox() {
 
     // Analytics: opening the viewer for this album
     try {
-      safetrack('album_open', {
-        band: String(currentAlbumContext?.band || ''),
-        show: String(currentAlbumContext?.show || ''),
-        album: String(currentAlbumContext?.album || ''),
-        category: 'lightbox',
-        photo: ''
+      safetrack('music_album_open', {
+        entity_type: 'album',
+        entity_id: String(currentAlbumContext?.album || ''),
+        entity_label: String(currentAlbumContext?.show || currentAlbumContext?.album || ''),
+        meta: {
+          band: String(currentAlbumContext?.band || ''),
+          show: String(currentAlbumContext?.show || ''),
+          album: String(currentAlbumContext?.album || ''),
+          category: 'lightbox',
+          photo: ''
+        }
       });
     } catch (_) {}
 
@@ -5050,10 +5045,15 @@ function animateReimagingStats(overallEl){
         card.addEventListener("click", () => {
           try { syncBandsPath(bandObj); } catch (_) {}
           // Analytics: band click
-          safetrack('band_click', {
-            band: String(bandObj?.name || ''),
-            category: String(CURRENT_REGION || ''),
-            year: '',
+          safetrack('music_band_open', {
+            entity_type: 'band',
+            entity_id: String(bandObj?.name || ''),
+            entity_label: String(bandObj?.name || ''),
+            meta: {
+              band: String(bandObj?.name || ''),
+              category: String(CURRENT_REGION || ''),
+              year: ''
+            }
           });
           animateBandOpen(CURRENT_REGION, letter, bandObj, img);
         });
@@ -5419,12 +5419,17 @@ const members = document.createElement("div");
 
         card.addEventListener("click", async () => {
           // Analytics: album open
-          safetrack('album_open', {
-            band: String(bandObj?.name || ''),
-            show: String(alb?.Name || alb?.Title || alb?.NiceName || ''),
-            album: String(alb?.AlbumKey || alb?.Key || alb?.Uri || alb?.Name || alb?.Title || ''),
-            year: '',
-            category: String(region || ''),
+          safetrack('music_album_open', {
+            entity_type: 'album',
+            entity_id: String(alb?.AlbumKey || alb?.Key || alb?.Uri || alb?.Name || alb?.Title || ''),
+            entity_label: String(alb?.Name || alb?.Title || alb?.NiceName || ''),
+            meta: {
+              band: String(bandObj?.name || ''),
+              show: String(alb?.Name || alb?.Title || alb?.NiceName || ''),
+              album: String(alb?.AlbumKey || alb?.Key || alb?.Uri || alb?.Name || alb?.Title || ''),
+              year: '',
+              category: String(region || '')
+            }
           });
           // Hi-tech HUD transition into the album photos view
           try { card.classList.add("is-opening-album"); } catch(_) {}

@@ -5,27 +5,12 @@
   // ----- Analytics helper (never throws) -----
   function safeTrack(event, fields) {
     try {
-      if (typeof window.trackEvent === "function") {
-        const inferredRoute = (() => {
-          try {
-            const h = String(window.location.hash || '').trim();
-            if (h) return h.replace(/^#/, '').split('?')[0];
-            return String(window.location.pathname || '').trim();
-          } catch (_) {
-            return '';
-          }
-        })();
-
-        const merged = Object.assign(
-          {
-            route: inferredRoute || '',
-            view: 'shows',
-            source: 'music_shows'
-          },
-          fields || {}
-        );
-        window.trackEvent(event, merged);
-      }
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== "function") return;
+      window.VMPixAnalytics.track(event, Object.assign({
+        source: "music_shows",
+        section: "music",
+        subsection: "shows"
+      }, fields || {}));
     } catch (_) {}
   }
 
@@ -1585,11 +1570,16 @@ async function ensureShowsLoaded(opts) {
         // Navigate into Bands with explicit show context so the destination can resolve reliably.
         card.addEventListener("click", (e) => {
           try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
-          safeTrack("band_click", {
-            band: String(bandName || ""),
-            show: String(title || ""),
-            year: String(year || ""),
-            category: "show_detail"
+          safeTrack("music_band_open", {
+            entity_type: "band",
+            entity_id: String(bandName || ""),
+            entity_label: String(bandName || ""),
+            meta: {
+              band: String(bandName || ""),
+              show: String(title || ""),
+              year: String(year || ""),
+              category: "show_detail"
+            }
           });
 
           try {
@@ -2374,11 +2364,16 @@ contentEl.addEventListener("click", (e) => {
   });
 
   // Analytics: show open
-  safeTrack("show_open", {
-    show: String(show && (show.show_name || show.name || show.title || show.event || "") ? (show.show_name || show.name || show.title || show.event || "") : ""),
-    year: String(activeYear || ""),
-    category: "shows",
-    extra: String(showId || "")
+  safeTrack("music_show_open", {
+    entity_type: "show",
+    entity_id: String(showId || ""),
+    entity_label: String(show && (show.show_name || show.name || show.title || show.event || "") ? (show.show_name || show.name || show.title || show.event || "") : ""),
+    meta: {
+      show: String(show && (show.show_name || show.name || show.title || show.event || "") ? (show.show_name || show.name || show.title || show.event || "") : ""),
+      year: String(activeYear || ""),
+      category: "shows",
+      extra: String(showId || "")
+    }
   });
 
   renderPosterDetail({ year: activeYear, show, containerEl: contentEl });
