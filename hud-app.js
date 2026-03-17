@@ -810,7 +810,7 @@ function pulseFrame(){
         fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
         fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
         fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
-        fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
+        fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 50 })
       ]);
 
       nodes.overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
@@ -818,23 +818,6 @@ function pulseFrame(){
       nodes.entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
       nodes.eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
       if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
-
-      if (!suppressTrack) {
-        try {
-          if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
-            window.VMPixAnalytics.track('admin_analytics_view', {
-              route: currentAnalyticsRoute('admin'),
-              section: 'admin',
-              subsection: 'dashboard',
-              source: 'admin_panel',
-              entity_type: 'page',
-              entity_id: 'admin-analytics',
-              entity_label: 'Admin Analytics',
-              meta: { range: activeRange }
-            });
-          }
-        } catch (_) {}
-      }
 
       return true;
     } catch (err) {
@@ -1317,9 +1300,9 @@ music: {
               <div style="margin-top:18px; border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:240px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                   <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
-                  <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first</div>
+                  <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first / 50 entries</div>
                 </div>
-                <div id="vmAdminAnalyticsEvents" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
+                <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
               </div>
             </div>
           </div>
@@ -1401,20 +1384,6 @@ music: {
               rebuildBtn.disabled = true;
               if (statusEl) statusEl.textContent = 'Rebuilding wrestling people index...';
               try {
-                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
-                  window.VMPixAnalytics.track('admin_tool_run', {
-                    route: currentAnalyticsRoute('admin'),
-                    section: 'admin',
-                    subsection: 'tools',
-                    source: 'admin_panel',
-                    entity_type: 'tool',
-                    entity_id: 'people-index-rebuild',
-                    entity_label: 'People Index Rebuild',
-                    meta: { tool_name: 'people_index_rebuild' }
-                  });
-                }
-              } catch (_) {}
-              try {
                 const res = await __vmAdminFetch('/admin/people-index/rebuild', {
                   method: 'POST'
                 });
@@ -1487,6 +1456,7 @@ music: {
       const force = !!(opts && opts.force);
 
       if (!normalizedRoute) return;
+      if (String((classified && classified.section) || '') === 'admin') return;
       if (!force && normalizedRoute === lastTrackedPageviewRoute) return;
 
       lastTrackedPageviewRoute = normalizedRoute;
