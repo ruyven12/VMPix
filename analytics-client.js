@@ -341,8 +341,4 @@
     getPageviewId: getPageviewId,
     getBufferedEvents: readBuffer
   };
-
-  window.trackEvent = function trackEventCompat(eventName, payload) {
-    return track(eventName, payload || {});
-  };
 })();
