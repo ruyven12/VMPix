@@ -1933,6 +1933,14 @@
 <!-- App modules (keep HUD markup/logic identical; logic moved to separate files) -->
 
 <!-- Analytics (NON-BLOCKING): this MUST NOT prevent the site from loading if the backend is cold/down. -->
+<script>
+  window.VMPIX_ANALYTICS_ENDPOINT = (function () {
+    var base = (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+      ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+      : 'https://wrestling-archive.onrender.com';
+    return base + '/analytics/collect';
+  })();
+</script>
 <script src="/analytics-client.js" defer></script>
 
 <!-- Music sub-modules FIRST -->
