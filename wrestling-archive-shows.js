@@ -46,6 +46,17 @@
   })();
   const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
 
+  function trackWrestlingShowsEvent(eventName, payload) {
+    try {
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== "function") return;
+      window.VMPixAnalytics.track(eventName, Object.assign({
+        source: "wrestling_shows",
+        section: "wrestling",
+        subsection: "shows"
+      }, payload || {}));
+    } catch (_) {}
+  }
+
   // ================================
   // SERVER-SLEEP HARDENING (shared pattern)
   // - Warm the backend once per session
@@ -1949,6 +1960,8 @@
   function showShowDetail(row, year, opts) {
     if (!row) return;
     ensureShowsStyles();
+    const titleForTracking = String((row.show_name || row.title || "").trim() || "(Untitled show)");
+    const showSlugForTracking = showDateSlugFromRaw((row.show_date || row.date || "").trim());
 
     // Save list context for Back
     LAST_LIST_CTX = { year: (year != null ? Number(year) : null) };
@@ -1957,6 +1970,18 @@
       const detailSlug = showDateSlugFromRaw((row.show_date || row.date || "").trim());
       if (detailSlug) syncShowsPathForDetail(detailSlug, { replace: !!(opts && opts.replace) });
     }
+
+    trackWrestlingShowsEvent("wrestling_show_open", {
+      entity_type: "show",
+      entity_id: String(showSlugForTracking || ""),
+      entity_label: titleForTracking,
+      meta: {
+        show: titleForTracking,
+        year: String(year != null ? year : ""),
+        date: String((row.show_date || row.date || "").trim() || ""),
+        company: String((row.company || "").trim() || "")
+      }
+    });
 
     const resultsEl = getResultsEl();
     const yearRow = getYearGroupsEl();
@@ -2307,6 +2332,16 @@ const base2 = inferShowBaseUrl(showRow);
 
     const showSlug = showDateSlugFromRaw((showRow && (showRow.show_date || showRow.date || "")) || "");
     const cleanMatchSlug = normalizeWAMatchSlug(matchId);
+    trackWrestlingShowsEvent("wrestling_match_open", {
+      entity_type: "match",
+      entity_id: String(cleanMatchSlug || matchId || ""),
+      entity_label: String(matchTitle || cleanMatchSlug || "Match"),
+      meta: {
+        show_slug: String(showSlug || ""),
+        show: String(showRow && (showRow.show_name || showRow.title || "") || ""),
+        match_url: String(matchUrl || "")
+      }
+    });
     if ((!opts || opts.syncUrl !== false) && showSlug && cleanMatchSlug) {
       syncShowsPathForMatch(showSlug, cleanMatchSlug, { replace: !!(opts && opts.replace) });
     }
@@ -3593,6 +3628,16 @@ function renderPhotoGrid(gridEl, images, opts) {
   async function openWrestlingKeywordSearchModal(keyword, ctx) {
     const kw = String(keyword || "").trim();
     if (!kw) return;
+    trackWrestlingShowsEvent("wrestling_search", {
+      entity_type: "page",
+      entity_id: kw.toLowerCase(),
+      entity_label: kw,
+      meta: {
+        keyword: kw,
+        from_album_title: String(ctx && ctx.fromAlbumTitle || "").trim(),
+        from_album_key: String(ctx && ctx.fromAlbumKey || "").trim()
+      }
+    });
 
     // Store context so clicking a result can open INSIDE the HUD (no new window).
     _waKwCtx = (ctx && typeof ctx === "object") ? ctx : null;

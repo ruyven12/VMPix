@@ -75,6 +75,16 @@
     origins: 'Origins of Wrestling'
   };
 
+  function trackWrestlingEvent(eventName, payload) {
+    try {
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== 'function') return;
+      window.VMPixAnalytics.track(eventName, Object.assign({
+        source: 'wrestling_archive',
+        section: 'wrestling'
+      }, payload || {}));
+    } catch (_) {}
+  }
+
   function setWrestlingDocumentTitle(mode, fallback) {
     try {
       const label = String(fallback || WRESTLING_TITLE_BY_MODE[String(mode || '').toLowerCase().trim()] || 'Wrestling').trim();
@@ -817,6 +827,13 @@
             try { syncWrestlingSubroute(modeKey, { replace: false }); } catch (_) {}
           }
           try { setWrestlingDocumentTitle(modeKey); } catch (_) {}
+          trackWrestlingEvent('nav_click', {
+            subsection: modeKey,
+            entity_type: 'page',
+            entity_id: '/wrestling/' + modeKey,
+            entity_label: label,
+            meta: { route_key: modeKey }
+          });
           animateHudTab(tab);
 
           // prevent stale Shows mounts from firing after tab switches
