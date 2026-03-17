@@ -5,6 +5,16 @@
 
   let _mount = null;
 
+  function trackContactEvent(eventName, payload) {
+    try {
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== 'function') return;
+      window.VMPixAnalytics.track(eventName, Object.assign({
+        source: 'contact_page',
+        section: 'contact'
+      }, payload || {}));
+    } catch (_) {}
+  }
+
   function render(mountEl) {
     if (!mountEl) return;
     _mount = mountEl;
@@ -128,7 +138,7 @@
         </div>
 
         <div class="contactLinks">
-          <a class="contactBtn" href="https://www.facebook.com/VMPix" target="_blank" rel="noopener">
+          <a class="contactBtn" href="https://www.facebook.com/VMPix" target="_blank" rel="noopener" data-contact-link="facebook">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9"/>
               <path d="M13 9h2V7h-2c-1.1 0-2 .9-2 2v2H9v2h2v4h2v-4h2l.4-2H13V9z"/>
@@ -136,7 +146,7 @@
             Facebook
           </a>
 
-          <a class="contactBtn" href="https://www.instagram.com/vmpix1" target="_blank" rel="noopener">
+          <a class="contactBtn" href="https://www.instagram.com/vmpix1" target="_blank" rel="noopener" data-contact-link="instagram">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="6" y="6" width="12" height="12" rx="3"/>
               <path d="M12 16a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/>
@@ -145,7 +155,7 @@
             Instagram
           </a>
 
-          <a class="contactBtn" href="https://x.com/vmpix1" target="_blank" rel="noopener">
+          <a class="contactBtn" href="https://x.com/vmpix1" target="_blank" rel="noopener" data-contact-link="x">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 7l10 10"/>
               <path d="M17 7L7 17"/>
@@ -154,7 +164,7 @@
           </a>
 
           <!-- Gmail icon button -->
-          <a class="contactBtn" href="mailto:ruyven12@gmail.com" data-action="email">
+          <a class="contactBtn" href="mailto:ruyven12@gmail.com" data-action="email" data-contact-link="email">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="4" y="6" width="16" height="12" rx="2"/>
               <path d="M4 8l8 6 8-6"/>
@@ -163,7 +173,7 @@
           </a>
 
           <!-- Contact Form (Coming Soon) -->
-          <a class="contactBtn is-ghost" href="#/contact-form" data-action="form">
+          <a class="contactBtn is-ghost" href="#/contact-form" data-action="form" data-contact-link="contact_form">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 7h10"/>
               <path d="M8 11h10"/>
@@ -224,12 +234,43 @@
     if (formBtn) {
       formBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        trackContactEvent('contact_submit', {
+          entity_type: 'page',
+          entity_id: 'contact_form_soon',
+          entity_label: 'Contact Form (Soon)',
+          meta: {
+            action: 'form_soon'
+          }
+        });
         showToast('Contact form coming soon');
       }, { passive: false });
     }
+
+    mountEl.querySelectorAll('[data-contact-link]').forEach((link) => {
+      link.addEventListener('click', () => {
+        const channel = String(link.getAttribute('data-contact-link') || '').trim();
+        if (channel === 'contact_form') return;
+        const href = String(link.getAttribute('href') || '').trim();
+        trackContactEvent('nav_click', {
+          entity_type: 'page',
+          entity_id: channel || href,
+          entity_label: channel || href,
+          meta: {
+            channel: channel,
+            href: href
+          }
+        });
+      }, { passive: true });
+    });
   }
 
-  function onEnter() {}
+  function onEnter() {
+    trackContactEvent('contact_view', {
+      entity_type: 'page',
+      entity_id: '/contact',
+      entity_label: 'Contact'
+    });
+  }
   function destroy() {
     if (_mount) {
       _mount.innerHTML = '';

@@ -4,6 +4,16 @@
 
   let _mount = null;
 
+  function trackPricingEvent(eventName, payload) {
+    try {
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.track !== 'function') return;
+      window.VMPixAnalytics.track(eventName, Object.assign({
+        source: 'pricing_page',
+        section: 'pricing'
+      }, payload || {}));
+    } catch (_) {}
+  }
+
   function render(mountEl) {
     if (!mountEl) return;
     _mount = mountEl;
@@ -43,7 +53,14 @@
     `;
   }
 
-  function onEnter() {}
+  function onEnter() {
+    trackPricingEvent('pricing_view', {
+      subsection: '',
+      entity_type: 'page',
+      entity_id: '/pricing',
+      entity_label: 'Pricing'
+    });
+  }
   function destroy() {
     if (_mount) {
       _mount.innerHTML = '';
