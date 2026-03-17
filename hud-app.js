@@ -762,6 +762,28 @@ function pulseFrame(){
     };
   }
 
+  function renderVmAdminAnalyticsZeroState(range){
+    const nodes = getVmAdminAnalyticsNodes();
+    const activeRange = String(range || '7d');
+    if (!nodes.overviewEl || !nodes.routesEl || !nodes.entitiesEl || !nodes.eventsEl) return false;
+
+    nodes.overviewEl.innerHTML = renderVmAdminAnalyticsOverview({
+      totals: {
+        events: 0,
+        pageviews: 0,
+        visitors: 0,
+        sessions: 0
+      },
+      sections: [],
+      lastIngestAt: null
+    });
+    nodes.routesEl.innerHTML = renderVmAdminAnalyticsRoutes([]);
+    nodes.entitiesEl.innerHTML = renderVmAdminAnalyticsEntities([]);
+    nodes.eventsEl.innerHTML = renderVmAdminAnalyticsEvents([]);
+    if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = `Analytics reset complete for ${activeRange}`;
+    return true;
+  }
+
   async function loadVmAdminAnalytics(range, opts){
     const nodes = getVmAdminAnalyticsNodes();
     const activeRange = String(range || (nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
@@ -1351,9 +1373,12 @@ music: {
                   window.VMPixAnalytics.clearBufferedEvents();
                 }
               } catch (_) {}
-              if (analyticsStatusEl) analyticsStatusEl.textContent = 'Analytics reset complete';
               const selectedRange = analyticsRange ? analyticsRange.value : '7d';
-              loadVmAdminAnalytics(selectedRange, { suppressTrack: true });
+              renderVmAdminAnalyticsZeroState(selectedRange);
+              if (analyticsStatusEl) {
+                const beforeCount = Number(data && data.beforeCount || 0);
+                analyticsStatusEl.textContent = `Analytics reset complete (${beforeCount} cleared)`;
+              }
             } catch (err) {
               if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';
             } finally {
