@@ -605,6 +605,131 @@ function pulseFrame(){
     return fetch(`${base}${path}`, Object.assign({ cache: 'no-store', headers }, options || {}));
   }
 
+  function escapeVmAdminHtml(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatVmAdminNumber(value){
+    const num = Number(value || 0);
+    if (!Number.isFinite(num)) return '0';
+    try { return num.toLocaleString(); } catch (_) {}
+    return String(num);
+  }
+
+  function formatVmAdminDate(value){
+    if (!value) return 'Unknown';
+    try {
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) return date.toLocaleString();
+    } catch (_) {}
+    return String(value);
+  }
+
+  function buildVmAdminQuery(params){
+    const qs = new URLSearchParams();
+    Object.keys(params || {}).forEach((key) => {
+      const value = params[key];
+      if (value == null || value === '') return;
+      qs.set(key, String(value));
+    });
+    const out = qs.toString();
+    return out ? `?${out}` : '';
+  }
+
+  async function fetchVmAdminJson(path, params){
+    const res = await __vmAdminFetch(`${path}${buildVmAdminQuery(params)}`, { method: 'GET' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data || data.ok === false) {
+      throw new Error((data && data.error) || `request failed for ${path}`);
+    }
+    return data;
+  }
+
+  function renderVmAdminAnalyticsOverview(data){
+    const totals = (data && data.totals) || {};
+    const sections = Array.isArray(data && data.sections) ? data.sections : [];
+    const summary = [
+      { label: 'Events', value: formatVmAdminNumber(totals.events) },
+      { label: 'Pageviews', value: formatVmAdminNumber(totals.pageviews) },
+      { label: 'Visitors', value: formatVmAdminNumber(totals.visitors) },
+      { label: 'Sessions', value: formatVmAdminNumber(totals.sessions) }
+    ];
+    const summaryHtml = summary.map((item) => `
+      <div style="border:1px solid rgba(255,70,110,.16); border-radius:14px; padding:14px; background:rgba(0,0,0,.18);">
+        <div style="color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;">${escapeVmAdminHtml(item.label)}</div>
+        <div style="margin-top:8px; color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:24px; font-weight:900; letter-spacing:.02em;">${escapeVmAdminHtml(item.value)}</div>
+      </div>
+    `).join('');
+    const sectionsHtml = sections.length
+      ? sections.slice(0, 6).map((item) => `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+            <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'Unknown')}</div>
+            <div style="color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))} events / ${escapeVmAdminHtml(formatVmAdminNumber(item.pageviews))} views</div>
+          </div>
+        `).join('')
+      : `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">No analytics data yet for this range.</div>`;
+    return `
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px;">${summaryHtml}</div>
+      <div style="margin-top:14px;">
+        <div style="color:rgba(255,130,164,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Section Split</div>
+        <div style="margin-top:8px;">${sectionsHtml}</div>
+      </div>
+      <div style="margin-top:12px; color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Last ingest: ${escapeVmAdminHtml(formatVmAdminDate(data && data.lastIngestAt))}</div>
+    `;
+  }
+
+  function renderVmAdminAnalyticsList(items, formatter, emptyCopy){
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) {
+      return `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">${escapeVmAdminHtml(emptyCopy)}</div>`;
+    }
+    return list.map((item, index) => formatter(item, index)).join('');
+  }
+
+  function renderVmAdminAnalyticsRoutes(items){
+    return renderVmAdminAnalyticsList(items, (item, index) => `
+      <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="color:rgba(255,130,164,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
+        <div>
+          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.35;">${escapeVmAdminHtml(item.route || 'Unknown route')}</div>
+          <div style="margin-top:3px; color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}</div>
+        </div>
+        <div style="text-align:right; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))} evt<br>${escapeVmAdminHtml(formatVmAdminNumber(item.pageviews))} view</div>
+      </div>
+    `, 'No route data yet.');
+  }
+
+  function renderVmAdminAnalyticsEntities(items){
+    return renderVmAdminAnalyticsList(items, (item, index) => `
+      <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="color:rgba(255,130,164,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900;">${index + 1}</div>
+        <div>
+          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.35;">${escapeVmAdminHtml(item.entity_label || item.entity_id || 'Unknown entity')}</div>
+          <div style="margin-top:3px; color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.entity_type || 'entity')}</div>
+        </div>
+        <div style="text-align:right; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">${escapeVmAdminHtml(formatVmAdminNumber(item.events))}</div>
+      </div>
+    `, 'No entity activity yet.');
+  }
+
+  function renderVmAdminAnalyticsEvents(items){
+    return renderVmAdminAnalyticsList(items, (item) => `
+      <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700;">${escapeVmAdminHtml(item.event_name || 'event')}</div>
+          <div style="color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px;">${escapeVmAdminHtml(formatVmAdminDate(item.occurred_at || item.received_at))}</div>
+        </div>
+        <div style="margin-top:5px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.route || item.section || 'Unknown route')}</div>
+        <div style="margin-top:3px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">${escapeVmAdminHtml(item.section || 'unknown')}${item.source ? ` / ${escapeVmAdminHtml(item.source)}` : ''}</div>
+      </div>
+    `, 'No recent events yet.');
+  }
+
   // Keep your exact copy (same as inline)
   const ROUTE_COPY = {
     // Home supports HTML so you can style + edit copy easily.
@@ -968,8 +1093,9 @@ music: {
             <div style="border:1px solid rgba(255,70,110,.22); border-radius:18px; padding:18px; background:linear-gradient(180deg,rgba(20,10,23,.78),rgba(10,7,14,.82)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;">
               <div style="color:rgba(255,130,164,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Access Approved</div>
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:30px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1.02;">Admin Control</div>
-              <div style="margin-top:10px; color:rgba(225,208,220,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.45;">This is the first protected admin shell. The route is live and session-gated, and the tool cards below are ready for the next phase.</div>
+              <div style="margin-top:10px; color:rgba(225,208,220,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.45;">This is the protected admin shell for rebuild tools and site-wide analytics. The cards below now pull directly from the new backend event pipeline.</div>
               <div id="vmAdminStatusLine" style="margin-top:12px; color:rgba(166,235,210,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Checking backend access...</div>
+              <div id="vmAdminAnalyticsStatus" style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">Preparing analytics dashboard...</div>
               <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:18px;">
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">People Index Tools</div>
@@ -978,12 +1104,38 @@ music: {
                   <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:132px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
-                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Cache / Rebuild</div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">This pass gives you a protected rebuild trigger for the Wrestling people snapshot.</div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Analytics Range</div>
+                    <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
+                      <option value="24h">24h</option>
+                      <option value="7d" selected>7d</option>
+                      <option value="30d">30d</option>
+                    </select>
+                  </div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Switch the live reporting window and refresh the new analytics cards without leaving Admin.</div>
+                  <button type="button" id="vmAdminAnalyticsRefresh" style="margin-top:12px; min-width:132px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18);">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Site Controls</div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Reserved for future admin actions and internal utilities.</div>
+                  <div style="margin-top:8px; color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.45;">Reserved for future admin actions, validation utilities, and maintenance checks.</div>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:18px;">
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
+                  <div id="vmAdminAnalyticsOverview" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
+                  <div id="vmAdminAnalyticsRoutes" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
+                  <div id="vmAdminAnalyticsEntities" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
+                </div>
+                <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:16px; background:rgba(0,0,0,.18); min-height:208px;">
+                  <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
+                  <div id="vmAdminAnalyticsEvents" style="margin-top:12px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
                 </div>
               </div>
             </div>
@@ -1003,14 +1155,86 @@ music: {
             return;
           }
           const statusEl = document.getElementById('vmAdminStatusLine');
+          const analyticsStatusEl = document.getElementById('vmAdminAnalyticsStatus');
           const metaEl = document.getElementById('vmAdminPeopleMeta');
           const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
+          const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
+          const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
+          const overviewEl = document.getElementById('vmAdminAnalyticsOverview');
+          const routesEl = document.getElementById('vmAdminAnalyticsRoutes');
+          const entitiesEl = document.getElementById('vmAdminAnalyticsEntities');
+          const eventsEl = document.getElementById('vmAdminAnalyticsEvents');
           if (statusEl) statusEl.textContent = 'Backend access approved';
+
+          const loadAnalytics = async (range, opts) => {
+            const activeRange = String(range || '7d');
+            const silent = !!(opts && opts.silent);
+            if (!silent) {
+              if (analyticsStatusEl) analyticsStatusEl.textContent = `Loading analytics for ${activeRange}...`;
+              if (overviewEl) overviewEl.innerHTML = 'Loading analytics overview...';
+              if (routesEl) routesEl.innerHTML = 'Loading route activity...';
+              if (entitiesEl) entitiesEl.innerHTML = 'Loading entity activity...';
+              if (eventsEl) eventsEl.innerHTML = 'Loading recent events...';
+            }
+            if (analyticsRefresh) analyticsRefresh.disabled = true;
+            if (analyticsRange) analyticsRange.disabled = true;
+            try {
+              const [overview, routes, entities, events] = await Promise.all([
+                fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
+                fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
+                fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
+                fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
+              ]);
+
+              if (overviewEl) overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
+              if (routesEl) routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
+              if (entitiesEl) entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
+              if (eventsEl) eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
+              if (analyticsStatusEl) analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
+              try {
+                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
+                  window.VMPixAnalytics.track('admin_analytics_view', {
+                    route: currentAnalyticsRoute('admin'),
+                    section: 'admin',
+                    subsection: 'dashboard',
+                    source: 'admin_panel',
+                    entity_type: 'page',
+                    entity_id: 'admin-analytics',
+                    entity_label: 'Admin Analytics',
+                    meta: { range: activeRange }
+                  });
+                }
+              } catch (_) {}
+            } catch (err) {
+              if (overviewEl) overviewEl.innerHTML = 'Analytics overview unavailable right now.';
+              if (routesEl) routesEl.innerHTML = 'Route activity unavailable right now.';
+              if (entitiesEl) entitiesEl.innerHTML = 'Entity activity unavailable right now.';
+              if (eventsEl) eventsEl.innerHTML = 'Recent event feed unavailable right now.';
+              if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics load failed: ${err.message}` : 'Analytics load failed';
+            } finally {
+              if (analyticsRefresh) analyticsRefresh.disabled = false;
+              if (analyticsRange) analyticsRange.disabled = false;
+            }
+          };
 
           if (rebuildBtn) {
             rebuildBtn.addEventListener('click', async () => {
               rebuildBtn.disabled = true;
               if (statusEl) statusEl.textContent = 'Rebuilding wrestling people index...';
+              try {
+                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
+                  window.VMPixAnalytics.track('admin_tool_run', {
+                    route: currentAnalyticsRoute('admin'),
+                    section: 'admin',
+                    subsection: 'tools',
+                    source: 'admin_panel',
+                    entity_type: 'tool',
+                    entity_id: 'people-index-rebuild',
+                    entity_label: 'People Index Rebuild',
+                    meta: { tool_name: 'people_index_rebuild' }
+                  });
+                }
+              } catch (_) {}
               try {
                 const res = await __vmAdminFetch('/admin/people-index/rebuild', {
                   method: 'POST'
@@ -1031,6 +1255,21 @@ music: {
               }
             }, { once: false });
           }
+
+          if (analyticsRange) {
+            analyticsRange.addEventListener('change', () => {
+              loadAnalytics(analyticsRange.value);
+            }, { once: false });
+          }
+
+          if (analyticsRefresh) {
+            analyticsRefresh.addEventListener('click', () => {
+              const selectedRange = analyticsRange ? analyticsRange.value : '7d';
+              loadAnalytics(selectedRange);
+            }, { once: false });
+          }
+
+          loadAnalytics(analyticsRange ? analyticsRange.value : '7d');
 
           __vmAdminFetch('/admin/verify', { method: 'GET' })
             .then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, data })))
