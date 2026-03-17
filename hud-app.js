@@ -1263,7 +1263,13 @@ music: {
                   </div>
                 </div>
               </div>
-              <div style="display:grid; grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr); gap:16px; margin-top:20px;">
+              <div style="margin-top:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="flex:1; height:1px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.6),rgba(97,224,255,.52),rgba(255,70,110,.04));"></div>
+                </div>
+                <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Analytics</div>
+              </div>
+              <div style="display:grid; grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr); gap:16px; margin-top:14px;">
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:260px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
                     <div>
