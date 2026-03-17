@@ -292,6 +292,7 @@
         window.setTimeout(() => {
           closeAdminModal();
           navigateToRoute('admin');
+          try { scheduleVmAdminAnalyticsAutoload('7d', { delayMs: 450, maxAttempts: 8 }); } catch (_) {}
         }, 220);
       } catch (_) {
         if (err) err.textContent = 'Unable to reach admin auth service';
@@ -809,8 +810,40 @@ function pulseFrame(){
     }
   }
 
+  let __vmAdminAnalyticsAutoloadTimer = null;
+  function scheduleVmAdminAnalyticsAutoload(range, opts){
+    const activeRange = String(range || '7d');
+    const maxAttempts = Math.max(1, Number((opts && opts.maxAttempts) || 6));
+    const delayMs = Math.max(50, Number((opts && opts.delayMs) || 300));
+    let attempts = 0;
+
+    try {
+      if (__vmAdminAnalyticsAutoloadTimer) {
+        window.clearTimeout(__vmAdminAnalyticsAutoloadTimer);
+      }
+    } catch (_) {}
+
+    const tryLoad = () => {
+      attempts += 1;
+      Promise.resolve(loadVmAdminAnalytics(activeRange, { silent: attempts > 1 }))
+        .then((ok) => {
+          if (ok) return;
+          if (attempts >= maxAttempts) return;
+          __vmAdminAnalyticsAutoloadTimer = window.setTimeout(tryLoad, delayMs);
+        })
+        .catch((err) => {
+          try { console.error('Admin analytics autoload retry failed:', err); } catch (_) {}
+          if (attempts >= maxAttempts) return;
+          __vmAdminAnalyticsAutoloadTimer = window.setTimeout(tryLoad, delayMs);
+        });
+    };
+
+    __vmAdminAnalyticsAutoloadTimer = window.setTimeout(tryLoad, 0);
+  }
+
   try {
     window.__vmAdminAnalyticsLoad = loadVmAdminAnalytics;
+    window.__vmAdminAnalyticsAutoload = scheduleVmAdminAnalyticsAutoload;
   } catch (_) {}
 
   // Keep your exact copy (same as inline)
@@ -1298,18 +1331,7 @@ music: {
 
           const initialAnalyticsRange = analyticsRange ? analyticsRange.value : '7d';
           try {
-            window.setTimeout(() => {
-              try { loadVmAdminAnalytics(initialAnalyticsRange); } catch (err) {
-                try { console.error('Admin analytics initial timeout load failed:', err); } catch (_) {}
-              }
-            }, 0);
-          } catch (_) {}
-          try {
-            window.requestAnimationFrame(() => {
-              try { loadVmAdminAnalytics(initialAnalyticsRange, { silent: true }); } catch (err) {
-                try { console.error('Admin analytics RAF load failed:', err); } catch (_) {}
-              }
-            });
+            scheduleVmAdminAnalyticsAutoload(initialAnalyticsRange, { delayMs: 350, maxAttempts: 8 });
           } catch (_) {
             loadVmAdminAnalytics(initialAnalyticsRange);
           }
