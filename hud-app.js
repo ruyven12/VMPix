@@ -809,7 +809,6 @@ function pulseFrame(){
 
       const targets = [
         musicBase + '/health',
-        musicBase + '/index/people',
         musicBase + '/sheet/bands',
         wrestleBase + '/sheet/shows',
         wrestleBase + '/'
@@ -853,7 +852,6 @@ function pulseFrame(){
 
     return [
       musicBase + '/health',
-      musicBase + '/index/people',
       musicBase + '/sheet/bands',
       wrestleBase + '/sheet/shows',
       wrestleBase + '/'

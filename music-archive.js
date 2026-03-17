@@ -2360,32 +2360,11 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
         }
       } catch (_) {}
 
-      // 2) Warm the server-cached People index once per session.
+      // 2) Leave the People index cold until the user actually opens People.
+      // The music backend can return transient 503s during warm-up, which pollutes
+      // the console and obscures real admin/debug signals.
       if (!getSession(__VM_PEOPLE_WARM_KEY)) {
         setSession(__VM_PEOPLE_WARM_KEY, String(Date.now()));
-
-        const base =
-          (typeof window !== 'undefined' && typeof window.MUSIC_ARCHIVE_API_BASE === 'string' && window.MUSIC_ARCHIVE_API_BASE.trim())
-            ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
-            : 'https://music-archive-3lfa.onrender.com';
-
-        const url = base + '/index/people';
-
-        try {
-          const ctrl = (window.AbortController) ? new AbortController() : null;
-          const sig = ctrl ? ctrl.signal : undefined;
-          const to = window.setTimeout(() => { try { ctrl && ctrl.abort(); } catch (_) {} }, 8000);
-
-          fetch(url, { method: 'GET', signal: sig, cache: 'no-store' })
-            .then((res) => {
-              // Cancel body ASAP to avoid wasting bandwidth.
-              try {
-                if (res && res.body && typeof res.body.cancel === 'function') res.body.cancel();
-              } catch (_) {}
-            })
-            .catch(() => {})
-            .finally(() => { try { window.clearTimeout(to); } catch (_) {} });
-        } catch (_) {}
       }
     } catch (_) {}
   }
