@@ -1146,79 +1146,93 @@ music: {
           openAdminModal();
           return;
         }
+        const statusEl = document.getElementById('vmAdminStatusLine');
+        const analyticsStatusEl = document.getElementById('vmAdminAnalyticsStatus');
+        const metaEl = document.getElementById('vmAdminPeopleMeta');
+        const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
+        const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
+        const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
+        const overviewEl = document.getElementById('vmAdminAnalyticsOverview');
+        const routesEl = document.getElementById('vmAdminAnalyticsRoutes');
+        const entitiesEl = document.getElementById('vmAdminAnalyticsEntities');
+        const eventsEl = document.getElementById('vmAdminAnalyticsEvents');
+
+        const loadAnalytics = async (range, opts) => {
+          const activeRange = String(range || '7d');
+          const silent = !!(opts && opts.silent);
+          if (!silent) {
+            if (analyticsStatusEl) analyticsStatusEl.textContent = `Loading analytics for ${activeRange}...`;
+            if (overviewEl) overviewEl.innerHTML = 'Loading analytics overview...';
+            if (routesEl) routesEl.innerHTML = 'Loading route activity...';
+            if (entitiesEl) entitiesEl.innerHTML = 'Loading entity activity...';
+            if (eventsEl) eventsEl.innerHTML = 'Loading recent events...';
+          }
+          if (analyticsRefresh) analyticsRefresh.disabled = true;
+          if (analyticsRange) analyticsRange.disabled = true;
+          try {
+            const [overview, routes, entities, events] = await Promise.all([
+              fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
+              fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
+              fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
+              fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
+            ]);
+
+            if (overviewEl) overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
+            if (routesEl) routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
+            if (entitiesEl) entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
+            if (eventsEl) eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
+            if (analyticsStatusEl) analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
+            try {
+              if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
+                window.VMPixAnalytics.track('admin_analytics_view', {
+                  route: currentAnalyticsRoute('admin'),
+                  section: 'admin',
+                  subsection: 'dashboard',
+                  source: 'admin_panel',
+                  entity_type: 'page',
+                  entity_id: 'admin-analytics',
+                  entity_label: 'Admin Analytics',
+                  meta: { range: activeRange }
+                });
+              }
+            } catch (_) {}
+          } catch (err) {
+            try { console.error('Admin analytics load failed:', err); } catch (_) {}
+            if (overviewEl) overviewEl.innerHTML = 'Analytics overview unavailable right now.';
+            if (routesEl) routesEl.innerHTML = 'Route activity unavailable right now.';
+            if (entitiesEl) entitiesEl.innerHTML = 'Entity activity unavailable right now.';
+            if (eventsEl) eventsEl.innerHTML = 'Recent event feed unavailable right now.';
+            if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics load failed: ${err.message}` : 'Analytics load failed';
+          } finally {
+            if (analyticsRefresh) analyticsRefresh.disabled = false;
+            if (analyticsRange) analyticsRange.disabled = false;
+          }
+        };
+
+        try {
+          window.__vmAdminAnalyticsLoad = loadAnalytics;
+        } catch (_) {}
+
+        if (analyticsRange) {
+          analyticsRange.addEventListener('change', () => {
+            loadAnalytics(analyticsRange.value);
+          }, { once: false });
+        }
+
+        if (analyticsRefresh) {
+          analyticsRefresh.addEventListener('click', () => {
+            const selectedRange = analyticsRange ? analyticsRange.value : '7d';
+            loadAnalytics(selectedRange);
+          }, { once: false });
+        }
+
         verifyAdminAccess().then((ok) => {
           if (!ok) {
             navigateToRoute('home', { replace: true });
             openAdminModal();
             return;
           }
-          const statusEl = document.getElementById('vmAdminStatusLine');
-          const analyticsStatusEl = document.getElementById('vmAdminAnalyticsStatus');
-          const metaEl = document.getElementById('vmAdminPeopleMeta');
-          const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
-          const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
-          const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
-          const overviewEl = document.getElementById('vmAdminAnalyticsOverview');
-          const routesEl = document.getElementById('vmAdminAnalyticsRoutes');
-          const entitiesEl = document.getElementById('vmAdminAnalyticsEntities');
-          const eventsEl = document.getElementById('vmAdminAnalyticsEvents');
           if (statusEl) statusEl.textContent = 'Backend access approved';
-
-          const loadAnalytics = async (range, opts) => {
-            const activeRange = String(range || '7d');
-            const silent = !!(opts && opts.silent);
-            if (!silent) {
-              if (analyticsStatusEl) analyticsStatusEl.textContent = `Loading analytics for ${activeRange}...`;
-              if (overviewEl) overviewEl.innerHTML = 'Loading analytics overview...';
-              if (routesEl) routesEl.innerHTML = 'Loading route activity...';
-              if (entitiesEl) entitiesEl.innerHTML = 'Loading entity activity...';
-              if (eventsEl) eventsEl.innerHTML = 'Loading recent events...';
-            }
-            if (analyticsRefresh) analyticsRefresh.disabled = true;
-            if (analyticsRange) analyticsRange.disabled = true;
-            try {
-              const [overview, routes, entities, events] = await Promise.all([
-                fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
-                fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
-                fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
-                fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
-              ]);
-
-              if (overviewEl) overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
-              if (routesEl) routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
-              if (entitiesEl) entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
-              if (eventsEl) eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
-              if (analyticsStatusEl) analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
-              try {
-                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
-                  window.VMPixAnalytics.track('admin_analytics_view', {
-                    route: currentAnalyticsRoute('admin'),
-                    section: 'admin',
-                    subsection: 'dashboard',
-                    source: 'admin_panel',
-                    entity_type: 'page',
-                    entity_id: 'admin-analytics',
-                    entity_label: 'Admin Analytics',
-                    meta: { range: activeRange }
-                  });
-                }
-              } catch (_) {}
-            } catch (err) {
-              try { console.error('Admin analytics load failed:', err); } catch (_) {}
-              if (overviewEl) overviewEl.innerHTML = 'Analytics overview unavailable right now.';
-              if (routesEl) routesEl.innerHTML = 'Route activity unavailable right now.';
-              if (entitiesEl) entitiesEl.innerHTML = 'Entity activity unavailable right now.';
-              if (eventsEl) eventsEl.innerHTML = 'Recent event feed unavailable right now.';
-              if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics load failed: ${err.message}` : 'Analytics load failed';
-            } finally {
-              if (analyticsRefresh) analyticsRefresh.disabled = false;
-              if (analyticsRange) analyticsRange.disabled = false;
-            }
-          };
-
-          try {
-            window.__vmAdminAnalyticsLoad = loadAnalytics;
-          } catch (_) {}
 
           if (rebuildBtn) {
             rebuildBtn.addEventListener('click', async () => {
@@ -1256,19 +1270,6 @@ music: {
               } finally {
                 rebuildBtn.disabled = false;
               }
-            }, { once: false });
-          }
-
-          if (analyticsRange) {
-            analyticsRange.addEventListener('change', () => {
-              loadAnalytics(analyticsRange.value);
-            }, { once: false });
-          }
-
-          if (analyticsRefresh) {
-            analyticsRefresh.addEventListener('click', () => {
-              const selectedRange = analyticsRange ? analyticsRange.value : '7d';
-              loadAnalytics(selectedRange);
             }, { once: false });
           }
 
