@@ -1346,6 +1346,11 @@ music: {
               if (!res.ok || !data || !data.ok) {
                 throw new Error((data && data.error) || 'reset failed');
               }
+              try {
+                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearBufferedEvents === 'function') {
+                  window.VMPixAnalytics.clearBufferedEvents();
+                }
+              } catch (_) {}
               if (analyticsStatusEl) analyticsStatusEl.textContent = 'Analytics reset complete';
               const selectedRange = analyticsRange ? analyticsRange.value : '7d';
               loadVmAdminAnalytics(selectedRange, { suppressTrack: true });

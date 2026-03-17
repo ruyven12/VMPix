@@ -250,6 +250,14 @@
     window.__VM_ANALYTICS_BUFFER__ = events.slice(-MAX_BUFFER_EVENTS);
   }
 
+  function clearBufferedEvents() {
+    try {
+      window.localStorage.removeItem(BUFFER_KEY);
+    } catch (_) {}
+    window.__VM_ANALYTICS_BUFFER__ = [];
+    return true;
+  }
+
   function endpointUrl() {
     try {
       var configured = String(window.VMPIX_ANALYTICS_ENDPOINT || "").trim();
@@ -339,6 +347,7 @@
     getVisitorId: getVisitorId,
     getSessionId: getSessionId,
     getPageviewId: getPageviewId,
-    getBufferedEvents: readBuffer
+    getBufferedEvents: readBuffer,
+    clearBufferedEvents: clearBufferedEvents
   };
 })();
