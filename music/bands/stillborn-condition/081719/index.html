@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -491,7 +491,7 @@
    HUD MAIN
    ============================= */
   /* =============================
-   HUD MAIN (PLAIN) – neon frame removed
+   HUD MAIN (PLAIN) â€“ neon frame removed
    ============================= */
   .hudMainPlain{
     width: 100%;
@@ -600,7 +600,7 @@
   }
 
   [data-hud-main-text].isTyping::after{
-    content: "▌";
+    content: "â–Œ";
     display: inline-block;
     margin-left: 2px;
     transform: translateY(1px);
@@ -680,14 +680,14 @@
   place-items: start center;
   align-content: start;
 
-  /* was 20px — this is the mobile "empty band" */
+  /* was 20px â€” this is the mobile "empty band" */
   padding-top: 8px;
   padding-bottom: 12px;
 }
 
 
   /* =============================
-   HOLOGRAM EMITTER RING (sci‑fi core)
+   HOLOGRAM EMITTER RING (sciâ€‘fi core)
    - confined to the HUD MAIN panel only
    - additive glow + subtle ticks
    ============================= */
@@ -1813,31 +1813,31 @@
     return base + '/analytics/collect';
   })();
 </script>
-<script src="/analytics-client.js" defer></script>
+<script src="/analytics-client.js?v=20260317-admin-analytics" defer></script>
 
 <!-- Music sub-modules FIRST -->
 <script src="music-archive-bands.js" defer></script>
 <script src="music-archive-shows.js" defer></script>
 
 <!-- Music router LAST -->
-<script src="music-archive.js" defer></script>
+<script src="music-archive.js?v=20260317-admin-analytics" defer></script>
 
 <script src="wrestling-archive.js" defer></script>
 <script src="about-archive.js" defer></script>
-<script src="pricing.js" defer></script>
-<script src="contact.js" defer></script>
-<script src="home.js" defer></script>
+<script src="pricing.js?v=20260317-admin-analytics" defer></script>
+<script src="contact.js?v=20260317-admin-analytics" defer></script>
+<script src="home.js?v=20260317-admin-analytics" defer></script>
 
 <!-- Calendar config (must be defined before calendar.js loads) -->
 <script>
-  // Public Google Calendar ICS URL (Settings → Integrate calendar → Public address in iCal format)
+  // Public Google Calendar ICS URL (Settings â†’ Integrate calendar â†’ Public address in iCal format)
   window.VMPIX_CALENDAR_ICS_URL = 'https://calendar.google.com/calendar/ical/f94c8ef1cb0b3c7e3185134a306540e3b9f3847f3a595d166ca0e4c9b01014a3%40group.calendar.google.com/public/basic.ics';
   window.VMPIX_CALENDAR_TITLE = 'Calendar';
   // Helps if Google blocks CORS for the ICS feed
   window.VMPIX_CALENDAR_ICS_FALLBACK_JINA = true;
 </script>
-<script src="calendar.js" defer></script>
-<script src="hud-app.js" defer></script>
+<script src="calendar.js?v=20260317-admin-analytics" defer></script>
+<script src="hud-app.js?v=20260317-admin-analytics" defer></script>
 
 
 
@@ -1871,5 +1871,6 @@
 
 </body>
 </html>
+
 
 
