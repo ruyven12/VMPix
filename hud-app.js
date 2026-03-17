@@ -1280,7 +1280,10 @@ music: {
                 <div style="display:flex; align-items:center; gap:12px;">
                   <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                 </div>
-                <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Analytics</div>
+				                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                </div>
+                <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Analytics</div>
                 <div style="display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; margin-top:10px;">
                   <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Time Period</div>
                   <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
