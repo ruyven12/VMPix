@@ -1204,6 +1204,7 @@ music: {
                 }
               } catch (_) {}
             } catch (err) {
+              try { console.error('Admin analytics load failed:', err); } catch (_) {}
               if (overviewEl) overviewEl.innerHTML = 'Analytics overview unavailable right now.';
               if (routesEl) routesEl.innerHTML = 'Route activity unavailable right now.';
               if (entitiesEl) entitiesEl.innerHTML = 'Entity activity unavailable right now.';
@@ -1214,6 +1215,10 @@ music: {
               if (analyticsRange) analyticsRange.disabled = false;
             }
           };
+
+          try {
+            window.__vmAdminAnalyticsLoad = loadAnalytics;
+          } catch (_) {}
 
           if (rebuildBtn) {
             rebuildBtn.addEventListener('click', async () => {
@@ -1267,7 +1272,23 @@ music: {
             }, { once: false });
           }
 
-          loadAnalytics(analyticsRange ? analyticsRange.value : '7d');
+          const initialAnalyticsRange = analyticsRange ? analyticsRange.value : '7d';
+          try {
+            window.setTimeout(() => {
+              try { loadAnalytics(initialAnalyticsRange); } catch (err) {
+                try { console.error('Admin analytics initial timeout load failed:', err); } catch (_) {}
+              }
+            }, 0);
+          } catch (_) {}
+          try {
+            window.requestAnimationFrame(() => {
+              try { loadAnalytics(initialAnalyticsRange, { silent: true }); } catch (err) {
+                try { console.error('Admin analytics RAF load failed:', err); } catch (_) {}
+              }
+            });
+          } catch (_) {
+            loadAnalytics(initialAnalyticsRange);
+          }
 
           __vmAdminFetch('/admin/verify', { method: 'GET' })
             .then((res) => res.json().catch(() => ({})).then((data) => ({ ok: res.ok, data })))
