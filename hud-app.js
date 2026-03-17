@@ -766,6 +766,7 @@ function pulseFrame(){
     const nodes = getVmAdminAnalyticsNodes();
     const activeRange = String(range || (nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
     const silent = !!(opts && opts.silent);
+    const suppressTrack = !!(opts && opts.suppressTrack);
 
     if (!nodes.overviewEl || !nodes.routesEl || !nodes.entitiesEl || !nodes.eventsEl) {
       return false;
@@ -796,20 +797,22 @@ function pulseFrame(){
       nodes.eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
       if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
 
-      try {
-        if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
-          window.VMPixAnalytics.track('admin_analytics_view', {
-            route: currentAnalyticsRoute('admin'),
-            section: 'admin',
-            subsection: 'dashboard',
-            source: 'admin_panel',
-            entity_type: 'page',
-            entity_id: 'admin-analytics',
-            entity_label: 'Admin Analytics',
-            meta: { range: activeRange }
-          });
-        }
-      } catch (_) {}
+      if (!suppressTrack) {
+        try {
+          if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
+            window.VMPixAnalytics.track('admin_analytics_view', {
+              route: currentAnalyticsRoute('admin'),
+              section: 'admin',
+              subsection: 'dashboard',
+              source: 'admin_panel',
+              entity_type: 'page',
+              entity_id: 'admin-analytics',
+              entity_label: 'Admin Analytics',
+              meta: { range: activeRange }
+            });
+          }
+        } catch (_) {}
+      }
 
       return true;
     } catch (err) {
@@ -1243,18 +1246,6 @@ music: {
                   <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                    <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Window</div>
-                    <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
-                      <option value="24h">24h</option>
-                      <option value="7d" selected>7d</option>
-                      <option value="30d">30d</option>
-                    </select>
-                  </div>
-                  <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Change the reporting range and pull a fresh pass without leaving the dashboard.</div>
-                  <button type="button" id="vmAdminAnalyticsRefresh" style="margin-top:12px; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
-                </div>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Site Controls</div>
                   <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Reserved for future validation utilities, maintenance actions, and operational tools.</div>
                   <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
@@ -1265,9 +1256,19 @@ music: {
               </div>
               <div style="margin-top:20px;">
                 <div style="display:flex; align-items:center; gap:12px;">
-                  <div style="flex:1; height:1px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.6),rgba(97,224,255,.52),rgba(255,70,110,.04));"></div>
+                  <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                 </div>
                 <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Analytics</div>
+                <div style="display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; margin-top:10px;">
+                  <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Time Period</div>
+                  <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
+                    <option value="24h">24h</option>
+                    <option value="7d" selected>7d</option>
+                    <option value="30d">30d</option>
+                  </select>
+                  <button type="button" id="vmAdminAnalyticsRefresh" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
+                  <button type="button" id="vmAdminAnalyticsReset" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
+                </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr); gap:16px; margin-top:14px;">
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:260px;">
@@ -1313,6 +1314,7 @@ music: {
         const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
         const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
         const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
+        const analyticsReset = document.getElementById('vmAdminAnalyticsReset');
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
@@ -1324,6 +1326,34 @@ music: {
           analyticsRefresh.addEventListener('click', () => {
             const selectedRange = analyticsRange ? analyticsRange.value : '7d';
             loadVmAdminAnalytics(selectedRange);
+          }, { once: false });
+        }
+
+        if (analyticsReset) {
+          analyticsReset.addEventListener('click', async () => {
+            const confirmed = window.confirm('Reset analytics data now? This will clear the stored analytics feed.');
+            if (!confirmed) return;
+            analyticsReset.disabled = true;
+            if (analyticsStatusEl) analyticsStatusEl.textContent = 'Resetting analytics data...';
+            try {
+              const res = await __vmAdminFetch('/admin/analytics/reset', {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json'
+                }
+              });
+              const data = await res.json().catch(() => ({}));
+              if (!res.ok || !data || !data.ok) {
+                throw new Error((data && data.error) || 'reset failed');
+              }
+              if (analyticsStatusEl) analyticsStatusEl.textContent = 'Analytics reset complete';
+              const selectedRange = analyticsRange ? analyticsRange.value : '7d';
+              loadVmAdminAnalytics(selectedRange, { suppressTrack: true });
+            } catch (err) {
+              if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';
+            } finally {
+              analyticsReset.disabled = false;
+            }
           }, { once: false });
         }
 
