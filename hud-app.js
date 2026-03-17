@@ -1054,6 +1054,47 @@ music: {
 
   
   let currentRoute = null;
+  let lastTrackedPageviewRoute = '';
+
+  function currentAnalyticsRoute(route){
+    const key = sanitizeRouteKey(route) || currentRouteKey() || 'home';
+    try {
+      const pathname = String(location.pathname || '').trim();
+      if (pathname) return pathname;
+    } catch (_) {}
+    return routePathForKey(key);
+  }
+
+  function trackShellPageview(route, opts){
+    try {
+      if (!window.VMPixAnalytics || typeof window.VMPixAnalytics.beginPageview !== 'function') return;
+
+      const analyticsRoute = currentAnalyticsRoute(route);
+      const classified = (typeof window.VMPixAnalytics.classifyRoute === 'function')
+        ? window.VMPixAnalytics.classifyRoute(analyticsRoute)
+        : { route: analyticsRoute, section: sanitizeRouteKey(route) || 'home', subsection: '' };
+      const normalizedRoute = String((classified && classified.route) || analyticsRoute || '').trim();
+      const force = !!(opts && opts.force);
+
+      if (!normalizedRoute) return;
+      if (!force && normalizedRoute === lastTrackedPageviewRoute) return;
+
+      lastTrackedPageviewRoute = normalizedRoute;
+
+      window.VMPixAnalytics.beginPageview({
+        route: normalizedRoute,
+        section: String((classified && classified.section) || ''),
+        subsection: String((classified && classified.subsection) || ''),
+        source: 'site_shell',
+        entity_type: 'page',
+        entity_id: normalizedRoute,
+        entity_label: sanitizeRouteKey(route) || currentRouteKey() || 'home',
+        meta: {
+          route_key: sanitizeRouteKey(route) || currentRouteKey() || 'home'
+        }
+      });
+    } catch (_) {}
+  }
 
 
 // =============================
@@ -1306,6 +1347,7 @@ async function transitionTo(route){
         window.MusicArchive.onEnter();
       }
     } catch (_) {}
+    trackShellPageview(next);
     return;
   }
 
@@ -1353,6 +1395,7 @@ async function transitionTo(route){
 
   // Fire onEnter under black so first paints happen hidden
   try { modules[next].onEnter && modules[next].onEnter(); } catch(_){}
+  trackShellPageview(next);
 
   // One more settle frame
   await new Promise(r => window.requestAnimationFrame(r));
