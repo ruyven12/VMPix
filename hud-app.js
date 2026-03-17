@@ -730,6 +730,89 @@ function pulseFrame(){
     `, 'No recent events yet.');
   }
 
+  function getVmAdminAnalyticsNodes(){
+    return {
+      statusEl: document.getElementById('vmAdminStatusLine'),
+      analyticsStatusEl: document.getElementById('vmAdminAnalyticsStatus'),
+      metaEl: document.getElementById('vmAdminPeopleMeta'),
+      rebuildBtn: document.querySelector('[data-admin-rebuild="people"]'),
+      analyticsRange: document.getElementById('vmAdminAnalyticsRange'),
+      analyticsRefresh: document.getElementById('vmAdminAnalyticsRefresh'),
+      overviewEl: document.getElementById('vmAdminAnalyticsOverview'),
+      routesEl: document.getElementById('vmAdminAnalyticsRoutes'),
+      entitiesEl: document.getElementById('vmAdminAnalyticsEntities'),
+      eventsEl: document.getElementById('vmAdminAnalyticsEvents')
+    };
+  }
+
+  async function loadVmAdminAnalytics(range, opts){
+    const nodes = getVmAdminAnalyticsNodes();
+    const activeRange = String(range || (nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
+    const silent = !!(opts && opts.silent);
+
+    if (!nodes.overviewEl || !nodes.routesEl || !nodes.entitiesEl || !nodes.eventsEl) {
+      return false;
+    }
+
+    if (!silent) {
+      if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = `Loading analytics for ${activeRange}...`;
+      nodes.overviewEl.innerHTML = 'Loading analytics overview...';
+      nodes.routesEl.innerHTML = 'Loading route activity...';
+      nodes.entitiesEl.innerHTML = 'Loading entity activity...';
+      nodes.eventsEl.innerHTML = 'Loading recent events...';
+    }
+
+    if (nodes.analyticsRefresh) nodes.analyticsRefresh.disabled = true;
+    if (nodes.analyticsRange) nodes.analyticsRange.disabled = true;
+
+    try {
+      const [overview, routes, entities, events] = await Promise.all([
+        fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
+        fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
+        fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
+        fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
+      ]);
+
+      nodes.overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
+      nodes.routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
+      nodes.entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
+      nodes.eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
+      if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
+
+      try {
+        if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
+          window.VMPixAnalytics.track('admin_analytics_view', {
+            route: currentAnalyticsRoute('admin'),
+            section: 'admin',
+            subsection: 'dashboard',
+            source: 'admin_panel',
+            entity_type: 'page',
+            entity_id: 'admin-analytics',
+            entity_label: 'Admin Analytics',
+            meta: { range: activeRange }
+          });
+        }
+      } catch (_) {}
+
+      return true;
+    } catch (err) {
+      try { console.error('Admin analytics load failed:', err); } catch (_) {}
+      nodes.overviewEl.innerHTML = 'Analytics overview unavailable right now.';
+      nodes.routesEl.innerHTML = 'Route activity unavailable right now.';
+      nodes.entitiesEl.innerHTML = 'Entity activity unavailable right now.';
+      nodes.eventsEl.innerHTML = 'Recent event feed unavailable right now.';
+      if (nodes.analyticsStatusEl) nodes.analyticsStatusEl.textContent = (err && err.message) ? `Analytics load failed: ${err.message}` : 'Analytics load failed';
+      return false;
+    } finally {
+      if (nodes.analyticsRefresh) nodes.analyticsRefresh.disabled = false;
+      if (nodes.analyticsRange) nodes.analyticsRange.disabled = false;
+    }
+  }
+
+  try {
+    window.__vmAdminAnalyticsLoad = loadVmAdminAnalytics;
+  } catch (_) {}
+
   // Keep your exact copy (same as inline)
   const ROUTE_COPY = {
     // Home supports HTML so you can style + edit copy easily.
@@ -1152,77 +1235,17 @@ music: {
         const rebuildBtn = document.querySelector('[data-admin-rebuild="people"]');
         const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
         const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
-        const overviewEl = document.getElementById('vmAdminAnalyticsOverview');
-        const routesEl = document.getElementById('vmAdminAnalyticsRoutes');
-        const entitiesEl = document.getElementById('vmAdminAnalyticsEntities');
-        const eventsEl = document.getElementById('vmAdminAnalyticsEvents');
-
-        const loadAnalytics = async (range, opts) => {
-          const activeRange = String(range || '7d');
-          const silent = !!(opts && opts.silent);
-          if (!silent) {
-            if (analyticsStatusEl) analyticsStatusEl.textContent = `Loading analytics for ${activeRange}...`;
-            if (overviewEl) overviewEl.innerHTML = 'Loading analytics overview...';
-            if (routesEl) routesEl.innerHTML = 'Loading route activity...';
-            if (entitiesEl) entitiesEl.innerHTML = 'Loading entity activity...';
-            if (eventsEl) eventsEl.innerHTML = 'Loading recent events...';
-          }
-          if (analyticsRefresh) analyticsRefresh.disabled = true;
-          if (analyticsRange) analyticsRange.disabled = true;
-          try {
-            const [overview, routes, entities, events] = await Promise.all([
-              fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
-              fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
-              fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
-              fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 10 })
-            ]);
-
-            if (overviewEl) overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
-            if (routesEl) routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
-            if (entitiesEl) entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
-            if (eventsEl) eventsEl.innerHTML = renderVmAdminAnalyticsEvents(events && events.items);
-            if (analyticsStatusEl) analyticsStatusEl.textContent = `Analytics loaded for ${activeRange}`;
-            try {
-              if (window.VMPixAnalytics && typeof window.VMPixAnalytics.track === 'function') {
-                window.VMPixAnalytics.track('admin_analytics_view', {
-                  route: currentAnalyticsRoute('admin'),
-                  section: 'admin',
-                  subsection: 'dashboard',
-                  source: 'admin_panel',
-                  entity_type: 'page',
-                  entity_id: 'admin-analytics',
-                  entity_label: 'Admin Analytics',
-                  meta: { range: activeRange }
-                });
-              }
-            } catch (_) {}
-          } catch (err) {
-            try { console.error('Admin analytics load failed:', err); } catch (_) {}
-            if (overviewEl) overviewEl.innerHTML = 'Analytics overview unavailable right now.';
-            if (routesEl) routesEl.innerHTML = 'Route activity unavailable right now.';
-            if (entitiesEl) entitiesEl.innerHTML = 'Entity activity unavailable right now.';
-            if (eventsEl) eventsEl.innerHTML = 'Recent event feed unavailable right now.';
-            if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics load failed: ${err.message}` : 'Analytics load failed';
-          } finally {
-            if (analyticsRefresh) analyticsRefresh.disabled = false;
-            if (analyticsRange) analyticsRange.disabled = false;
-          }
-        };
-
-        try {
-          window.__vmAdminAnalyticsLoad = loadAnalytics;
-        } catch (_) {}
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
-            loadAnalytics(analyticsRange.value);
+            loadVmAdminAnalytics(analyticsRange.value);
           }, { once: false });
         }
 
         if (analyticsRefresh) {
           analyticsRefresh.addEventListener('click', () => {
             const selectedRange = analyticsRange ? analyticsRange.value : '7d';
-            loadAnalytics(selectedRange);
+            loadVmAdminAnalytics(selectedRange);
           }, { once: false });
         }
 
@@ -1276,19 +1299,19 @@ music: {
           const initialAnalyticsRange = analyticsRange ? analyticsRange.value : '7d';
           try {
             window.setTimeout(() => {
-              try { loadAnalytics(initialAnalyticsRange); } catch (err) {
+              try { loadVmAdminAnalytics(initialAnalyticsRange); } catch (err) {
                 try { console.error('Admin analytics initial timeout load failed:', err); } catch (_) {}
               }
             }, 0);
           } catch (_) {}
           try {
             window.requestAnimationFrame(() => {
-              try { loadAnalytics(initialAnalyticsRange, { silent: true }); } catch (err) {
+              try { loadVmAdminAnalytics(initialAnalyticsRange, { silent: true }); } catch (err) {
                 try { console.error('Admin analytics RAF load failed:', err); } catch (_) {}
               }
             });
           } catch (_) {
-            loadAnalytics(initialAnalyticsRange);
+            loadVmAdminAnalytics(initialAnalyticsRange);
           }
 
           __vmAdminFetch('/admin/verify', { method: 'GET' })
