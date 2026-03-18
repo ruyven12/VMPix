@@ -762,6 +762,30 @@ function pulseFrame(){
     };
   }
 
+  function initVmAdminAnalyticsCollapsibles(){
+    const sections = Array.prototype.slice.call(document.querySelectorAll('[data-analytics-section]'));
+    sections.forEach((section) => {
+      const button = section.querySelector('[data-analytics-toggle]');
+      const body = section.querySelector('[data-analytics-body]');
+      const icon = section.querySelector('[data-analytics-chevron]');
+      if (!button || !body || button.__vmAnalyticsCollapseBound) return;
+
+      const applyState = (collapsed) => {
+        section.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+        button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        body.style.display = collapsed ? 'none' : '';
+        if (icon) icon.textContent = collapsed ? '+' : '-';
+      };
+
+      applyState(false);
+      button.addEventListener('click', () => {
+        const collapsed = section.getAttribute('data-collapsed') === 'true';
+        applyState(!collapsed);
+      }, { once: false });
+      button.__vmAnalyticsCollapseBound = true;
+    });
+  }
+
   function renderVmAdminAnalyticsZeroState(range){
     const nodes = getVmAdminAnalyticsNodes();
     const activeRange = String(range || '7d');
@@ -1283,33 +1307,49 @@ music: {
                   <button type="button" id="vmAdminAnalyticsReset" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
                 </div>
               </div>
-              <div style="display:grid; grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr); gap:16px; margin-top:14px;">
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:260px;">
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
+                <div data-analytics-section="overview" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="overview" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div>
                       <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase;">Primary Readout</div>
                       <div style="margin-top:5px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
                     </div>
+                    <div data-analytics-chevron="overview" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                  </button>
+                  <div data-analytics-body="overview">
+                    <div id="vmAdminAnalyticsOverview" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
                   </div>
-                  <div id="vmAdminAnalyticsOverview" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
                 </div>
-                <div style="display:grid; grid-template-rows:minmax(240px,1fr) minmax(240px,1fr); gap:16px;">
-                  <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74));">
+                <div data-analytics-section="routes" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="routes" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
+                    <div data-analytics-chevron="routes" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                  </button>
+                  <div data-analytics-body="routes">
                     <div id="vmAdminAnalyticsRoutes" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
                   </div>
-                  <div style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74));">
+                </div>
+                <div data-analytics-section="entities" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="entities" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
+                    <div data-analytics-chevron="entities" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                  </button>
+                  <div data-analytics-body="entities">
                     <div id="vmAdminAnalyticsEntities" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
                   </div>
                 </div>
-              </div>
-              <div style="margin-top:18px; border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:240px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                  <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
-                  <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first / 50 entries</div>
+                <div data-analytics-section="events" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="events" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                    <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
+                    <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
+                      <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first / 50 entries</div>
+                      <div data-analytics-chevron="events" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                    </div>
+                  </button>
+                  <div data-analytics-body="events">
+                    <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
+                  </div>
                 </div>
-                <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
               </div>
             </div>
           </div>
@@ -1328,6 +1368,8 @@ music: {
         const analyticsRange = document.getElementById('vmAdminAnalyticsRange');
         const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
         const analyticsReset = document.getElementById('vmAdminAnalyticsReset');
+
+        initVmAdminAnalyticsCollapsibles();
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
