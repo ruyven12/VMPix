@@ -56,6 +56,16 @@
     return prefix + "_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
   }
 
+  function initializeFreshPageSession() {
+    try {
+      window.sessionStorage.removeItem(SESSION_KEY);
+    } catch (_) {}
+
+    try {
+      window.sessionStorage.removeItem(PAGEVIEW_KEY);
+    } catch (_) {}
+  }
+
   function getVisitorId() {
     var existing = safeGet(window.localStorage, VISITOR_KEY);
     if (existing) return existing;
@@ -355,6 +365,8 @@
     rotatePageviewId();
     return track("page_view", payload || {});
   }
+
+  initializeFreshPageSession();
 
   window.VMPixAnalytics = {
     eventVersion: EVENT_VERSION,
