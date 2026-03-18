@@ -643,12 +643,41 @@ function pulseFrame(){
   }
 
   async function fetchVmAdminJson(path, params){
-    const res = await __vmAdminFetch(`${path}${buildVmAdminQuery(params)}`, { method: 'GET' });
+    const query = Object.assign({}, params || {}, { _ts: Date.now() });
+    const res = await __vmAdminFetch(`${path}${buildVmAdminQuery(query)}`, { method: 'GET' });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data || data.ok === false) {
       throw new Error((data && data.error) || `request failed for ${path}`);
     }
     return data;
+  }
+
+  function isVmAdminAnalyticsCleared(snapshot){
+    const overview = snapshot && snapshot.overview || {};
+    const totals = overview && overview.totals || {};
+    const routes = Array.isArray(snapshot && snapshot.routes && snapshot.routes.items) ? snapshot.routes.items : [];
+    const entities = Array.isArray(snapshot && snapshot.entities && snapshot.entities.items) ? snapshot.entities.items : [];
+    const events = Array.isArray(snapshot && snapshot.events && snapshot.events.items) ? snapshot.events.items : [];
+
+    return Number(totals.events || 0) === 0
+      && Number(totals.pageviews || 0) === 0
+      && Number(totals.visitors || 0) === 0
+      && Number(totals.sessions || 0) === 0
+      && routes.length === 0
+      && entities.length === 0
+      && events.length === 0;
+  }
+
+  async function fetchVmAdminAnalyticsSnapshot(range){
+    const activeRange = String(range || '7d');
+    const [overview, routes, entities, events] = await Promise.all([
+      fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
+      fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
+      fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
+      fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 50 })
+    ]);
+
+    return { overview, routes, entities, events };
   }
 
   function renderVmAdminAnalyticsOverview(data){
@@ -836,12 +865,11 @@ function pulseFrame(){
     if (nodes.analyticsRange) nodes.analyticsRange.disabled = true;
 
     try {
-      const [overview, routes, entities, events] = await Promise.all([
-        fetchVmAdminJson('/admin/analytics/overview', { range: activeRange }),
-        fetchVmAdminJson('/admin/analytics/routes', { range: activeRange, limit: 8 }),
-        fetchVmAdminJson('/admin/analytics/entities', { range: activeRange, limit: 8 }),
-        fetchVmAdminJson('/admin/analytics/events', { range: activeRange, limit: 50 })
-      ]);
+      const snapshot = await fetchVmAdminAnalyticsSnapshot(activeRange);
+      const overview = snapshot.overview;
+      const routes = snapshot.routes;
+      const entities = snapshot.entities;
+      const events = snapshot.events;
 
       nodes.overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
       nodes.routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
@@ -1314,45 +1342,45 @@ music: {
                 </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
-                <div data-analytics-section="overview" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="overview" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="overview" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="overview" aria-expanded="false" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div>
                       <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase;">Primary Readout</div>
                       <div style="margin-top:5px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
                     </div>
-                    <div data-analytics-chevron="overview" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                    <div data-analytics-chevron="overview" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
                   </button>
-                  <div data-analytics-body="overview">
+                  <div data-analytics-body="overview" style="display:none;">
                     <div id="vmAdminAnalyticsOverview" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
                   </div>
                 </div>
-                <div data-analytics-section="routes" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="routes" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="routes" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="routes" aria-expanded="false" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
-                    <div data-analytics-chevron="routes" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                    <div data-analytics-chevron="routes" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
                   </button>
-                  <div data-analytics-body="routes">
+                  <div data-analytics-body="routes" style="display:none;">
                     <div id="vmAdminAnalyticsRoutes" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
                   </div>
                 </div>
-                <div data-analytics-section="entities" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="entities" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="entities" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="entities" aria-expanded="false" style="display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
-                    <div data-analytics-chevron="entities" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                    <div data-analytics-chevron="entities" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
                   </button>
-                  <div data-analytics-body="entities">
+                  <div data-analytics-body="entities" style="display:none;">
                     <div id="vmAdminAnalyticsEntities" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
                   </div>
                 </div>
-                <div data-analytics-section="events" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="events" aria-expanded="true" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="events" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="events" aria-expanded="false" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
                     <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
                       <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first / 50 entries</div>
-                      <div data-analytics-chevron="events" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
+                      <div data-analytics-chevron="events" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
                     </div>
                   </button>
-                  <div data-analytics-body="events">
+                  <div data-analytics-body="events" style="display:none;">
                     <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
                   </div>
                 </div>
@@ -1416,7 +1444,15 @@ music: {
               } catch (_) {}
               const selectedRange = analyticsRange ? analyticsRange.value : '7d';
               renderVmAdminAnalyticsZeroState(selectedRange);
-              await loadVmAdminAnalytics(selectedRange, { silent: true });
+              let resetVerified = false;
+              for (let attempt = 0; attempt < 4; attempt += 1) {
+                const snapshot = await fetchVmAdminAnalyticsSnapshot(selectedRange);
+                if (isVmAdminAnalyticsCleared(snapshot)) {
+                  resetVerified = true;
+                  break;
+                }
+                await new Promise((resolve) => window.setTimeout(resolve, 350));
+              }
               if (analyticsStatusEl) {
                 const beforeCount = Number(data && data.beforeCount || 0);
                 const clearedSummary = data && typeof data.cleared === 'object' && data.cleared
@@ -1427,9 +1463,11 @@ music: {
                       `sessions ${formatVmAdminNumber(data.cleared.sessions)}`
                     ].join(' | ')
                   : '';
-                analyticsStatusEl.textContent = clearedSummary
-                  ? `Analytics reset complete (${clearedSummary})`
-                  : `Analytics reset complete (${beforeCount} cleared)`;
+                analyticsStatusEl.textContent = resetVerified
+                  ? (clearedSummary
+                      ? `Analytics reset complete (${clearedSummary})`
+                      : `Analytics reset complete (${beforeCount} cleared)`)
+                  : 'Analytics reset returned, but backend data still appears present';
               }
             } catch (err) {
               if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';
