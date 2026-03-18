@@ -1067,33 +1067,15 @@
         gap: 18px;
         align-items: stretch;
         padding: 16px 18px;
-        border-radius: 20px 8px 20px 8px;
-        border: 1px solid rgba(255,104,138,0.18);
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.08);
         background:
-          linear-gradient(135deg, rgba(255,104,138,0.10) 0 20px, rgba(0,0,0,0) 20px) top left / 100% 100% no-repeat,
-          linear-gradient(315deg, rgba(255,104,138,0.08) 0 18px, rgba(0,0,0,0) 18px) bottom right / 100% 100% no-repeat,
-          linear-gradient(180deg, rgba(38, 10, 21, 0.84) 0%, rgba(18, 10, 24, 0.82) 52%, rgba(10, 10, 18, 0.88) 100%),
-          radial-gradient(140% 160% at 0% 0%, rgba(255, 84, 120, 0.18) 0%, rgba(255,255,255,0.02) 42%, rgba(0,0,0,0) 100%);
+          linear-gradient(180deg, rgba(32, 12, 29, 0.62) 0%, rgba(16, 12, 29, 0.58) 100%),
+          radial-gradient(140% 160% at 0% 0%, rgba(255, 84, 120, 0.10) 0%, rgba(255,255,255,0.02) 42%, rgba(0,0,0,0) 100%);
         box-shadow:
           inset 0 1px 0 rgba(255,255,255,0.04),
-          inset 0 0 0 1px rgba(255,255,255,0.02),
-          0 16px 38px rgba(0,0,0,0.36),
-          0 0 0 1px rgba(255,84,120,0.04);
+          0 14px 34px rgba(0,0,0,0.26);
         overflow: hidden;
-        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
-      }
-      .waShowBroadcastCard:hover{
-        transform: translateY(-2px);
-        border-color: rgba(255,104,138,0.34);
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.04),
-          inset 0 0 0 1px rgba(255,255,255,0.03),
-          0 22px 44px rgba(0,0,0,0.42),
-          0 0 24px rgba(255,84,120,0.08);
-      }
-      .waShowBroadcastCard:focus-visible{
-        outline: 2px solid rgba(255,104,138,0.54);
-        outline-offset: 3px;
       }
       .waShowBroadcastCard::before{
         content:"";
@@ -1102,8 +1084,7 @@
         border-radius: inherit;
         pointer-events:none;
         background:
-          linear-gradient(90deg, rgba(255,84,120,0.22) 0, rgba(255,84,120,0.08) 92px, rgba(255,255,255,0.03) 92px, rgba(255,255,255,0) 100%),
-          linear-gradient(112deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 42%, rgba(255,255,255,0) 54%);
+          linear-gradient(90deg, rgba(255,84,120,0.18) 0, rgba(255,84,120,0.05) 92px, rgba(255,255,255,0.03) 92px, rgba(255,255,255,0) 100%);
       }
       .waShowBroadcastCard::after{
         content:"";
@@ -1111,9 +1092,9 @@
         left: 92px;
         top: 14px;
         bottom: 14px;
-        width: 2px;
-        background: linear-gradient(180deg, rgba(255,84,120,0) 0%, rgba(255,84,120,0.76) 50%, rgba(255,84,120,0) 100%);
-        box-shadow: 0 0 18px rgba(255,84,120,0.30);
+        width: 1px;
+        background: linear-gradient(180deg, rgba(255,84,120,0) 0%, rgba(255,84,120,0.44) 50%, rgba(255,84,120,0) 100%);
+        box-shadow: 0 0 14px rgba(255,84,120,0.24);
         pointer-events:none;
       }
       .waShowDateRail{
@@ -1130,20 +1111,16 @@
         font-family: "Orbitron", system-ui, sans-serif !important;
         font-size: 12px;
         font-weight: 800;
-        letter-spacing: .22em;
-        color: rgba(255, 164, 186, 0.92);
-        text-shadow: 0 0 10px rgba(255,84,120,0.24);
+        letter-spacing: .18em;
+        color: rgba(255, 164, 186, 0.86);
       }
       .waShowDateDay{
         font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 36px;
-        line-height: .88;
+        font-size: 33px;
+        line-height: .95;
         font-weight: 900;
-        letter-spacing: .01em;
+        letter-spacing: .02em;
         color: rgba(246, 248, 252, 0.98);
-        text-shadow:
-          0 0 18px rgba(255,84,120,0.16),
-          0 3px 10px rgba(0,0,0,0.30);
       }
       .waShowDateYear{
         font-family: "Orbitron", system-ui, sans-serif !important;
@@ -1169,24 +1146,12 @@
       }
       .waShowPromotion{
         min-width: 0;
-        display:inline-flex;
-        align-items:center;
-        gap: 8px;
         font-family: "Orbitron", system-ui, sans-serif !important;
         font-size: 11px;
         font-weight: 800;
-        letter-spacing: .22em;
-        color: rgba(255, 122, 156, 0.98);
+        letter-spacing: .18em;
+        color: rgba(255, 122, 156, 0.92);
         text-transform: uppercase;
-      }
-      .waShowPromotion::before{
-        content:"";
-        width: 18px;
-        height: 2px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, rgba(255,84,120,0.98), rgba(255,152,120,0.58));
-        box-shadow: 0 0 12px rgba(255,84,120,0.26);
-        flex-shrink: 0;
       }
       .waShowUtility{
         display:flex;
@@ -1200,9 +1165,8 @@
         font-family: "Orbitron", system-ui, sans-serif !important;
         font-size: 12px;
         font-weight: 800;
-        letter-spacing: .12em;
+        letter-spacing: .08em;
         color: rgba(236,241,250,0.92);
-        text-transform: uppercase;
       }
       .waShowUtilitySecondary{
         font-family: "Orbitron", system-ui, sans-serif !important;
@@ -1216,13 +1180,9 @@
         font-size: clamp(23px, 3.4vw, 38px);
         line-height: 1;
         font-weight: 900;
-        letter-spacing: -.03em;
+        letter-spacing: -.02em;
         color: rgba(246,248,252,0.98);
         text-wrap: balance;
-        text-transform: uppercase;
-        text-shadow:
-          0 1px 0 rgba(255,255,255,0.04),
-          0 10px 24px rgba(0,0,0,0.34);
       }
       .waShowSubline{
         display:flex;
@@ -1235,16 +1195,15 @@
         align-items:center;
         min-height: 24px;
         padding: 4px 10px;
-        border-radius: 999px 999px 999px 4px;
-        border: 1px solid rgba(255,104,138,0.14);
-        background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
         font-family: "Orbitron", system-ui, sans-serif !important;
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: .16em;
-        color: rgba(226, 233, 245, 0.82);
+        letter-spacing: .14em;
+        color: rgba(219, 228, 242, 0.74);
         text-transform: uppercase;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
       }
       .waShowAction{
         position: relative;
@@ -1255,34 +1214,26 @@
       }
       .waShowOpenBtn{
         appearance:none;
-        border: 1px solid rgba(255,124,154,0.34);
-        background:
-          linear-gradient(180deg, rgba(255,132,160,0.20) 0%, rgba(255,84,120,0.10) 100%),
-          linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+        border: 1px solid rgba(255,255,255,0.16);
+        background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
         color: rgba(246,248,252,0.96);
-        border-radius: 12px 12px 12px 3px;
-        min-height: 44px;
+        border-radius: 999px;
+        min-height: 42px;
         padding: 0 18px;
         font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
-        letter-spacing: .18em;
+        letter-spacing: .12em;
         text-transform: uppercase;
         cursor: pointer;
         transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.08),
-          0 0 0 1px rgba(255,255,255,0.02);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       }
       .waShowOpenBtn:hover{
         transform: translateY(-1px);
-        border-color: rgba(255,122,156,0.60);
-        background:
-          linear-gradient(180deg, rgba(255,132,160,0.30) 0%, rgba(255,84,120,0.14) 100%),
-          linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 100%);
-        box-shadow:
-          0 0 20px rgba(255,84,120,0.18),
-          0 8px 18px rgba(0,0,0,0.18);
+        border-color: rgba(255,122,156,0.44);
+        background: linear-gradient(180deg, rgba(255,122,156,0.18) 0%, rgba(255,122,156,0.08) 100%);
+        box-shadow: 0 0 16px rgba(255,84,120,0.14);
       }
       .waShowOpenBtn:focus-visible{
         outline: 2px solid rgba(255,122,156,0.58);
@@ -2223,8 +2174,6 @@
 
       const card = document.createElement("article");
       card.className = "waShowBroadcastCard";
-      card.setAttribute("role", "button");
-      card.setAttribute("tabindex", "0");
 
       const dateRail = document.createElement("div");
       dateRail.className = "waShowDateRail";
@@ -2315,12 +2264,6 @@
       actionWrap.appendChild(openBtn);
 
       card.addEventListener("click", openShow);
-      card.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openShow();
-        }
-      });
       card.appendChild(dateRail);
       card.appendChild(main);
       card.appendChild(actionWrap);
