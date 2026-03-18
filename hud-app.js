@@ -777,10 +777,16 @@ function pulseFrame(){
         if (icon) icon.textContent = collapsed ? '+' : '-';
       };
 
-      applyState(false);
+      applyState(true);
       button.addEventListener('click', () => {
         const collapsed = section.getAttribute('data-collapsed') === 'true';
-        applyState(!collapsed);
+        const nextCollapsed = !collapsed;
+        applyState(nextCollapsed);
+        if (!nextCollapsed) {
+          const nodes = getVmAdminAnalyticsNodes();
+          const activeRange = String((nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
+          loadVmAdminAnalytics(activeRange, { silent: false });
+        }
       }, { once: false });
       button.__vmAnalyticsCollapseBound = true;
     });
@@ -1410,6 +1416,7 @@ music: {
               } catch (_) {}
               const selectedRange = analyticsRange ? analyticsRange.value : '7d';
               renderVmAdminAnalyticsZeroState(selectedRange);
+              await loadVmAdminAnalytics(selectedRange, { silent: true });
               if (analyticsStatusEl) {
                 const beforeCount = Number(data && data.beforeCount || 0);
                 const clearedSummary = data && typeof data.cleared === 'object' && data.cleared
