@@ -7,19 +7,21 @@
 (function () {
   'use strict';
 
+  const WRESTLING_FRONTEND_VERSION = '20260318-admin-analytics-r2';
+
   // ✅ IMPORTANT: this must be reachable on the SAME origin as the page (repo root, like /music-archive-shows.js)
   const SHOWS_SCRIPT_SRC = (function(){
     // Use relative path for local file:// testing so it resolves next to index.html
     if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
-      return './wrestling-archive-shows.js';
+      return './wrestling-archive-shows.js?v=' + WRESTLING_FRONTEND_VERSION;
     }
-    return '/wrestling-archive-shows.js';
+    return '/wrestling-archive-shows.js?v=' + WRESTLING_FRONTEND_VERSION;
   })();
   const PEOPLE_SCRIPT_SRC = (function(){
     if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
-      return './wrestling-archive-people.js';
+      return './wrestling-archive-people.js?v=' + WRESTLING_FRONTEND_VERSION;
     }
-    return '/wrestling-archive-people.js';
+    return '/wrestling-archive-people.js?v=' + WRESTLING_FRONTEND_VERSION;
   })();
 
   let _mount = null;
