@@ -126,7 +126,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleDetailHead,.waPeopleAppearanceTop,.waPeopleShotHeader,.waPeopleEventMatch{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
     .waPeopleAppearanceTitle{font-size:clamp(18px,6vw,22px);}
-    .waPeopleEventMatchTitle{font-size:clamp(22px,7vw,26px);}
+    .waPeopleEventMatchTitle{font-size:clamp(18px,7vw,22px);}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
 `;document.head.appendChild(s);}
