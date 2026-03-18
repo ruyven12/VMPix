@@ -1459,45 +1459,45 @@ music: {
                 </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
-                <div data-analytics-section="overview" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="overview" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('overview'); return false;" aria-expanded="false" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="overview" data-collapsed="false" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="overview" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('overview'); return false;" aria-expanded="true" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div>
                       <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase;">Primary Readout</div>
                       <div style="margin-top:5px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Overview</div>
                     </div>
-                    <div data-analytics-chevron="overview" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
+                    <div data-analytics-chevron="overview" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
                   </button>
-                  <div data-analytics-body="overview" style="display:none;">
+                  <div data-analytics-body="overview" style="display:block;">
                     <div id="vmAdminAnalyticsOverview" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading analytics overview...</div>
                   </div>
                 </div>
-                <div data-analytics-section="routes" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="routes" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('routes'); return false;" aria-expanded="false" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="routes" data-collapsed="false" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="routes" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('routes'); return false;" aria-expanded="true" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Routes</div>
-                    <div data-analytics-chevron="routes" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
+                    <div data-analytics-chevron="routes" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
                   </button>
-                  <div data-analytics-body="routes" style="display:none;">
+                  <div data-analytics-body="routes" style="display:block;">
                     <div id="vmAdminAnalyticsRoutes" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading route activity...</div>
                   </div>
                 </div>
-                <div data-analytics-section="entities" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="entities" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('entities'); return false;" aria-expanded="false" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="entities" data-collapsed="false" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="entities" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('entities'); return false;" aria-expanded="true" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Top Entities</div>
-                    <div data-analytics-chevron="entities" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
+                    <div data-analytics-chevron="entities" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
                   </button>
-                  <div data-analytics-body="entities" style="display:none;">
+                  <div data-analytics-body="entities" style="display:block;">
                     <div id="vmAdminAnalyticsEntities" style="margin-top:14px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading entity activity...</div>
                   </div>
                 </div>
-                <div data-analytics-section="events" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
-                  <button type="button" data-analytics-toggle="events" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('events'); return false;" aria-expanded="false" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
+                <div data-analytics-section="events" data-collapsed="false" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
+                  <button type="button" data-analytics-toggle="events" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('events'); return false;" aria-expanded="true" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div style="color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;">Recent Events</div>
                     <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
                       <div style="color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Newest activity first / 50 entries</div>
-                      <div data-analytics-chevron="events" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">+</div>
+                      <div data-analytics-chevron="events" style="flex:0 0 auto; width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1;">-</div>
                     </div>
                   </button>
-                  <div data-analytics-body="events" style="display:none;">
+                  <div data-analytics-body="events" style="display:block;">
                     <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
                   </div>
                 </div>
