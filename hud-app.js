@@ -791,34 +791,49 @@ function pulseFrame(){
     };
   }
 
-  function initVmAdminAnalyticsCollapsibles(){
-    const sections = Array.prototype.slice.call(document.querySelectorAll('[data-analytics-section]'));
+  function setVmAdminAnalyticsSectionState(section, collapsed){
+    if (!section) return false;
+    const button = section.querySelector('[data-analytics-toggle]');
+    const body = section.querySelector('[data-analytics-body]');
+    const icon = section.querySelector('[data-analytics-chevron]');
+    if (!button || !body) return false;
+
+    section.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+    button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    body.style.display = collapsed ? 'none' : '';
+    if (icon) icon.textContent = collapsed ? '+' : '-';
+    return true;
+  }
+
+  function initVmAdminAnalyticsCollapsibles(rootEl){
+    const root = rootEl || document;
+    const sections = Array.prototype.slice.call(root.querySelectorAll('[data-analytics-section]'));
     sections.forEach((section) => {
-      const button = section.querySelector('[data-analytics-toggle]');
-      const body = section.querySelector('[data-analytics-body]');
-      const icon = section.querySelector('[data-analytics-chevron]');
-      if (!button || !body || button.__vmAnalyticsCollapseBound) return;
-
-      const applyState = (collapsed) => {
-        section.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
-        button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        body.style.display = collapsed ? 'none' : '';
-        if (icon) icon.textContent = collapsed ? '+' : '-';
-      };
-
-      applyState(true);
-      button.addEventListener('click', () => {
-        const collapsed = section.getAttribute('data-collapsed') === 'true';
-        const nextCollapsed = !collapsed;
-        applyState(nextCollapsed);
-        if (!nextCollapsed) {
-          const nodes = getVmAdminAnalyticsNodes();
-          const activeRange = String((nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
-          loadVmAdminAnalytics(activeRange, { silent: false });
-        }
-      }, { once: false });
-      button.__vmAnalyticsCollapseBound = true;
+      const collapsed = section.getAttribute('data-collapsed') !== 'false';
+      setVmAdminAnalyticsSectionState(section, collapsed);
     });
+
+    if (root.__vmAnalyticsCollapseDelegatedBound) return;
+    root.addEventListener('click', (event) => {
+      const button = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('[data-analytics-toggle]')
+        : null;
+      if (!button || !root.contains(button)) return;
+
+      const section = button.closest('[data-analytics-section]');
+      if (!section) return;
+
+      event.preventDefault();
+      const collapsed = section.getAttribute('data-collapsed') === 'true';
+      const nextCollapsed = !collapsed;
+      setVmAdminAnalyticsSectionState(section, nextCollapsed);
+      if (!nextCollapsed) {
+        const nodes = getVmAdminAnalyticsNodes();
+        const activeRange = String((nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
+        loadVmAdminAnalytics(activeRange, { silent: false });
+      }
+    }, { once: false });
+    root.__vmAnalyticsCollapseDelegatedBound = true;
   }
 
   function renderVmAdminAnalyticsZeroState(range){
@@ -1285,7 +1300,7 @@ music: {
         const m = mount();
         if (!m) return;
         m.innerHTML = `
-          <div style="width:min(1040px,100%); margin:0 auto; padding:18px 18px 28px;">
+          <div id="vmAdminPanelRoot" style="width:min(1040px,100%); margin:0 auto; padding:18px 18px 28px;">
             <div style="position:relative; overflow:hidden; border:1px solid rgba(255,70,110,.24); border-radius:22px; padding:20px; background:
               radial-gradient(circle at top right, rgba(86,216,255,.12), transparent 34%),
               radial-gradient(circle at bottom left, rgba(255,74,131,.12), transparent 36%),
@@ -1403,7 +1418,7 @@ music: {
         const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
         const analyticsReset = document.getElementById('vmAdminAnalyticsReset');
 
-        initVmAdminAnalyticsCollapsibles();
+        initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
