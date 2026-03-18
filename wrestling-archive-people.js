@@ -81,7 +81,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleEventGroup{position:relative;padding:18px 20px;border:1px solid rgba(255,106,152,.22);border-radius:18px;background:linear-gradient(180deg,rgba(25,14,30,.94),rgba(18,10,24,.97));box-shadow:0 0 0 1px rgba(255,255,255,.02) inset,0 14px 30px rgba(0,0,0,.18);}
   .waPeopleEventGroup::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 34%),radial-gradient(140% 160% at 0% 0%,rgba(255,92,140,.08) 0%,rgba(255,255,255,0) 52%);}
   .waPeopleEventHead{position:relative;display:grid;gap:6px;margin-bottom:10px;}
-  .waPeopleEventMeta{color:rgba(214,198,211,.78);font-size:20px;letter-spacing:.02em;line-height:1.28;text-transform:none;}
+  .waPeopleEventMeta{color:rgba(214,198,211,.78);font-size:22px;letter-spacing:.02em;line-height:1.28;text-transform:none;}
   .waPeopleEventVenue{color:rgba(210,193,207,.72);font-size:12px;letter-spacing:.02em;line-height:1.32;}
   .waPeopleEventMatches{position:relative;display:grid;}
   .waPeopleEventMatch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 0;cursor:pointer;transition:transform .18s ease;}
