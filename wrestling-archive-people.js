@@ -26,11 +26,11 @@ async function loadRosterMap(){const map=new Map(); try{const r=await fetch(PEOP
 function rosterEntryForName(name){const key=String(name||'').trim().toLowerCase(); return (rosterMap&&rosterMap.get(key))||null;}
 function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;const s=document.createElement('style');s.id='waPeopleStyles';s.textContent=`
   .waPeopleHead{padding:10px 18px 6px;}
-  .waPeopleIntro{padding:6px 0 14px;text-align:center;}
-  .waPeopleIntroDivider{height:1px;margin:0 auto 14px;max-width:92%;background:linear-gradient(90deg,rgba(255,70,110,0),rgba(255,82,124,.9) 18%,rgba(255,110,150,.95) 50%,rgba(255,82,124,.9) 82%,rgba(255,70,110,0));box-shadow:0 0 14px rgba(255,92,138,.28);}
-  .waPeopleIntroDivider:last-child{margin:14px auto 0;}
-  .waPeopleIntroTitle{color:#f1e8ef;font-size:clamp(28px,2.6vw,40px);line-height:1.04;letter-spacing:.06em;text-shadow:0 0 16px rgba(255,120,170,.18);text-transform:none;}
-  .waPeopleIntroBody{max-width:1040px;margin:12px auto 0;color:rgba(225,214,224,.88);font-size:clamp(12px,1.1vw,15px);line-height:1.32;letter-spacing:.03em; text-transform:none;}
+  .waPeopleIntro{width:100%;max-width:980px;margin:12px auto 18px;text-align:center;}
+  .waPeopleIntroDivider{position:relative;display:block;height:2px;width:min(100%,960px);margin:0 auto 14px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,84,120,0.18) 10%, rgba(255,84,120,0.62) 50%, rgba(255,84,120,0.18) 90%, rgba(255,255,255,0) 100%);box-shadow:0 0 10px rgba(255,84,120,0.26), 0 0 18px rgba(255,84,120,0.16);overflow:hidden;}
+  .waPeopleIntroDivider::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,220,228,0.40) 50%, rgba(255,255,255,0) 100%);opacity:.9;filter:blur(.2px);}
+  .waPeopleIntroTitle{font-family:"Orbitron", system-ui, sans-serif !important;font-size:24px;font-weight:900;letter-spacing:.12em;text-transform:none !important;color:rgba(236,241,250,0.95);margin-bottom:12px;text-shadow:none;}
+  .waPeopleIntroBody{max-width:920px;margin:0 auto 16px;font-size:13px;font-weight:700;letter-spacing:.04em;line-height:1.25;color:rgba(212,223,242,0.78);text-transform:none !important;}
   .waPeopleMeta{margin:8px auto 14px;text-align:center;color:rgba(226,205,220,.82);font-size:12px;letter-spacing:.08em;text-transform:none;}
   .waPeopleLetterNav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 auto 12px;padding:6px 8px;max-width:1060px;border:1px solid rgba(255,92,140,.18);border-radius:999px;background:rgba(0,0,0,.14);box-shadow:0 0 0 1px rgba(255,150,184,.04) inset;font-family:"Orbitron",system-ui,sans-serif;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
   .waPeopleLetterBtn,.waPeopleJump,.waPeopleBack{border:1px solid rgba(255,118,156,.18);background:rgba(0,0,0,.12);color:#ead9e7;border-radius:999px;padding:5px 9px;font-family:"Orbitron",system-ui,sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 0 0 1px rgba(255,120,164,.04) inset;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;}
@@ -117,8 +117,10 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   @media (max-width: 680px){
     .waPeopleHead{padding:8px 10px 4px;}
     .waPeopleBody{padding:4px 10px 18px;}
-    .waPeopleIntroTitle{font-size:clamp(22px,7vw,30px);}
-    .waPeopleIntroBody{font-size:12px;}
+    .waPeopleIntro{margin:10px auto 14px;padding:0 6px;}
+    .waPeopleIntroDivider{margin:0 auto 10px;}
+    .waPeopleIntroTitle{font-size:20px;letter-spacing:.08em;}
+    .waPeopleIntroBody{font-size:12px;line-height:1.3;margin:0 auto 12px;}
     .waPeopleCard,.waPeopleAppearanceCard{border-radius:16px;}
     .waPeopleGrid{grid-template-columns:1fr;}
     .waPeopleCard{min-height:60px;padding:10px 12px;}
@@ -131,6 +133,10 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleAppearanceShots{font-size:12px;}
     .waPeopleJump{font-size:16px;}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width: 520px){
+    .waPeopleIntroTitle{font-size:16px;letter-spacing:.05em;}
+    .waPeopleIntroBody{margin:0 auto 10px;font-size:11px;}
   }
 `;document.head.appendChild(s);}
 function render(){return `
@@ -148,8 +154,8 @@ function render(){return `
           </div>
           <div class="waPeopleIntro" aria-label="Wrestling Performers Introduction">
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
-            <div class="waPeopleIntroTitle">The Archive - Filter By Performer</div>
-            <div class="waPeopleIntroBody">Welcome to the Wrestling side, filtered by performer. This is an incomplete list so far, but individually tagged shots will appear in this section for easier individual search. Keep checking back as data gets added.</div>
+            <div class="waPeopleIntroTitle">The Archives - Filter By Show</div>
+            <div class="waPeopleIntroBody">Welcome to the Archives, sorted by show. This section is split by year and lets you drill into individual event cards, match and segment breakdowns, and photo sets that are tied to each event. More data and archive depth will be added here over time.</div>
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
           </div>
           <div id="waPeopleMeta" class="waPeopleMeta"></div>
