@@ -1344,7 +1344,7 @@ music: {
 
         if (analyticsReset) {
           analyticsReset.addEventListener('click', async () => {
-            const confirmed = window.confirm('Reset analytics data now? This will clear the stored analytics feed.');
+            const confirmed = window.confirm('Reset analytics data now? This will clear the stored analytics feed and reset this browser analytics session.');
             if (!confirmed) return;
             analyticsReset.disabled = true;
             if (analyticsStatusEl) analyticsStatusEl.textContent = 'Resetting analytics data...';
@@ -1360,7 +1360,9 @@ music: {
                 throw new Error((data && data.error) || 'reset failed');
               }
               try {
-                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearBufferedEvents === 'function') {
+                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearClientState === 'function') {
+                  window.VMPixAnalytics.clearClientState();
+                } else if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearBufferedEvents === 'function') {
                   window.VMPixAnalytics.clearBufferedEvents();
                 }
               } catch (_) {}
@@ -1368,7 +1370,17 @@ music: {
               renderVmAdminAnalyticsZeroState(selectedRange);
               if (analyticsStatusEl) {
                 const beforeCount = Number(data && data.beforeCount || 0);
-                analyticsStatusEl.textContent = `Analytics reset complete (${beforeCount} cleared)`;
+                const clearedSummary = data && typeof data.cleared === 'object' && data.cleared
+                  ? [
+                      `events ${formatVmAdminNumber(data.cleared.events)}`,
+                      `pageviews ${formatVmAdminNumber(data.cleared.pageviews)}`,
+                      `visitors ${formatVmAdminNumber(data.cleared.visitors)}`,
+                      `sessions ${formatVmAdminNumber(data.cleared.sessions)}`
+                    ].join(' | ')
+                  : '';
+                analyticsStatusEl.textContent = clearedSummary
+                  ? `Analytics reset complete (${clearedSummary})`
+                  : `Analytics reset complete (${beforeCount} cleared)`;
               }
             } catch (err) {
               if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';

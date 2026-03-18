@@ -236,6 +236,51 @@ Response:
 }
 ```
 
+### 7. Admin Reset Analytics
+
+- `POST /admin/analytics/reset`
+
+Purpose:
+- fully clears the analytics dataset used by the Admin view
+- must remove both raw events and any derived rollups, cached reports, or materialized summary data
+
+Required reset scope:
+- overview totals:
+  - `events`
+  - `pageviews`
+  - `visitors`
+  - `sessions`
+- routes report:
+  - top routes list
+- entities report:
+  - top entries / top entities list
+- recent events feed:
+  - recent raw events list
+
+Response:
+
+```json
+{
+  "ok": true,
+  "beforeCount": 1234,
+  "cleared": {
+    "events": 1234,
+    "pageviews": 456,
+    "visitors": 78,
+    "sessions": 132,
+    "routes": 25,
+    "entities": 25,
+    "recentEvents": 50
+  }
+}
+```
+
+Post-reset expectations:
+- `GET /admin/analytics/overview` returns zero totals
+- `GET /admin/analytics/routes` returns an empty `items` array
+- `GET /admin/analytics/entities` returns an empty `items` array
+- `GET /admin/analytics/events` returns an empty `items` array
+
 ## Validation Rules
 
 The backend should:

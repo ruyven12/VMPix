@@ -258,6 +258,24 @@
     return true;
   }
 
+  function clearClientState() {
+    clearBufferedEvents();
+
+    try {
+      window.localStorage.removeItem(VISITOR_KEY);
+    } catch (_) {}
+
+    try {
+      window.sessionStorage.removeItem(SESSION_KEY);
+    } catch (_) {}
+
+    try {
+      window.sessionStorage.removeItem(PAGEVIEW_KEY);
+    } catch (_) {}
+
+    return true;
+  }
+
   function endpointUrl() {
     try {
       var configured = String(window.VMPIX_ANALYTICS_ENDPOINT || "").trim();
@@ -348,6 +366,7 @@
     getSessionId: getSessionId,
     getPageviewId: getPageviewId,
     getBufferedEvents: readBuffer,
-    clearBufferedEvents: clearBufferedEvents
+    clearBufferedEvents: clearBufferedEvents,
+    clearClientState: clearClientState
   };
 })();
