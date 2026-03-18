@@ -858,11 +858,15 @@ function pulseFrame(){
     return true;
   }
 
+  let __vmAdminAnalyticsLoadSeq = 0;
+  let __vmAdminAnalyticsAppliedSeq = 0;
+
   async function loadVmAdminAnalytics(range, opts){
     const nodes = getVmAdminAnalyticsNodes();
     const activeRange = String(range || (nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
     const silent = !!(opts && opts.silent);
     const suppressTrack = !!(opts && opts.suppressTrack);
+    const loadSeq = ++__vmAdminAnalyticsLoadSeq;
 
     if (!nodes.overviewEl || !nodes.routesEl || !nodes.entitiesEl || !nodes.eventsEl) {
       return false;
@@ -886,6 +890,11 @@ function pulseFrame(){
       const entities = snapshot.entities;
       const events = snapshot.events;
 
+      if (loadSeq < __vmAdminAnalyticsLoadSeq) {
+        return false;
+      }
+      __vmAdminAnalyticsAppliedSeq = loadSeq;
+
       nodes.overviewEl.innerHTML = renderVmAdminAnalyticsOverview(overview);
       nodes.routesEl.innerHTML = renderVmAdminAnalyticsRoutes(routes && routes.items);
       nodes.entitiesEl.innerHTML = renderVmAdminAnalyticsEntities(entities && entities.items);
@@ -894,6 +903,9 @@ function pulseFrame(){
 
       return true;
     } catch (err) {
+      if (loadSeq < __vmAdminAnalyticsLoadSeq) {
+        return false;
+      }
       try { console.error('Admin analytics load failed:', err); } catch (_) {}
       nodes.overviewEl.innerHTML = 'Analytics overview unavailable right now.';
       nodes.routesEl.innerHTML = 'Route activity unavailable right now.';
