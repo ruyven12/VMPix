@@ -1049,246 +1049,6 @@
         transform: translateY(0);
       }
 
-      .waShowsGrid{
-        display:grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-        box-sizing: border-box;
-        padding: 0 4px;
-        min-width: 0;
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      .waShowBroadcastCard{
-        position: relative;
-        display: grid;
-        grid-template-columns: 92px minmax(0, 1fr) auto;
-        gap: 18px;
-        align-items: stretch;
-        padding: 16px 18px;
-        border-radius: 18px;
-        border: 1px solid rgba(255,255,255,0.08);
-        background:
-          linear-gradient(180deg, rgba(32, 12, 29, 0.62) 0%, rgba(16, 12, 29, 0.58) 100%),
-          radial-gradient(140% 160% at 0% 0%, rgba(255, 84, 120, 0.10) 0%, rgba(255,255,255,0.02) 42%, rgba(0,0,0,0) 100%);
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.04),
-          0 14px 34px rgba(0,0,0,0.26);
-        overflow: hidden;
-      }
-      .waShowBroadcastCard::before{
-        content:"";
-        position:absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events:none;
-        background:
-          linear-gradient(90deg, rgba(255,84,120,0.18) 0, rgba(255,84,120,0.05) 92px, rgba(255,255,255,0.03) 92px, rgba(255,255,255,0) 100%);
-      }
-      .waShowBroadcastCard::after{
-        content:"";
-        position:absolute;
-        left: 92px;
-        top: 14px;
-        bottom: 14px;
-        width: 1px;
-        background: linear-gradient(180deg, rgba(255,84,120,0) 0%, rgba(255,84,120,0.44) 50%, rgba(255,84,120,0) 100%);
-        box-shadow: 0 0 14px rgba(255,84,120,0.24);
-        pointer-events:none;
-      }
-      .waShowDateRail{
-        position: relative;
-        z-index: 1;
-        display:flex;
-        flex-direction:column;
-        align-items:flex-start;
-        justify-content:center;
-        gap: 2px;
-        min-width: 0;
-      }
-      .waShowDateMonth{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .18em;
-        color: rgba(255, 164, 186, 0.86);
-      }
-      .waShowDateDay{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 33px;
-        line-height: .95;
-        font-weight: 900;
-        letter-spacing: .02em;
-        color: rgba(246, 248, 252, 0.98);
-      }
-      .waShowDateYear{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .18em;
-        color: rgba(214, 222, 236, 0.62);
-      }
-      .waShowMain{
-        position: relative;
-        z-index: 1;
-        min-width: 0;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        gap: 8px;
-      }
-      .waShowMetaRow{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap: 14px;
-      }
-      .waShowPromotion{
-        min-width: 0;
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .18em;
-        color: rgba(255, 122, 156, 0.92);
-        text-transform: uppercase;
-      }
-      .waShowUtility{
-        display:flex;
-        flex-direction:column;
-        align-items:flex-end;
-        gap: 2px;
-        text-align:right;
-        flex-shrink: 0;
-      }
-      .waShowUtilityPrimary{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .08em;
-        color: rgba(236,241,250,0.92);
-      }
-      .waShowUtilitySecondary{
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .16em;
-        color: rgba(206, 215, 230, 0.60);
-        text-transform: uppercase;
-      }
-      .waShowHeadline{
-        font-size: clamp(23px, 3.4vw, 38px);
-        line-height: 1;
-        font-weight: 900;
-        letter-spacing: -.02em;
-        color: rgba(246,248,252,0.98);
-        text-wrap: balance;
-      }
-      .waShowSubline{
-        display:flex;
-        flex-wrap:wrap;
-        gap: 8px;
-        align-items:center;
-      }
-      .waShowChip{
-        display:inline-flex;
-        align-items:center;
-        min-height: 24px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.04);
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .14em;
-        color: rgba(219, 228, 242, 0.74);
-        text-transform: uppercase;
-      }
-      .waShowAction{
-        position: relative;
-        z-index: 1;
-        display:flex;
-        align-items:center;
-        justify-content:flex-end;
-      }
-      .waShowOpenBtn{
-        appearance:none;
-        border: 1px solid rgba(255,255,255,0.16);
-        background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
-        color: rgba(246,248,252,0.96);
-        border-radius: 999px;
-        min-height: 42px;
-        padding: 0 18px;
-        font-family: "Orbitron", system-ui, sans-serif !important;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-      }
-      .waShowOpenBtn:hover{
-        transform: translateY(-1px);
-        border-color: rgba(255,122,156,0.44);
-        background: linear-gradient(180deg, rgba(255,122,156,0.18) 0%, rgba(255,122,156,0.08) 100%);
-        box-shadow: 0 0 16px rgba(255,84,120,0.14);
-      }
-      .waShowOpenBtn:focus-visible{
-        outline: 2px solid rgba(255,122,156,0.58);
-        outline-offset: 3px;
-      }
-      @media (max-width: 900px){
-        .waShowBroadcastCard{
-          grid-template-columns: 84px minmax(0, 1fr);
-        }
-        .waShowAction{
-          grid-column: 2;
-          justify-content:flex-start;
-        }
-      }
-      @media (max-width: 640px){
-        .waShowBroadcastCard{
-          grid-template-columns: 1fr;
-          gap: 14px;
-          padding: 14px;
-        }
-        .waShowBroadcastCard::before{
-          background:
-            linear-gradient(180deg, rgba(255,84,120,0.12) 0, rgba(255,84,120,0.03) 78px, rgba(255,255,255,0) 100%);
-        }
-        .waShowBroadcastCard::after{
-          left: 14px;
-          right: 14px;
-          top: 78px;
-          bottom: auto;
-          width: auto;
-          height: 1px;
-          background: linear-gradient(90deg, rgba(255,84,120,0) 0%, rgba(255,84,120,0.44) 50%, rgba(255,84,120,0) 100%);
-        }
-        .waShowDateRail{
-          flex-direction:row;
-          align-items:baseline;
-          gap: 8px;
-        }
-        .waShowDateDay{
-          font-size: 26px;
-        }
-        .waShowMetaRow{
-          flex-direction:column;
-          align-items:flex-start;
-          gap: 6px;
-        }
-        .waShowUtility{
-          align-items:flex-start;
-          text-align:left;
-        }
-        .waShowAction{
-          grid-column: auto;
-        }
-      }
-
 
       .waDetailWrap{
         width:100%;
@@ -2083,47 +1843,6 @@
     return `${monthName} ${day}${suffix}, ${year}`;
   }
 
-  function getShowDateParts(raw) {
-    const v = String(raw || "").trim();
-    if (!v) return { month: "", day: "", year: "" };
-    const dt = parseWAShowDateValue(v);
-    if (!dt) return { month: "", day: "", year: v };
-    return {
-      month: dt.toLocaleString("en-US", { month: "short" }).toUpperCase(),
-      day: String(dt.getDate()).padStart(2, "0"),
-      year: String(dt.getFullYear())
-    };
-  }
-
-  function getShowUtilityMeta(row) {
-    const primary = waPickFirst(row, [
-      "photographer",
-      "photographer_name",
-      "photo_credit",
-      "photo_credit_name",
-      "credit",
-      "creator",
-      "author"
-    ]);
-
-    let albumCount = 0;
-    for (let i = 1; i <= 10; i++) {
-      if (getWAMatchField(row, i, "url")) albumCount += 1;
-    }
-    if (!albumCount) {
-      const explicit = Number(waPickFirst(row, [
-        "album_count",
-        "albums",
-        "photo_count",
-        "match_count"
-      ]));
-      if (Number.isFinite(explicit) && explicit > 0) albumCount = explicit;
-    }
-
-    const secondary = albumCount ? `${albumCount} ${albumCount === 1 ? "album" : "albums"}` : "";
-    return { primary, secondary };
-  }
-
   function renderShowsCards(rows, year) {
     clearResults();
     const resultsEl = getResultsEl();
@@ -2139,134 +1858,97 @@
       return;
     }
 
-    resultsEl.className = "waShowsGrid";
-    resultsEl.style.display = "";
-    resultsEl.style.gridTemplateColumns = "";
-    resultsEl.style.gap = "";
-    resultsEl.style.boxSizing = "";
-    resultsEl.style.padding = "";
-    resultsEl.style.minWidth = "";
-    resultsEl.style.width = "";
-    resultsEl.style.maxWidth = "";
-    resultsEl.style.margin = "";
+    resultsEl.style.display = "grid";
+    resultsEl.style.gridTemplateColumns = "repeat(auto-fit, minmax(280px, 1fr))";
+    resultsEl.style.gap = "16px";
+
+    // Mobile/webview safety: prevent horizontal clipping inside parent panels
+    resultsEl.style.boxSizing = "border-box";
+    resultsEl.style.padding = "0 4px";
+    resultsEl.style.minWidth = "0";
+    resultsEl.style.width = "100%";
+    resultsEl.style.maxWidth = "1200px";
+    resultsEl.style.margin = "0 auto";
 
     rows.forEach((r) => {
       const title = (r.show_name || r.title || "").trim();
       const rawDate = (r.show_date || r.date || "").trim();
-      const company = (r.company || r.promotion || "").trim();
-      const dateParts = getShowDateParts(rawDate);
-      const utilityMeta = getShowUtilityMeta(r);
-
-      let matchCount = 0;
-      for (let i = 1; i <= 10; i++) {
-        const hasContent =
-          getWAMatchField(r, i, "type") ||
-          getWAMatchField(r, i, "stip") ||
-          getWAMatchField(r, i, "title") ||
-          getWAMatchField(r, i, "people") ||
-          getWAMatchField(r, i, "url");
-        if (hasContent) matchCount += 1;
-      }
-
-      const openShow = function () {
-        runNeonShutterTransition(function () { showShowDetail(r, year); });
-      };
+      const posterUrl = (r.show_poster || r.poster_url || "").trim();
 
       const card = document.createElement("article");
-      card.className = "waShowBroadcastCard";
+      card.style.display = "grid";
+      card.style.gridTemplateColumns = "120px 1fr";
+      card.style.gap = "14px";
+      card.style.alignItems = "center";
+      card.style.padding = "12px 14px";
+      card.style.borderRadius = "12px";
+      card.style.background = "rgba(15, 23, 42, 0.25)";
+      card.style.border = "1px solid rgba(255,255,255,0.08)";
 
-      const dateRail = document.createElement("div");
-      dateRail.className = "waShowDateRail";
+      const posterBox = document.createElement("div");
+      posterBox.style.width = "110px";
+      posterBox.style.height = "110px";
+      posterBox.style.borderRadius = "10px";
+      posterBox.style.overflow = "hidden";
+      posterBox.style.background = "rgba(0,0,0,0.35)";
+      posterBox.style.border = "1px solid rgba(255,255,255,0.10)";
+      posterBox.style.display = "flex";
+      posterBox.style.alignItems = "center";
+      posterBox.style.justifyContent = "center";
+      posterBox.style.cursor = "pointer";
 
-      const monthEl = document.createElement("div");
-      monthEl.className = "waShowDateMonth";
-      monthEl.textContent = dateParts.month || "SHOW";
-      dateRail.appendChild(monthEl);
-
-      const dayEl = document.createElement("div");
-      dayEl.className = "waShowDateDay";
-      dayEl.textContent = dateParts.day || "--";
-      dateRail.appendChild(dayEl);
-
-      const yearEl = document.createElement("div");
-      yearEl.className = "waShowDateYear";
-      yearEl.textContent = dateParts.year || "";
-      dateRail.appendChild(yearEl);
-
-      const main = document.createElement("div");
-      main.className = "waShowMain";
-
-      const metaRow = document.createElement("div");
-      metaRow.className = "waShowMetaRow";
-
-      const promotionEl = document.createElement("div");
-      promotionEl.className = "waShowPromotion";
-      promotionEl.textContent = company || "Wrestling Archive";
-      metaRow.appendChild(promotionEl);
-
-      if (utilityMeta.primary || utilityMeta.secondary) {
-        const utilityEl = document.createElement("div");
-        utilityEl.className = "waShowUtility";
-
-        if (utilityMeta.primary) {
-          const primaryEl = document.createElement("div");
-          primaryEl.className = "waShowUtilityPrimary";
-          primaryEl.textContent = utilityMeta.primary;
-          utilityEl.appendChild(primaryEl);
-        }
-        if (utilityMeta.secondary) {
-          const secondaryEl = document.createElement("div");
-          secondaryEl.className = "waShowUtilitySecondary";
-          secondaryEl.textContent = utilityMeta.secondary;
-          utilityEl.appendChild(secondaryEl);
-        }
-        metaRow.appendChild(utilityEl);
+      if (posterUrl) {
+        const img = document.createElement("img");
+        img.src = `${API_BASE}/show-poster?url=${encodeURIComponent(posterUrl)}`;
+        img.alt = title || "poster";
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+        posterBox.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.textContent = "No poster";
+        ph.style.opacity = "0.6";
+        ph.style.fontSize = "12px";
+        posterBox.appendChild(ph);
       }
 
-      main.appendChild(metaRow);
+      const right = document.createElement("div");
+      right.style.minWidth = "0";
+      right.style.display = "flex";
+      right.style.flexDirection = "column";
+      right.style.gap = "6px";
+
+      const company = (r.company || "").trim();
+      if (company) {
+        const companyEl = document.createElement("div");
+        companyEl.textContent = company;
+        companyEl.style.fontSize = "13px";
+        companyEl.style.fontWeight = "600";
+        companyEl.style.color = "rgba(200,0,0,0.95)";
+        right.appendChild(companyEl);
+      }
 
       const titleEl = document.createElement("div");
-      titleEl.className = "waShowHeadline";
       titleEl.textContent = title || "(Untitled show)";
-      main.appendChild(titleEl);
-
-      const subline = document.createElement("div");
-      subline.className = "waShowSubline";
+      titleEl.style.fontSize = "18px";
+      titleEl.style.fontWeight = "700";
+      right.appendChild(titleEl);
 
       if (rawDate) {
-        const dateChip = document.createElement("div");
-        dateChip.className = "waShowChip";
-        dateChip.textContent = formatPrettyDate(rawDate);
-        subline.appendChild(dateChip);
+        const dateEl = document.createElement("div");
+        dateEl.textContent = formatPrettyDate(rawDate);
+        dateEl.style.fontSize = "12px";
+        right.appendChild(dateEl);
       }
-
-      if (matchCount) {
-        const matchChip = document.createElement("div");
-        matchChip.className = "waShowChip";
-        matchChip.textContent = `${matchCount} ${matchCount === 1 ? "match" : "matches"}`;
-        subline.appendChild(matchChip);
-      }
-
-      main.appendChild(subline);
-
-      const actionWrap = document.createElement("div");
-      actionWrap.className = "waShowAction";
-
-      const openBtn = document.createElement("button");
-      openBtn.type = "button";
-      openBtn.className = "waShowOpenBtn";
-      openBtn.textContent = "Open Show";
-      openBtn.addEventListener("click", function (e) {
+      // Poster click -> open a "show detail" view (Band-style routing)
+      posterBox.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        openShow();
+        runNeonShutterTransition(function () { showShowDetail(r, year); });
       });
-      actionWrap.appendChild(openBtn);
-
-      card.addEventListener("click", openShow);
-      card.appendChild(dateRail);
-      card.appendChild(main);
-      card.appendChild(actionWrap);
+      card.appendChild(posterBox);
+      card.appendChild(right);
 
       resultsEl.appendChild(card);
     });
