@@ -76,12 +76,12 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleAppearanceTitle{margin:0;color:rgba(246,240,245,.98);font-size:clamp(22px,1.85vw,28px);font-weight:900;line-height:1.08;letter-spacing:-.01em;text-transform:none;text-wrap:balance;}
   .waPeopleAppearanceSub{margin:0;color:rgba(234,218,229,.84);font-size:13px;letter-spacing:.02em;text-transform:none;}
   .waPeopleAppearanceVenue{color:rgba(210,193,207,.72);font-size:12px;letter-spacing:.02em;line-height:1.32;}
-  .waPeopleAppearanceShots{display:inline-flex;align-items:center;gap:8px;width:fit-content;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,120,164,.16);background:rgba(255,255,255,.04);color:rgba(243,234,240,.88);font-family:"Orbitron",system-ui,sans-serif;font-size:16px;font-weight:800;letter-spacing:.04em;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
+  .waPeopleAppearanceShots{display:inline-flex;align-items:center;gap:8px;width:fit-content;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,120,164,.16);background:rgba(255,255,255,.04);color:rgba(243,234,240,.88);font-family:"Orbitron",system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
   .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;align-items:center;align-self:end;}
   .waPeopleEventGroup{position:relative;padding:18px 20px;border:1px solid rgba(255,106,152,.22);border-radius:18px;background:linear-gradient(180deg,rgba(25,14,30,.94),rgba(18,10,24,.97));box-shadow:0 0 0 1px rgba(255,255,255,.02) inset,0 14px 30px rgba(0,0,0,.18);}
   .waPeopleEventGroup::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 34%),radial-gradient(140% 160% at 0% 0%,rgba(255,92,140,.08) 0%,rgba(255,255,255,0) 52%);}
   .waPeopleEventHead{position:relative;display:grid;gap:6px;margin-bottom:10px;}
-  .waPeopleEventMeta{color:rgba(214,198,211,.78);font-size:18px;letter-spacing:.02em;line-height:1.28;text-transform:none;}
+  .waPeopleEventMeta{color:rgba(214,198,211,.78);font-size:16px;letter-spacing:.02em;line-height:1.28;text-transform:none;}
   .waPeopleEventVenue{color:rgba(210,193,207,.72);font-size:12px;letter-spacing:.02em;line-height:1.32;}
   .waPeopleEventMatches{position:relative;display:grid;}
   .waPeopleEventMatch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 0;cursor:pointer;transition:transform .18s ease;}
@@ -92,7 +92,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleEventMatchTitle{margin:0;color:rgba(246,240,245,.98);font-size:24px;font-weight:900;line-height:1.06;letter-spacing:-.015em;text-transform:none;text-wrap:balance;}
   .waPeopleEventMatchStats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .waPeopleEventMatch .waPeopleShotPanel{grid-column:1 / -1;}
-  .waPeopleJump{padding:7px 11px;font-size:16px;font-weight:900;letter-spacing:.04em;text-transform:none;}
+  .waPeopleJump{padding:7px 11px;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:none;}
   .waPeopleJump.is-secondary{border-color:rgba(128,142,255,.2);background:rgba(18,14,30,.7);color:rgba(236,228,234,.92);}
   .waPeopleShotPanel{margin-top:2px;border-top:1px solid rgba(255,96,144,.16);padding-top:14px;cursor:default;}
   .waPeopleShotHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:12px;}
@@ -126,9 +126,9 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleDetailHead,.waPeopleAppearanceTop,.waPeopleShotHeader,.waPeopleEventMatch{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
     .waPeopleAppearanceTitle{font-size:clamp(18px,6vw,22px);}
-    .waPeopleEventMeta{font-size:18px;}
+    .waPeopleEventMeta{font-size:16px;}
     .waPeopleEventMatchTitle{font-size:24px;}
-    .waPeopleAppearanceShots{font-size:16px;}
+    .waPeopleAppearanceShots{font-size:12px;}
     .waPeopleJump{font-size:16px;}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
