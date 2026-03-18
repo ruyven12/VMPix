@@ -823,6 +823,79 @@ function pulseFrame(){
     return true;
   }
 
+  function triggerVmAdminAnalyticsRefresh(){
+    const nodes = getVmAdminAnalyticsNodes();
+    const activeRange = String((nodes.analyticsRange && nodes.analyticsRange.value) || '7d');
+    loadVmAdminAnalytics(activeRange);
+    return true;
+  }
+
+  async function triggerVmAdminAnalyticsReset(){
+    const nodes = getVmAdminAnalyticsNodes();
+    const analyticsRange = nodes.analyticsRange;
+    const analyticsReset = document.getElementById('vmAdminAnalyticsReset');
+    const analyticsStatusEl = nodes.analyticsStatusEl;
+
+    const confirmed = window.confirm('Reset analytics data now? This will clear the stored analytics feed and reset this browser analytics session.');
+    if (!confirmed) return false;
+
+    if (analyticsReset) analyticsReset.disabled = true;
+    if (analyticsStatusEl) analyticsStatusEl.textContent = 'Resetting analytics data...';
+
+    try {
+      const res = await __vmAdminFetch('/admin/analytics/reset', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data || !data.ok) {
+        throw new Error((data && data.error) || 'reset failed');
+      }
+      try {
+        if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearClientState === 'function') {
+          window.VMPixAnalytics.clearClientState();
+        } else if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearBufferedEvents === 'function') {
+          window.VMPixAnalytics.clearBufferedEvents();
+        }
+      } catch (_) {}
+      const selectedRange = analyticsRange ? analyticsRange.value : '7d';
+      renderVmAdminAnalyticsZeroState(selectedRange);
+      let resetVerified = false;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const snapshot = await fetchVmAdminAnalyticsSnapshot(selectedRange);
+        if (isVmAdminAnalyticsCleared(snapshot)) {
+          resetVerified = true;
+          break;
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 350));
+      }
+      if (analyticsStatusEl) {
+        const beforeCount = Number(data && data.beforeCount || 0);
+        const clearedSummary = data && typeof data.cleared === 'object' && data.cleared
+          ? [
+              `events ${formatVmAdminNumber(data.cleared.events)}`,
+              `pageviews ${formatVmAdminNumber(data.cleared.pageviews)}`,
+              `visitors ${formatVmAdminNumber(data.cleared.visitors)}`,
+              `sessions ${formatVmAdminNumber(data.cleared.sessions)}`
+            ].join(' | ')
+          : '';
+        analyticsStatusEl.textContent = resetVerified
+          ? (clearedSummary
+              ? `Analytics reset complete (${clearedSummary})`
+              : `Analytics reset complete (${beforeCount} cleared)`)
+          : 'Analytics reset returned, but backend data still appears present';
+      }
+      return true;
+    } catch (err) {
+      if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';
+      return false;
+    } finally {
+      if (analyticsReset) analyticsReset.disabled = false;
+    }
+  }
+
   function initVmAdminAnalyticsCollapsibles(rootEl){
     const root = rootEl || document;
     const sections = Array.prototype.slice.call(root.querySelectorAll('[data-analytics-section]'));
@@ -833,6 +906,8 @@ function pulseFrame(){
 
     try {
       window.__vmAdminToggleAnalyticsSection = toggleVmAdminAnalyticsSection;
+      window.__vmAdminRefreshAnalytics = triggerVmAdminAnalyticsRefresh;
+      window.__vmAdminResetAnalytics = triggerVmAdminAnalyticsReset;
     } catch (_) {}
 
     if (root.__vmAnalyticsCollapseDelegatedBound) return;
@@ -1379,8 +1454,8 @@ music: {
                     <option value="7d" selected>7d</option>
                     <option value="30d">30d</option>
                   </select>
-                  <button type="button" id="vmAdminAnalyticsRefresh" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
-                  <button type="button" id="vmAdminAnalyticsReset" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
+                  <button type="button" id="vmAdminAnalyticsRefresh" onclick="window.__vmAdminRefreshAnalytics && window.__vmAdminRefreshAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
+                  <button type="button" id="vmAdminAnalyticsReset" onclick="window.__vmAdminResetAnalytics && window.__vmAdminResetAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
                 </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
@@ -1450,72 +1525,6 @@ music: {
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
             loadVmAdminAnalytics(analyticsRange.value);
-          }, { once: false });
-        }
-
-        if (analyticsRefresh) {
-          analyticsRefresh.addEventListener('click', () => {
-            const selectedRange = analyticsRange ? analyticsRange.value : '7d';
-            loadVmAdminAnalytics(selectedRange);
-          }, { once: false });
-        }
-
-        if (analyticsReset) {
-          analyticsReset.addEventListener('click', async () => {
-            const confirmed = window.confirm('Reset analytics data now? This will clear the stored analytics feed and reset this browser analytics session.');
-            if (!confirmed) return;
-            analyticsReset.disabled = true;
-            if (analyticsStatusEl) analyticsStatusEl.textContent = 'Resetting analytics data...';
-            try {
-              const res = await __vmAdminFetch('/admin/analytics/reset', {
-                method: 'POST',
-                headers: {
-                  Accept: 'application/json'
-                }
-              });
-              const data = await res.json().catch(() => ({}));
-              if (!res.ok || !data || !data.ok) {
-                throw new Error((data && data.error) || 'reset failed');
-              }
-              try {
-                if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearClientState === 'function') {
-                  window.VMPixAnalytics.clearClientState();
-                } else if (window.VMPixAnalytics && typeof window.VMPixAnalytics.clearBufferedEvents === 'function') {
-                  window.VMPixAnalytics.clearBufferedEvents();
-                }
-              } catch (_) {}
-              const selectedRange = analyticsRange ? analyticsRange.value : '7d';
-              renderVmAdminAnalyticsZeroState(selectedRange);
-              let resetVerified = false;
-              for (let attempt = 0; attempt < 4; attempt += 1) {
-                const snapshot = await fetchVmAdminAnalyticsSnapshot(selectedRange);
-                if (isVmAdminAnalyticsCleared(snapshot)) {
-                  resetVerified = true;
-                  break;
-                }
-                await new Promise((resolve) => window.setTimeout(resolve, 350));
-              }
-              if (analyticsStatusEl) {
-                const beforeCount = Number(data && data.beforeCount || 0);
-                const clearedSummary = data && typeof data.cleared === 'object' && data.cleared
-                  ? [
-                      `events ${formatVmAdminNumber(data.cleared.events)}`,
-                      `pageviews ${formatVmAdminNumber(data.cleared.pageviews)}`,
-                      `visitors ${formatVmAdminNumber(data.cleared.visitors)}`,
-                      `sessions ${formatVmAdminNumber(data.cleared.sessions)}`
-                    ].join(' | ')
-                  : '';
-                analyticsStatusEl.textContent = resetVerified
-                  ? (clearedSummary
-                      ? `Analytics reset complete (${clearedSummary})`
-                      : `Analytics reset complete (${beforeCount} cleared)`)
-                  : 'Analytics reset returned, but backend data still appears present';
-              }
-            } catch (err) {
-              if (analyticsStatusEl) analyticsStatusEl.textContent = (err && err.message) ? `Analytics reset failed: ${err.message}` : 'Analytics reset failed';
-            } finally {
-              analyticsReset.disabled = false;
-            }
           }, { once: false });
         }
 
