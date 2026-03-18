@@ -89,7 +89,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleEventMatch + .waPeopleEventMatch{border-top:1px solid rgba(255,96,144,.14);}
   .waPeopleEventMatch.is-open{border-color:rgba(255,132,170,.56);}
   .waPeopleEventMatchCopy{min-width:0;display:grid;gap:8px;}
-  .waPeopleEventMatchTitle{margin:0;color:rgba(246,240,245,.98);font-size:clamp(28px,2.25vw,35px);font-weight:900;line-height:1.06;letter-spacing:-.015em;text-transform:none;text-wrap:balance;}
+  .waPeopleEventMatchTitle{margin:0;color:rgba(246,240,245,.98);font-size:clamp(18px,2.25vw,22px);font-weight:900;line-height:1.06;letter-spacing:-.015em;text-transform:none;text-wrap:balance;}
   .waPeopleEventMatchStats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .waPeopleEventMatch .waPeopleShotPanel{grid-column:1 / -1;}
   .waPeopleJump{padding:7px 11px;font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:none;}
@@ -126,7 +126,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleDetailHead,.waPeopleAppearanceTop,.waPeopleShotHeader,.waPeopleEventMatch{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
     .waPeopleAppearanceTitle{font-size:clamp(18px,6vw,22px);}
-    .waPeopleEventMatchTitle{font-size:clamp(18px,7vw,22px);}
+    .waPeopleEventMatchTitle{font-size:clamp(16px,7vw,20px);}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
 `;document.head.appendChild(s);}
