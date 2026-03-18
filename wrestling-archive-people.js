@@ -154,8 +154,8 @@ function render(){return `
           </div>
           <div class="waPeopleIntro" aria-label="Wrestling Performers Introduction">
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
-            <div class="waPeopleIntroTitle">The Archives - Filter By Show</div>
-            <div class="waPeopleIntroBody">Welcome to the Archives, sorted by show. This section is split by year and lets you drill into individual event cards, match and segment breakdowns, and photo sets that are tied to each event. More data and archive depth will be added here over time.</div>
+            <div class="waPeopleIntroTitle">The Archives - Filter By Person</div>
+            <div class="waPeopleIntroBody">Welcome to the Wrestling archive, sorted by performer. As you can see, this section is split into the "type" of person or performer that there is, whether you are a fan, a performer, a crew member or more. There is more incoming so this is an incomplete section. Keep checking back for more!</div>
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
           </div>
           <div id="waPeopleMeta" class="waPeopleMeta"></div>
