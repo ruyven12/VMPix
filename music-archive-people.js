@@ -59,6 +59,8 @@
   // Show lookup cache used for People timeline metadata.
   let _peopleShowsLookupPromise = null;
   let _peopleShowsLookup = new Map();
+  let _peopleRosterLookupPromise = null;
+  let _peopleRosterByName = new Map();
   let _peopleBandNameLookupPromise = null;
   let _peopleBandNameByFolder = new Map();
 
@@ -567,6 +569,8 @@ function _formatLongDateFromShort(dateText) {
   const PEOPLE_BANDS_CSV_TTL_MS = 1000 * 60 * 30;
   const PEOPLE_SHOWS_CSV_CACHE_KEY = 'vm_music_people_shows_csv_v1';
   const PEOPLE_SHOWS_CSV_TTL_MS = 1000 * 60 * 30;
+  const PEOPLE_ROSTER_CSV_CACHE_KEY = 'vm_music_people_roster_csv_v1';
+  const PEOPLE_ROSTER_CSV_TTL_MS = 1000 * 60 * 30;
 
   // ---- Session cache (People index) ----
   // Stores a compact mapping:
@@ -981,6 +985,73 @@ function _formatLongDateFromShort(dateText) {
       out.push({ folder, region });
     }
     return out;
+  }
+
+  function _normalizePeopleRosterCategory(value) {
+    const raw = _safeTrim(value);
+    const key = _normKey(raw);
+    if (!key) return 'Miscellaneous';
+    if (key === 'performer' || key === 'performers') return 'Performer';
+    if (key === 'friend' || key === 'friends') return 'Friend';
+    if (key === 'the fallen' || key === 'fallen') return 'The Fallen';
+    return 'Miscellaneous';
+  }
+
+  async function ensurePeopleRosterLookup() {
+    if (_peopleRosterLookupPromise) return _peopleRosterLookupPromise;
+
+    _peopleRosterLookupPromise = (async () => {
+      const text = await fetchTextWithSessionCache(
+        PEOPLE_ROSTER_CSV_ENDPOINT,
+        PEOPLE_ROSTER_CSV_TTL_MS,
+        PEOPLE_ROSTER_CSV_CACHE_KEY
+      );
+      const lookup = new Map();
+      if (!text || !text.trim()) {
+        _peopleRosterByName = lookup;
+        return lookup;
+      }
+
+      const lines = text.split(/\r?\n/).filter((l) => String(l || '').trim());
+      const headerLine = lines.shift();
+      if (!headerLine) {
+        _peopleRosterByName = lookup;
+        return lookup;
+      }
+
+      const header = parseCsvLine(headerLine).map((h) => String(h || '').trim().toLowerCase());
+      const nameIdx = header.indexOf('name');
+      const categoryIdx = header.indexOf('category');
+      const bandsIdx = header.indexOf('bands');
+      const instrumentIdx = header.indexOf('instrument');
+
+      if (nameIdx === -1) {
+        _peopleRosterByName = lookup;
+        return lookup;
+      }
+
+      for (const line of lines) {
+        const cols = parseCsvLine(line);
+        const name = _safeTrim(cols[nameIdx]);
+        if (!name) continue;
+
+        lookup.set(_normKey(name), {
+          name,
+          category: _normalizePeopleRosterCategory(categoryIdx !== -1 ? cols[categoryIdx] : ''),
+          bands: _safeTrim(bandsIdx !== -1 ? cols[bandsIdx] : ''),
+          instrument: _safeTrim(instrumentIdx !== -1 ? cols[instrumentIdx] : '')
+        });
+      }
+
+      _peopleRosterByName = lookup;
+      return lookup;
+    })().catch((err) => {
+      console.warn('[people] roster lookup failed', err);
+      _peopleRosterByName = new Map();
+      return _peopleRosterByName;
+    });
+
+    return _peopleRosterLookupPromise;
   }
 
   function _normalizePeopleShowDate(dateText) {
