@@ -3034,6 +3034,7 @@ function renderTopStats(indexMap){
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
+    const rosterMeta = _getPeopleRosterMeta(personName) || null;
     if (metaEl) metaEl.textContent = 'Person';
 
     // Person mode: disable list grid layout.
@@ -3058,6 +3059,14 @@ function renderTopStats(indexMap){
 
     if (!listEl) return;
 
+    const metaBits = [];
+    if (rosterMeta && rosterMeta.category && rosterMeta.category !== 'Miscellaneous') metaBits.push(rosterMeta.category);
+    if (rosterMeta && rosterMeta.bands) metaBits.push(rosterMeta.bands);
+    if (rosterMeta && rosterMeta.instrument) metaBits.push(rosterMeta.instrument);
+    const metaLine = metaBits.length
+      ? `<div style="margin-top:6px; opacity:.78; font-size:10px; letter-spacing:.08em; line-height:1.35; color:rgba(206,220,240,0.78); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${_eh(metaBits.join(' • '))}</div>`
+      : '';
+
     listEl.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px;">
         <button type="button" id="peopleBackBtn"
@@ -3066,6 +3075,7 @@ function renderTopStats(indexMap){
           <div style="font-weight:900; font-size:13px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             ${_eh(personName)}
           </div>
+          ${metaLine}
           <div id="peopleAlbumCount" style="opacity:.75; font-size:11px; letter-spacing:.10em; text-transform:uppercase; margin-top:3px;"></div>
         </div>
       </div>
