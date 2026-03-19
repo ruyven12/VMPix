@@ -93,6 +93,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
 
   // People stats collapsible UI state
   let _peopleStatsCollapsed = true;
+  let _peopleCollapsedCategories = new Set();
 
   // When using the server-side people index, we seed this cache up-front.
 
@@ -1967,6 +1968,9 @@ function ensurePeopleStyles() {
       display:grid;
       gap: 10px;
     }
+    .peopleGroupSection.is-collapsed .peopleGroupGrid{
+      display:none;
+    }
     .peopleGroupHead{
       width: 100%;
       display:flex;
@@ -1974,6 +1978,24 @@ function ensurePeopleStyles() {
       justify-content:space-between;
       gap: 12px;
       padding: 0 2px;
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+    .peopleGroupHeadCopy{
+      min-width: 0;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .peopleGroupChevron{
+      color: rgba(255,70,110,0.82);
+      font-size: 11px;
+      letter-spacing: .08em;
+      transition: transform .18s ease;
+    }
+    .peopleGroupSection.is-collapsed .peopleGroupChevron{
+      transform: rotate(-90deg);
     }
     .peopleGroupTitle{
       font-family: "Orbitron", system-ui, sans-serif;
@@ -2977,16 +2999,23 @@ function ensurePeopleStyles() {
       if (!list.length) return '';
       return `
         <section class="peopleGroupSection" data-category="${_eh(cat)}">
-          <div class="peopleGroupHead">
-            <div class="peopleGroupTitle">${_eh(cat)}</div>
+          <button type="button" class="peopleGroupHead" data-category-toggle="${_eh(cat)}" aria-expanded="${_peopleCollapsedCategories.has(cat) ? 'false' : 'true'}">
+            <div class="peopleGroupHeadCopy">
+              <div class="peopleGroupChevron" aria-hidden="true">▼</div>
+              <div class="peopleGroupTitle">${_eh(cat)}</div>
+            </div>
             <div class="peopleGroupMeta">${list.length} indexed</div>
-          </div>
+          </button>
           <div class="peopleGroupGrid">
             ${list.map(renderCard).join('')}
           </div>
         </section>
       `;
     }).join('')}</div>`;
+    Array.from(listEl.querySelectorAll('.peopleGroupSection[data-category]')).forEach((sectionEl) => {
+      const cat = _safeTrim(sectionEl.getAttribute('data-category'));
+      sectionEl.classList.toggle('is-collapsed', _peopleCollapsedCategories.has(cat));
+    });
   }
 
 
@@ -3888,6 +3917,18 @@ function openPeopleLightbox(list, index){
       const L = _safeTrim(letterBtn.getAttribute('data-letter'));
       _setPeopleLetter(L);
       if (_peopleIndex) renderPeopleList(_peopleIndex);
+      return;
+    }
+
+    const categoryToggle = t.closest ? t.closest('[data-category-toggle]') : null;
+    if (categoryToggle) {
+      e.preventDefault();
+      const cat = _safeTrim(categoryToggle.getAttribute('data-category-toggle'));
+      if (cat) {
+        if (_peopleCollapsedCategories.has(cat)) _peopleCollapsedCategories.delete(cat);
+        else _peopleCollapsedCategories.add(cat);
+        if (_peopleIndex) renderPeopleList(_peopleIndex);
+      }
       return;
     }
 
