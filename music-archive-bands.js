@@ -76,10 +76,10 @@ const API_BASE =
 
   // Static Fix/Metadata Stats (not pulled from API) — source: your Stats sheet screenshot
   const FIXMETA_STATIC = {
-    totalFilesNum: 61289,
-    notUpgradedNum: 22506,
-    onSiteNum: 36342,
-    pctOnSiteNum: 59.30,
+    totalFilesNum: 61342,
+    notUpgradedNum: 21707,
+    onSiteNum: 37162,
+    pctOnSiteNum: 60.58,
   };
 
 const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
