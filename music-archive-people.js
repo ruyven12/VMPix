@@ -93,7 +93,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
 
   // People stats collapsible UI state
   let _peopleStatsCollapsed = true;
-  let _peopleCollapsedCategories = new Set();
+  let _peopleCollapsedCategories = new Set(['Performer', 'Friend', 'Miscellaneous']);
 
   // When using the server-side people index, we seed this cache up-front.
 
