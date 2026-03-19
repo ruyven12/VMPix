@@ -1080,6 +1080,17 @@ function _formatLongDateFromShort(dateText) {
     return (_peopleRosterMetaByName && _peopleRosterMetaByName.get(key)) || null;
   }
 
+  function _refreshPeopleViewWithRoster(token) {
+    if (token && token !== _lastRenderToken) return;
+    if (!_peopleIndex) return;
+    _applyPeopleRosterMeta(_peopleIndex);
+    if (_view && _view.mode === 'person' && _view.person) {
+      showPerson(_view.person, token);
+    } else {
+      renderPeopleList(_peopleIndex);
+    }
+  }
+
   function _normalizePeopleShowDate(dateText) {
     const s = String(dateText || '').trim();
     if (!s) return '';
@@ -1960,7 +1971,7 @@ function ensurePeopleStyles() {
     }
     .peopleGroupGrid{
       display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -4126,6 +4137,14 @@ const pollDelayMs = 2000;
       } else {
         renderPeopleList(_peopleIndex);
       }
+
+      ensurePeopleRosterLookup()
+        .then(() => {
+          _refreshPeopleViewWithRoster(token);
+        })
+        .catch((err) => {
+          console.warn('[people] roster warm load failed:', err);
+        });
 
       // Keep the last completed People index stable on normal visits.
       // Rebuilds should only happen from the explicit rebuild button.
