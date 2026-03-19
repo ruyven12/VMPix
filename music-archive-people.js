@@ -1956,7 +1956,7 @@ function ensurePeopleStyles() {
       margin: 0 0 10px 0;
     }
     .peopleGrouped{
-      width: min(1100px, 96%);
+      width: min(1320px, 100%);
       margin: 0 auto;
       display:grid;
       gap: 16px;
@@ -1964,7 +1964,6 @@ function ensurePeopleStyles() {
     }
     .peopleGroupSection{
       width: 100%;
-      max-width: 980px;
       display:grid;
       gap: 10px;
     }
@@ -2000,18 +1999,15 @@ function ensurePeopleStyles() {
 
     /* ===== People list: responsive columns ===== */
     #people-root.is-list #peopleList{
-      width: min(980px, 96%);
+      width: min(1320px, 100%);
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: 1fr;
+      gap: 0;
     }
     #people-root.is-list .peopleRow{ width: 100%; }
-    @media (max-width: 1199px){
-      #people-root.is-list #peopleList{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
     @media (max-width: 699px){
-      #people-root.is-list #peopleList{ grid-template-columns: 1fr; }
+      #people-root.is-list #peopleList{ width: 100%; }
       .peopleGroupGrid{ grid-template-columns: 1fr; }
     }
 
