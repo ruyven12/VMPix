@@ -998,6 +998,15 @@ function _formatLongDateFromShort(dateText) {
     return 'Miscellaneous';
   }
 
+  function _parsePeopleRosterAliases(value) {
+    const raw = _safeTrim(value);
+    if (!raw) return [];
+    return raw
+      .split(/[;,|]/)
+      .map((part) => _safeTrim(part))
+      .filter(Boolean);
+  }
+
   async function ensurePeopleRosterLookup() {
     if (_peopleRosterLookupPromise) return _peopleRosterLookupPromise;
 
@@ -1023,6 +1032,7 @@ function _formatLongDateFromShort(dateText) {
       const header = parseCsvLine(headerLine).map((h) => String(h || '').trim().toLowerCase());
       const nameIdx = header.indexOf('name');
       const categoryIdx = header.indexOf('category');
+      const aliasesIdx = header.indexOf('aliases');
       const bandsIdx = header.indexOf('bands');
       const instrumentIdx = header.indexOf('instrument');
 
@@ -1036,11 +1046,18 @@ function _formatLongDateFromShort(dateText) {
         const name = _safeTrim(cols[nameIdx]);
         if (!name) continue;
 
-        lookup.set(_normKey(name), {
+        const entry = {
           name,
           category: _normalizePeopleRosterCategory(categoryIdx !== -1 ? cols[categoryIdx] : ''),
+          aliases: _parsePeopleRosterAliases(aliasesIdx !== -1 ? cols[aliasesIdx] : ''),
           bands: _safeTrim(bandsIdx !== -1 ? cols[bandsIdx] : ''),
           instrument: _safeTrim(instrumentIdx !== -1 ? cols[instrumentIdx] : '')
+        };
+
+        const keys = [name].concat(Array.isArray(entry.aliases) ? entry.aliases : []);
+        keys.forEach((keyName) => {
+          const key = _normKey(keyName);
+          if (key) lookup.set(key, entry);
         });
       }
 
@@ -1065,6 +1082,7 @@ function _formatLongDateFromShort(dateText) {
         meta.set(String(name || '').trim(), roster || {
           name: String(name || '').trim(),
           category: 'Miscellaneous',
+          aliases: [],
           bands: '',
           instrument: ''
         });
