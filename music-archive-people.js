@@ -341,6 +341,7 @@ function _formatLongDateFromShort(dateText) {
     };
 
     const parts = [];
+    parts.push(btn('All', '', false));
     for (let i = 65; i <= 90; i++) {
       const L = String.fromCharCode(i);
       parts.push(btn(L, L, counts[L] === 0));
@@ -2927,7 +2928,7 @@ function ensurePeopleStyles() {
     const letter = _getPeopleLetter();
     const entries = letter
       ? allEntries.filter((p) => _letterForName(p.name) === letter)
-      : [];
+      : allEntries;
 
     // Filter meta (only shows when a letter is selected)
     _renderPeopleFilterMeta(allEntries.length, entries.length);
