@@ -23,6 +23,7 @@
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
   const PEOPLE_SHOWS_CSV_ENDPOINT = `${API_BASE}/sheet/shows`;
+  const PEOPLE_ROSTER_CSV_ENDPOINT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTdi19qTDyPeBGzq0PpkdlDS_bNg34XpdRiXy8aBa-Jlu-jg2Wzkj1SnLXtRVFU4TGOh5KHJPK8Lwhc/pub?gid=2035925093&single=true&output=csv';
   const PEOPLE_MATCH_PREVIEW_LIMIT = 8;
 
   // where each region actually lives on SmugMug (kept from your script.js)
