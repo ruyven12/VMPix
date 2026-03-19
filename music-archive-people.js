@@ -1960,12 +1960,16 @@ function ensurePeopleStyles() {
       margin: 0 auto;
       display:grid;
       gap: 16px;
+      justify-items: center;
     }
     .peopleGroupSection{
+      width: 100%;
+      max-width: 980px;
       display:grid;
       gap: 10px;
     }
     .peopleGroupHead{
+      width: 100%;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -1988,6 +1992,7 @@ function ensurePeopleStyles() {
       white-space: nowrap;
     }
     .peopleGroupGrid{
+      width: 100%;
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
