@@ -2078,6 +2078,11 @@ function ensurePeopleStyles() {
       display:grid;
       gap: 4px;
     }
+    .peopleMetaStack{
+      display:grid;
+      gap: 2px;
+      min-width: 0;
+    }
     .peopleSubline{
       font-size: 10px;
       letter-spacing: .06em;
@@ -2961,10 +2966,10 @@ function ensurePeopleStyles() {
     const renderCard = (p) => {
       const photosTxt = (p.photos === null) ? '\u2014' : String(p.photos);
       const albumsTxt = String(p.albums);
-      const bits = [];
-      if (p.meta && p.meta.bands) bits.push(p.meta.bands);
-      if (p.meta && p.meta.instrument) bits.push(p.meta.instrument);
-      const subline = bits.length ? `<div class="peopleSubline">${_eh(bits.join(' • '))}</div>` : '';
+      const metaLines = [];
+      if (p.meta && p.meta.instrument) metaLines.push(`<div class="peopleSubline">${_eh(p.meta.instrument)}</div>`);
+      if (p.meta && p.meta.bands) metaLines.push(`<div class="peopleSubline">${_eh(p.meta.bands)}</div>`);
+      const subline = metaLines.length ? `<div class="peopleMetaStack">${metaLines.join('')}</div>` : '';
 
       return `
         <button type="button" class="peopleRow" data-person="${_eh(p.name)}" aria-label="Open ${_eh(p.name)}">
