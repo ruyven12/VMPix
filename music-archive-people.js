@@ -83,6 +83,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
 
   // Header totals (computed client-side)
   let _peopleTotals = { people: 0, photos: 0, albums: 0 };
+  let _peopleRosterMetaByName = new Map();
 
   // People Stats (from Stats CSV)
   // Static override (per project request) to avoid relying on /sheet/stats parsing.
@@ -1054,6 +1055,31 @@ function _formatLongDateFromShort(dateText) {
     return _peopleRosterLookupPromise;
   }
 
+  function _applyPeopleRosterMeta(indexMap) {
+    const idx = indexMap && typeof indexMap.forEach === 'function' ? indexMap : new Map();
+    const meta = new Map();
+    try {
+      idx.forEach((_set, name) => {
+        const key = _normKey(name);
+        const roster = (_peopleRosterByName && _peopleRosterByName.get(key)) || null;
+        meta.set(String(name || '').trim(), roster || {
+          name: String(name || '').trim(),
+          category: 'Miscellaneous',
+          bands: '',
+          instrument: ''
+        });
+      });
+    } catch (_) {}
+    _peopleRosterMetaByName = meta;
+    return idx;
+  }
+
+  function _getPeopleRosterMeta(name) {
+    const key = String(name || '').trim();
+    if (!key) return null;
+    return (_peopleRosterMetaByName && _peopleRosterMetaByName.get(key)) || null;
+  }
+
   function _normalizePeopleShowDate(dateText) {
     const s = String(dateText || '').trim();
     if (!s) return '';
@@ -1900,6 +1926,43 @@ function ensurePeopleStyles() {
       text-transform: uppercase !important;
       margin: 0 0 10px 0;
     }
+    .peopleGrouped{
+      width: min(1100px, 96%);
+      margin: 0 auto;
+      display:grid;
+      gap: 16px;
+    }
+    .peopleGroupSection{
+      display:grid;
+      gap: 10px;
+    }
+    .peopleGroupHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 0 2px;
+    }
+    .peopleGroupTitle{
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase !important;
+      color: rgba(241,245,255,0.96);
+    }
+    .peopleGroupMeta{
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase !important;
+      color: rgba(196,211,232,0.68);
+      white-space: nowrap;
+    }
+    .peopleGroupGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
 
     /* ===== People list: responsive columns ===== */
     #people-root.is-list #peopleList{
@@ -1915,6 +1978,7 @@ function ensurePeopleStyles() {
     }
     @media (max-width: 699px){
       #people-root.is-list #peopleList{ grid-template-columns: 1fr; }
+      .peopleGroupGrid{ grid-template-columns: 1fr; }
     }
 
 
@@ -1955,6 +2019,21 @@ function ensurePeopleStyles() {
       font-size: 13px;
       letter-spacing: .02em;
       line-height: 1.2;
+    }
+    .peopleNameWrap{
+      min-width: 0;
+      flex: 1 1 auto;
+      display:grid;
+      gap: 4px;
+    }
+    .peopleSubline{
+      font-size: 10px;
+      letter-spacing: .06em;
+      line-height: 1.25;
+      color: rgba(206,220,240,0.72);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .peopleMetrics{
@@ -2755,6 +2834,7 @@ function ensurePeopleStyles() {
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
+    const CATEGORY_ORDER = ['Performer', 'Friend', 'The Fallen', 'Miscellaneous'];
     // List mode: enable responsive multi-column layout (CSS is keyed off this class).
     try {
       const root = panelRoot.querySelector('#people-root');
@@ -2768,6 +2848,12 @@ function ensurePeopleStyles() {
     const allEntries = Array.from(indexMap.entries()).map(([name, set]) => ({
       name,
       albums: set.size,
+      meta: _getPeopleRosterMeta(name) || {
+        name,
+        category: 'Miscellaneous',
+        bands: '',
+        instrument: ''
+      },
       photos: (() => {
         try {
           const n = _photoCountByPerson && _photoCountByPerson.has(name) ? Number(_photoCountByPerson.get(name)) : NaN;
@@ -2812,37 +2898,65 @@ function ensurePeopleStyles() {
       return;
     }
 
-      listEl.innerHTML = entries
-    .map((p) => {
-        const photosTxt = (p.photos === null) ? '\u2014' : String(p.photos);
+    const grouped = {};
+    CATEGORY_ORDER.forEach((cat) => { grouped[cat] = []; });
+    entries.forEach((p) => {
+      const cat = CATEGORY_ORDER.includes(p.meta && p.meta.category) ? p.meta.category : 'Miscellaneous';
+      grouped[cat].push(p);
+    });
+
+    const renderCard = (p) => {
+      const photosTxt = (p.photos === null) ? '\u2014' : String(p.photos);
       const albumsTxt = String(p.albums);
+      const bits = [];
+      if (p.meta && p.meta.bands) bits.push(p.meta.bands);
+      if (p.meta && p.meta.instrument) bits.push(p.meta.instrument);
+      const subline = bits.length ? `<div class="peopleSubline">${_eh(bits.join(' • '))}</div>` : '';
 
       return `
-      <button type="button" class="peopleRow" data-person="${_eh(p.name)}" aria-label="Open ${_eh(p.name)}">
-        <div class="peopleName">${_eh(p.name)}</div>
-
-        <div class="peopleMetrics" aria-hidden="true">
-          <div class="peopleMetric" title="Photos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            <span class="num">${_eh(photosTxt)}</span>
+        <button type="button" class="peopleRow" data-person="${_eh(p.name)}" aria-label="Open ${_eh(p.name)}">
+          <div class="peopleNameWrap">
+            <div class="peopleName">${_eh(p.name)}</div>
+            ${subline}
           </div>
 
-          <div class="peopleMetric" title="Albums">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"></path>
-              <path d="M4 16.5A2.5 2.5 0 0 0 6.5 19H20"></path>
-              <path d="M4 3h16v13H6.5A2.5 2.5 0 0 0 4 18.5z"></path>
-            </svg>
-            <span class="num">${_eh(albumsTxt)}</span>
+          <div class="peopleMetrics" aria-hidden="true">
+            <div class="peopleMetric" title="Photos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <span class="num">${_eh(photosTxt)}</span>
+            </div>
+
+            <div class="peopleMetric" title="Albums">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"></path>
+                <path d="M4 16.5A2.5 2.5 0 0 0 6.5 19H20"></path>
+                <path d="M4 3h16v13H6.5A2.5 2.5 0 0 0 4 18.5z"></path>
+              </svg>
+              <span class="num">${_eh(albumsTxt)}</span>
+            </div>
           </div>
-        </div>
-      </button>
-    `;
-    })
-    .join('');
+        </button>
+      `;
+    };
+
+    listEl.innerHTML = `<div class="peopleGrouped">${CATEGORY_ORDER.map((cat) => {
+      const list = grouped[cat] || [];
+      if (!list.length) return '';
+      return `
+        <section class="peopleGroupSection" data-category="${_eh(cat)}">
+          <div class="peopleGroupHead">
+            <div class="peopleGroupTitle">${_eh(cat)}</div>
+            <div class="peopleGroupMeta">${list.length} indexed</div>
+          </div>
+          <div class="peopleGroupGrid">
+            ${list.map(renderCard).join('')}
+          </div>
+        </section>
+      `;
+    }).join('')}</div>`;
   }
 
 
@@ -3854,6 +3968,8 @@ const pollDelayMs = 2000;
 
       if (token && token !== _lastRenderToken) return new Map();
 
+      await ensurePeopleRosterLookup().catch(() => new Map());
+
       const peopleArr = Array.isArray(data?.people) ? data.people : [];
 
       const idx = new Map();
@@ -3909,7 +4025,7 @@ const pollDelayMs = 2000;
       // Audible cue (optional)
       try { if (typeof window.vmDing === 'function') window.vmDing(); } catch (_) {}
 
-      return idx;
+      return _applyPeopleRosterMeta(idx);
     })();
 
     _peopleIndexLoadPromise = run;
