@@ -2015,7 +2015,7 @@ function ensurePeopleStyles() {
     .peopleGroupGrid{
       width: 100%;
       display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -2083,9 +2083,10 @@ function ensurePeopleStyles() {
       letter-spacing: .06em;
       line-height: 1.25;
       color: rgba(206,220,240,0.72);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
     }
 
     .peopleMetrics{
