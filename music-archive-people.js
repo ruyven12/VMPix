@@ -994,7 +994,7 @@ function _formatLongDateFromShort(dateText) {
     const key = _normKey(raw);
     if (!key) return 'Miscellaneous';
     if (key === 'performer' || key === 'performers') return 'Performer';
-    if (key === 'friend' || key === 'friends') return 'Friend';
+    if (key === 'friend' || key === 'friends') return 'Friends/Fans';
     if (key === 'the fallen' || key === 'fallen') return 'The Fallen';
     return 'Miscellaneous';
   }
@@ -2892,7 +2892,7 @@ function ensurePeopleStyles() {
     if (!panelRoot) return;
     const listEl = panelRoot.querySelector('#peopleList');
     const metaEl = panelRoot.querySelector('#peopleMeta');
-    const CATEGORY_ORDER = ['Performer', 'Friend', 'The Fallen', 'Miscellaneous'];
+    const CATEGORY_ORDER = ['Performer', 'Friends/Fans', 'The Fallen', 'Miscellaneous'];
     // List mode: enable responsive multi-column layout (CSS is keyed off this class).
     try {
       const root = panelRoot.querySelector('#people-root');
