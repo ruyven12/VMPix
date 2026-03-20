@@ -908,6 +908,22 @@
     .hudStub.hudMain::after{  opacity: .12; animation: none !important; }
   }
 
+  @media (max-width: 760px){
+    body.route-home .hudStub.hudMain{
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    body.route-home .hudMainPlain,
+    body.route-home #hudMainMount{
+      width: 100%;
+      min-height: max-content;
+    }
+  }
+
   /* =============================
    NEON FRAME (SVG tracer) - HUD MAIN addon
    ============================= */
