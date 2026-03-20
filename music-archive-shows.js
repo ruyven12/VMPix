@@ -1298,6 +1298,25 @@ let SHOWS_CACHE = null;
     return `Camera Used: ${cameras.join(" / ")}`;
   }
 
+  function normalizeShowRow(row) {
+    const src = (row && typeof row === "object") ? row : {};
+    const normalized = Object.assign({}, src);
+
+    const bands = [];
+    for (let n = 1; n <= 20; n++) {
+      const value = String(src[`band_${n}`] || src[`band${n}`] || "").trim();
+      if (value) bands.push(value);
+    }
+
+    if (!Array.isArray(normalized.bands) || !normalized.bands.length) {
+      normalized.bands = bands;
+    } else {
+      normalized.bands = normalized.bands.map((v) => String(v || "").trim()).filter(Boolean);
+    }
+
+    return normalized;
+  }
+
   async function loadShowsFromCsv(opts) {
   // show-index.json may return JSON, but we still tolerate CSV/legacy payloads.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
@@ -1314,7 +1333,7 @@ let SHOWS_CACHE = null;
       const rows = Array.isArray(parsed)
         ? parsed
         : (Array.isArray(parsed?.shows) ? parsed.shows : (Array.isArray(parsed?.rows) ? parsed.rows : null));
-      if (rows && Array.isArray(rows)) return rows;
+      if (rows && Array.isArray(rows)) return rows.map(normalizeShowRow);
       // If it's an object but not in the expected shape, fall through to CSV parsing.
     } catch (e) {
       // Some backends accidentally send JS object literals (unquoted keys, single quotes).
