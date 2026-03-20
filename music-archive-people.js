@@ -20,6 +20,7 @@
       window.MUSIC_ARCHIVE_API_BASE.trim())
       ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
       : DEFAULT_API_BASE;
+  const PEOPLE_INDEX_ENDPOINT = `${API_BASE}/people-index.json`;
 
   const CSV_ENDPOINT = `${API_BASE}/sheet/bands`;
   const PEOPLE_SHOWS_CSV_ENDPOINT = `${API_BASE}/sheet/shows`;
@@ -4009,7 +4010,7 @@ async function loadPeopleIndexFromServer({ force = false, full = false, token, i
 
     // Cache-bust every request (prevents browser/proxy cached JSON during rebuild testing)
     qs.push(`cb=${Date.now()}`);
-    const url = `${API_BASE}/index/people?${qs.join("&")}`;
+    const url = `${PEOPLE_INDEX_ENDPOINT}?${qs.join("&")}`;
 
     // Helper: fetch JSON with explicit no-store so we always see the freshest response.
     const fetchNoStore = async (u) => {
@@ -4215,7 +4216,7 @@ const pollDelayMs = 2000;
 
       // Keep the last completed People index stable on normal visits.
       // Rebuilds should only happen from the explicit rebuild button.
-      quietlyRefreshPeopleIndex(token);
+        // Static snapshot source: do not background-refresh the people index.
       return;
     }
 

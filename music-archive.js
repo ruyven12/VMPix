@@ -618,10 +618,11 @@ async function fetchMusicStatsData(forceFresh) {
 
   _musicStatsPromise = (async () => {
     const apiBase = getMusicArchiveApiBase();
+    const peopleIndexUrl = apiBase + '/people-index.json';
     const cacheOpt = forceFresh ? 'no-store' : 'default';
     const [bandsRes, peopleRes, statsRes] = await Promise.allSettled([
       fetch(apiBase + '/sheet/bands', { cache: cacheOpt }).then((r) => r.text()),
-      fetch(apiBase + '/index/people', { cache: cacheOpt }).then((r) => r.json()),
+      fetch(peopleIndexUrl, { cache: cacheOpt }).then((r) => r.json()),
       fetch(apiBase + '/sheet/stats', { cache: cacheOpt }).then((r) => r.text())
     ]);
 
