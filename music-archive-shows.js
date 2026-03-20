@@ -1110,7 +1110,7 @@ function restoreScrollSnapshot(snapshot) {
   // ================================
 
   const API_BASE = "https://music-archive-3lfa.onrender.com";
-  const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows`;
+  const SHOWS_ENDPOINT = `${API_BASE}/show-index.json`;
 
   // ================================
   // SERVER-SLEEP HARDENING (shared pattern)
@@ -1285,8 +1285,21 @@ let SHOWS_CACHE = null;
     return out;
   }
 
+  function getShowCameraText(show) {
+    const direct = String(show?.camera || "").trim();
+    if (direct) return `Camera Used: ${direct}`;
+
+    const cameras = [
+      String(show?.camera_used_1 || "").trim(),
+      String(show?.camera_used_2 || "").trim()
+    ].filter(Boolean);
+
+    if (!cameras.length) return "";
+    return `Camera Used: ${cameras.join(" / ")}`;
+  }
+
   async function loadShowsFromCsv(opts) {
-  // /sheet/shows may return CSV, JSON, or (in some cases) a JS-ish object string.
+  // show-index.json may return JSON, but we still tolerate CSV/legacy payloads.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
   const { text, ct } = await fetchTextWithSessionCache(SHOWS_ENDPOINT, MUSIC_SHOWS_CSV_TTL_MS, MUSIC_SHOWS_CSV_CACHE_KEY, opts);
   if (!text || !text.trim()) return [];
@@ -1297,8 +1310,10 @@ let SHOWS_CACHE = null;
   if (ct.includes("application/json") || /^[\s]*[\[{]/.test(raw)) {
     try {
       const parsed = JSON.parse(raw);
-      // Normalize: accept either { rows: [...] } or a direct array
-      const rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.rows) ? parsed.rows : null);
+      // Normalize: accept { shows: [...] }, { rows: [...] }, or a direct array.
+      const rows = Array.isArray(parsed)
+        ? parsed
+        : (Array.isArray(parsed?.shows) ? parsed.shows : (Array.isArray(parsed?.rows) ? parsed.rows : null));
       if (rows && Array.isArray(rows)) return rows;
       // If it's an object but not in the expected shape, fall through to CSV parsing.
     } catch (e) {
@@ -2105,7 +2120,7 @@ const meta = document.createElement("div");
 
       const cam = document.createElement("div");
       cam.className = "showCamera";
-      cam.textContent = s.camera ? `Camera Used: ${s.camera}` : "";
+      cam.textContent = getShowCameraText(s);
 
       const actions = document.createElement("div");
       actions.className = "showActions";
@@ -2120,7 +2135,7 @@ const meta = document.createElement("div");
       meta.appendChild(title);
       meta.appendChild(date);
       meta.appendChild(venue);
-      if (s.camera) meta.appendChild(cam);
+      if (cam.textContent) meta.appendChild(cam);
 header.appendChild(posterWrap);
       header.appendChild(meta);
 
