@@ -2034,6 +2034,10 @@ function navigate(route){
         if (band) trail.push('/music/bands/' + band);
         if (band && album) trail.push('/music/bands/' + band + '/' + album);
       }
+      if (sub === 'shows') {
+        const showCode = String(parts[2] || '').trim();
+        if (showCode) trail.push('/music/shows/' + showCode);
+      }
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
     }
 

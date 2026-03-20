@@ -46,6 +46,45 @@
     return (d + "|" + t).replace(/\s+/g, " ").slice(0, 180);
   }
 
+  function getShowRouteCode(show) {
+    return toMMDDYY(show?.date || show?.show_date || "");
+  }
+
+  function getShowRouteCodeFromPath() {
+    try {
+      const parts = String(window.location.pathname || "")
+        .trim()
+        .replace(/^\/+|\/+$/g, "")
+        .split("/")
+        .filter(Boolean);
+      if (String(parts[0] || "").toLowerCase() !== "music") return "";
+      if (String(parts[1] || "").toLowerCase() !== "shows") return "";
+      return String(parts[2] || "").trim();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function getYearFromShowRouteCode(code) {
+    const raw = String(code || "").trim();
+    if (!/^\d{6}$/.test(raw)) return null;
+    const yy = Number(raw.slice(4, 6));
+    if (!Number.isFinite(yy)) return null;
+    return 2000 + yy;
+  }
+
+  function syncShowsRoute(show, opts) {
+    const replace = !!(opts && opts.replace);
+    const code = show ? getShowRouteCode(show) : "";
+    const target = code
+      ? `/music/shows/${code}${window.location.search || ""}`
+      : `/music/shows${window.location.search || ""}`;
+    try {
+      if (replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
+      else window.history.pushState({ __vmpixBackGuard: true }, document.title, target);
+    } catch (_) {}
+  }
+
   function formatShowTitle(title) {
     const raw = String(title || "").trim();
     if (!raw) return "";
@@ -2090,6 +2129,7 @@ async function fetchJsonSafe(url, opts) {
       tile.className = "showTile";
       tile.setAttribute("data-idx", String(idx));
       tile.setAttribute("data-show-id", makeShowId(s));
+      tile.setAttribute("data-show-code", getShowRouteCode(s));
 
       const header = document.createElement("div");
       header.className = "showTileHeader";
@@ -2224,9 +2264,14 @@ header.appendChild(posterWrap);
 
 
     const persisted = loadShowsState();
+    const routeShowCode = getShowRouteCodeFromPath();
 
     // If the parent app re-mounts Shows when switching tabs, restore last viewed year
     let activeYear = persisted.activeYear || 2025;
+    if (routeShowCode) {
+      const routeYear = getYearFromShowRouteCode(routeShowCode);
+      if (routeYear) activeYear = routeYear;
+    }
     if (!years.includes(activeYear)) activeYear = years[0] || 2025;
 
     const pillClass = "YearPill";
@@ -2333,6 +2378,8 @@ contentEl.addEventListener("click", (e) => {
   if (back) {
     e.preventDefault();
     e.stopPropagation();
+    saveShowsState({ activeYear, openShowId: "" });
+    syncShowsRoute(null, { replace: false });
 
     // Restore years mount visibility immediately
     try {
@@ -2396,6 +2443,8 @@ contentEl.addEventListener("click", (e) => {
     venueLine: buildVenueText(baseShow || {}),
     prettyDate: (baseShow && baseShow.date) ? String(baseShow.date) : "",
   });
+  saveShowsState({ activeYear, openShowId: showId });
+  syncShowsRoute(show, { replace: false });
 
   // Analytics: show open
   safeTrack("music_show_open", {
@@ -2437,6 +2486,9 @@ contentEl.addEventListener("click", (e) => {
   activeYear = year;
   // Persist selected year and clear open tile for new year
   saveShowsState({ activeYear: year, openShowId: "" });
+  if (!getShowRouteCodeFromPath()) {
+    syncShowsRoute(null, { replace: true });
+  }
   mountYearsPillsOverflow({
     containerEl: mountEl,
     years,
@@ -2519,6 +2571,14 @@ currentYearPretty = (showsForYear || []).map((s) => {
 
     // Restore previously-open tile (if any) after re-render
     const st = loadShowsState();
+    const routeCode = getShowRouteCodeFromPath();
+    if (routeCode) {
+      const routeTile = content.querySelector(`.showTile[data-show-code="${cssEscape(routeCode)}"] .showTileHeader`);
+      if (routeTile) {
+        routeTile.click();
+        return;
+      }
+    }
     if (st.openShowId) {
       const toOpen = content.querySelector(`.showTile[data-show-id="${cssEscape(st.openShowId)}"]`);
       if (toOpen) {
