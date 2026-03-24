@@ -161,6 +161,38 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
+  function _getMusicPeopleSlugFromPath() {
+    try {
+      const parts = String(window.location.pathname || '').trim().replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      if (String(parts[0] || '').toLowerCase() !== 'music') return '';
+      if (String(parts[1] || '').toLowerCase() !== 'people') return '';
+      return toSlug(parts[2] || '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function _syncPeoplePath(personName, opts) {
+    const slug = toSlug(personName || '');
+    const path = slug ? `/music/people/${slug}` : '/music/people';
+    const target = path + (window.location.search || '');
+    const replace = !!(opts && opts.replace);
+    try {
+      if (replace) window.history.replaceState({ __vmpixBackGuard: true }, document.title, target);
+      else window.history.pushState({ __vmpixBackGuard: true }, document.title, target);
+    } catch (_) {}
+  }
+
+  function _findPersonBySlug(slug) {
+    const clean = toSlug(slug || '');
+    if (!clean || !_peopleIndex || typeof _peopleIndex.forEach !== 'function') return '';
+    let match = '';
+    _peopleIndex.forEach((_set, personName) => {
+      if (!match && toSlug(personName) === clean) match = String(personName || '').trim();
+    });
+    return match;
+  }
+
   function _coerceArray(x) {
     if (!x) return [];
     if (Array.isArray(x)) return x;
@@ -3391,6 +3423,9 @@ async function hydrateAlbumThumbs(albumKeys) {
 
     if (statusEl) statusEl.textContent = '';
     renderPersonAlbumsList(items, personName);
+    _syncPeoplePath(personName, {
+      replace: String(window.location.pathname || '').trim().toLowerCase() === `/music/people/${toSlug(personName)}`.toLowerCase()
+    });
   }
 
 // ================== PERSON ALBUM CAPTION MATCH SHOTS ==================
@@ -3914,6 +3949,7 @@ function openPeopleLightbox(list, index){
       _view = { mode: 'list', person: '', albumKeys: [] };
       const statusEl = panelRoot.querySelector('#peopleStatus');
       if (statusEl) statusEl.textContent = '';
+      _syncPeoplePath('', { replace: false });
       if (_peopleIndex) renderPeopleList(_peopleIndex);
       return;
     }
@@ -4197,6 +4233,12 @@ const pollDelayMs = 2000;
 
     // If we already built it, render immediately.
     if (_peopleIndex) {
+      if (!_view || _view.mode !== 'person' || !_view.person) {
+        const slug = _getMusicPeopleSlugFromPath();
+        const matchedPerson = slug ? _findPersonBySlug(slug) : '';
+        if (matchedPerson) _view = { mode: 'person', person: matchedPerson, albumKeys: [] };
+        else if (slug) _syncPeoplePath('', { replace: true });
+      }
       if (token !== _lastRenderToken) return;
       if (statusEl) statusEl.textContent = '';
       if (_view && _view.mode === 'person' && _view.person) {
@@ -4240,6 +4282,12 @@ const pollDelayMs = 2000;
     }
 
     _buildPromise.then((idx) => {
+      if (!_view || _view.mode !== 'person' || !_view.person) {
+        const slug = _getMusicPeopleSlugFromPath();
+        const matchedPerson = slug ? _findPersonBySlug(slug) : '';
+        if (matchedPerson) _view = { mode: 'person', person: matchedPerson, albumKeys: [] };
+        else if (slug) _syncPeoplePath('', { replace: true });
+      }
       if (token !== _lastRenderToken) return;
       if (statusEl) statusEl.textContent = '';
       if (_view && _view.mode === 'person' && _view.person) {

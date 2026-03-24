@@ -2028,6 +2028,10 @@ function navigate(route){
       const trail = ['/', '/music'];
       const sub = String(parts[1] || '').toLowerCase();
       if (sub) trail.push('/music/' + sub);
+      if (sub === 'people') {
+        const personSlug = String(parts[2] || '').trim();
+        if (personSlug) trail.push('/music/people/' + personSlug);
+      }
       if (sub === 'bands') {
         const band = String(parts[2] || '').trim();
         const album = String(parts[3] || '').trim();
