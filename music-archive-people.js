@@ -1313,6 +1313,13 @@ function _formatLongDateFromShort(dateText) {
       uniqBands.push(band);
     };
 
+    const activePerson = _safeTrim(_view && _view.person);
+    const rosterMeta = activePerson ? (_getPeopleRosterMeta(activePerson) || null) : null;
+    const rosterBands = String(rosterMeta && rosterMeta.bands || '')
+      .split(/\s*\/\s*|\s*,\s*/)
+      .map(_safeTrim)
+      .filter(Boolean);
+
     const urlBandKey = _peopleBandFolderKeyFromUrl(item && item.url);
     const primaryBand = urlBandKey ? _safeTrim(_peopleBandNameByFolder.get(urlBandKey) || '') : '';
 
@@ -1322,6 +1329,9 @@ function _formatLongDateFromShort(dateText) {
     const bands = key ? (_peopleShowsLookup.get(key) || []) : [];
 
     pushBand(primaryBand);
+    if (!primaryBand && rosterBands.length) {
+      rosterBands.forEach(pushBand);
+    }
     if (Array.isArray(bands) && bands.length) {
       bands.forEach(pushBand);
     }
@@ -1341,7 +1351,7 @@ function _formatLongDateFromShort(dateText) {
     const renderPerson = _safeTrim(_view.person);
     if (!renderPerson || !Array.isArray(items) || !items.length) return;
 
-    await Promise.all([ensurePeopleBandNameLookup(), ensurePeopleShowsLookup()]);
+    await Promise.all([ensurePeopleBandNameLookup(), ensurePeopleShowsLookup(), ensurePeopleRosterLookup()]);
 
     if (!panelRoot || !_view || _view.mode !== 'person' || _safeTrim(_view.person) !== renderPerson) return;
 
