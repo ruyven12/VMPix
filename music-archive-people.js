@@ -1302,17 +1302,38 @@ function _formatLongDateFromShort(dateText) {
   }
 
   function _peopleAppearsWithTextForAlbum(item) {
+    const uniqBands = [];
+    const seenBands = new Set();
+    const pushBand = (value) => {
+      const band = _safeTrim(value);
+      if (!band) return;
+      const key = _normKey(band);
+      if (!key || seenBands.has(key)) return;
+      seenBands.add(key);
+      uniqBands.push(band);
+    };
+
     const urlBandKey = _peopleBandFolderKeyFromUrl(item && item.url);
-    const bandName = urlBandKey ? (_peopleBandNameByFolder.get(urlBandKey) || '') : '';
-    if (bandName) return `(appears with ${bandName})`;
+    const primaryBand = urlBandKey ? _safeTrim(_peopleBandNameByFolder.get(urlBandKey) || '') : '';
 
     const rawTitle = String(item && item.title || '');
     const split = _splitDateFromTitle(rawTitle);
     const key = _peopleShowLookupKey(split.dateText || '', split.restTitle || rawTitle || '');
-    if (!key) return '';
-    const bands = _peopleShowsLookup.get(key) || [];
-    if (!Array.isArray(bands) || !bands.length) return '';
-    return `(appears with ${bands.join(' / ')})`;
+    const bands = key ? (_peopleShowsLookup.get(key) || []) : [];
+
+    pushBand(primaryBand);
+    if (Array.isArray(bands) && bands.length) {
+      bands.forEach(pushBand);
+    }
+
+    if (!uniqBands.length) return '';
+
+    const leadBand = primaryBand || uniqBands[0] || '';
+    if (!leadBand) return '';
+
+    const moreCount = uniqBands.filter((band) => _normKey(band) !== _normKey(leadBand)).length;
+    if (moreCount > 0) return `(with ${leadBand} + ${moreCount} more)`;
+    return `(with ${leadBand})`;
   }
 
   async function hydratePeopleTimelineAppearsWith(items) {
