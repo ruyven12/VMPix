@@ -732,6 +732,99 @@ function pulseFrame(){
     return loadVmAdminFacebookStatus();
   };
 
+  async function loadVmAdminFacebookHistory(opts){
+    const options = opts || {};
+    const shell = document.getElementById('vmAdminFacebookHistory');
+    if (!shell) return null;
+    if (!options.silent) {
+      shell.innerHTML = `<div style="color:rgba(208,222,232,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook publish history...</div>`;
+    }
+    try {
+      const data = await fetchVmAdminJson('/admin/facebook/history', { limit: 8 });
+      const items = Array.isArray(data && data.items) ? data.items : [];
+      if (!items.length) {
+        shell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">No Facebook publish attempts logged yet.</div>`;
+        return data;
+      }
+      shell.innerHTML = items.map((item) => {
+        const ok = String(item && item.status || '').trim().toLowerCase() === 'success';
+        return `
+          <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,10,16,.72);">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div style="color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.06em; text-transform:uppercase;">${escapeVmAdminHtml(item.entity_label || item.entity_id || 'Unknown item')}</div>
+                <div style="margin-top:4px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(formatVmAdminDate(item.created_at))}</div>
+              </div>
+              <div style="padding:6px 9px; border-radius:999px; border:1px solid ${ok ? 'rgba(97,224,255,.22)' : 'rgba(255,95,135,.28)'}; color:${ok ? 'rgba(210,242,255,.92)' : 'rgba(255,192,205,.92)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">${escapeVmAdminHtml(ok ? 'Success' : (item.status || 'Failed'))}</div>
+            </div>
+            <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.section || 'section')} • ${escapeVmAdminHtml(item.entity_type || 'show')}</div>
+            ${item && item.error ? `<div style="margin-top:8px; color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.error)}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+      return data;
+    } catch (_) {
+      shell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook publish history right now.</div>`;
+      return null;
+    }
+  }
+
+  async function runVmAdminFacebookPreview(){
+    const status = document.getElementById('vmAdminFacebookComposerStatus');
+    const previewShell = document.getElementById('vmAdminFacebookPreview');
+    const payload = {
+      section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
+      entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
+      entity_id: String((document.getElementById('vmAdminFacebookEntityId') || {}).value || '').trim(),
+      entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
+      caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
+      link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
+      image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim()
+    };
+    if (status) status.textContent = 'Building Facebook preview...';
+    try {
+      const data = await postVmAdminJson('/admin/facebook/preview', payload);
+      const preview = data && data.preview ? data.preview : {};
+      if (previewShell) {
+        previewShell.innerHTML = `
+          <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
+            <div>
+              <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; background:rgba(6,9,14,.82); min-height:140px;">
+                ${preview.image_url ? `<img src="${escapeVmAdminHtml(preview.image_url)}" alt="" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`}
+              </div>
+            </div>
+            <div>
+              <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Page</div>
+              <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.page_name || 'Voodoo Media')}</div>
+              <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap;">${escapeVmAdminHtml(preview.final_message || '')}</div>
+            </div>
+          </div>
+        `;
+      }
+      if (status) status.textContent = 'Facebook preview ready';
+      return payload;
+    } catch (err) {
+      if (previewShell) previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to build preview right now.</div>`;
+      if (status) status.textContent = 'Facebook preview failed';
+      throw err;
+    }
+  }
+
+  async function runVmAdminFacebookPublish(){
+    const status = document.getElementById('vmAdminFacebookComposerStatus');
+    if (status) status.textContent = 'Publishing to Facebook...';
+    try {
+      const payload = await runVmAdminFacebookPreview();
+      await postVmAdminJson('/admin/facebook/publish', payload || {});
+      if (status) status.textContent = 'Facebook post published';
+      await loadVmAdminFacebookStatus({ silent: true });
+      await loadVmAdminFacebookHistory({ silent: false });
+    } catch (_) {
+      if (status) status.textContent = 'Facebook publish failed';
+      throw _;
+    }
+  }
+
   function isVmAdminAnalyticsCleared(snapshot){
     const overview = snapshot && snapshot.overview || {};
     const totals = overview && overview.totals || {};
@@ -1524,6 +1617,59 @@ music: {
                     <button type="button" id="vmAdminFacebookRefresh" style="min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Status</button>
                     <button type="button" id="vmAdminFacebookDisconnect" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect</button>
                   </div>
+                  <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                      <div>
+                        <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Manual Composer</div>
+                        <div style="margin-top:6px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Temporary test surface for the first Facebook publish flow. We can replace this with show pickers once the live connection is proven.</div>
+                      </div>
+                      <div id="vmAdminFacebookComposerStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Waiting for draft</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:14px;">
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Section</div>
+                        <select id="vmAdminFacebookSection" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                          <option value="wrestling">Wrestling</option>
+                          <option value="music">Music</option>
+                        </select>
+                      </label>
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Type</div>
+                        <input id="vmAdminFacebookEntityType" type="text" value="show" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                      </label>
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity ID</div>
+                        <input id="vmAdminFacebookEntityId" type="text" placeholder="081224" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                      </label>
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Label</div>
+                        <input id="vmAdminFacebookEntityLabel" type="text" placeholder="Show title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                      </label>
+                    </div>
+                    <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-top:10px;">
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link URL</div>
+                        <input id="vmAdminFacebookLinkUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                      </label>
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Image URL</div>
+                        <input id="vmAdminFacebookImageUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                      </label>
+                      <label style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
+                        <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                      </label>
+                    </div>
+                    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                      <button type="button" id="vmAdminFacebookPreviewBtn" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Preview Draft</button>
+                      <button type="button" id="vmAdminFacebookPublishBtn" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Publish Now</button>
+                    </div>
+                    <div id="vmAdminFacebookPreview" style="margin-top:14px; min-height:80px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Facebook preview will appear here.</div>
+                    <div style="margin-top:14px;">
+                      <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Recent Publish History</div>
+                      <div id="vmAdminFacebookHistory" style="margin-top:10px; display:grid; grid-template-columns:minmax(0,1fr); gap:10px;"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div style="margin-top:20px;">
@@ -1610,6 +1756,8 @@ music: {
         const facebookConnectBtn = document.getElementById('vmAdminFacebookConnect');
         const facebookRefreshBtn = document.getElementById('vmAdminFacebookRefresh');
         const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
+        const facebookPreviewBtn = document.getElementById('vmAdminFacebookPreviewBtn');
+        const facebookPublishBtn = document.getElementById('vmAdminFacebookPublishBtn');
 
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
@@ -1629,6 +1777,9 @@ music: {
 
           try {
             loadVmAdminFacebookStatus({ silent: false });
+          } catch (_) {}
+          try {
+            loadVmAdminFacebookHistory({ silent: false });
           } catch (_) {}
 
           if (facebookRefreshBtn) {
@@ -1670,6 +1821,28 @@ music: {
               } catch (_) {
                 if (facebookStatusEl) facebookStatusEl.textContent = 'Facebook authorization could not start';
                 facebookConnectBtn.disabled = false;
+              }
+            }, { once: false });
+          }
+
+          if (facebookPreviewBtn) {
+            facebookPreviewBtn.addEventListener('click', async () => {
+              facebookPreviewBtn.disabled = true;
+              try {
+                await runVmAdminFacebookPreview();
+              } finally {
+                facebookPreviewBtn.disabled = false;
+              }
+            }, { once: false });
+          }
+
+          if (facebookPublishBtn) {
+            facebookPublishBtn.addEventListener('click', async () => {
+              facebookPublishBtn.disabled = true;
+              try {
+                await runVmAdminFacebookPublish();
+              } finally {
+                facebookPublishBtn.disabled = false;
               }
             }, { once: false });
           }
