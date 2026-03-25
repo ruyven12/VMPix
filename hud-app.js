@@ -830,6 +830,62 @@ function pulseFrame(){
     }
   }
 
+  async function startVmAdminFacebookConnect(){
+    const facebookStatusEl = document.getElementById('vmAdminFacebookStatus');
+    const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
+    const facebookConnectBtn = document.getElementById('vmAdminFacebookConnect');
+    if (facebookConnectBtn) facebookConnectBtn.disabled = true;
+    if (facebookStatusEl) facebookStatusEl.textContent = 'Preparing Facebook authorization...';
+    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Preparing Facebook authorization...';
+    try {
+      const returnTo = `${window.location.origin}/admin`;
+      const data = await postVmAdminJson('/admin/facebook/connect/start', { return_to: returnTo });
+      const authorizeUrl = String(data && data.authorize_url || '').trim();
+      if (!authorizeUrl) throw new Error('facebook authorize url missing');
+      window.location.href = authorizeUrl;
+    } catch (err) {
+      const msg = messageFromVmAdminError(err, 'Facebook authorization could not start');
+      if (facebookStatusEl) facebookStatusEl.textContent = msg;
+      if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+      if (facebookConnectBtn) facebookConnectBtn.disabled = false;
+      throw err;
+    }
+  }
+
+  async function disconnectVmAdminFacebook(){
+    const facebookStatusEl = document.getElementById('vmAdminFacebookStatus');
+    const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
+    const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
+    if (facebookDisconnectBtn) facebookDisconnectBtn.disabled = true;
+    if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting Facebook page...';
+    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Disconnecting Facebook page...';
+    try {
+      await postVmAdminJson('/admin/facebook/disconnect', {});
+      await loadVmAdminFacebookStatus({ silent: false });
+      await loadVmAdminFacebookHistory({ silent: false });
+    } catch (err) {
+      const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
+      if (facebookStatusEl) facebookStatusEl.textContent = msg;
+      if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+      throw err;
+    } finally {
+      if (facebookDisconnectBtn) facebookDisconnectBtn.disabled = false;
+    }
+  }
+
+  window.__vmAdminFacebookConnect = function __vmAdminFacebookConnect(){
+    return startVmAdminFacebookConnect();
+  };
+  window.__vmAdminFacebookDisconnect = function __vmAdminFacebookDisconnect(){
+    return disconnectVmAdminFacebook();
+  };
+  window.__vmAdminFacebookPreviewDraft = function __vmAdminFacebookPreviewDraft(){
+    return runVmAdminFacebookPreview();
+  };
+  window.__vmAdminFacebookPublishNow = function __vmAdminFacebookPublishNow(){
+    return runVmAdminFacebookPublish();
+  };
+
   function readVmFacebookCallbackState(){
     try {
       const params = new URLSearchParams(window.location.search || '');
@@ -1645,9 +1701,9 @@ music: {
                   </div>
                   <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Preparing Facebook connection tools...</div>
                   <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
-                    <button type="button" id="vmAdminFacebookConnect" style="min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
-                    <button type="button" id="vmAdminFacebookRefresh" style="min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Status</button>
-                    <button type="button" id="vmAdminFacebookDisconnect" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect</button>
+                    <button type="button" id="vmAdminFacebookConnect" onclick="window.__vmAdminFacebookConnect && window.__vmAdminFacebookConnect(); return false;" style="min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
+                    <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Status</button>
+                    <button type="button" id="vmAdminFacebookDisconnect" onclick="window.__vmAdminFacebookDisconnect && window.__vmAdminFacebookDisconnect(); return false;" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect</button>
                   </div>
                   <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -1693,8 +1749,8 @@ music: {
                       </label>
                     </div>
                     <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-                      <button type="button" id="vmAdminFacebookPreviewBtn" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Preview Draft</button>
-                      <button type="button" id="vmAdminFacebookPublishBtn" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Publish Now</button>
+                      <button type="button" id="vmAdminFacebookPreviewBtn" onclick="window.__vmAdminFacebookPreviewDraft && window.__vmAdminFacebookPreviewDraft(); return false;" style="min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Preview Draft</button>
+                      <button type="button" id="vmAdminFacebookPublishBtn" onclick="window.__vmAdminFacebookPublishNow && window.__vmAdminFacebookPublishNow(); return false;" style="min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Publish Now</button>
                     </div>
                     <div id="vmAdminFacebookPreview" style="margin-top:14px; min-height:80px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Facebook preview will appear here.</div>
                     <div style="margin-top:14px;">
@@ -1793,6 +1849,13 @@ music: {
         const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
         const facebookCallbackState = readVmFacebookCallbackState();
 
+        try {
+          loadVmAdminFacebookStatus({ silent: false });
+        } catch (_) {}
+        try {
+          loadVmAdminFacebookHistory({ silent: false });
+        } catch (_) {}
+
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
         if (analyticsRange) {
@@ -1808,13 +1871,6 @@ music: {
             return;
           }
           if (statusEl) statusEl.textContent = 'Backend access approved';
-
-          try {
-            loadVmAdminFacebookStatus({ silent: false });
-          } catch (_) {}
-          try {
-            loadVmAdminFacebookHistory({ silent: false });
-          } catch (_) {}
 
           if (facebookCallbackState) {
             if (facebookCallbackState.mode === 'connected') {
