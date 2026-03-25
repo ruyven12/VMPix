@@ -652,6 +652,28 @@ function pulseFrame(){
     return data;
   }
 
+  function isVmAdminInvalidTokenError(err){
+    const msg = String((err && err.message) || '').trim().toLowerCase();
+    return msg === 'invalid token' || msg.indexOf('invalid token') >= 0;
+  }
+
+  function handleVmAdminInvalidToken(statusMessage){
+    try { sessionStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
+    clearAdminUnlocked();
+    const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
+    const statusEls = [
+      document.getElementById('vmAdminStatusLine'),
+      document.getElementById('vmAdminFacebookStatus'),
+      document.getElementById('vmAdminFacebookComposerStatus')
+    ];
+    statusEls.forEach((el) => {
+      if (el) el.textContent = msg;
+    });
+    window.setTimeout(() => {
+      try { openAdminModal(); } catch (_) {}
+    }, 120);
+  }
+
   async function postVmAdminJson(path, body){
     const res = await __vmAdminFetch(path, {
       method: 'POST',
@@ -727,6 +749,9 @@ function pulseFrame(){
       }
       return data;
     } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+      }
       if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook status right now.</div>`;
       if (status) status.textContent = 'Facebook status unavailable';
       throw err;
@@ -769,6 +794,9 @@ function pulseFrame(){
       }).join('');
       return data;
     } catch (_) {
+      if (isVmAdminInvalidTokenError(_)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+      }
       shell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook publish history right now.</div>`;
       return null;
     }
@@ -844,6 +872,9 @@ function pulseFrame(){
       if (!authorizeUrl) throw new Error('facebook authorize url missing');
       window.location.href = authorizeUrl;
     } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+      }
       const msg = messageFromVmAdminError(err, 'Facebook authorization could not start');
       if (facebookStatusEl) facebookStatusEl.textContent = msg;
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
@@ -864,6 +895,9 @@ function pulseFrame(){
       await loadVmAdminFacebookStatus({ silent: false });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+      }
       const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
       if (facebookStatusEl) facebookStatusEl.textContent = msg;
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
@@ -2008,10 +2042,16 @@ music: {
             .then(({ ok, data }) => {
               if (!ok) {
                 if (statusEl) statusEl.textContent = 'Backend verification failed';
+                if (facebookStatusEl) facebookStatusEl.textContent = 'Admin verify failed';
                 return;
               }
               if (statusEl && data && data.expiresAt) {
                 statusEl.textContent = `Backend access approved until ${new Date(data.expiresAt).toLocaleString()}`;
+              }
+              if (facebookStatusEl && (!facebookCallbackState || facebookCallbackState.mode !== 'error')) {
+                if (String(facebookStatusEl.textContent || '').trim().toLowerCase() === 'waiting for status...' || String(facebookStatusEl.textContent || '').trim().toLowerCase() === 'admin verify failed') {
+                  facebookStatusEl.textContent = 'Admin token verified';
+                }
               }
             })
             .catch(() => {
