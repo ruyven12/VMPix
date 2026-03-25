@@ -132,6 +132,7 @@
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
     const ADMIN_OAUTH_RETURN_TOKEN_KEY = 'vm_admin_token_oauth_return_v1';
+    const ADMIN_OAUTH_RETURN_TOKEN_FALLBACK_KEY = 'vm_admin_token_oauth_return_fallback_v1';
     let adminTokenMemory = '';
     const ADMIN_AUTH_API_BASE =
       (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
@@ -154,6 +155,9 @@
         const params = new URLSearchParams(window.location.search || '');
         if (String(params.get('facebook') || '').trim()) {
           token = String(sessionStorage.getItem(ADMIN_OAUTH_RETURN_TOKEN_KEY) || '').trim();
+          if (!token) {
+            token = String(localStorage.getItem(ADMIN_OAUTH_RETURN_TOKEN_FALLBACK_KEY) || '').trim();
+          }
           if (token) {
             adminTokenMemory = token;
             try { window.__VM_ADMIN_TOKEN__ = token; } catch (_) {}
@@ -184,10 +188,12 @@
       const next = String(token || '').trim();
       if (!next) return;
       try { sessionStorage.setItem(ADMIN_OAUTH_RETURN_TOKEN_KEY, next); } catch (_) {}
+      try { localStorage.setItem(ADMIN_OAUTH_RETURN_TOKEN_FALLBACK_KEY, next); } catch (_) {}
     }
 
     function clearAdminOauthReturnToken(){
       try { sessionStorage.removeItem(ADMIN_OAUTH_RETURN_TOKEN_KEY); } catch (_) {}
+      try { localStorage.removeItem(ADMIN_OAUTH_RETURN_TOKEN_FALLBACK_KEY); } catch (_) {}
     }
 
     async function verifyAdminAccess(){
@@ -683,6 +689,7 @@ function pulseFrame(){
   function handleVmAdminInvalidToken(statusMessage){
     try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
     try { sessionStorage.removeItem('vm_admin_token_oauth_return_v1'); } catch (_) {}
+    try { localStorage.removeItem('vm_admin_token_oauth_return_fallback_v1'); } catch (_) {}
     clearAdminUnlocked();
     const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
     const statusEls = [
@@ -931,6 +938,7 @@ function pulseFrame(){
         const oauthReturnToken = String(getVmAdminTokenValue() || '').trim();
         if (oauthReturnToken) {
           sessionStorage.setItem('vm_admin_token_oauth_return_v1', oauthReturnToken);
+          localStorage.setItem('vm_admin_token_oauth_return_fallback_v1', oauthReturnToken);
         }
       } catch (_) {}
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
@@ -946,6 +954,7 @@ function pulseFrame(){
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
       if (facebookConnectBtn) facebookConnectBtn.disabled = false;
       try { sessionStorage.removeItem('vm_admin_token_oauth_return_v1'); } catch (_) {}
+      try { localStorage.removeItem('vm_admin_token_oauth_return_fallback_v1'); } catch (_) {}
       throw err;
     }
   }
