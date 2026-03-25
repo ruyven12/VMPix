@@ -792,9 +792,9 @@ function pulseFrame(){
     return `
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
         <div style="border:1px solid rgba(97,224,255,.18); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(10,16,24,.9),rgba(8,10,16,.82));">
-          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Connection</div>
-          <div style="margin-top:8px; color:${connected ? 'rgba(210,242,255,.96)' : 'rgba(245,236,242,.96)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.03em; text-transform:uppercase;">${escapeVmAdminHtml(connected ? 'Connected' : 'Not Connected')}</div>
-          <div style="margin-top:8px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Target page: ${escapeVmAdminHtml(pageName)}</div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Page Link</div>
+          <div style="margin-top:8px; color:${connected ? 'rgba(210,242,255,.96)' : 'rgba(245,236,242,.96)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.03em; text-transform:uppercase;">${escapeVmAdminHtml(connected ? 'Connected' : 'Not Linked')}</div>
+          <div style="margin-top:8px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Live page: ${escapeVmAdminHtml(pageName)}</div>
         </div>
         <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(19,11,23,.92),rgba(12,9,17,.82));">
           <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Token State</div>
@@ -802,13 +802,36 @@ function pulseFrame(){
           <div style="margin-top:8px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Checked ${escapeVmAdminHtml(checkedAt)}</div>
         </div>
         <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(16,14,22,.9),rgba(10,10,15,.82));">
-          <div style="color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Backend Readiness</div>
+          <div style="color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Publish Readiness</div>
           <div style="margin-top:8px; color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">${escapeVmAdminHtml(configBits.join(' • '))}</div>
-          <div style="margin-top:8px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Last update ${escapeVmAdminHtml(updatedAt)}</div>
+          <div style="margin-top:8px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Last sync ${escapeVmAdminHtml(updatedAt)}</div>
           <div style="margin-top:4px; color:rgba(120,224,252,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">User token expiry ${escapeVmAdminHtml(expiresAt)}</div>
         </div>
       </div>
     `;
+  }
+
+  function setVmAdminFacebookUiState(opts){
+    const options = opts || {};
+    const connected = !!options.connected;
+    const busy = !!options.busy;
+    const connectBtn = document.getElementById('vmAdminFacebookConnect');
+    const refreshBtn = document.getElementById('vmAdminFacebookRefresh');
+    const disconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
+    const previewBtn = document.getElementById('vmAdminFacebookPreviewBtn');
+    const publishBtn = document.getElementById('vmAdminFacebookPublishBtn');
+    const composerStatus = document.getElementById('vmAdminFacebookComposerStatus');
+    const previewShell = document.getElementById('vmAdminFacebookPreview');
+    if (connectBtn) {
+      connectBtn.textContent = connected ? 'Manage Connection' : 'Connect Page';
+      connectBtn.disabled = busy;
+    }
+    if (refreshBtn) refreshBtn.disabled = busy;
+    if (disconnectBtn) disconnectBtn.disabled = busy || !connected;
+    if (previewBtn) previewBtn.disabled = busy || !connected;
+    if (publishBtn) publishBtn.disabled = busy || !connected;
+    if (composerStatus && options.message) composerStatus.textContent = options.message;
+    if (previewShell && options.clearPreview) previewShell.innerHTML = 'Facebook preview will appear here.';
   }
 
   async function loadVmAdminFacebookStatus(opts){
@@ -816,7 +839,7 @@ function pulseFrame(){
     const shell = document.getElementById('vmAdminFacebookMeta');
     const status = document.getElementById('vmAdminFacebookStatus');
     if (!options.silent) {
-      if (status) status.textContent = 'Checking Facebook page link...';
+      if (status) status.textContent = 'Checking status...';
       if (shell) shell.innerHTML = `<div style="color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Loading Facebook connection status...</div>`;
     }
     try {
@@ -824,7 +847,11 @@ function pulseFrame(){
       if (shell) shell.innerHTML = renderVmAdminFacebookStatus(data && data.connection, data && data.config);
       if (status) {
         const connected = !!(data && data.connection && data.connection.connected);
-        status.textContent = connected ? 'Facebook page connected' : 'Facebook page not connected';
+        status.textContent = connected ? 'Page linked' : 'Page not linked';
+        setVmAdminFacebookUiState({
+          connected,
+          message: connected ? 'Ready to preview or publish' : 'Connect a Facebook page to continue'
+        });
       }
       return data;
     } catch (err) {
@@ -832,12 +859,19 @@ function pulseFrame(){
         handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.', { reopenModal: false });
       }
       if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook status right now.</div>`;
-      if (status) status.textContent = 'Facebook status unavailable';
+      if (status) status.textContent = 'Status unavailable';
+      setVmAdminFacebookUiState({ connected: false, message: 'Unable to load Facebook tools' });
       throw err;
     }
   }
 
   window.__vmAdminRefreshFacebook = function __vmAdminRefreshFacebook(){
+    const disconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
+    setVmAdminFacebookUiState({
+      connected: !!(disconnectBtn && !disconnectBtn.disabled),
+      busy: true,
+      message: 'Refreshing status...'
+    });
     return loadVmAdminFacebookStatus();
   };
 
@@ -899,7 +933,8 @@ function pulseFrame(){
       link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
       image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim()
     };
-    if (status) status.textContent = 'Building Facebook preview...';
+    setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
+    if (status) status.textContent = 'Building preview...';
     try {
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', payload);
       const preview = data && data.preview ? data.preview : {};
@@ -919,26 +954,31 @@ function pulseFrame(){
           </div>
         `;
       }
-      if (status) status.textContent = 'Facebook preview ready';
+      if (status) status.textContent = 'Preview ready';
+      setVmAdminFacebookUiState({ connected: true, message: 'Preview ready' });
       return payload;
     } catch (err) {
       if (previewShell) previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to build preview right now.</div>`;
-      if (status) status.textContent = 'Facebook preview failed';
+      if (status) status.textContent = 'Preview failed';
+      setVmAdminFacebookUiState({ connected: true, message: messageFromVmAdminError(err, 'Preview failed') });
       throw err;
     }
   }
 
   async function runVmAdminFacebookPublish(){
     const status = document.getElementById('vmAdminFacebookComposerStatus');
-    if (status) status.textContent = 'Publishing to Facebook...';
+    setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Publishing post...' });
+    if (status) status.textContent = 'Publishing post...';
     try {
       const payload = await runVmAdminFacebookPreview();
       await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
-      if (status) status.textContent = 'Facebook post published';
+      if (status) status.textContent = 'Post published';
+      setVmAdminFacebookUiState({ connected: true, message: 'Post published' });
       await loadVmAdminFacebookStatus({ silent: true });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (_) {
-      if (status) status.textContent = 'Facebook publish failed';
+      if (status) status.textContent = 'Publish failed';
+      setVmAdminFacebookUiState({ connected: true, message: messageFromVmAdminError(_, 'Publish failed') });
       throw _;
     }
   }
@@ -947,9 +987,10 @@ function pulseFrame(){
     const facebookStatusEl = document.getElementById('vmAdminFacebookStatus');
     const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
     const facebookConnectBtn = document.getElementById('vmAdminFacebookConnect');
+    setVmAdminFacebookUiState({ connected: false, busy: true, message: 'Opening Facebook login...' });
     if (facebookConnectBtn) facebookConnectBtn.disabled = true;
-    if (facebookStatusEl) facebookStatusEl.textContent = 'Preparing Facebook authorization...';
-    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Preparing Facebook authorization...';
+    if (facebookStatusEl) facebookStatusEl.textContent = 'Opening Facebook login...';
+    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Opening Facebook login...';
     try {
       const returnTo = `${window.location.origin}/admin`;
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
@@ -963,6 +1004,7 @@ function pulseFrame(){
       const msg = messageFromVmAdminError(err, 'Facebook authorization could not start');
       if (facebookStatusEl) facebookStatusEl.textContent = msg;
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+      setVmAdminFacebookUiState({ connected: false, message: msg });
       if (facebookConnectBtn) facebookConnectBtn.disabled = false;
       throw err;
     }
@@ -972,13 +1014,15 @@ function pulseFrame(){
     const facebookStatusEl = document.getElementById('vmAdminFacebookStatus');
     const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
     const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
+    setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Disconnecting page...' });
     if (facebookDisconnectBtn) facebookDisconnectBtn.disabled = true;
-    if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting Facebook page...';
-    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Disconnecting Facebook page...';
+    if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting page...';
+    if (facebookComposerStatus) facebookComposerStatus.textContent = 'Disconnecting page...';
     try {
       await postVmAdminJsonWithExplicitToken('/admin/facebook/disconnect', {});
       await loadVmAdminFacebookStatus({ silent: false });
       await loadVmAdminFacebookHistory({ silent: false });
+      setVmAdminFacebookUiState({ connected: false, message: 'Page disconnected', clearPreview: true });
     } catch (err) {
       if (isVmAdminInvalidTokenError(err)) {
         handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
@@ -986,9 +1030,8 @@ function pulseFrame(){
       const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
       if (facebookStatusEl) facebookStatusEl.textContent = msg;
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+      setVmAdminFacebookUiState({ connected: true, message: msg });
       throw err;
-    } finally {
-      if (facebookDisconnectBtn) facebookDisconnectBtn.disabled = false;
     }
   }
 
@@ -1813,12 +1856,12 @@ music: {
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                     <div>
-                      <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Facebook Page Link</div>
-                      <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Phase one of social publishing starts here: connect the Voodoo Media page and keep the backend auth state visible from the same Admin shell.</div>
+                      <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Facebook Publishing</div>
+                      <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Manage the live page connection here, then use the composer below for posting tests.</div>
                     </div>
-                    <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Waiting for status...</div>
+                    <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
                   </div>
-                  <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Preparing Facebook connection tools...</div>
+                  <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook connection details...</div>
                   <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
                     <button type="button" id="vmAdminFacebookConnect" onclick="window.__vmAdminFacebookConnect && window.__vmAdminFacebookConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
                     <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Status</button>
@@ -1827,10 +1870,10 @@ music: {
                   <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                       <div>
-                        <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Manual Composer</div>
-                        <div style="margin-top:6px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Temporary test surface for the first Facebook publish flow. We can replace this with show pickers once the live connection is proven.</div>
+                        <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Composer</div>
+                        <div style="margin-top:6px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Use the current composer for preview and publish tests while the real source picker is still being built.</div>
                       </div>
-                      <div id="vmAdminFacebookComposerStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Waiting for draft</div>
+                      <div id="vmAdminFacebookComposerStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking connection...</div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:14px;">
                       <label style="display:block;">
@@ -1984,8 +2027,9 @@ music: {
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
-            if (facebookStatusEl) facebookStatusEl.textContent = 'Unlock Admin to use Facebook tools';
+            if (facebookStatusEl) facebookStatusEl.textContent = 'Unlock Admin';
             if (facebookComposerStatus) facebookComposerStatus.textContent = 'Unlock Admin to continue';
+            setVmAdminFacebookUiState({ connected: false, message: 'Unlock Admin to continue' });
             const historyShell = document.getElementById('vmAdminFacebookHistory');
             if (historyShell) {
               historyShell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unlock Admin to load Facebook publish history.</div>`;
@@ -2001,19 +2045,26 @@ music: {
           try {
             loadVmAdminFacebookHistory({ silent: false });
           } catch (_) {}
+          setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
 
           if (facebookCallbackState) {
             if (facebookCallbackState.mode === 'connected') {
               if (facebookStatusEl) {
                 facebookStatusEl.textContent = facebookCallbackState.pageName
                   ? `Connected to ${facebookCallbackState.pageName}`
-                  : 'Facebook page connected';
+                  : 'Page linked';
               }
               if (facebookComposerStatus) {
                 facebookComposerStatus.textContent = facebookCallbackState.pageName
                   ? `Facebook connected to ${facebookCallbackState.pageName}`
-                  : 'Facebook connection complete';
+                  : 'Connection complete';
               }
+              setVmAdminFacebookUiState({
+                connected: true,
+                message: facebookCallbackState.pageName
+                  ? `Connected to ${facebookCallbackState.pageName}`
+                  : 'Connection complete'
+              });
               try {
                 loadVmAdminFacebookStatus({ silent: true });
                 loadVmAdminFacebookHistory({ silent: true });
@@ -2022,83 +2073,9 @@ music: {
               const msg = facebookCallbackState.message || 'Facebook connection failed';
               if (facebookStatusEl) facebookStatusEl.textContent = 'Facebook connection error';
               if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+              setVmAdminFacebookUiState({ connected: false, message: msg });
             }
             clearVmFacebookCallbackState();
-          }
-
-          if (facebookRefreshBtn) {
-            facebookRefreshBtn.addEventListener('click', async () => {
-              facebookRefreshBtn.disabled = true;
-              try {
-                await loadVmAdminFacebookStatus({ silent: false });
-              } finally {
-                facebookRefreshBtn.disabled = false;
-              }
-            }, { once: false });
-          }
-
-          if (facebookDisconnectBtn) {
-            facebookDisconnectBtn.addEventListener('click', async () => {
-              facebookDisconnectBtn.disabled = true;
-              if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting Facebook page...';
-              try {
-                await postVmAdminJsonWithExplicitToken('/admin/facebook/disconnect', {});
-                await loadVmAdminFacebookStatus({ silent: false });
-              } catch (err) {
-                const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
-                if (facebookStatusEl) facebookStatusEl.textContent = msg;
-                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
-              } finally {
-                facebookDisconnectBtn.disabled = false;
-              }
-            }, { once: false });
-          }
-
-          if (facebookConnectBtn) {
-            facebookConnectBtn.addEventListener('click', async () => {
-              facebookConnectBtn.disabled = true;
-              if (facebookStatusEl) facebookStatusEl.textContent = 'Preparing Facebook authorization...';
-              try {
-                const returnTo = `${window.location.origin}/admin`;
-                const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
-                const authorizeUrl = String(data && data.authorize_url || '').trim();
-                if (!authorizeUrl) throw new Error('facebook authorize url missing');
-                window.location.href = authorizeUrl;
-              } catch (err) {
-                const msg = messageFromVmAdminError(err, 'Facebook authorization could not start');
-                if (facebookStatusEl) facebookStatusEl.textContent = msg;
-                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
-                facebookConnectBtn.disabled = false;
-              }
-            }, { once: false });
-          }
-
-          if (facebookPreviewBtn) {
-            facebookPreviewBtn.addEventListener('click', async () => {
-              facebookPreviewBtn.disabled = true;
-              try {
-                await runVmAdminFacebookPreview();
-              } catch (err) {
-                const msg = messageFromVmAdminError(err, 'Facebook preview failed');
-                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
-              } finally {
-                facebookPreviewBtn.disabled = false;
-              }
-            }, { once: false });
-          }
-
-          if (facebookPublishBtn) {
-            facebookPublishBtn.addEventListener('click', async () => {
-              facebookPublishBtn.disabled = true;
-              try {
-                await runVmAdminFacebookPublish();
-              } catch (err) {
-                const msg = messageFromVmAdminError(err, 'Facebook publish failed');
-                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
-              } finally {
-                facebookPublishBtn.disabled = false;
-              }
-            }, { once: false });
           }
 
           if (rebuildBtn) {
