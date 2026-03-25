@@ -131,7 +131,6 @@
   (function(){
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
-    const ADMIN_TOKEN_KEY = 'vm_admin_token_v1';
     let adminTokenMemory = '';
     const ADMIN_AUTH_API_BASE =
       (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
@@ -148,14 +147,7 @@
     }
 
     function getAdminToken(){
-      let token = '';
-      try { token = String(sessionStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) {}
-      if (!token) {
-        try { token = String(localStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) {}
-      }
-      if (!token) token = String(adminTokenMemory || '').trim();
-      if (token && !adminTokenMemory) adminTokenMemory = token;
-      return token;
+      return String(adminTokenMemory || '').trim();
     }
 
     function isAdminUnlocked(){
@@ -166,16 +158,12 @@
       if (!token) return;
       adminTokenMemory = String(token || '').trim();
       try { window.__VM_ADMIN_TOKEN__ = adminTokenMemory; } catch (_) {}
-      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, adminTokenMemory); } catch (_) {}
-      try { localStorage.setItem(ADMIN_TOKEN_KEY, adminTokenMemory); } catch (_) {}
       setAdminUnlockedUI(true);
     }
 
     function clearAdminUnlocked(){
       adminTokenMemory = '';
       try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
-      try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
-      try { localStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
       setAdminUnlockedUI(false);
     }
 
@@ -186,8 +174,6 @@
         return false;
       }
       try { window.__VM_ADMIN_TOKEN__ = token; } catch (_) {}
-      try { localStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (_) {}
-      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (_) {}
       try {
         const res = await fetch(`${ADMIN_AUTH_API_BASE}/admin/verify`, {
           method: 'GET',
@@ -440,12 +426,7 @@
       if (active) moveUnderlineTo(active);
     });
 
-    if (isAdminUnlocked()) {
-      setAdminUnlockedUI(true);
-      verifyAdminAccess().then((ok) => { if (!ok) clearAdminUnlocked(); });
-    } else {
-      setAdminUnlockedUI(false);
-    }
+    clearAdminUnlocked();
   })();
 
 function pulseFrame(){
@@ -615,13 +596,7 @@ function pulseFrame(){
         ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
         : 'https://wrestling-archive.onrender.com';
     let token = '';
-    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
-    if (!token) {
-      try { token = String(localStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
-    }
-    if (!token) {
-      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
-    }
+    try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
     const headers = Object.assign({
       Accept: 'application/json'
     }, (options && options.headers) || {});
@@ -681,8 +656,6 @@ function pulseFrame(){
   }
 
   function handleVmAdminInvalidToken(statusMessage){
-    try { sessionStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
-    try { localStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
     try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
     clearAdminUnlocked();
     const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
@@ -716,13 +689,7 @@ function pulseFrame(){
 
   function getVmAdminTokenValue(){
     let token = '';
-    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
-    if (!token) {
-      try { token = String(localStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
-    }
-    if (!token) {
-      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
-    }
+    try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
     return token;
   }
 
@@ -1947,8 +1914,6 @@ music: {
           const liveToken = getAdminToken();
           if (liveToken) {
             window.__VM_ADMIN_TOKEN__ = liveToken;
-            try { localStorage.setItem('vm_admin_token_v1', liveToken); } catch (_) {}
-            try { sessionStorage.setItem('vm_admin_token_v1', liveToken); } catch (_) {}
           }
         } catch (_) {}
 
