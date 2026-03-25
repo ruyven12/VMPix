@@ -667,6 +667,11 @@ function pulseFrame(){
     return data;
   }
 
+  function messageFromVmAdminError(err, fallback){
+    const raw = String((err && err.message) || '').trim();
+    return raw || String(fallback || 'Request failed').trim() || 'Request failed';
+  }
+
   function renderVmAdminFacebookStatus(connection, config){
     const info = connection && typeof connection === 'object' ? connection : {};
     const page = info && info.page && typeof info.page === 'object' ? info.page : {};
@@ -1853,8 +1858,10 @@ music: {
               try {
                 await postVmAdminJson('/admin/facebook/disconnect', {});
                 await loadVmAdminFacebookStatus({ silent: false });
-              } catch (_) {
-                if (facebookStatusEl) facebookStatusEl.textContent = 'Facebook disconnect failed';
+              } catch (err) {
+                const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
+                if (facebookStatusEl) facebookStatusEl.textContent = msg;
+                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
               } finally {
                 facebookDisconnectBtn.disabled = false;
               }
@@ -1871,8 +1878,10 @@ music: {
                 const authorizeUrl = String(data && data.authorize_url || '').trim();
                 if (!authorizeUrl) throw new Error('facebook authorize url missing');
                 window.location.href = authorizeUrl;
-              } catch (_) {
-                if (facebookStatusEl) facebookStatusEl.textContent = 'Facebook authorization could not start';
+              } catch (err) {
+                const msg = messageFromVmAdminError(err, 'Facebook authorization could not start');
+                if (facebookStatusEl) facebookStatusEl.textContent = msg;
+                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
                 facebookConnectBtn.disabled = false;
               }
             }, { once: false });
@@ -1883,6 +1892,9 @@ music: {
               facebookPreviewBtn.disabled = true;
               try {
                 await runVmAdminFacebookPreview();
+              } catch (err) {
+                const msg = messageFromVmAdminError(err, 'Facebook preview failed');
+                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
               } finally {
                 facebookPreviewBtn.disabled = false;
               }
@@ -1894,6 +1906,9 @@ music: {
               facebookPublishBtn.disabled = true;
               try {
                 await runVmAdminFacebookPublish();
+              } catch (err) {
+                const msg = messageFromVmAdminError(err, 'Facebook publish failed');
+                if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
               } finally {
                 facebookPublishBtn.disabled = false;
               }
