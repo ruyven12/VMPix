@@ -29,6 +29,9 @@ These should be configured on the backend:
 - `META_REDIRECT_URI`
 - `META_GRAPH_VERSION`
 - `FACEBOOK_PAGE_NAME_TARGET`
+- `META_OAUTH_STATE_SECRET`
+- `META_OAUTH_SUCCESS_REDIRECT`
+- `META_OAUTH_ERROR_REDIRECT`
 
 Suggested initial target:
 
@@ -83,13 +86,45 @@ Example response:
 }
 ```
 
+## Current Connect Endpoints
+
+`POST /admin/facebook/connect/start`
+
+Requires admin auth and returns a Meta authorize URL.
+
+Example response:
+
+```json
+{
+  "ok": true,
+  "authorize_url": "https://www.facebook.com/dialog/oauth?...",
+  "page_target": "Voodoo Media",
+  "scopes": [
+    "pages_show_list",
+    "pages_manage_posts",
+    "pages_read_engagement"
+  ]
+}
+```
+
+`GET /admin/facebook/connect/callback`
+
+- Handles the Meta redirect
+- Exchanges the code for a user token
+- Attempts long-lived token exchange
+- Fetches manageable Pages
+- Selects the target Page by name
+- Stores the Page access token server-side
+- Redirects back to the configured success/error URL when available
+
+`POST /admin/facebook/disconnect`
+
+- Clears the stored Facebook connection record
+
 ## Next Endpoints
 
 After Phase 1, the next backend endpoints are:
 
-- `POST /admin/facebook/connect/start`
-- `GET /admin/facebook/connect/callback`
-- `POST /admin/facebook/disconnect`
 - `POST /admin/facebook/preview`
 - `POST /admin/facebook/publish`
 - `GET /admin/facebook/history`
