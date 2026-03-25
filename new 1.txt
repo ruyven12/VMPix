@@ -1,0 +1,94 @@
+What’s Done
+
+We’ve effectively finished the Facebook connection foundation:
+
+Meta app created correctly
+required scopes wired
+Wrestling backend OAuth flow working
+VMPix Admin shell connected to backend
+Voodoo Media Page now connected
+token state/status UI working
+So yes, this is essentially Phase 1 and the Facebook connect portion of Phase 2 done.
+
+What’s Left
+
+1. First real publish test
+
+Use the current manual composer once
+verify preview works
+verify publish succeeds to the Voodoo Media Page
+confirm the publish log/history records it correctly
+2. Tighten the current Facebook Admin tool
+
+clean up button/status wording now that connection is real
+hide or simplify any temporary debug/status noise we no longer need
+make sure Connect Page changes to a reconnect/manage state when already connected
+confirm Disconnect behaves correctly
+3. Validate backend publishing behavior
+
+confirm image + caption + link posts render the way you want on Facebook
+confirm the chosen image URL is publicly reachable enough for Facebook ingestion
+confirm publish failures are logged clearly
+confirm token expiry/refresh behavior is acceptable for your workflow
+4. Replace the temporary manual composer
+
+remove the current temporary test-surface feel
+wire real source selection instead of typing IDs/URLs by hand
+This is the big next product step.
+
+5. Build the real content-pick flow
+You said the better long-term workflow is selecting actual photos from albums. So the likely next implementation path is:
+
+open album/gallery
+select one or more photos
+click share/post
+prefill caption + image + link + source context
+publish to Facebook
+That should work across:
+
+Music shows
+Music bands
+Music people
+Wrestling shows
+Wrestling people
+future archive areas
+6. Connect source data to the composer
+Before full photo-selection UI, there’s an intermediate step we could do if we want:
+
+pull real show data into the composer automatically
+then later swap from show-based to photo-based
+But given your preference, I’d lean toward skipping overbuilding here and going toward photo-first.
+
+7. Clean out temporary debug scaffolding
+Once the system is stable, we should remove or reduce:
+
+extra diagnostics we added for Meta debugging
+extra debug state in backend connection records if not needed long-term
+temporary helper scripts used only during this setup
+8. Mirror the backend pattern into Music where needed
+Right now Wrestling was the first backend anchor.
+Because this is meant for both Music and Wrestling, we still need to decide whether:
+
+one backend becomes the shared social-posting backend
+or the same Facebook posting capability is duplicated/adapted into Music backend
+My recommendation:
+
+keep one shared posting authority if possible
+but we can decide that once the real posting workflow is stable
+Recommended order from here
+
+Real Facebook publish test from current tool
+Clean up the connected-state Admin panel
+Decide final workflow shape:
+photo-first share flow
+or a short stop at show-based autofill
+Build the real source-selection UI
+Remove setup/debug leftovers
+Expand cleanly for Music/Wrestling shared use
+If you want, next I can turn this into a concrete “Phase 3 / Phase 4” checklist specifically for the photo-selection posting workflow.
+
+
+
+
+
+
