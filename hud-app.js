@@ -667,6 +667,29 @@ function pulseFrame(){
     return data;
   }
 
+  async function fetchVmAdminJsonWithExplicitToken(path, params){
+    const base =
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com';
+    const query = Object.assign({}, params || {}, { _ts: Date.now() });
+    const token = getVmAdminTokenValue();
+    const headers = {
+      Accept: 'application/json'
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${base}${path}${buildVmAdminQuery(query)}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data || data.ok === false) {
+      throw new Error((data && data.error) || `request failed for ${path}`);
+    }
+    return data;
+  }
+
   function isVmAdminInvalidTokenError(err){
     const msg = String((err && err.message) || '').trim().toLowerCase();
     return msg === 'invalid token' || msg.indexOf('invalid token') >= 0;
@@ -797,7 +820,7 @@ function pulseFrame(){
       if (shell) shell.innerHTML = `<div style="color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Loading Facebook connection status...</div>`;
     }
     try {
-      const data = await fetchVmAdminJson('/admin/facebook/status');
+      const data = await fetchVmAdminJsonWithExplicitToken('/admin/facebook/status');
       if (shell) shell.innerHTML = renderVmAdminFacebookStatus(data && data.connection, data && data.config);
       if (status) {
         const connected = !!(data && data.connection && data.connection.connected);
@@ -832,7 +855,7 @@ function pulseFrame(){
       shell.innerHTML = `<div style="color:rgba(208,222,232,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook publish history...</div>`;
     }
     try {
-      const data = await fetchVmAdminJson('/admin/facebook/history', { limit: 8 });
+      const data = await fetchVmAdminJsonWithExplicitToken('/admin/facebook/history', { limit: 8 });
       const items = Array.isArray(data && data.items) ? data.items : [];
       if (!items.length) {
         shell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">No Facebook publish attempts logged yet.</div>`;
