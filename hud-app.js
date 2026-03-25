@@ -610,7 +610,10 @@ function pulseFrame(){
         ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
         : 'https://wrestling-archive.onrender.com';
     let token = '';
-    try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    if (!token) {
+      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    }
     const headers = Object.assign({
       Accept: 'application/json'
     }, (options && options.headers) || {});
@@ -708,7 +711,10 @@ function pulseFrame(){
 
   function getVmAdminTokenValue(){
     let token = '';
-    try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    if (!token) {
+      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    }
     return token;
   }
 
