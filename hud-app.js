@@ -927,7 +927,12 @@ function pulseFrame(){
     if (facebookComposerStatus) facebookComposerStatus.textContent = 'Preparing Facebook authorization...';
     try {
       const returnTo = `${window.location.origin}/admin`;
-      stageAdminOauthReturnToken(getVmAdminTokenValue());
+      try {
+        const oauthReturnToken = String(getVmAdminTokenValue() || '').trim();
+        if (oauthReturnToken) {
+          sessionStorage.setItem('vm_admin_token_oauth_return_v1', oauthReturnToken);
+        }
+      } catch (_) {}
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
       const authorizeUrl = String(data && data.authorize_url || '').trim();
       if (!authorizeUrl) throw new Error('facebook authorize url missing');
