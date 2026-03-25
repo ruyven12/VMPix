@@ -132,6 +132,7 @@
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
     const ADMIN_TOKEN_KEY = 'vm_admin_token_v1';
+    let adminTokenMemory = '';
     const ADMIN_AUTH_API_BASE =
       (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
         ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
@@ -147,7 +148,14 @@
     }
 
     function getAdminToken(){
-      try { return String(sessionStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) { return ''; }
+      let token = '';
+      try { token = String(sessionStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) {}
+      if (!token) {
+        try { token = String(localStorage.getItem(ADMIN_TOKEN_KEY) || '').trim(); } catch (_) {}
+      }
+      if (!token) token = String(adminTokenMemory || '').trim();
+      if (token && !adminTokenMemory) adminTokenMemory = token;
+      return token;
     }
 
     function isAdminUnlocked(){
@@ -156,12 +164,18 @@
 
     function markAdminUnlocked(token){
       if (!token) return;
-      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, String(token)); } catch (_) {}
+      adminTokenMemory = String(token || '').trim();
+      try { window.__VM_ADMIN_TOKEN__ = adminTokenMemory; } catch (_) {}
+      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, adminTokenMemory); } catch (_) {}
+      try { localStorage.setItem(ADMIN_TOKEN_KEY, adminTokenMemory); } catch (_) {}
       setAdminUnlockedUI(true);
     }
 
     function clearAdminUnlocked(){
+      adminTokenMemory = '';
+      try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
       try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
+      try { localStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
       setAdminUnlockedUI(false);
     }
 
@@ -599,6 +613,12 @@ function pulseFrame(){
         : 'https://wrestling-archive.onrender.com';
     let token = '';
     try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    if (!token) {
+      try { token = String(localStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    }
+    if (!token) {
+      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    }
     const headers = Object.assign({
       Accept: 'application/json'
     }, (options && options.headers) || {});
@@ -659,6 +679,8 @@ function pulseFrame(){
 
   function handleVmAdminInvalidToken(statusMessage){
     try { sessionStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
+    try { localStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
+    try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
     clearAdminUnlocked();
     const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
     const statusEls = [
