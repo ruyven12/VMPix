@@ -794,6 +794,12 @@ function pulseFrame(){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookHistory');
     if (!shell) return null;
+    if (!getVmAdminTokenValue()) {
+      if (!options.silent) {
+        shell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unlock Admin to load Facebook publish history.</div>`;
+      }
+      return null;
+    }
     if (!options.silent) {
       shell.innerHTML = `<div style="color:rgba(208,222,232,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook publish history...</div>`;
     }
@@ -1917,13 +1923,6 @@ music: {
           }
         } catch (_) {}
 
-        try {
-          loadVmAdminFacebookStatus({ silent: false });
-        } catch (_) {}
-        try {
-          loadVmAdminFacebookHistory({ silent: false });
-        } catch (_) {}
-
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
         if (analyticsRange) {
@@ -1934,11 +1933,23 @@ music: {
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
+            if (facebookStatusEl) facebookStatusEl.textContent = 'Unlock Admin to use Facebook tools';
+            if (facebookComposerStatus) facebookComposerStatus.textContent = 'Unlock Admin to continue';
+            const historyShell = document.getElementById('vmAdminFacebookHistory');
+            if (historyShell) {
+              historyShell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unlock Admin to load Facebook publish history.</div>`;
+            }
             navigateToRoute('home', { replace: true });
             openAdminModal();
             return;
           }
           if (statusEl) statusEl.textContent = 'Backend access approved';
+          try {
+            loadVmAdminFacebookStatus({ silent: false });
+          } catch (_) {}
+          try {
+            loadVmAdminFacebookHistory({ silent: false });
+          } catch (_) {}
 
           if (facebookCallbackState) {
             if (facebookCallbackState.mode === 'connected') {
