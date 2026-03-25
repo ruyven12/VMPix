@@ -17,14 +17,17 @@ verify preview works
 verify publish succeeds to the Voodoo Media Page
 confirm the publish log/history records it correctly
 
-What’s Left
 
-2. Tighten the current Facebook Admin tool
+
+Tighten the current Facebook Admin tool
 
 clean up button/status wording now that connection is real
 hide or simplify any temporary debug/status noise we no longer need
 make sure Connect Page changes to a reconnect/manage state when already connected
 confirm Disconnect behaves correctly
+
+What’s Left
+
 3. Validate backend publishing behavior
 
 confirm image + caption + link posts render the way you want on Facebook
