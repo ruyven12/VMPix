@@ -714,6 +714,42 @@ function pulseFrame(){
     return data;
   }
 
+  function getVmAdminTokenValue(){
+    let token = '';
+    try { token = String(sessionStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    if (!token) {
+      try { token = String(localStorage.getItem('vm_admin_token_v1') || '').trim(); } catch (_) {}
+    }
+    if (!token) {
+      try { token = String((window && window.__VM_ADMIN_TOKEN__) || '').trim(); } catch (_) {}
+    }
+    return token;
+  }
+
+  async function postVmAdminJsonWithExplicitToken(path, body){
+    const base =
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com';
+    const token = getVmAdminTokenValue();
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${base}${path}`, {
+      method: 'POST',
+      cache: 'no-store',
+      headers,
+      body: JSON.stringify(body || {})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data || data.ok === false) {
+      throw new Error((data && data.error) || `request failed for ${path}`);
+    }
+    return data;
+  }
+
   function messageFromVmAdminError(err, fallback){
     const raw = String((err && err.message) || '').trim();
     return raw || String(fallback || 'Request failed').trim() || 'Request failed';
@@ -841,7 +877,7 @@ function pulseFrame(){
     };
     if (status) status.textContent = 'Building Facebook preview...';
     try {
-      const data = await postVmAdminJson('/admin/facebook/preview', payload);
+      const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', payload);
       const preview = data && data.preview ? data.preview : {};
       if (previewShell) {
         previewShell.innerHTML = `
@@ -873,7 +909,7 @@ function pulseFrame(){
     if (status) status.textContent = 'Publishing to Facebook...';
     try {
       const payload = await runVmAdminFacebookPreview();
-      await postVmAdminJson('/admin/facebook/publish', payload || {});
+      await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
       if (status) status.textContent = 'Facebook post published';
       await loadVmAdminFacebookStatus({ silent: true });
       await loadVmAdminFacebookHistory({ silent: false });
@@ -892,7 +928,7 @@ function pulseFrame(){
     if (facebookComposerStatus) facebookComposerStatus.textContent = 'Preparing Facebook authorization...';
     try {
       const returnTo = `${window.location.origin}/admin`;
-      const data = await postVmAdminJson('/admin/facebook/connect/start', { return_to: returnTo });
+      const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
       const authorizeUrl = String(data && data.authorize_url || '').trim();
       if (!authorizeUrl) throw new Error('facebook authorize url missing');
       window.location.href = authorizeUrl;
@@ -916,7 +952,7 @@ function pulseFrame(){
     if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting Facebook page...';
     if (facebookComposerStatus) facebookComposerStatus.textContent = 'Disconnecting Facebook page...';
     try {
-      await postVmAdminJson('/admin/facebook/disconnect', {});
+      await postVmAdminJsonWithExplicitToken('/admin/facebook/disconnect', {});
       await loadVmAdminFacebookStatus({ silent: false });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (err) {
@@ -1979,7 +2015,7 @@ music: {
               facebookDisconnectBtn.disabled = true;
               if (facebookStatusEl) facebookStatusEl.textContent = 'Disconnecting Facebook page...';
               try {
-                await postVmAdminJson('/admin/facebook/disconnect', {});
+                await postVmAdminJsonWithExplicitToken('/admin/facebook/disconnect', {});
                 await loadVmAdminFacebookStatus({ silent: false });
               } catch (err) {
                 const msg = messageFromVmAdminError(err, 'Facebook disconnect failed');
@@ -1997,7 +2033,7 @@ music: {
               if (facebookStatusEl) facebookStatusEl.textContent = 'Preparing Facebook authorization...';
               try {
                 const returnTo = `${window.location.origin}/admin`;
-                const data = await postVmAdminJson('/admin/facebook/connect/start', { return_to: returnTo });
+                const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
                 const authorizeUrl = String(data && data.authorize_url || '').trim();
                 if (!authorizeUrl) throw new Error('facebook authorize url missing');
                 window.location.href = authorizeUrl;
