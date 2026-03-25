@@ -1843,7 +1843,7 @@ music: {
                   <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                 </div>
               </div>
-              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:16px;">
+              <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:14px; margin-top:16px;">
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">People Index Tools</div>
                   <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Rebuild, inspect, and validate the wrestling people index from the same Admin shell.</div>
