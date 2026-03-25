@@ -825,6 +825,33 @@ function pulseFrame(){
     }
   }
 
+  function readVmFacebookCallbackState(){
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const mode = String(params.get('facebook') || '').trim().toLowerCase();
+      if (!mode) return null;
+      return {
+        mode,
+        message: String(params.get('message') || '').trim(),
+        pageId: String(params.get('page_id') || '').trim(),
+        pageName: String(params.get('page_name') || '').trim()
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function clearVmFacebookCallbackState(){
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('facebook');
+      url.searchParams.delete('message');
+      url.searchParams.delete('page_id');
+      url.searchParams.delete('page_name');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch (_) {}
+  }
+
   function isVmAdminAnalyticsCleared(snapshot){
     const overview = snapshot && snapshot.overview || {};
     const totals = overview && overview.totals || {};
@@ -1758,6 +1785,8 @@ music: {
         const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
         const facebookPreviewBtn = document.getElementById('vmAdminFacebookPreviewBtn');
         const facebookPublishBtn = document.getElementById('vmAdminFacebookPublishBtn');
+        const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
+        const facebookCallbackState = readVmFacebookCallbackState();
 
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
@@ -1781,6 +1810,30 @@ music: {
           try {
             loadVmAdminFacebookHistory({ silent: false });
           } catch (_) {}
+
+          if (facebookCallbackState) {
+            if (facebookCallbackState.mode === 'connected') {
+              if (facebookStatusEl) {
+                facebookStatusEl.textContent = facebookCallbackState.pageName
+                  ? `Connected to ${facebookCallbackState.pageName}`
+                  : 'Facebook page connected';
+              }
+              if (facebookComposerStatus) {
+                facebookComposerStatus.textContent = facebookCallbackState.pageName
+                  ? `Facebook connected to ${facebookCallbackState.pageName}`
+                  : 'Facebook connection complete';
+              }
+              try {
+                loadVmAdminFacebookStatus({ silent: true });
+                loadVmAdminFacebookHistory({ silent: true });
+              } catch (_) {}
+            } else if (facebookCallbackState.mode === 'error') {
+              const msg = facebookCallbackState.message || 'Facebook connection failed';
+              if (facebookStatusEl) facebookStatusEl.textContent = 'Facebook connection error';
+              if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
+            }
+            clearVmFacebookCallbackState();
+          }
 
           if (facebookRefreshBtn) {
             facebookRefreshBtn.addEventListener('click', async () => {
