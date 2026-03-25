@@ -10,14 +10,15 @@ Voodoo Media Page now connected
 token state/status UI working
 So yes, this is essentially Phase 1 and the Facebook connect portion of Phase 2 done.
 
-What’s Left
-
-1. First real publish test
+First real publish test
 
 Use the current manual composer once
 verify preview works
 verify publish succeeds to the Voodoo Media Page
 confirm the publish log/history records it correctly
+
+What’s Left
+
 2. Tighten the current Facebook Admin tool
 
 clean up button/status wording now that connection is real
