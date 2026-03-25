@@ -183,6 +183,7 @@
       try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
       setAdminUnlockedUI(false);
     }
+    try { window.__vmClearAdminUnlocked = clearAdminUnlocked; } catch (_) {}
 
     function stageAdminOauthReturnToken(token){
       const next = String(token || '').trim();
@@ -284,6 +285,7 @@
         window.setTimeout(() => { try { input.focus(); } catch (_) {} }, 20);
       }
     }
+    try { window.__vmOpenAdminModal = openAdminModal; } catch (_) {}
 
     function closeAdminModal(){
       const el = ensureAdminModal();
@@ -690,7 +692,9 @@ function pulseFrame(){
     try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
     try { sessionStorage.removeItem('vm_admin_token_oauth_return_v1'); } catch (_) {}
     try { localStorage.removeItem('vm_admin_token_oauth_return_fallback_v1'); } catch (_) {}
-    clearAdminUnlocked();
+    try {
+      if (window.__vmClearAdminUnlocked) window.__vmClearAdminUnlocked();
+    } catch (_) {}
     const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
     const statusEls = [
       document.getElementById('vmAdminStatusLine'),
@@ -701,7 +705,9 @@ function pulseFrame(){
       if (el) el.textContent = msg;
     });
     window.setTimeout(() => {
-      try { openAdminModal(); } catch (_) {}
+      try {
+        if (window.__vmOpenAdminModal) window.__vmOpenAdminModal();
+      } catch (_) {}
     }, 120);
   }
 
