@@ -783,11 +783,8 @@ function pulseFrame(){
     const updatedAt = info.updated_at ? formatVmAdminDate(info.updated_at) : 'Not connected yet';
     const checkedAt = info.last_checked_at ? formatVmAdminDate(info.last_checked_at) : 'Awaiting first connection';
     const expiresAt = info.user_token_expires_at ? formatVmAdminDate(info.user_token_expires_at) : 'Not available yet';
-    const configBits = [
-      cfg.app_id_configured ? 'App ID ready' : 'App ID missing',
-      cfg.app_secret_configured ? 'App Secret ready' : 'App Secret missing',
-      cfg.redirect_uri_configured ? 'Redirect URI ready' : 'Redirect URI missing'
-    ];
+    const readinessLabel = cfg.connect_ready ? 'Backend ready for Facebook posting.' : 'Facebook setup still needs attention.';
+    const configBits = [readinessLabel];
 
     return `
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
