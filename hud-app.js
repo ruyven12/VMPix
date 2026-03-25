@@ -131,6 +131,7 @@
   (function(){
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
+    const ADMIN_OAUTH_RETURN_TOKEN_KEY = 'vm_admin_token_oauth_return_v1';
     let adminTokenMemory = '';
     const ADMIN_AUTH_API_BASE =
       (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
@@ -147,6 +148,18 @@
     }
 
     function getAdminToken(){
+      let token = String(adminTokenMemory || '').trim();
+      if (token) return token;
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        if (String(params.get('facebook') || '').trim()) {
+          token = String(sessionStorage.getItem(ADMIN_OAUTH_RETURN_TOKEN_KEY) || '').trim();
+          if (token) {
+            adminTokenMemory = token;
+            try { window.__VM_ADMIN_TOKEN__ = token; } catch (_) {}
+          }
+        }
+      } catch (_) {}
       return String(adminTokenMemory || '').trim();
     }
 
@@ -167,6 +180,16 @@
       setAdminUnlockedUI(false);
     }
 
+    function stageAdminOauthReturnToken(token){
+      const next = String(token || '').trim();
+      if (!next) return;
+      try { sessionStorage.setItem(ADMIN_OAUTH_RETURN_TOKEN_KEY, next); } catch (_) {}
+    }
+
+    function clearAdminOauthReturnToken(){
+      try { sessionStorage.removeItem(ADMIN_OAUTH_RETURN_TOKEN_KEY); } catch (_) {}
+    }
+
     async function verifyAdminAccess(){
       const token = getAdminToken();
       if (!token) {
@@ -184,9 +207,11 @@
           }
         });
         if (!res.ok) {
+          clearAdminOauthReturnToken();
           clearAdminUnlocked();
           return false;
         }
+        clearAdminOauthReturnToken();
         setAdminUnlockedUI(true);
         return true;
       } catch (_) {
@@ -657,6 +682,7 @@ function pulseFrame(){
 
   function handleVmAdminInvalidToken(statusMessage){
     try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
+    try { sessionStorage.removeItem('vm_admin_token_oauth_return_v1'); } catch (_) {}
     clearAdminUnlocked();
     const msg = String(statusMessage || 'Admin session expired. Please unlock Admin again.').trim();
     const statusEls = [
@@ -901,6 +927,7 @@ function pulseFrame(){
     if (facebookComposerStatus) facebookComposerStatus.textContent = 'Preparing Facebook authorization...';
     try {
       const returnTo = `${window.location.origin}/admin`;
+      stageAdminOauthReturnToken(getVmAdminTokenValue());
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/connect/start', { return_to: returnTo });
       const authorizeUrl = String(data && data.authorize_url || '').trim();
       if (!authorizeUrl) throw new Error('facebook authorize url missing');
@@ -913,6 +940,7 @@ function pulseFrame(){
       if (facebookStatusEl) facebookStatusEl.textContent = msg;
       if (facebookComposerStatus) facebookComposerStatus.textContent = msg;
       if (facebookConnectBtn) facebookConnectBtn.disabled = false;
+      try { sessionStorage.removeItem('vm_admin_token_oauth_return_v1'); } catch (_) {}
       throw err;
     }
   }
