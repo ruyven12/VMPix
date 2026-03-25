@@ -672,7 +672,8 @@ function pulseFrame(){
     return msg === 'invalid token' || msg.indexOf('invalid token') >= 0;
   }
 
-  function handleVmAdminInvalidToken(statusMessage){
+  function handleVmAdminInvalidToken(statusMessage, opts){
+    const options = opts && typeof opts === 'object' ? opts : {};
     try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
     try { sessionStorage.removeItem('vm_admin_token_v1'); } catch (_) {}
     try {
@@ -687,11 +688,13 @@ function pulseFrame(){
     statusEls.forEach((el) => {
       if (el) el.textContent = msg;
     });
-    window.setTimeout(() => {
-      try {
-        if (window.__vmOpenAdminModal) window.__vmOpenAdminModal();
-      } catch (_) {}
-    }, 120);
+    if (options.reopenModal !== false) {
+      window.setTimeout(() => {
+        try {
+          if (window.__vmOpenAdminModal) window.__vmOpenAdminModal();
+        } catch (_) {}
+      }, 120);
+    }
   }
 
   async function postVmAdminJson(path, body){
@@ -803,7 +806,7 @@ function pulseFrame(){
       return data;
     } catch (err) {
       if (isVmAdminInvalidTokenError(err)) {
-        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.', { reopenModal: false });
       }
       if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook status right now.</div>`;
       if (status) status.textContent = 'Facebook status unavailable';
@@ -854,7 +857,7 @@ function pulseFrame(){
       return data;
     } catch (_) {
       if (isVmAdminInvalidTokenError(_)) {
-        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.');
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.', { reopenModal: false });
       }
       shell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Facebook publish history right now.</div>`;
       return null;
