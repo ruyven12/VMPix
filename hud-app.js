@@ -185,6 +185,9 @@
         clearAdminUnlocked();
         return false;
       }
+      try { window.__VM_ADMIN_TOKEN__ = token; } catch (_) {}
+      try { localStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (_) {}
+      try { sessionStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (_) {}
       try {
         const res = await fetch(`${ADMIN_AUTH_API_BASE}/admin/verify`, {
           method: 'GET',
@@ -1904,6 +1907,14 @@ music: {
         const facebookPublishBtn = document.getElementById('vmAdminFacebookPublishBtn');
         const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
         const facebookCallbackState = readVmFacebookCallbackState();
+        try {
+          const liveToken = getAdminToken();
+          if (liveToken) {
+            window.__VM_ADMIN_TOKEN__ = liveToken;
+            try { localStorage.setItem('vm_admin_token_v1', liveToken); } catch (_) {}
+            try { sessionStorage.setItem('vm_admin_token_v1', liveToken); } catch (_) {}
+          }
+        } catch (_) {}
 
         try {
           loadVmAdminFacebookStatus({ silent: false });
