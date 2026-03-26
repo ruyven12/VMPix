@@ -1290,7 +1290,9 @@ function pulseFrame(){
       return;
     }
     const primary = selectedItems[0];
-    const label = String(primary.title || 'Photo').trim();
+    const label = selectedItems.length > 1
+      ? `${selectedItems.length} Photos Selected`
+      : String(primary.title || 'Photo').trim();
     if (imageField) imageField.value = String(primary.imageFullUrl || primary.imageUrl || '').trim();
     if (titleField) titleField.value = label;
     if (hiddenIdField) hiddenIdField.value = selectedItems.map((item) => item.entityId).filter(Boolean).join(',');
@@ -1299,12 +1301,20 @@ function pulseFrame(){
       linkField.value = String(primary.routeUrl || '').trim();
     }
     if (captionField) {
-      const starter = [
-        primary.matchTitle || primary.title,
-        primary.showTitle || '',
-        primary.prettyDate || '',
-        primary.routeUrl || ''
-      ].filter(Boolean).join('\n');
+      const starter = selectedItems.length > 1
+        ? [
+            `${selectedItems.length} photos selected`,
+            primary.matchTitle || primary.title,
+            primary.showTitle || '',
+            primary.prettyDate || '',
+            primary.routeUrl || ''
+          ].filter(Boolean).join('\n')
+        : [
+            primary.matchTitle || primary.title,
+            primary.showTitle || '',
+            primary.prettyDate || '',
+            primary.routeUrl || ''
+          ].filter(Boolean).join('\n');
       const current = String(captionField.value || '').trim();
       const auto = String(captionField.dataset.vmFacebookAutofill || '') === '1';
       if (!current || auto) {
@@ -1313,7 +1323,9 @@ function pulseFrame(){
       }
     }
     if (pickerStatus) {
-      pickerStatus.textContent = `Selected photo: ${primary.title}`;
+      pickerStatus.textContent = selectedItems.length > 1
+        ? `Selected ${selectedItems.length} photos`
+        : `Selected photo: ${primary.title}`;
     }
     vmAdminFacebookPickerState.selectedId = primary.id;
     vmAdminFacebookPickerState.selected = primary;
@@ -1322,10 +1334,15 @@ function pulseFrame(){
   function toggleVmAdminFacebookPhotoSelection(itemId){
     const item = (Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : []).find((photo) => photo.id === itemId) || null;
     if (!item) return;
-    const current = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds.slice(0, 1) : [];
-    const isSame = current.length === 1 && current[0] === itemId;
-    vmAdminFacebookPickerState.selectedPhotoIds = isSame ? [] : [itemId];
-    if (isSame) {
+    const current = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds.slice() : [];
+    const existingIndex = current.indexOf(itemId);
+    if (existingIndex >= 0) {
+      current.splice(existingIndex, 1);
+    } else {
+      current.push(itemId);
+    }
+    vmAdminFacebookPickerState.selectedPhotoIds = current;
+    if (!current.length) {
       vmAdminFacebookPickerState.selectedId = '';
       vmAdminFacebookPickerState.selected = null;
     }
@@ -1971,16 +1988,31 @@ function pulseFrame(){
 
   function renderVmAdminFacebookSelectedArchivePreview(payload, selected){
     const chosen = selected && typeof selected === 'object' ? selected : null;
+    const selectedPhotos = getVmAdminFacebookSelectedPhotoItems();
+    const showPhotoGrid = selectedPhotos.length > 1;
     const caption = String(payload && payload.caption || '').trim();
     const linkUrl = String(payload && payload.link_url || '').trim();
-    const title = String(payload && payload.entity_label || (chosen && chosen.title) || 'Archive Selection').trim();
+    const title = String(
+      payload && payload.entity_label ||
+      (showPhotoGrid ? `${selectedPhotos.length} Photos Selected` : '') ||
+      (chosen && chosen.title) ||
+      'Archive Selection'
+    ).trim();
     const meta = chosen ? [chosen.subtitle, chosen.meta].filter(Boolean).join(' â€¢ ') : '';
     const finalMessage = linkUrl ? `${caption}\n\n${linkUrl}`.trim() : caption;
     return `
       <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
         <div>
           <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; background:rgba(6,9,14,.82); min-height:140px;">
-            ${payload.image_url ? `<img src="${escapeVmAdminHtml(payload.image_url)}" alt="${escapeVmAdminHtml(title)}" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`}
+            ${showPhotoGrid ? `
+              <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px; min-height:140px;">
+                ${selectedPhotos.slice(0, 4).map((item) => `
+                  <div style="background:rgba(8,10,16,.82); min-height:69px;">
+                    ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title || 'Selected photo')}" style="display:block; width:100%; height:100%; min-height:69px; object-fit:cover;" />` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : (payload.image_url ? `<img src="${escapeVmAdminHtml(payload.image_url)}" alt="${escapeVmAdminHtml(title)}" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`)}
           </div>
         </div>
         <div>
