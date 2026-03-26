@@ -1389,10 +1389,10 @@ function pulseFrame(){
     const browseMatch = getVmAdminFacebookBrowseMatch();
     const browseShow = getVmAdminFacebookBrowseShow();
     if (layoutShell) {
-      layoutShell.style.gridTemplateColumns = browseMatch ? 'minmax(0,1fr)' : 'repeat(auto-fit,minmax(220px,1fr))';
+      layoutShell.style.gridTemplateColumns = 'minmax(0,1fr)';
     }
     if (selectedPanel) {
-      selectedPanel.style.display = browseMatch ? 'none' : 'block';
+      selectedPanel.style.display = 'none';
     }
     if (countShell) {
       if (vmAdminFacebookPickerState.loading) {
