@@ -776,6 +776,14 @@ function pulseFrame(){
       company,
       rawDate,
       slug,
+      sortKey: (function () {
+        const clean = slugVmAdminShowDate(rawDate);
+        if (!clean || clean.length !== 6) return 0;
+        const mm = Number(clean.slice(0, 2));
+        const dd = Number(clean.slice(2, 4));
+        const yy = Number(clean.slice(4, 6));
+        return ((2000 + yy) * 10000) + (mm * 100) + dd;
+      })(),
       searchBlob
     };
   }
@@ -813,7 +821,7 @@ function pulseFrame(){
         vmAdminFacebookPickerState.items = rows
           .map(buildVmAdminFacebookPickerItemFromShow)
           .filter((item) => item && item.id)
-          .sort((a, b) => String(b.rawDate || '').localeCompare(String(a.rawDate || '')) || String(a.title || '').localeCompare(String(b.title || '')));
+          .sort((a, b) => (Number(b.sortKey || 0) - Number(a.sortKey || 0)) || String(a.title || '').localeCompare(String(b.title || '')));
       }
       vmAdminFacebookPickerState.loaded = true;
       if (vmAdminFacebookPickerState.selectedId) {
@@ -2459,7 +2467,7 @@ music: {
                               <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
                               <div id="vmAdminFacebookPickerCount" style="color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Loading...</div>
                             </div>
-                            <div id="vmAdminFacebookPickerResults" style="margin-top:10px; display:grid; gap:8px;"></div>
+                            <div id="vmAdminFacebookPickerResults" style="margin-top:10px; display:grid; gap:8px; max-height:332px; overflow-y:auto; padding-right:4px;"></div>
                           </div>
                           <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                             <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
