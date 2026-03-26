@@ -97,6 +97,25 @@
     if (htmlEl) htmlEl.style.overflowX = 'hidden';
     if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
+    if (isMusicMobileViewport()) {
+      try {
+        const panelRectMobile = _contentPanelEl.getBoundingClientRect();
+        const viewportHeight =
+          Math.max(
+            Number(window.innerHeight) || 0,
+            Number(document.documentElement && document.documentElement.clientHeight) || 0
+          ) || 0;
+        const bottomGap = 12;
+        if (panelRectMobile && Number.isFinite(panelRectMobile.top) && viewportHeight > 0) {
+          const availMobile = Math.max(220, Math.floor(viewportHeight - panelRectMobile.top - bottomGap));
+          _contentPanelEl.style.height = `${availMobile}px`;
+          _contentPanelEl.style.maxHeight = `${availMobile}px`;
+          _contentPanelEl.style.minHeight = '0px';
+          return;
+        }
+      } catch (_) {}
+    }
+
     const hudH = hudMain.clientHeight || 0;
     const cs = window.getComputedStyle ? window.getComputedStyle(hudMain) : null;
 
