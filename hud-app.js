@@ -2355,10 +2355,11 @@ function pulseFrame(){
 
   function renderVmAdminIndexTableRows(rows){
     const items = Array.isArray(rows) ? rows : [];
+    const slug = (label) => String(label || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
     return items.map((row) => `
-      <div style="display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1.6fr) auto; gap:12px; align-items:center; padding:10px 0; border-top:1px solid rgba(255,255,255,.06);">
+      <div data-index-row="${escapeVmAdminHtml(slug(row.label))}" style="display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1.6fr) auto; gap:12px; align-items:center; padding:10px 0; border-top:1px solid rgba(255,255,255,.06);">
         <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">${escapeVmAdminHtml(row.label || 'Index')}</div>
-        <div style="color:rgba(208,222,232,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(row.generatedAtLabel || 'Checking rebuild time...')}</div>
+        <div data-index-generated="${escapeVmAdminHtml(slug(row.label))}" style="color:rgba(208,222,232,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(row.generatedAtLabel || 'Checking rebuild time...')}</div>
         <button type="button" style="min-width:132px; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,95,135,.24); background:linear-gradient(180deg,rgba(28,17,30,.9),rgba(16,11,20,.88)); color:rgba(247,237,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:default;">Rebuild Index</button>
       </div>
     `).join('');
@@ -2389,6 +2390,7 @@ function pulseFrame(){
     ];
     const resolvedRows = rows.map((row) => Object.assign({}, row, { generatedAtLabel: 'Checking rebuild time...' }));
     shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+    const slug = (label) => String(label || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const loadRow = async (row) => {
       let generatedAt = '';
       for (let i = 0; i < row.endpoints.length; i++) {
@@ -2421,10 +2423,12 @@ function pulseFrame(){
     resolvedRows.forEach((row, index) => {
       loadRow(row).then((nextRow) => {
         resolvedRows[index] = nextRow;
-        if (shell) shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+        const cell = shell ? shell.querySelector(`[data-index-generated="${slug(nextRow.label)}"]`) : null;
+        if (cell) cell.textContent = String(nextRow.generatedAtLabel || 'Not available');
       }).catch(() => {
         resolvedRows[index] = Object.assign({}, row, { generatedAtLabel: 'Not available' });
-        if (shell) shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+        const cell = shell ? shell.querySelector(`[data-index-generated="${slug(row.label)}"]`) : null;
+        if (cell) cell.textContent = 'Not available';
       });
     });
     return resolvedRows;
