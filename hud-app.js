@@ -2305,6 +2305,17 @@ function pulseFrame(){
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
     payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
+
+    if ((albumPayload.publish_mode === 'album' || albumPayload.publish_mode === 'both') && !albumPayload.facebook_album_id) {
+      const message = 'Choose a Facebook album before previewing album upload mode.';
+      if (previewShell) {
+        previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">${escapeVmAdminHtml(message)}</div>`;
+      }
+      if (status) status.textContent = 'Album required';
+      setVmAdminFacebookUiState({ connected: true, message });
+      throw new Error(message);
+    }
+
     const cleanPayload = compactVmAdminFacebookPayload(payload);
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
