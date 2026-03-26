@@ -2003,9 +2003,15 @@ music: {
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                    <div>
-                      <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;">Facebook Publishing</div>
-                      <div style="margin-top:8px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Manage the live page connection here, then use the composer below for posting tests.</div>
+                    <div style="flex:1 1 100%; min-width:0;">
+                      <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                      </div>
+                      <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Facebook Publishing</div>
+                      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+                        <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                      </div>
+                      <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Manage the live page connection here, then use the composer below for posting tests.</div>
                     </div>
                     <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
                   </div>
