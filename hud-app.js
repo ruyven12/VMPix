@@ -890,6 +890,15 @@ function pulseFrame(){
     return slug || `${section || 'archive'}-${entityType || 'post'}`;
   }
 
+  function buildVmAdminFacebookEntityLabel(payload){
+    const explicitTitle = String(payload && payload.entity_label || '').trim();
+    if (explicitTitle) return explicitTitle;
+    const caption = String(payload && payload.caption || '').trim();
+    if (!caption) return 'Untitled Post';
+    const firstLine = caption.split(/\r?\n/).map((line) => String(line || '').trim()).find(Boolean) || '';
+    return firstLine || 'Untitled Post';
+  }
+
   async function loadVmAdminFacebookStatus(opts){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookMeta');
@@ -999,6 +1008,7 @@ function pulseFrame(){
       payload.link_url = String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim();
       payload.image_url = String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim();
     }
+    payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
     payload.entity_id = buildVmAdminFacebookEntityId(payload);
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
