@@ -754,6 +754,39 @@ function pulseFrame(){
     return value;
   }
 
+  function formatVmAdminShowDateLongOrdinal(raw){
+    const value = String(raw || '').trim();
+    if (!value) return '';
+    let year = 0;
+    let month = 0;
+    let day = 0;
+    let match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (match) {
+      month = Number(match[1]);
+      day = Number(match[2]);
+      year = Number(String(match[3]).length === 2 ? `20${match[3]}` : match[3]);
+    } else {
+      match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return formatVmAdminShowDate(value);
+      year = Number(match[1]);
+      month = Number(match[2]);
+      day = Number(match[3]);
+    }
+    const date = new Date(year, month - 1, day);
+    if (Number.isNaN(date.getTime())) return formatVmAdminShowDate(value);
+    const monthLabel = date.toLocaleDateString(undefined, { month: 'long' });
+    const suffix = (function (n) {
+      const mod100 = n % 100;
+      if (mod100 >= 11 && mod100 <= 13) return 'th';
+      const mod10 = n % 10;
+      if (mod10 === 1) return 'st';
+      if (mod10 === 2) return 'nd';
+      if (mod10 === 3) return 'rd';
+      return 'th';
+    })(day);
+    return `${monthLabel} ${day}${suffix}, ${year}`;
+  }
+
   function buildVmAdminShowVenueLine(showRow){
     const row = showRow && typeof showRow === 'object' ? showRow : {};
     const venue = String(row.show_venue || row.venue || '').trim();
@@ -1161,13 +1194,14 @@ function pulseFrame(){
     const routePath = slug ? `/wrestling/shows/${slug}` : '/wrestling/shows';
     const routeUrl = `${window.location.origin}${routePath}`;
     const prettyDate = formatVmAdminShowDate(rawDate);
+    const displayDate = formatVmAdminShowDateLongOrdinal(rawDate) || prettyDate;
     const searchBlob = [title, prettyDate, company, venueLine, slug].filter(Boolean).join(' ').toLowerCase();
     return {
       id: `show:${slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       type: 'show',
       entityId: slug ? `wrestling-show-${slug}` : `wrestling-show-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
       title,
-      subtitle: [prettyDate, company].filter(Boolean).join(' â€¢ '),
+      subtitle: displayDate,
       meta: venueLine,
       prettyDate,
       routePath,
