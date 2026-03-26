@@ -654,6 +654,14 @@ function pulseFrame(){
     );
   }
 
+  function getVmAdminMusicApiBase(){
+    return (
+      (typeof window !== 'undefined' && typeof window.MUSIC_ARCHIVE_API_BASE === 'string' && window.MUSIC_ARCHIVE_API_BASE.trim())
+        ? window.MUSIC_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://music-archive-3lfa.onrender.com'
+    );
+  }
+
   const vmAdminFacebookPickerState = {
     loading: false,
     loaded: false,
@@ -2326,6 +2334,87 @@ function pulseFrame(){
     return out;
   }
 
+  function formatVmAdminIndexGeneratedAt(value){
+    const raw = String(value || '').trim();
+    if (!raw) return 'Not available';
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return 'Not available';
+    try {
+      return date.toLocaleString(undefined, {
+        month: '2-digit',
+        day: '2-digit',
+        year: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (_) {
+      return 'Not available';
+    }
+  }
+
+  function renderVmAdminIndexTableRows(rows){
+    const items = Array.isArray(rows) ? rows : [];
+    return items.map((row) => `
+      <div style="display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1.6fr) auto; gap:12px; align-items:center; padding:10px 0; border-top:1px solid rgba(255,255,255,.06);">
+        <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">${escapeVmAdminHtml(row.label || 'Index')}</div>
+        <div style="color:rgba(208,222,232,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(row.generatedAtLabel || 'Checking rebuild time...')}</div>
+        <button type="button" style="min-width:132px; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,95,135,.24); background:linear-gradient(180deg,rgba(28,17,30,.9),rgba(16,11,20,.88)); color:rgba(247,237,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:default;">Rebuild Index</button>
+      </div>
+    `).join('');
+  }
+
+  function renderVmAdminIndexTableShell(rows){
+    return `
+      <div style="margin-top:12px; border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:12px 14px; background:rgba(8,10,16,.62);">
+        <div style="display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1.6fr) auto; gap:12px; align-items:center; padding-bottom:8px;">
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity</div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Last Rebuild</div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; text-align:right;">Action</div>
+        </div>
+        ${renderVmAdminIndexTableRows(rows)}
+      </div>
+    `;
+  }
+
+  async function loadVmAdminIndexingTable(){
+    const shell = document.getElementById('vmAdminPeopleMeta');
+    if (!shell) return null;
+    const rows = [
+      { label: 'Music-Bands', base: getVmAdminMusicApiBase(), endpoints: ['/index/bands'] },
+      { label: 'Music-Shows', base: getVmAdminMusicApiBase(), endpoints: ['/index/shows'] },
+      { label: 'Music-People', base: getVmAdminMusicApiBase(), endpoints: ['/index/people'] },
+      { label: 'Wrestling-Shows', base: getVmAdminWrestlingApiBase(), endpoints: ['/index/shows'] },
+      { label: 'Wrestling-People', base: getVmAdminWrestlingApiBase(), endpoints: ['/index/index', '/index/people'] }
+    ];
+    shell.innerHTML = renderVmAdminIndexTableShell(rows.map((row) => Object.assign({}, row, { generatedAtLabel: 'Checking rebuild time...' })));
+    const resolvedRows = await Promise.all(rows.map(async (row) => {
+      let generatedAt = '';
+      for (let i = 0; i < row.endpoints.length; i++) {
+        const endpoint = String(row.endpoints[i] || '').trim();
+        if (!endpoint) continue;
+        try {
+          const res = await fetch(`${row.base}${endpoint}?cb=${Date.now()}`, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+          });
+          if (!res.ok) continue;
+          const data = await res.json().catch(() => null);
+          if (data && data.generatedAt) {
+            generatedAt = String(data.generatedAt || '').trim();
+            if (generatedAt) break;
+          }
+        } catch (_) {}
+      }
+      return Object.assign({}, row, {
+        generatedAtLabel: formatVmAdminIndexGeneratedAt(generatedAt)
+      });
+    }));
+    shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+    return resolvedRows;
+  }
+
   function buildVmAdminFacebookComposerPayload(){
     const previewShell = document.getElementById('vmAdminFacebookPreview');
     const status = document.getElementById('vmAdminFacebookComposerStatus');
@@ -3628,8 +3717,7 @@ music: {
                     <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                   </div>
                   <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">This area deals with the cached results of our indexes and gives us the ability to rebuild them on command.</div>
-                  <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:34px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Waiting for rebuild status...</div>
-                  <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
+                  <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:220px;"></div>
                 </div>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -4058,30 +4146,9 @@ music: {
             clearVmFacebookCallbackState();
           }
 
-          if (rebuildBtn) {
-            rebuildBtn.addEventListener('click', async () => {
-              rebuildBtn.disabled = true;
-              if (statusEl) statusEl.textContent = 'Rebuilding wrestling people index...';
-              try {
-                const res = await __vmAdminFetch('/admin/people-index/rebuild', {
-                  method: 'POST'
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok || !data || !data.ok) {
-                  throw new Error((data && data.error) || 'rebuild failed');
-                }
-                if (statusEl) statusEl.textContent = 'People index rebuild complete';
-                if (metaEl) {
-                  const generatedAt = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'Unknown';
-                  metaEl.textContent = `${Number(data.totalPeople || 0)} people â€¢ ${Number(data.totalAppearances || 0)} appearances â€¢ rebuilt ${generatedAt}`;
-                }
-              } catch (_) {
-                if (statusEl) statusEl.textContent = 'Rebuild failed';
-              } finally {
-                rebuildBtn.disabled = false;
-              }
-            }, { once: false });
-          }
+          try {
+            loadVmAdminIndexingTable();
+          } catch (_) {}
 
           const initialAnalyticsRange = analyticsRange ? analyticsRange.value : '7d';
           try {
