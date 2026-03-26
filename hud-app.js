@@ -1979,11 +1979,48 @@ function pulseFrame(){
     return shareData;
   }
 
+  async function buildVmAdminNativeShareFiles(payload){
+    if (typeof File === 'undefined') return [];
+    const row = payload && typeof payload === 'object' ? payload : {};
+    const selectedPhotos = Array.isArray(row.selected_photos) ? row.selected_photos : [];
+    const photoItems = selectedPhotos.length
+      ? selectedPhotos
+      : (row.image_url ? [{ image_url: row.image_url, title: row.entity_label || 'shared-photo' }] : []);
+    const files = [];
+    for (let index = 0; index < photoItems.length; index++) {
+      const item = photoItems[index] && typeof photoItems[index] === 'object' ? photoItems[index] : {};
+      const imageUrl = String(item.image_url || '').trim();
+      if (!imageUrl) continue;
+      try {
+        const res = await fetch(imageUrl, { mode: 'cors', cache: 'no-store' });
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        const mime = String(blob && blob.type || '').trim() || 'image/jpeg';
+        const baseName = String(item.title || row.entity_label || `shared-photo-${index + 1}`)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '') || `shared-photo-${index + 1}`;
+        const ext = mime.indexOf('png') >= 0 ? 'png' : (mime.indexOf('webp') >= 0 ? 'webp' : 'jpg');
+        files.push(new File([blob], `${baseName}.${ext}`, { type: mime }));
+      } catch (_) {}
+    }
+    return files;
+  }
+
   async function runVmAdminNativeShare(payload){
     if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
       throw new Error('Native share is not available in this browser.');
     }
     const shareData = buildVmAdminFacebookSharePayload(payload);
+    const files = await buildVmAdminNativeShareFiles(payload);
+    if (files.length) {
+      const fileShareData = Object.assign({}, shareData, { files });
+      if (typeof navigator.canShare === 'function' ? navigator.canShare(fileShareData) : true) {
+        await navigator.share(fileShareData);
+        return fileShareData;
+      }
+    }
     if (!shareData.title && !shareData.text && !shareData.url) {
       throw new Error('Nothing is ready to share yet.');
     }
