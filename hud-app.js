@@ -1516,7 +1516,6 @@ function pulseFrame(){
                 <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${active ? 'Selected' : actionLabel}</button>
               </div>
             </div>
-            ${item.meta ? `<div style="margin-top:6px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.meta)}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -3431,11 +3430,7 @@ music: {
                       <div id="vmAdminFacebookPickerShell" data-facebook-mode="photo-post" style="display:none; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
                         <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Choose Content</div>
                         <div style="margin-top:6px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Show-source-first picker. Search shows, choose one result, and the composer fields will update automatically.</div>
-                        <label style="display:block; margin-top:10px;">
-                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Search Shows</div>
-                          <input id="vmAdminFacebookPickerSearch" type="search" placeholder="Search show title, date, company, or venue..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
-                        </label>
-                        <div id="vmAdminFacebookPickerLayout" style="margin-top:8px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                        <div id="vmAdminFacebookPickerLayout" style="margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
                           <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                               <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
