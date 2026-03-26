@@ -1139,6 +1139,7 @@ function pulseFrame(){
       const partTitle = getVmAdminMatchField(row, index, 'title');
       const people = getVmAdminMatchField(row, index, 'people');
       const urlCell = getVmAdminMatchField(row, index, 'url');
+      if (!type && !stip && !partTitle && !people) break;
       const routeSlug = getVmAdminMatchRouteSlug(urlCell, index);
       const matchTitle = buildVmAdminMatchTitle(type, stip, partTitle);
       if (!matchTitle && !people && !urlCell) continue;
