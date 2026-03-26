@@ -660,6 +660,7 @@ function pulseFrame(){
     loadError: '',
     items: [],
     query: '',
+    browseShowId: '',
     selectedId: '',
     selected: null
   };
@@ -738,6 +739,41 @@ function pulseFrame(){
     return [venue, place].filter(Boolean).join(' • ');
   }
 
+  function normalizeVmAdminMatchSlug(value){
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return '';
+    return raw
+      .replace(/[^a-z0-9\-_ ]+/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function getVmAdminMatchField(row, index, field){
+    const n = Number(index);
+    const keys = [
+      `match-${n}_${field}`,
+      `match_${n}_${field}`,
+      `match-${n}-${field}`,
+      `match_${n}-${field}`,
+      `part_${n}_${field}`
+    ];
+    return readVmAdminShowField(row, keys);
+  }
+
+  function getVmAdminMatchRouteSlug(urlCell, index){
+    const raw = String(urlCell || '').trim();
+    if (raw && !/^https?:\/\//i.test(raw) && !raw.startsWith('/')) {
+      const clean = normalizeVmAdminMatchSlug(raw);
+      if (clean) return clean;
+    }
+    return `match-${String(Number(index) || 1)}`;
+  }
+
+  function buildVmAdminMatchTitle(type, stip, title){
+    return String(stip || '').trim() || String(title || '').trim() || String(type || '').trim() || 'Match Album';
+  }
+
   function readVmAdminShowField(row, keys){
     const source = row && typeof row === 'object' ? row : {};
     for (let i = 0; i < keys.length; i++) {
@@ -746,6 +782,45 @@ function pulseFrame(){
       if (value != null && String(value).trim()) return String(value).trim();
     }
     return '';
+  }
+
+  function buildVmAdminFacebookPickerMatchItems(showItem){
+    const item = showItem && typeof showItem === 'object' ? showItem : null;
+    const row = item && item.rawRow && typeof item.rawRow === 'object' ? item.rawRow : null;
+    if (!row) return [];
+    const out = [];
+    for (let index = 1; index <= 12; index++) {
+      const type = getVmAdminMatchField(row, index, 'type');
+      const stip = getVmAdminMatchField(row, index, 'stip');
+      const partTitle = getVmAdminMatchField(row, index, 'title');
+      const people = getVmAdminMatchField(row, index, 'people');
+      const urlCell = getVmAdminMatchField(row, index, 'url');
+      const routeSlug = getVmAdminMatchRouteSlug(urlCell, index);
+      const matchTitle = buildVmAdminMatchTitle(type, stip, partTitle);
+      if (!matchTitle && !people && !urlCell) continue;
+      const routePath = item.slug ? `${item.routePath}/${routeSlug}` : item.routePath;
+      const routeUrl = `${window.location.origin}${routePath}`;
+      out.push({
+        id: `${item.id}:match:${routeSlug}`,
+        type: 'match',
+        entityId: item.slug ? `wrestling-match-${item.slug}-${routeSlug}` : `wrestling-match-${routeSlug}`,
+        title: matchTitle,
+        subtitle: item.title,
+        meta: [people, item.prettyDate].filter(Boolean).join(' â€¢ '),
+        prettyDate: item.prettyDate,
+        routePath,
+        routeUrl,
+        imageUrl: item.imageUrl,
+        imageLabel: item.imageLabel,
+        company: item.company,
+        rawDate: item.rawDate,
+        slug: routeSlug,
+        showId: item.id,
+        showTitle: item.title,
+        searchBlob: [matchTitle, people, type, stip, item.title, item.prettyDate, item.company].filter(Boolean).join(' ').toLowerCase()
+      });
+    }
+    return out;
   }
 
   function buildVmAdminFacebookPickerItemFromShow(row){
@@ -776,6 +851,7 @@ function pulseFrame(){
       company,
       rawDate,
       slug,
+      rawRow: row,
       sortKey: (function () {
         const clean = slugVmAdminShowDate(rawDate);
         if (!clean || clean.length !== 6) return 0;
@@ -842,6 +918,13 @@ function pulseFrame(){
   function getVmAdminFacebookFilteredPickerItems(){
     const query = String(vmAdminFacebookPickerState.query || '').trim().toLowerCase();
     const items = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
+    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
+    if (browseShowId) {
+      const parent = items.find((item) => item.id === browseShowId) || null;
+      const matchItems = buildVmAdminFacebookPickerMatchItems(parent);
+      if (!query) return matchItems;
+      return matchItems.filter((item) => String(item && item.searchBlob || '').indexOf(query) >= 0);
+    }
     if (!query) return items.slice(0, 24);
     return items.filter((item) => String(item && item.searchBlob || '').indexOf(query) >= 0).slice(0, 24);
   }
@@ -851,6 +934,7 @@ function pulseFrame(){
     if (!entry) return '';
     const lines = [];
     if (entry.title) lines.push(entry.title);
+    if (entry.type === 'match' && entry.showTitle) lines.push(entry.showTitle);
     if (entry.prettyDate) lines.push(entry.prettyDate);
     if (entry.routeUrl) lines.push(entry.routeUrl);
     return lines.join('\n');
@@ -894,7 +978,7 @@ function pulseFrame(){
     }
     if (pickerStatus) {
       pickerStatus.textContent = entry.title
-        ? `Selected ${entry.title}`
+        ? `Selected ${entry.type === 'match' ? 'match' : 'show'}: ${entry.title}`
         : 'Archive item selected';
     }
   }
@@ -906,11 +990,17 @@ function pulseFrame(){
     if (!resultsShell || !selectedShell) return;
     const selected = vmAdminFacebookPickerState.selected;
     const items = getVmAdminFacebookFilteredPickerItems();
+    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
+    const browseShow = browseShowId
+      ? (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === browseShowId) || null
+      : null;
     if (countShell) {
       if (vmAdminFacebookPickerState.loading) {
         countShell.textContent = 'Loading shows...';
       } else if (vmAdminFacebookPickerState.loadError) {
         countShell.textContent = 'Source unavailable';
+      } else if (browseShow) {
+        countShell.textContent = `${formatVmAdminNumber(items.length)} match${items.length === 1 ? '' : 'es'}`;
       } else {
         countShell.textContent = `${formatVmAdminNumber(items.length)} result${items.length === 1 ? '' : 's'}`;
       }
@@ -920,21 +1010,37 @@ function pulseFrame(){
     } else if (vmAdminFacebookPickerState.loadError) {
       resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,95,135,.18); border-radius:12px; background:rgba(22,10,16,.72); color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(vmAdminFacebookPickerState.loadError)}</div>`;
     } else if (!items.length) {
-      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">No shows matched this search yet.</div>`;
+      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${browseShow ? 'No matches matched this search yet.' : 'No shows matched this search yet.'}</div>`;
     } else {
-      resultsShell.innerHTML = items.map((item) => {
+      const headerHtml = browseShow ? `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+          <button type="button" data-facebook-picker-back="1" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
+          <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseShow.title)}</div>
+        </div>
+      ` : '';
+      resultsShell.innerHTML = headerHtml + items.map((item) => {
         const active = selected && selected.id === item.id;
+        const actionLabel = item.type === 'match' ? 'Use Match' : 'Use Show';
+        const titleAction = item.type === 'show'
+          ? `data-facebook-picker-open-show="${escapeVmAdminHtml(item.id)}"`
+          : `data-facebook-picker-item="${escapeVmAdminHtml(item.id)}"`;
+        const browseAction = item.type === 'show'
+          ? `<button type="button" data-facebook-picker-open-show="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Open Matches</button>`
+          : '';
         return `
-          <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94); cursor:pointer;">
+          <div style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94);">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
               <div style="min-width:0;">
-                <div style="color:${active ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.title)}</div>
+                <button type="button" ${titleAction} style="padding:0; border:0; background:transparent; color:${active ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:left;">${escapeVmAdminHtml(item.title)}</button>
                 <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.subtitle || 'Show')}</div>
               </div>
-              <div style="flex:0 0 auto; padding:5px 7px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${active ? 'Selected' : 'Use Show'}</div>
+              <div style="display:grid; gap:6px; justify-items:end;">
+                ${browseAction}
+                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${active ? 'Selected' : actionLabel}</button>
+              </div>
             </div>
             ${item.meta ? `<div style="margin-top:6px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.meta)}</div>` : ''}
-          </button>
+          </div>
         `;
       }).join('');
     }
@@ -943,8 +1049,8 @@ function pulseFrame(){
         <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
           <div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">No Selection</div>
         </div>
-        <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Pick a show result</div>
-        <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">This first pass is single-select. Clicking a result will fill the image URL, title, route context, and a starter caption.</div>
+        <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Pick a show or match result</div>
+        <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Use the show button for a show-level post, or click a show title to browse that card's matches like a file browser.</div>
       `;
       return;
     }
@@ -960,16 +1066,34 @@ function pulseFrame(){
   }
 
   function selectVmAdminFacebookPickerItem(itemId){
-    const match = (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === itemId) || null;
+    const rootItems = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
+    let match = rootItems.find((item) => item.id === itemId) || null;
+    if (!match && vmAdminFacebookPickerState.browseShowId) {
+      const parent = rootItems.find((item) => item.id === vmAdminFacebookPickerState.browseShowId) || null;
+      match = buildVmAdminFacebookPickerMatchItems(parent).find((item) => item.id === itemId) || null;
+    }
     vmAdminFacebookPickerState.selectedId = match ? match.id : '';
     vmAdminFacebookPickerState.selected = match;
     syncVmAdminFacebookSelectionIntoComposer(match);
     renderVmAdminFacebookPicker();
   }
 
+  function openVmAdminFacebookPickerShow(itemId){
+    const match = (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === itemId) || null;
+    if (!match) return;
+    vmAdminFacebookPickerState.browseShowId = match.id;
+    renderVmAdminFacebookPicker();
+  }
+
+  function closeVmAdminFacebookPickerShow(){
+    vmAdminFacebookPickerState.browseShowId = '';
+    renderVmAdminFacebookPicker();
+  }
+
   function clearVmAdminFacebookPickerSelection(){
     vmAdminFacebookPickerState.selectedId = '';
     vmAdminFacebookPickerState.selected = null;
+    vmAdminFacebookPickerState.browseShowId = '';
     syncVmAdminFacebookSelectionIntoComposer(null);
     renderVmAdminFacebookPicker();
   }
@@ -2636,6 +2760,16 @@ music: {
           if (!shell) return;
           shell.addEventListener('click', (event) => {
             const target = event.target;
+            const browseBtn = target && target.closest ? target.closest('[data-facebook-picker-open-show]') : null;
+            if (browseBtn) {
+              openVmAdminFacebookPickerShow(String(browseBtn.getAttribute('data-facebook-picker-open-show') || '').trim());
+              return;
+            }
+            const backBtn = target && target.closest ? target.closest('[data-facebook-picker-back]') : null;
+            if (backBtn) {
+              closeVmAdminFacebookPickerShow();
+              return;
+            }
             const pickBtn = target && target.closest ? target.closest('[data-facebook-picker-item]') : null;
             if (pickBtn) {
               selectVmAdminFacebookPickerItem(String(pickBtn.getAttribute('data-facebook-picker-item') || '').trim());
