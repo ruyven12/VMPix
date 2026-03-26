@@ -998,7 +998,7 @@ function pulseFrame(){
     }
     const suggestions = getVmAdminFacebookMentionSuggestions();
     if (!suggestions.length) {
-      shell.innerHTML = `<div style="padding:10px 12px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">No matching people found.</div>`;
+      shell.innerHTML = `<div style="padding:10px 12px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">No matching Facebook Pages found.</div>`;
       return;
     }
     shell.innerHTML = suggestions.map((item, index) => `
