@@ -1898,6 +1898,7 @@ function pulseFrame(){
     const publishBtn = document.getElementById('vmAdminFacebookPublishBtn');
     const composerStatus = document.getElementById('vmAdminFacebookComposerStatus');
     const previewShell = document.getElementById('vmAdminFacebookPreview');
+    const publishMode = readVmAdminFacebookPublishMode();
     if (connectBtn) {
       connectBtn.textContent = connected ? 'Manage Connection' : 'Connect Page';
       connectBtn.disabled = busy;
@@ -1905,7 +1906,10 @@ function pulseFrame(){
     if (refreshBtn) refreshBtn.disabled = busy;
     if (disconnectBtn) disconnectBtn.disabled = busy || !connected;
     if (previewBtn) previewBtn.disabled = busy || !connected;
-    if (publishBtn) publishBtn.disabled = busy || !connected;
+    if (publishBtn) {
+      publishBtn.disabled = busy || !connected;
+      publishBtn.textContent = publishMode === 'share' ? 'Share' : 'Publish Now';
+    }
     if (composerStatus && options.message) composerStatus.textContent = options.message;
     if (previewShell && options.clearPreview) previewShell.innerHTML = 'Facebook preview will appear here.';
   }
