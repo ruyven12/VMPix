@@ -128,3 +128,82 @@ After Phase 1, the next backend endpoints are:
 - `POST /admin/facebook/preview`
 - `POST /admin/facebook/publish`
 - `GET /admin/facebook/history`
+
+## Current Frontend Composer Modes
+
+The VMPix admin shell now treats `entity_type` as a posting mode selector.
+
+Current mode list:
+
+- `normal_post`
+- `single_photo`
+- `multiple_photos`
+- `throwback`
+
+Only `normal_post` has been mapped in the frontend so far.
+
+## Normal Post Contract
+
+`normal_post` is a caption-first Facebook post.
+
+Frontend behavior:
+
+- preview is built locally in the VMPix admin shell
+- no image is shown in preview
+- caption is the primary post body
+- `link_url` is optional
+- `entity_label` can be derived from the first non-empty caption line when no visible title field is shown
+- `entity_id` can be derived client-side from caption/title context when no visible ID field is shown
+
+Backend requirement for both endpoints:
+
+- `POST /admin/facebook/preview`
+- `POST /admin/facebook/publish`
+
+must allow `normal_post` payloads with:
+
+- `section`
+- `entity_type=normal_post`
+- `entity_id`
+- `entity_label`
+- `caption`
+- optional `link_url`
+
+and must not require:
+
+- `image_url`
+
+### Publishing Rule
+
+For `normal_post`, the backend should build the outgoing Facebook message as:
+
+1. caption only when `link_url` is empty
+2. caption + blank line + `link_url` when `link_url` is present
+
+### Validation Rule
+
+Only image-oriented modes should require or validate `image_url`.
+
+That means `image_url` validation should be applied to:
+
+- `single_photo`
+- `multiple_photos`
+- `throwback` when it is implemented as an image post
+
+and should be skipped for:
+
+- `normal_post`
+
+### Current Gap
+
+As of March 25, 2026, the frontend `normal_post` composer has been updated locally in this repo, but the Wrestling backend publish endpoint is still returning:
+
+- `image_url must be a valid http(s) URL`
+
+for `normal_post` publish attempts.
+
+The backend counterpart needed is:
+
+- branch on `entity_type`
+- bypass `image_url` required validation when `entity_type === "normal_post"`
+- publish a text/link post instead of an image post for that mode

@@ -920,6 +920,7 @@ function pulseFrame(){
         <div>
           <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Page</div>
           <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(pageLabel)}</div>
+          <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Normal Post preview is caption-first and does not include an image.</div>
           <div style="margin-top:12px; padding:14px; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(8,10,16,.78);">
             <div style="color:rgba(214,198,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.7; white-space:pre-wrap;">${escapeVmAdminHtml(finalMessage || 'No caption yet.')}</div>
           </div>
@@ -1091,8 +1092,19 @@ function pulseFrame(){
       await loadVmAdminFacebookStatus({ silent: true });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (_) {
-      if (status) status.textContent = 'Publish failed';
-      setVmAdminFacebookUiState({ connected: true, message: messageFromVmAdminError(_, 'Publish failed') });
+      const entityType = readVmAdminFacebookEntityType();
+      const rawMessage = messageFromVmAdminError(_, 'Publish failed');
+      const normalPostNeedsBackendRule = entityType === 'normal_post'
+        && /image_url must be a valid http\(s\) url/i.test(String(rawMessage || ''));
+      const finalMessage = normalPostNeedsBackendRule
+        ? 'Normal Post publish is waiting on the backend caption-only rule.'
+        : rawMessage;
+      if (status) {
+        status.textContent = normalPostNeedsBackendRule
+          ? 'Normal Post needs backend update'
+          : 'Publish failed';
+      }
+      setVmAdminFacebookUiState({ connected: true, message: finalMessage });
       throw _;
     }
   }
