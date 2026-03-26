@@ -831,6 +831,46 @@ function pulseFrame(){
     if (previewShell && options.clearPreview) previewShell.innerHTML = 'Facebook preview will appear here.';
   }
 
+  function readVmAdminFacebookEntityType(){
+    const field = document.getElementById('vmAdminFacebookEntityType');
+    return String((field && field.value) || 'normal_post').trim().toLowerCase();
+  }
+
+  function syncVmAdminFacebookEntityTypeUi(){
+    const entityType = readVmAdminFacebookEntityType();
+    const normalFields = document.querySelectorAll('[data-facebook-mode="normal-post"]');
+    const fallbackFields = document.querySelectorAll('[data-facebook-mode="generic-fallback"]');
+    const linkMode = document.getElementById('vmAdminFacebookLinkMode');
+    const linkUrlWrap = document.getElementById('vmAdminFacebookLinkUrlWrap');
+    const imageWrap = document.getElementById('vmAdminFacebookImageUrlWrap');
+    const modeNote = document.getElementById('vmAdminFacebookModeNote');
+    const isNormal = entityType === 'normal_post';
+
+    normalFields.forEach((el) => {
+      el.style.display = isNormal ? 'block' : 'none';
+    });
+    fallbackFields.forEach((el) => {
+      el.style.display = isNormal ? 'none' : 'block';
+    });
+
+    if (modeNote) {
+      modeNote.textContent = isNormal
+        ? 'Normal Post uses caption plus an optional link.'
+        : 'Detailed field mapping for this post type is the next step.';
+    }
+
+    if (isNormal) {
+      if (imageWrap) imageWrap.style.display = 'none';
+      if (linkUrlWrap) {
+        const linkEnabled = String((linkMode && linkMode.value) || 'no').trim().toLowerCase() === 'yes';
+        linkUrlWrap.style.display = linkEnabled ? 'block' : 'none';
+      }
+    } else {
+      if (imageWrap) imageWrap.style.display = 'block';
+      if (linkUrlWrap) linkUrlWrap.style.display = 'block';
+    }
+  }
+
   async function loadVmAdminFacebookStatus(opts){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookMeta');
@@ -926,9 +966,19 @@ function pulseFrame(){
       entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
       entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
       caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
-      link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
-      image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim()
+      link_url: '',
+      image_url: ''
     };
+    const entityType = String(payload.entity_type || '').trim().toLowerCase();
+    if (entityType === 'normal_post') {
+      const linkMode = String((document.getElementById('vmAdminFacebookLinkMode') || {}).value || 'no').trim().toLowerCase();
+      payload.link_url = linkMode === 'yes'
+        ? String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim()
+        : '';
+    } else {
+      payload.link_url = String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim();
+      payload.image_url = String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim();
+    }
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
     try {
@@ -1881,19 +1931,32 @@ music: {
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Type</div>
-                        <input id="vmAdminFacebookEntityType" type="text" value="show" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                        <select id="vmAdminFacebookEntityType" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                          <option value="normal_post" selected>Normal Post</option>
+                          <option value="single_photo">Single Photo</option>
+                          <option value="multiple_photos">Multiple Photos</option>
+                          <option value="throwback">Throwback</option>
+                        </select>
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Label</div>
                         <input id="vmAdminFacebookEntityLabel" type="text" placeholder="Show title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
                     </div>
+                    <div id="vmAdminFacebookModeNote" style="margin-top:10px; color:rgba(166,235,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Normal Post uses caption plus an optional link.</div>
                     <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-top:10px;">
-                      <label style="display:block;">
+                      <label data-facebook-mode="normal-post" style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link</div>
+                        <select id="vmAdminFacebookLinkMode" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                          <option value="no" selected>No</option>
+                          <option value="yes">Yes</option>
+                        </select>
+                      </label>
+                      <label id="vmAdminFacebookLinkUrlWrap" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link URL</div>
                         <input id="vmAdminFacebookLinkUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
-                      <label style="display:block;">
+                      <label id="vmAdminFacebookImageUrlWrap" data-facebook-mode="generic-fallback" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Image URL</div>
                         <input id="vmAdminFacebookImageUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
@@ -2000,6 +2063,8 @@ music: {
         const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
         const facebookPreviewBtn = document.getElementById('vmAdminFacebookPreviewBtn');
         const facebookPublishBtn = document.getElementById('vmAdminFacebookPublishBtn');
+        const facebookEntityType = document.getElementById('vmAdminFacebookEntityType');
+        const facebookLinkMode = document.getElementById('vmAdminFacebookLinkMode');
         const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
         const facebookCallbackState = readVmFacebookCallbackState();
         try {
@@ -2014,6 +2079,17 @@ music: {
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
             loadVmAdminAnalytics(analyticsRange.value);
+          }, { once: false });
+        }
+        syncVmAdminFacebookEntityTypeUi();
+        if (facebookEntityType) {
+          facebookEntityType.addEventListener('change', () => {
+            syncVmAdminFacebookEntityTypeUi();
+          }, { once: false });
+        }
+        if (facebookLinkMode) {
+          facebookLinkMode.addEventListener('change', () => {
+            syncVmAdminFacebookEntityTypeUi();
           }, { once: false });
         }
 
