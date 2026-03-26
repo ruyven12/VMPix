@@ -939,10 +939,13 @@ function pulseFrame(){
     const value = String(field.value || '');
     const caret = Number(field.selectionStart || 0);
     const before = value.slice(0, caret);
-    const match = before.match(/(^|\s)@([^\n@]{0,40})$/);
-    if (!match) return null;
-    const rawQuery = String(match[2] || '');
-    const start = caret - rawQuery.length - 1;
+    const atIndex = before.lastIndexOf('@');
+    if (atIndex < 0) return null;
+    const prefix = before.slice(0, atIndex);
+    if (prefix && !/[\s([{"'`]/.test(prefix.slice(-1))) return null;
+    const rawQuery = before.slice(atIndex + 1);
+    if (/[\s\r\n]/.test(rawQuery)) return null;
+    const start = atIndex;
     return {
       start,
       end: caret,
@@ -3150,8 +3153,10 @@ music: {
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
-                        <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." oninput="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onclick="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onkeyup="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh(event);" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
-                        <div id="vmAdminFacebookMentionSuggestions" style="display:none; margin-top:8px; border:1px solid rgba(97,224,255,.16); border-radius:12px; background:linear-gradient(180deg,rgba(10,18,24,.96),rgba(7,11,18,.96)); overflow:hidden;"></div>
+                        <div style="position:relative;">
+                          <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." oninput="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onclick="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onkeyup="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh(event);" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                          <div id="vmAdminFacebookMentionSuggestions" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:40; border:1px solid rgba(97,224,255,.16); border-radius:12px; background:linear-gradient(180deg,rgba(10,18,24,.98),rgba(7,11,18,.98)); box-shadow:0 14px 34px rgba(0,0,0,.38); overflow:hidden;"></div>
+                        </div>
                       </label>
                     </div>
                     <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
