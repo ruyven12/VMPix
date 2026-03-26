@@ -682,6 +682,13 @@ function pulseFrame(){
     activeIndex: 0
   };
 
+  const vmAdminFacebookAlbumState = {
+    loading: false,
+    loaded: false,
+    error: '',
+    items: []
+  };
+
   function parseVmAdminCsvLine(line){
     const out = [];
     let current = '';
@@ -1875,6 +1882,84 @@ function pulseFrame(){
     return String((field && field.value) || 'normal_post').trim().toLowerCase();
   }
 
+  function readVmAdminFacebookPublishMode(){
+    const field = document.getElementById('vmAdminFacebookPublishMode');
+    return String((field && field.value) || 'post').trim().toLowerCase();
+  }
+
+  function renderVmAdminFacebookAlbumUi(){
+    const modeField = document.getElementById('vmAdminFacebookPublishMode');
+    const albumWrap = document.getElementById('vmAdminFacebookAlbumWrap');
+    const albumSelect = document.getElementById('vmAdminFacebookAlbumId');
+    const albumStatus = document.getElementById('vmAdminFacebookAlbumStatus');
+    const refreshBtn = document.getElementById('vmAdminFacebookAlbumRefresh');
+    const mode = String((modeField && modeField.value) || 'post').trim().toLowerCase();
+    const needsAlbum = mode === 'album' || mode === 'both';
+    const items = Array.isArray(vmAdminFacebookAlbumState.items) ? vmAdminFacebookAlbumState.items : [];
+    const currentValue = String((albumSelect && albumSelect.value) || '').trim();
+
+    if (albumWrap) albumWrap.style.display = needsAlbum ? 'block' : 'none';
+    if (albumSelect) {
+      const optionRows = ['<option value="">Select a Facebook album...</option>']
+        .concat(items.map((item) => {
+          const id = String(item && item.id || '').trim();
+          const name = String(item && item.name || '').trim() || 'Untitled Album';
+          const count = Number(item && item.count);
+          const suffix = Number.isFinite(count) && count >= 0 ? ` (${count})` : '';
+          return `<option value="${escapeVmAdminHtml(id)}">${escapeVmAdminHtml(`${name}${suffix}`)}</option>`;
+        }));
+      albumSelect.innerHTML = optionRows.join('');
+      albumSelect.disabled = !needsAlbum || vmAdminFacebookAlbumState.loading;
+      if (currentValue && items.some((item) => String(item && item.id || '').trim() === currentValue)) {
+        albumSelect.value = currentValue;
+      }
+    }
+    if (refreshBtn) refreshBtn.disabled = !needsAlbum || vmAdminFacebookAlbumState.loading;
+    if (albumStatus) {
+      if (!needsAlbum) {
+        albumStatus.textContent = 'Album upload is off. Custom multi-photo post is the active mode.';
+      } else if (vmAdminFacebookAlbumState.loading) {
+        albumStatus.textContent = 'Loading Facebook albums...';
+      } else if (vmAdminFacebookAlbumState.error) {
+        albumStatus.textContent = vmAdminFacebookAlbumState.error;
+      } else if (!items.length) {
+        albumStatus.textContent = 'No Facebook albums available right now.';
+      } else {
+        albumStatus.textContent = `${formatVmAdminNumber(items.length)} album${items.length === 1 ? '' : 's'} ready for upload.`;
+      }
+    }
+  }
+
+  async function loadVmAdminFacebookAlbums(opts){
+    const options = opts && typeof opts === 'object' ? opts : {};
+    if (vmAdminFacebookAlbumState.loading) return vmAdminFacebookAlbumState.items;
+    if (!options.force && vmAdminFacebookAlbumState.loaded && !vmAdminFacebookAlbumState.error) {
+      renderVmAdminFacebookAlbumUi();
+      return vmAdminFacebookAlbumState.items;
+    }
+    vmAdminFacebookAlbumState.loading = true;
+    vmAdminFacebookAlbumState.error = '';
+    renderVmAdminFacebookAlbumUi();
+    try {
+      const data = await fetchVmAdminJsonWithExplicitToken('/admin/facebook/albums');
+      vmAdminFacebookAlbumState.items = (Array.isArray(data && data.items) ? data.items : []).map((item) => ({
+        id: String(item && item.id || '').trim(),
+        name: String(item && item.name || '').trim(),
+        count: Number(item && item.count),
+        type: String(item && item.type || '').trim()
+      })).filter((item) => item.id && item.name);
+      vmAdminFacebookAlbumState.loaded = true;
+      return vmAdminFacebookAlbumState.items;
+    } catch (err) {
+      vmAdminFacebookAlbumState.loaded = false;
+      vmAdminFacebookAlbumState.error = messageFromVmAdminError(err, 'Unable to load Facebook albums right now.');
+      throw err;
+    } finally {
+      vmAdminFacebookAlbumState.loading = false;
+      renderVmAdminFacebookAlbumUi();
+    }
+  }
+
   function syncVmAdminFacebookEntityTypeUi(){
     const entityType = readVmAdminFacebookEntityType();
     const normalFields = document.querySelectorAll('[data-facebook-mode="normal-post"]');
@@ -1902,7 +1987,7 @@ function pulseFrame(){
       } else if (isThrowback) {
         modeNote.textContent = 'Throwback uses the archive picker flow first, then keeps the post context tied to the selected show.';
       } else {
-        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data. First pass is single-select.';
+        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data, supports multi-select, and can target a custom post, album upload, or both.';
       }
     }
 
@@ -1926,10 +2011,17 @@ function pulseFrame(){
       } else {
         renderVmAdminFacebookPicker();
       }
+      renderVmAdminFacebookAlbumUi();
+      if ((readVmAdminFacebookPublishMode() === 'album' || readVmAdminFacebookPublishMode() === 'both')
+          && !vmAdminFacebookAlbumState.loaded
+          && !vmAdminFacebookAlbumState.loading) {
+        loadVmAdminFacebookAlbums().catch(() => null);
+      }
     } else {
       if (pickerShell) pickerShell.style.display = 'block';
       if (imageWrap) imageWrap.style.display = 'block';
       if (linkUrlWrap) linkUrlWrap.style.display = 'block';
+      renderVmAdminFacebookAlbumUi();
     }
   }
 
@@ -1976,6 +2068,21 @@ function pulseFrame(){
       route_url: String(item && item.routeUrl || '').trim(),
       route_path: String(item && item.routePath || '').trim()
     })).filter((item) => item.image_url);
+  }
+
+  function buildVmAdminFacebookAlbumPayload(){
+    const mode = readVmAdminFacebookPublishMode();
+    const albumField = document.getElementById('vmAdminFacebookAlbumId');
+    const albumId = String((albumField && albumField.value) || '').trim();
+    const selectedOption = albumField && albumField.options && albumField.selectedIndex >= 0
+      ? albumField.options[albumField.selectedIndex]
+      : null;
+    const albumName = String((selectedOption && selectedOption.textContent) || '').replace(/\s+\(\d+\)\s*$/, '').trim();
+    return {
+      publish_mode: mode,
+      facebook_album_id: (mode === 'album' || mode === 'both') ? albumId : '',
+      facebook_album_name: (mode === 'album' || mode === 'both') ? albumName : ''
+    };
   }
 
   function renderVmAdminFacebookNormalPostPreview(payload){
@@ -2099,6 +2206,22 @@ function pulseFrame(){
       }
       shell.innerHTML = items.map((item) => {
         const ok = String(item && item.status || '').trim().toLowerCase() === 'success';
+        const meta = item && item.meta && typeof item.meta === 'object' ? item.meta : {};
+        const publishMode = String(meta.publish_mode || '').trim().toLowerCase();
+        const albumName = String(meta.facebook_album_name || '').trim();
+        const albumCount = Number(meta.album_upload_count);
+        const modeBits = [];
+        if (publishMode === 'album') {
+          modeBits.push('Album Upload');
+        } else if (publishMode === 'both') {
+          modeBits.push('Both');
+        } else if (publishMode === 'post') {
+          modeBits.push('Custom Post');
+        }
+        if (albumName) modeBits.push(albumName);
+        if (Number.isFinite(albumCount) && albumCount > 0) {
+          modeBits.push(`${albumCount} album photo${albumCount === 1 ? '' : 's'}`);
+        }
         return `
           <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,10,16,.72);">
             <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -2109,6 +2232,7 @@ function pulseFrame(){
               <div style="padding:6px 9px; border-radius:999px; border:1px solid ${ok ? 'rgba(97,224,255,.22)' : 'rgba(255,95,135,.28)'}; color:${ok ? 'rgba(210,242,255,.92)' : 'rgba(255,192,205,.92)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">${escapeVmAdminHtml(ok ? 'Success' : (item.status || 'Failed'))}</div>
             </div>
             <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.section || 'section')} â€¢ ${escapeVmAdminHtml(item.entity_type || 'show')}</div>
+            ${modeBits.length ? `<div style="margin-top:6px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(modeBits.join(' / '))}</div>` : ''}
             ${item && item.error ? `<div style="margin-top:8px; color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.error)}</div>` : ''}
           </div>
         `;
@@ -2128,6 +2252,7 @@ function pulseFrame(){
     const previewShell = document.getElementById('vmAdminFacebookPreview');
     const selectedPickerItem = vmAdminFacebookPickerState.selected;
     const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
+    const albumPayload = buildVmAdminFacebookAlbumPayload();
     const payload = {
       section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
       entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
@@ -2137,6 +2262,9 @@ function pulseFrame(){
       link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
       image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim(),
       selected_photos: selectedPhotos,
+      publish_mode: albumPayload.publish_mode,
+      facebook_album_id: albumPayload.facebook_album_id,
+      facebook_album_name: albumPayload.facebook_album_name,
       mentions: buildVmAdminFacebookMentionsPayload()
     };
     const entityType = String(payload.entity_type || '').trim().toLowerCase();
@@ -2195,6 +2323,13 @@ function pulseFrame(){
             <div>
               <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Page</div>
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.page_name || 'Voodoo Media')}</div>
+              <div style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">
+                ${escapeVmAdminHtml(preview.publish_mode === 'both'
+                  ? `Publish mode: Both${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''}`
+                  : (preview.publish_mode === 'album'
+                    ? `Publish mode: Album Upload${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''}`
+                    : 'Publish mode: Custom Multi-Photo Post'))}
+              </div>
         <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(preview.final_message || '')}</div>
             </div>
           </div>
@@ -2228,8 +2363,14 @@ function pulseFrame(){
     try {
       const payload = await runVmAdminFacebookPreview();
       await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
-      if (status) status.textContent = 'Post published';
-      setVmAdminFacebookUiState({ connected: true, message: 'Post published' });
+      const publishMode = String(payload && payload.publish_mode || 'post').trim().toLowerCase();
+      const successMessage = publishMode === 'album'
+        ? 'Photos uploaded to album'
+        : (publishMode === 'both'
+          ? 'Post published and album uploaded'
+          : 'Post published');
+      if (status) status.textContent = successMessage;
+      setVmAdminFacebookUiState({ connected: true, message: successMessage });
       await loadVmAdminFacebookStatus({ silent: true });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (_) {
@@ -2343,6 +2484,17 @@ function pulseFrame(){
   };
   window.__vmAdminSyncFacebookEntityTypeUi = function __vmAdminSyncFacebookEntityTypeUi(){
     return syncVmAdminFacebookEntityTypeUi();
+  };
+  window.__vmAdminSyncFacebookAlbumUi = function __vmAdminSyncFacebookAlbumUi(){
+    renderVmAdminFacebookAlbumUi();
+    const mode = readVmAdminFacebookPublishMode();
+    if ((mode === 'album' || mode === 'both') && !vmAdminFacebookAlbumState.loaded && !vmAdminFacebookAlbumState.loading) {
+      return loadVmAdminFacebookAlbums().catch(() => null);
+    }
+    return null;
+  };
+  window.__vmAdminRefreshFacebookAlbums = function __vmAdminRefreshFacebookAlbums(){
+    return loadVmAdminFacebookAlbums({ force: true }).catch(() => null);
   };
 
   function readVmFacebookCallbackState(){
@@ -3240,6 +3392,24 @@ music: {
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Image URL</div>
                         <input id="vmAdminFacebookImageUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
+                      <div id="vmAdminFacebookPublishModeWrap" data-facebook-mode="photo-post" style="display:none;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Publish Mode</div>
+                        <select id="vmAdminFacebookPublishMode" onchange="window.__vmAdminSyncFacebookAlbumUi && window.__vmAdminSyncFacebookAlbumUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                          <option value="post" selected>Custom Multi-Photo Post</option>
+                          <option value="album">Upload to Album</option>
+                          <option value="both">Both</option>
+                        </select>
+                      </div>
+                      <div id="vmAdminFacebookAlbumWrap" data-facebook-mode="photo-post" style="display:none;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+                          <div style="color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Facebook Album</div>
+                          <button type="button" id="vmAdminFacebookAlbumRefresh" onclick="window.__vmAdminRefreshFacebookAlbums && window.__vmAdminRefreshFacebookAlbums(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:126px; padding:8px 12px; border-radius:999px; border:1px solid rgba(97,224,255,.18); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Albums</button>
+                        </div>
+                        <select id="vmAdminFacebookAlbumId" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                          <option value="">Select a Facebook album...</option>
+                        </select>
+                        <div id="vmAdminFacebookAlbumStatus" style="margin-top:8px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Album upload is off. Custom multi-photo post is the active mode.</div>
+                      </div>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
                         <div style="position:relative;">
