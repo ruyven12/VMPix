@@ -924,7 +924,6 @@ function pulseFrame(){
     const payload = {
       section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
       entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
-      entity_id: String((document.getElementById('vmAdminFacebookEntityId') || {}).value || '').trim(),
       entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
       caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
       link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
@@ -1883,10 +1882,6 @@ music: {
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Type</div>
                         <input id="vmAdminFacebookEntityType" type="text" value="show" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
-                      </label>
-                      <label style="display:block;">
-                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity ID</div>
-                        <input id="vmAdminFacebookEntityId" type="text" placeholder="081224" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Label</div>
