@@ -2021,7 +2021,6 @@ function pulseFrame(){
     const photoItems = selectedPhotos.length
       ? selectedPhotos
       : (row.image_url ? [{ image_url: row.image_url, title: row.entity_label || 'shared-photo' }] : []);
-    const files = [];
     const apiBase = getVmAdminWrestlingApiBase();
     const getFetchUrl = (rawUrl) => {
       const clean = String(rawUrl || '').trim();
@@ -2037,13 +2036,13 @@ function pulseFrame(){
         return `${apiBase}/show-poster?url=${encodeURIComponent(clean)}`;
       }
     };
-    for (let index = 0; index < photoItems.length; index++) {
-      const item = photoItems[index] && typeof photoItems[index] === 'object' ? photoItems[index] : {};
+    const built = await Promise.all(photoItems.map(async (rawItem, index) => {
+      const item = rawItem && typeof rawItem === 'object' ? rawItem : {};
       const imageUrl = String(item.image_url || '').trim();
-      if (!imageUrl) continue;
+      if (!imageUrl) return null;
       try {
         const res = await fetch(getFetchUrl(imageUrl), { mode: 'cors', cache: 'no-store' });
-        if (!res.ok) continue;
+        if (!res.ok) return null;
         const blob = await res.blob();
         const mime = String(blob && blob.type || '').trim() || 'image/jpeg';
         const baseName = String(item.title || row.entity_label || `shared-photo-${index + 1}`)
@@ -2052,10 +2051,12 @@ function pulseFrame(){
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-+|-+$/g, '') || `shared-photo-${index + 1}`;
         const ext = mime.indexOf('png') >= 0 ? 'png' : (mime.indexOf('webp') >= 0 ? 'webp' : 'jpg');
-        files.push(new File([blob], `${baseName}.${ext}`, { type: mime }));
-      } catch (_) {}
-    }
-    return files;
+        return new File([blob], `${baseName}.${ext}`, { type: mime });
+      } catch (_) {
+        return null;
+      }
+    }));
+    return built.filter(Boolean);
   }
 
   function warmVmAdminNativeShareFiles(payload){
@@ -2126,9 +2127,12 @@ function pulseFrame(){
     }
     if (cacheKey) {
       warmVmAdminNativeShareFiles(payload).catch(() => null);
-      throw new Error(vmAdminNativeShareState.loading
-        ? 'Selected photos are still preparing for share. Click Share again in a moment.'
-        : (vmAdminNativeShareState.error || 'Selected photos are not ready to share yet. Click Share again in a moment.'));
+      return {
+        pending: true,
+        message: vmAdminNativeShareState.loading
+          ? 'Selected photos are still preparing for share. Click Share again in a moment.'
+          : (vmAdminNativeShareState.error || 'Selected photos are not ready to share yet. Click Share again in a moment.')
+      };
     }
     if (!shareData.title && !shareData.text && !shareData.url) {
       throw new Error('Nothing is ready to share yet.');
@@ -2660,7 +2664,12 @@ function pulseFrame(){
       const publishMode = readVmAdminFacebookPublishMode();
       if (publishMode === 'share') {
         const payload = buildVmAdminFacebookComposerPayload();
-        await runVmAdminNativeShare(payload || {});
+        const result = await runVmAdminNativeShare(payload || {});
+        if (result && result.pending) {
+          if (status) status.textContent = String(result.message || 'Preparing share files...');
+          setVmAdminFacebookUiState({ connected: true, message: String(result.message || 'Preparing share files...') });
+          return payload;
+        }
         if (status) status.textContent = 'Share sheet opened';
         setVmAdminFacebookUiState({ connected: true, message: 'Share sheet opened' });
         return payload;
