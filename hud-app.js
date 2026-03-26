@@ -689,6 +689,14 @@ function pulseFrame(){
     items: []
   };
 
+  const vmAdminNativeShareState = {
+    key: '',
+    files: [],
+    loading: false,
+    error: '',
+    promise: null
+  };
+
   function parseVmAdminCsvLine(line){
     const out = [];
     let current = '';
@@ -1371,6 +1379,12 @@ function pulseFrame(){
     }
     vmAdminFacebookPickerState.selectedId = primary.id;
     vmAdminFacebookPickerState.selected = primary;
+    if (readVmAdminFacebookPublishMode() === 'share') {
+      try {
+        const payload = buildVmAdminFacebookComposerPayload();
+        warmVmAdminNativeShareFiles(payload).catch(() => null);
+      } catch (_) {}
+    }
   }
 
   function toggleVmAdminFacebookPhotoSelection(itemId){
@@ -1432,6 +1446,12 @@ function pulseFrame(){
       pickerStatus.textContent = entry.title
         ? `Selected ${entry.type === 'match' ? 'match' : 'show'}: ${entry.title}`
         : 'Archive item selected';
+    }
+    if (readVmAdminFacebookPublishMode() === 'share') {
+      try {
+        const payload = buildVmAdminFacebookComposerPayload();
+        warmVmAdminNativeShareFiles(payload).catch(() => null);
+      } catch (_) {}
     }
   }
 
@@ -1965,6 +1985,12 @@ function pulseFrame(){
     if (titleWrap) titleWrap.style.display = isPhotoMode && !isShareMode && titleMode === 'yes' ? 'block' : 'none';
     if (linkUrlWrap) linkUrlWrap.style.display = isPhotoMode && !isShareMode && linkMode === 'yes' ? 'block' : 'none';
     if (hashtagsWrap) hashtagsWrap.style.display = isPhotoMode && !isShareMode && hashtagsMode === 'yes' ? 'block' : 'none';
+    if (isShareMode) {
+      try {
+        const payload = buildVmAdminFacebookComposerPayload();
+        warmVmAdminNativeShareFiles(payload).catch(() => null);
+      } catch (_) {}
+    }
   }
 
   function buildVmAdminFacebookSharePayload(payload){
@@ -1977,6 +2003,15 @@ function pulseFrame(){
     if (text) shareData.text = text;
     if (linkUrl) shareData.url = linkUrl;
     return shareData;
+  }
+
+  function buildVmAdminNativeShareCacheKey(payload){
+    const row = payload && typeof payload === 'object' ? payload : {};
+    const selectedPhotos = Array.isArray(row.selected_photos) ? row.selected_photos : [];
+    const source = selectedPhotos.length
+      ? selectedPhotos.map((item) => String(item && item.image_url || '').trim()).filter(Boolean)
+      : [String(row.image_url || '').trim()].filter(Boolean);
+    return source.join('|');
   }
 
   async function buildVmAdminNativeShareFiles(payload){
@@ -2023,12 +2058,58 @@ function pulseFrame(){
     return files;
   }
 
+  function warmVmAdminNativeShareFiles(payload){
+    const key = buildVmAdminNativeShareCacheKey(payload);
+    if (!key) {
+      vmAdminNativeShareState.key = '';
+      vmAdminNativeShareState.files = [];
+      vmAdminNativeShareState.loading = false;
+      vmAdminNativeShareState.error = '';
+      vmAdminNativeShareState.promise = null;
+      return Promise.resolve([]);
+    }
+    if (vmAdminNativeShareState.key === key && vmAdminNativeShareState.files.length) {
+      return Promise.resolve(vmAdminNativeShareState.files.slice());
+    }
+    if (vmAdminNativeShareState.key === key && vmAdminNativeShareState.loading && vmAdminNativeShareState.promise) {
+      return vmAdminNativeShareState.promise;
+    }
+    vmAdminNativeShareState.key = key;
+    vmAdminNativeShareState.files = [];
+    vmAdminNativeShareState.loading = true;
+    vmAdminNativeShareState.error = '';
+    const task = buildVmAdminNativeShareFiles(payload)
+      .then((files) => {
+        if (vmAdminNativeShareState.key === key) {
+          vmAdminNativeShareState.files = Array.isArray(files) ? files : [];
+          vmAdminNativeShareState.loading = false;
+          vmAdminNativeShareState.error = '';
+          vmAdminNativeShareState.promise = null;
+        }
+        return Array.isArray(files) ? files : [];
+      })
+      .catch((err) => {
+        if (vmAdminNativeShareState.key === key) {
+          vmAdminNativeShareState.files = [];
+          vmAdminNativeShareState.loading = false;
+          vmAdminNativeShareState.error = messageFromVmAdminError(err, 'Unable to prepare share files');
+          vmAdminNativeShareState.promise = null;
+        }
+        throw err;
+      });
+    vmAdminNativeShareState.promise = task;
+    return task;
+  }
+
   async function runVmAdminNativeShare(payload){
     if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
       throw new Error('Native share is not available in this browser.');
     }
     const shareData = buildVmAdminFacebookSharePayload(payload);
-    const files = await buildVmAdminNativeShareFiles(payload);
+    const cacheKey = buildVmAdminNativeShareCacheKey(payload);
+    const files = vmAdminNativeShareState.key === cacheKey && Array.isArray(vmAdminNativeShareState.files)
+      ? vmAdminNativeShareState.files.slice()
+      : [];
     if (files.length) {
       const fileShareData = { files };
       if (shareData.title) fileShareData.title = shareData.title;
@@ -2042,6 +2123,12 @@ function pulseFrame(){
         await navigator.share(filesOnlyShareData);
         return filesOnlyShareData;
       }
+    }
+    if (cacheKey) {
+      warmVmAdminNativeShareFiles(payload).catch(() => null);
+      throw new Error(vmAdminNativeShareState.loading
+        ? 'Selected photos are still preparing for share. Click Share again in a moment.'
+        : (vmAdminNativeShareState.error || 'Selected photos are not ready to share yet. Click Share again in a moment.'));
     }
     if (!shareData.title && !shareData.text && !shareData.url) {
       throw new Error('Nothing is ready to share yet.');
@@ -2230,6 +2317,85 @@ function pulseFrame(){
       out[key] = value;
     });
     return out;
+  }
+
+  function buildVmAdminFacebookComposerPayload(){
+    const previewShell = document.getElementById('vmAdminFacebookPreview');
+    const status = document.getElementById('vmAdminFacebookComposerStatus');
+    const entityType = readVmAdminFacebookEntityType();
+    const selectedPickerItem = vmAdminFacebookPickerState.selected && typeof vmAdminFacebookPickerState.selected === 'object'
+      ? vmAdminFacebookPickerState.selected
+      : null;
+    const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
+    const albumPayload = buildVmAdminFacebookAlbumPayload();
+    const payload = {
+      section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
+      entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
+      entity_id: String((document.getElementById('vmAdminFacebookEntityIdHidden') || {}).value || '').trim(),
+      entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
+      caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
+      link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
+      image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim(),
+      selected_photos: selectedPhotos,
+      publish_mode: albumPayload.publish_mode,
+      facebook_album_id: albumPayload.facebook_album_id,
+      facebook_album_name: albumPayload.facebook_album_name,
+      mentions: buildVmAdminFacebookMentionsPayload()
+    };
+    if (entityType === 'normal_post') {
+      const linkMode = String((document.getElementById('vmAdminFacebookNormalLinkMode') || {}).value || 'no').trim().toLowerCase();
+      payload.link_url = linkMode === 'yes'
+        ? String((document.getElementById('vmAdminFacebookNormalLinkUrl') || {}).value || '').trim()
+        : '';
+      payload.image_url = '';
+    } else {
+      const photoLinkMode = readVmAdminFacebookPhotoToggle('vmAdminFacebookPhotoLinkMode', 'no');
+      const selectedRoute = String((document.getElementById('vmAdminFacebookEntityRouteHidden') || {}).value || '').trim();
+      if (!payload.entity_id && selectedPickerItem && selectedPickerItem.entityId) {
+        payload.entity_id = String(selectedPickerItem.entityId || '').trim();
+      }
+      if (!payload.entity_label && selectedPickerItem && selectedPickerItem.title) {
+        payload.entity_label = String(selectedPickerItem.title || '').trim();
+      }
+      if (photoLinkMode === 'yes' && !payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
+        payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
+      }
+      if (photoLinkMode === 'yes' && !payload.link_url && selectedRoute) {
+        payload.link_url = `${window.location.origin}${selectedRoute}`;
+      }
+      if (!payload.image_url && selectedPickerItem && selectedPickerItem.imageUrl) {
+        payload.image_url = String(selectedPickerItem.imageUrl || '').trim();
+      }
+      if (!payload.image_url && selectedPhotos.length) {
+        payload.image_url = String(selectedPhotos[0].image_url || '').trim();
+      }
+      if (albumPayload.publish_mode === 'share') {
+        payload.caption = String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim();
+        if (!payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
+          payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
+        }
+        if (!payload.link_url && selectedRoute) {
+          payload.link_url = `${window.location.origin}${selectedRoute}`;
+        }
+      } else {
+        payload.caption = buildVmAdminFacebookPhotoMessage();
+        payload.link_url = '';
+      }
+    }
+    payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
+    payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
+
+    if ((albumPayload.publish_mode === 'album' || albumPayload.publish_mode === 'both') && !albumPayload.facebook_album_id) {
+      const message = 'Choose a Facebook album before previewing album upload mode.';
+      if (previewShell) {
+        previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">${escapeVmAdminHtml(message)}</div>`;
+      }
+      if (status) status.textContent = 'Album required';
+      setVmAdminFacebookUiState({ connected: true, message });
+      throw new Error(message);
+    }
+
+    return compactVmAdminFacebookPayload(payload);
   }
 
   function buildVmAdminFacebookSelectedPhotosPayload(){
@@ -2426,77 +2592,8 @@ function pulseFrame(){
     const status = document.getElementById('vmAdminFacebookComposerStatus');
     const previewShell = document.getElementById('vmAdminFacebookPreview');
     const selectedPickerItem = vmAdminFacebookPickerState.selected;
-    const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
-    const albumPayload = buildVmAdminFacebookAlbumPayload();
-    const payload = {
-      section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
-      entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
-      entity_id: String((document.getElementById('vmAdminFacebookEntityIdHidden') || {}).value || '').trim(),
-      entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
-      caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
-      link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
-      image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim(),
-      selected_photos: selectedPhotos,
-      publish_mode: albumPayload.publish_mode,
-      facebook_album_id: albumPayload.facebook_album_id,
-      facebook_album_name: albumPayload.facebook_album_name,
-      mentions: buildVmAdminFacebookMentionsPayload()
-    };
-    const entityType = String(payload.entity_type || '').trim().toLowerCase();
-    if (entityType === 'normal_post') {
-      const linkMode = String((document.getElementById('vmAdminFacebookNormalLinkMode') || {}).value || 'no').trim().toLowerCase();
-      payload.link_url = linkMode === 'yes'
-        ? String((document.getElementById('vmAdminFacebookNormalLinkUrl') || {}).value || '').trim()
-        : '';
-      payload.image_url = '';
-    } else {
-      const photoLinkMode = readVmAdminFacebookPhotoToggle('vmAdminFacebookPhotoLinkMode', 'no');
-      const selectedRoute = String((document.getElementById('vmAdminFacebookEntityRouteHidden') || {}).value || '').trim();
-      if (!payload.entity_id && selectedPickerItem && selectedPickerItem.entityId) {
-        payload.entity_id = String(selectedPickerItem.entityId || '').trim();
-      }
-      if (!payload.entity_label && selectedPickerItem && selectedPickerItem.title) {
-        payload.entity_label = String(selectedPickerItem.title || '').trim();
-      }
-      if (photoLinkMode === 'yes' && !payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
-        payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
-      }
-      if (photoLinkMode === 'yes' && !payload.link_url && selectedRoute) {
-        payload.link_url = `${window.location.origin}${selectedRoute}`;
-      }
-      if (!payload.image_url && selectedPickerItem && selectedPickerItem.imageUrl) {
-        payload.image_url = String(selectedPickerItem.imageUrl || '').trim();
-      }
-      if (!payload.image_url && selectedPhotos.length) {
-        payload.image_url = String(selectedPhotos[0].image_url || '').trim();
-      }
-      if (albumPayload.publish_mode === 'share') {
-        payload.caption = String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim();
-        if (!payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
-          payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
-        }
-        if (!payload.link_url && selectedRoute) {
-          payload.link_url = `${window.location.origin}${selectedRoute}`;
-        }
-      } else {
-        payload.caption = buildVmAdminFacebookPhotoMessage();
-        payload.link_url = '';
-      }
-    }
-    payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
-    payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
-
-    if ((albumPayload.publish_mode === 'album' || albumPayload.publish_mode === 'both') && !albumPayload.facebook_album_id) {
-      const message = 'Choose a Facebook album before previewing album upload mode.';
-      if (previewShell) {
-        previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">${escapeVmAdminHtml(message)}</div>`;
-      }
-      if (status) status.textContent = 'Album required';
-      setVmAdminFacebookUiState({ connected: true, message });
-      throw new Error(message);
-    }
-
-    const cleanPayload = compactVmAdminFacebookPayload(payload);
+    const cleanPayload = buildVmAdminFacebookComposerPayload();
+    const entityType = String(cleanPayload.entity_type || '').trim().toLowerCase();
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
     if (entityType === 'normal_post') {
@@ -2559,23 +2656,25 @@ function pulseFrame(){
 
   async function runVmAdminFacebookPublish(){
     const status = document.getElementById('vmAdminFacebookComposerStatus');
-    setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Publishing post...' });
-    if (status) status.textContent = 'Publishing post...';
     try {
-      const payload = await runVmAdminFacebookPreview();
-      if (String(payload && payload.publish_mode || '').trim().toLowerCase() === 'share') {
+      const publishMode = readVmAdminFacebookPublishMode();
+      if (publishMode === 'share') {
+        const payload = buildVmAdminFacebookComposerPayload();
         await runVmAdminNativeShare(payload || {});
         if (status) status.textContent = 'Share sheet opened';
         setVmAdminFacebookUiState({ connected: true, message: 'Share sheet opened' });
         return payload;
       }
+      setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Publishing post...' });
+      if (status) status.textContent = 'Publishing post...';
+      const payload = await runVmAdminFacebookPreview();
       await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
-      const publishMode = String(payload && payload.publish_mode || 'post').trim().toLowerCase();
-      const successMessage = publishMode === 'album'
+      const resolvedPublishMode = String(payload && payload.publish_mode || 'post').trim().toLowerCase();
+      const successMessage = resolvedPublishMode === 'album'
         ? 'Photos uploaded to album only'
-        : (publishMode === 'both'
+        : (resolvedPublishMode === 'both'
           ? 'One wall post published and album uploaded'
-          : (publishMode === 'share'
+          : (resolvedPublishMode === 'share'
             ? 'Share published'
             : 'Post published'));
       if (status) status.textContent = successMessage;
