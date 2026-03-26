@@ -1,100 +1,117 @@
-Absolutely. Here’s the short next-step list for tomorrow:
+Instagram Plan
 
-Wire Photo Post picker to real Wrestling source data.
-Decide the first source path:
-show photos first
-or show + people together
-Replace the mock Albums / Results pane with real searchable/selectable results.
-Make Selected Item populate from the clicked result.
-Push selected data back into the composer:
-image URL
-entity title
-entity ID/context
-optional default caption parts
-Decide whether first pass is:
-single-select only
-or multi-select ready from day one
-Make Photo Post preview render from selected archive items instead of manual URLs.
-Keep Normal Post working as-is while we build the real picker.
-After frontend wiring, confirm backend publish still behaves correctly for image-based posts.
-Useful summary line for tomorrow:
+Connection setup
+Add an Instagram Publishing block to the admin shell beside or under Facebook.
+Create backend auth flow for Instagram through Meta.
+Require an Instagram professional account connected to a Facebook Page.
+Store:
+Instagram account ID
+linked Facebook Page ID
+access token
+token expiry / refresh info
+Add Connect Instagram, Check Connection, and Disconnect Instagram.
 
-Photo Post
+Backend basics
+Add backend routes for:
+/admin/instagram/status
+/admin/instagram/connect/start
+/admin/instagram/connect/callback
+/admin/instagram/disconnect
+/admin/instagram/preview
+/admin/instagram/publish
+/admin/instagram/history
+Reuse the same admin-token protection pattern as Facebook.
 
-Tighten the current Facebook Admin tool
+Frontend composer wiring
+Reuse the current Photo Post picker and selected-photo flow.
+Add platform-aware mode so the same selected archive item can target Instagram.
+Keep first version simple:
+Photo Post only
+no Normal Post
+no link field in final Instagram caption output
+Reuse:
+title toggle
+hashtags toggle
+caption box
+Hide unsupported fields when Instagram is selected.
 
-clean up button/status wording now that connection is real
-hide or simplify any temporary debug/status noise we no longer need
-make sure Connect Page changes to a reconnect/manage state when already connected
-confirm Disconnect behaves correctly
+Single-image first pass
+Start with one selected photo only.
+Backend publish flow:
+create Instagram media container
+publish container
+Preview should show:
+target IG account
+image preview
+final caption
+Confirm successful feed post end-to-end before touching carousel.
 
-What’s Left
+Multi-photo carousel second
+After single-image works, add multi-photo publish.
+Backend flow:
+create child media containers
+create carousel container
+publish carousel
+Use the current multi-select picker UI as the source.
+Keep album-style branching out of scope for Instagram first pass.
 
-3. Validate backend publishing behavior
+Caption rules
+Build Instagram-specific final message assembly:
+optional title
+caption
+optional hashtags
+Do not append site URL by default unless you explicitly want it.
+Keep formatting cleaner than Facebook because IG is caption-first.
 
-confirm image + caption + link posts render the way you want on Facebook
-confirm the chosen image URL is publicly reachable enough for Facebook ingestion
-confirm publish failures are logged clearly
-confirm token expiry/refresh behavior is acceptable for your workflow
-4. Replace the temporary manual composer
+Media requirements
+Make sure selected images use full-resolution public URLs.
+Verify Meta can fetch the image URLs from the backend/source.
+Add clear error handling for:
+invalid image URL
+unsupported media
+container creation failure
+publish failure
 
-remove the current temporary test-surface feel
-wire real source selection instead of typing IDs/URLs by hand
-This is the big next product step.
+History and status
+Add Instagram publish history panel like Facebook.
+Log:
+entity label
+selected photo count
+publish status
+Instagram media/container IDs
+error message if failed
+Show friendly status copy in the admin shell.
 
-5. Build the real content-pick flow
-You said the better long-term workflow is selecting actual photos from albums. So the likely next implementation path is:
+Verification checklist
+Connect account successfully
+Fetch Instagram account status successfully
+Publish one single-image post
+Confirm caption formatting
+Confirm image is full-res
+Publish one carousel
+Confirm history logging
+Confirm disconnect/reconnect works
 
-open album/gallery
-select one or more photos
-click share/post
-prefill caption + image + link + source context
-publish to Facebook
-That should work across:
-
-Music shows
-Music bands
-Music people
-Wrestling shows
-Wrestling people
-future archive areas
-6. Connect source data to the composer
-Before full photo-selection UI, there’s an intermediate step we could do if we want:
-
-pull real show data into the composer automatically
-then later swap from show-based to photo-based
-But given your preference, I’d lean toward skipping overbuilding here and going toward photo-first.
-
-7. Clean out temporary debug scaffolding
-Once the system is stable, we should remove or reduce:
-
-extra diagnostics we added for Meta debugging
-extra debug state in backend connection records if not needed long-term
-temporary helper scripts used only during this setup
-8. Mirror the backend pattern into Music where needed
-Right now Wrestling was the first backend anchor.
-Because this is meant for both Music and Wrestling, we still need to decide whether:
-
-one backend becomes the shared social-posting backend
-or the same Facebook posting capability is duplicated/adapted into Music backend
-My recommendation:
-
-keep one shared posting authority if possible
-but we can decide that once the real posting workflow is stable
-Recommended order from here
-
-Real Facebook publish test from current tool
-Clean up the connected-state Admin panel
-Decide final workflow shape:
-photo-first share flow
-or a short stop at show-based autofill
-Build the real source-selection UI
-Remove setup/debug leftovers
-Expand cleanly for Music/Wrestling shared use
-If you want, next I can turn this into a concrete “Phase 3 / Phase 4” checklist specifically for the photo-selection posting workflow.
+Nice-to-have after core works
+Instagram-specific mention/handle drafting
+scheduled posting
+reels/video path
+platform-specific caption presets
+cross-post workflow from one selected archive item
 
 
+Best build order
+Instagram auth + status
+Single-image publish
+Preview + history
+Carousel publish
+polish/error handling
+
+Important constraint
+Instagram should be treated as its own backend publishing system, not a copy of Facebook with renamed labels. The picker/frontend can be reused heavily, but the actual publish logic should be platform-specific.
 
 
 
-
+Things Needing to Check:
+Wrestler individual card UI update
+Admin-Indexing Tools - fix rebuild times and add rebuild logic to buttons
