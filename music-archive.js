@@ -71,6 +71,14 @@
     return Number.isFinite(n) ? n : 0;
   }
 
+  function isMusicMobileViewport() {
+    try {
+      return Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 760;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function sizeContentPanelToHud() {
     // Reduce fragile layout magic numbers:
     // Compute the scrollable "green box" height from real DOM geometry,
@@ -144,6 +152,7 @@
   // For other tabs, revert to the original auto-sizing behavior.
   function setArchiveViewportExpanded(isExpanded) {
     if (!_contentPanelEl) return;
+    const isMobile = isMusicMobileViewport();
 
     if (isExpanded) {
       // Archives-only vertical positioning
@@ -179,6 +188,37 @@
       _contentPanelEl.style.height = '';
       _contentPanelEl.style.maxHeight = '';
     } else {
+      if (isMobile) {
+        _contentPanelEl.style.marginTop = '14px';
+        _contentPanelEl.style.overflowY = 'auto';
+        _contentPanelEl.style.overflowX = 'hidden';
+        _contentPanelEl.style.webkitOverflowScrolling = 'touch';
+        _contentPanelEl.style.overscrollBehavior = 'contain';
+        _contentPanelEl.style.display = 'block';
+        _contentPanelEl.style.alignItems = '';
+        _contentPanelEl.style.justifyContent = '';
+        _contentPanelEl.style.textAlign = '';
+
+        const hudMainMobile = document.querySelector('.hudStub.hudMain');
+        if (hudMainMobile) {
+          if (_prevHudMainDisplay === null) _prevHudMainDisplay = hudMainMobile.style.display || '';
+          if (_prevHudMainFlexDirection === null) _prevHudMainFlexDirection = hudMainMobile.style.flexDirection || '';
+          if (_prevHudMainAlignItems === null) _prevHudMainAlignItems = hudMainMobile.style.alignItems || '';
+          if (_prevHudMainJustifyContent === null) _prevHudMainJustifyContent = hudMainMobile.style.justifyContent || '';
+
+          hudMainMobile.style.display = 'flex';
+          hudMainMobile.style.flexDirection = 'column';
+          hudMainMobile.style.alignItems = 'center';
+          hudMainMobile.style.justifyContent = 'flex-start';
+        }
+
+        _contentPanelEl.style.flex = '1 1 auto';
+        _contentPanelEl.style.minHeight = '0px';
+        _contentPanelEl.style.height = '';
+        _contentPanelEl.style.maxHeight = '';
+        return;
+      }
+
       // revert to original behavior
       _contentPanelEl.style.marginTop = '';
       _contentPanelEl.style.height = '';
