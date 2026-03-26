@@ -1998,10 +1998,11 @@ function pulseFrame(){
     const title = String(row.entity_label || '').trim();
     const text = String(row.caption || '').trim();
     const linkUrl = String(row.link_url || '').trim();
+    const hasPhotos = (Array.isArray(row.selected_photos) && row.selected_photos.length > 0) || !!String(row.image_url || '').trim();
     const shareData = {};
     if (title) shareData.title = title;
     if (text) shareData.text = text;
-    if (linkUrl) shareData.url = linkUrl;
+    if (linkUrl && !hasPhotos) shareData.url = linkUrl;
     return shareData;
   }
 
@@ -2112,17 +2113,19 @@ function pulseFrame(){
       ? vmAdminNativeShareState.files.slice()
       : [];
     if (files.length) {
-      const fileShareData = { files };
-      if (shareData.title) fileShareData.title = shareData.title;
-      if (shareData.text) fileShareData.text = shareData.text;
-      if (typeof navigator.canShare === 'function' ? navigator.canShare(fileShareData) : true) {
-        await navigator.share(fileShareData);
-        return fileShareData;
-      }
       const filesOnlyShareData = { files };
       if (typeof navigator.canShare === 'function' ? navigator.canShare(filesOnlyShareData) : true) {
         await navigator.share(filesOnlyShareData);
         return filesOnlyShareData;
+      }
+      const fileShareData = { files };
+      if (shareData.title) fileShareData.title = shareData.title;
+      if (shareData.text) {
+        fileShareData.text = String(shareData.text || '').replace(/https?:\/\/\S+/gi, '').trim();
+      }
+      if ((fileShareData.title || fileShareData.text) && (typeof navigator.canShare !== 'function' ? true : navigator.canShare(fileShareData))) {
+        await navigator.share(fileShareData);
+        return fileShareData;
       }
     }
     if (cacheKey) {
