@@ -1014,6 +1014,15 @@ function pulseFrame(){
     }
   }
 
+  function handleVmAdminFacebookMentionRefresh(event){
+    const key = String(event && event.key || '');
+    if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'Enter' || key === 'Escape') return;
+    const field = document.getElementById('vmAdminFacebookCaption');
+    if (!field) return;
+    field.dataset.vmFacebookAutofill = '';
+    refreshVmAdminFacebookMentionSuggestions(field);
+  }
+
   function insertVmAdminFacebookMention(name){
     const field = document.getElementById('vmAdminFacebookCaption');
     if (!field) return;
@@ -2237,6 +2246,9 @@ function pulseFrame(){
   window.__vmAdminFacebookPickerSelectPhoto = function __vmAdminFacebookPickerSelectPhoto(itemId){
     return toggleVmAdminFacebookPhotoSelection(itemId);
   };
+  window.__vmAdminFacebookMentionRefresh = function __vmAdminFacebookMentionRefresh(event){
+    return handleVmAdminFacebookMentionRefresh(event);
+  };
   window.__vmAdminSyncFacebookEntityTypeUi = function __vmAdminSyncFacebookEntityTypeUi(){
     return syncVmAdminFacebookEntityTypeUi();
   };
@@ -3138,7 +3150,7 @@ music: {
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
-                        <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                        <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." oninput="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onclick="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh();" onkeyup="window.__vmAdminFacebookMentionRefresh && window.__vmAdminFacebookMentionRefresh(event);" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
                         <div id="vmAdminFacebookMentionSuggestions" style="display:none; margin-top:8px; border:1px solid rgba(97,224,255,.16); border-radius:12px; background:linear-gradient(180deg,rgba(10,18,24,.96),rgba(7,11,18,.96)); overflow:hidden;"></div>
                       </label>
                     </div>
@@ -3322,6 +3334,7 @@ music: {
             insertVmAdminFacebookMention(String(btn.getAttribute('data-facebook-mention-name') || '').trim());
           }, { once: false });
         }
+        loadVmAdminFacebookMentionPeople().catch(() => null);
         if (facebookPickerSearch) {
           facebookPickerSearch.addEventListener('focus', () => {
             if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
