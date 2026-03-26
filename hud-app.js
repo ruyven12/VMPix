@@ -823,6 +823,12 @@ function pulseFrame(){
     return out;
   }
 
+  function getVmAdminFacebookBrowseShow(){
+    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
+    if (!browseShowId) return null;
+    return (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === browseShowId) || null;
+  }
+
   function buildVmAdminFacebookPickerItemFromShow(row){
     const apiBase = getVmAdminWrestlingApiBase();
     const rawDate = readVmAdminShowField(row, ['show_date', 'date']);
@@ -918,9 +924,8 @@ function pulseFrame(){
   function getVmAdminFacebookFilteredPickerItems(){
     const query = String(vmAdminFacebookPickerState.query || '').trim().toLowerCase();
     const items = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
-    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
-    if (browseShowId) {
-      const parent = items.find((item) => item.id === browseShowId) || null;
+    const parent = getVmAdminFacebookBrowseShow();
+    if (parent) {
       const matchItems = buildVmAdminFacebookPickerMatchItems(parent);
       if (!query) return matchItems;
       return matchItems.filter((item) => String(item && item.searchBlob || '').indexOf(query) >= 0);
@@ -990,10 +995,7 @@ function pulseFrame(){
     if (!resultsShell || !selectedShell) return;
     const selected = vmAdminFacebookPickerState.selected;
     const items = getVmAdminFacebookFilteredPickerItems();
-    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
-    const browseShow = browseShowId
-      ? (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === browseShowId) || null
-      : null;
+    const browseShow = getVmAdminFacebookBrowseShow();
     if (countShell) {
       if (vmAdminFacebookPickerState.loading) {
         countShell.textContent = 'Loading shows...';
@@ -1010,7 +1012,17 @@ function pulseFrame(){
     } else if (vmAdminFacebookPickerState.loadError) {
       resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,95,135,.18); border-radius:12px; background:rgba(22,10,16,.72); color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(vmAdminFacebookPickerState.loadError)}</div>`;
     } else if (!items.length) {
-      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${browseShow ? 'No matches matched this search yet.' : 'No shows matched this search yet.'}</div>`;
+      if (browseShow) {
+        resultsShell.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+            <button type="button" data-facebook-picker-back="1" onclick="window.__vmAdminFacebookPickerBackToShows && window.__vmAdminFacebookPickerBackToShows(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
+            <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseShow.title)}</div>
+          </div>
+          <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">No matches found for this show yet. The picker has switched into match-browser mode, but this source row does not appear to have match entries we can parse.</div>
+        `;
+      } else {
+        resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">No shows matched this search yet.</div>`;
+      }
     } else {
       const headerHtml = browseShow ? `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
@@ -1082,11 +1094,22 @@ function pulseFrame(){
     const match = (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === itemId) || null;
     if (!match) return;
     vmAdminFacebookPickerState.browseShowId = match.id;
+    const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
+    const matchItems = buildVmAdminFacebookPickerMatchItems(match);
+    if (pickerStatus) {
+      pickerStatus.textContent = matchItems.length
+        ? `Browsing matches for ${match.title}`
+        : `No matches found for ${match.title}`;
+    }
     renderVmAdminFacebookPicker();
   }
 
   function closeVmAdminFacebookPickerShow(){
     vmAdminFacebookPickerState.browseShowId = '';
+    const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
+    if (pickerStatus && !vmAdminFacebookPickerState.selected) {
+      pickerStatus.textContent = 'Single-select picker ready';
+    }
     renderVmAdminFacebookPicker();
   }
 
