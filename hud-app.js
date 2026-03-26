@@ -670,6 +670,18 @@ function pulseFrame(){
     selected: null
   };
 
+  const vmAdminFacebookMentionState = {
+    loading: false,
+    loaded: false,
+    error: '',
+    people: [],
+    active: false,
+    query: '',
+    start: -1,
+    end: -1,
+    activeIndex: 0
+  };
+
   function parseVmAdminCsvLine(line){
     const out = [];
     let current = '';
@@ -884,6 +896,140 @@ function pulseFrame(){
 
   function getVmAdminPhotoFull(img){
     return pickVmAdminImageUrl(img, ['OriginalUrl', 'ArchivedUri', 'ArchivedUrl', 'LargestImageUrl', 'X3LargeUrl', 'X2LargeUrl', 'XLargeUrl', 'LargeUrl', 'MediumUrl', 'ImageUrl', 'Url']);
+  }
+
+  async function loadVmAdminFacebookMentionPeople(){
+    if (vmAdminFacebookMentionState.loading) return [];
+    if (vmAdminFacebookMentionState.loaded && !vmAdminFacebookMentionState.error) {
+      return vmAdminFacebookMentionState.people;
+    }
+    vmAdminFacebookMentionState.loading = true;
+    vmAdminFacebookMentionState.error = '';
+    renderVmAdminFacebookMentionSuggestions();
+    try {
+      const apiBase = getVmAdminWrestlingApiBase();
+      const res = await fetch(`${apiBase}/index/people?cb=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error('Unable to load people index');
+      const rawPeople = data && data.people && typeof data.people === 'object' ? data.people : {};
+      const list = Object.keys(rawPeople).map((key) => {
+        const row = rawPeople[key] || {};
+        return String(row.person || key || '').trim();
+      }).filter(Boolean).sort((a, b) => a.localeCompare(b));
+      vmAdminFacebookMentionState.people = list;
+      vmAdminFacebookMentionState.loaded = true;
+      return list;
+    } catch (err) {
+      vmAdminFacebookMentionState.loaded = false;
+      vmAdminFacebookMentionState.error = messageFromVmAdminError(err, 'Unable to load mention suggestions');
+      return [];
+    } finally {
+      vmAdminFacebookMentionState.loading = false;
+      renderVmAdminFacebookMentionSuggestions();
+    }
+  }
+
+  function getVmAdminFacebookMentionMatch(textarea){
+    const field = textarea || document.getElementById('vmAdminFacebookCaption');
+    if (!field) return null;
+    const value = String(field.value || '');
+    const caret = Number(field.selectionStart || 0);
+    const before = value.slice(0, caret);
+    const match = before.match(/(^|\s)@([^\n@]{0,40})$/);
+    if (!match) return null;
+    const rawQuery = String(match[2] || '');
+    const start = caret - rawQuery.length - 1;
+    return {
+      start,
+      end: caret,
+      query: rawQuery.trim().toLowerCase()
+    };
+  }
+
+  function getVmAdminFacebookMentionSuggestions(){
+    const query = String(vmAdminFacebookMentionState.query || '').trim().toLowerCase();
+    const people = Array.isArray(vmAdminFacebookMentionState.people) ? vmAdminFacebookMentionState.people : [];
+    if (!query) return people.slice(0, 6);
+    const starts = people.filter((name) => String(name || '').toLowerCase().startsWith(query));
+    const includes = people.filter((name) => String(name || '').toLowerCase().indexOf(query) >= 0 && !starts.includes(name));
+    return starts.concat(includes).slice(0, 6);
+  }
+
+  function hideVmAdminFacebookMentionSuggestions(){
+    vmAdminFacebookMentionState.active = false;
+    vmAdminFacebookMentionState.query = '';
+    vmAdminFacebookMentionState.start = -1;
+    vmAdminFacebookMentionState.end = -1;
+    vmAdminFacebookMentionState.activeIndex = 0;
+    renderVmAdminFacebookMentionSuggestions();
+  }
+
+  function renderVmAdminFacebookMentionSuggestions(){
+    const shell = document.getElementById('vmAdminFacebookMentionSuggestions');
+    if (!shell) return;
+    if (!vmAdminFacebookMentionState.active) {
+      shell.style.display = 'none';
+      shell.innerHTML = '';
+      return;
+    }
+    shell.style.display = 'grid';
+    if (vmAdminFacebookMentionState.loading) {
+      shell.innerHTML = `<div style="padding:10px 12px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">Loading mention suggestions...</div>`;
+      return;
+    }
+    if (vmAdminFacebookMentionState.error) {
+      shell.innerHTML = `<div style="padding:10px 12px; color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(vmAdminFacebookMentionState.error)}</div>`;
+      return;
+    }
+    const suggestions = getVmAdminFacebookMentionSuggestions();
+    if (!suggestions.length) {
+      shell.innerHTML = `<div style="padding:10px 12px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">No matching people found.</div>`;
+      return;
+    }
+    shell.innerHTML = suggestions.map((name, index) => `
+      <button type="button" data-facebook-mention-name="${escapeVmAdminHtml(name)}" style="padding:10px 12px; border:0; border-top:${index === 0 ? '0' : '1px solid rgba(255,255,255,.06)'}; background:${index === vmAdminFacebookMentionState.activeIndex ? 'rgba(10,20,28,.82)' : 'transparent'}; color:${index === vmAdminFacebookMentionState.activeIndex ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; text-align:left; cursor:pointer;">${escapeVmAdminHtml(name)}</button>
+    `).join('');
+  }
+
+  function refreshVmAdminFacebookMentionSuggestions(textarea){
+    const field = textarea || document.getElementById('vmAdminFacebookCaption');
+    if (!field) return;
+    const match = getVmAdminFacebookMentionMatch(field);
+    if (!match) {
+      hideVmAdminFacebookMentionSuggestions();
+      return;
+    }
+    vmAdminFacebookMentionState.active = true;
+    vmAdminFacebookMentionState.query = match.query;
+    vmAdminFacebookMentionState.start = match.start;
+    vmAdminFacebookMentionState.end = match.end;
+    vmAdminFacebookMentionState.activeIndex = 0;
+    renderVmAdminFacebookMentionSuggestions();
+    if (!vmAdminFacebookMentionState.loaded && !vmAdminFacebookMentionState.loading) {
+      loadVmAdminFacebookMentionPeople().catch(() => null);
+    }
+  }
+
+  function insertVmAdminFacebookMention(name){
+    const field = document.getElementById('vmAdminFacebookCaption');
+    if (!field) return;
+    const label = String(name || '').trim();
+    if (!label) return;
+    const value = String(field.value || '');
+    const start = Math.max(0, Number(vmAdminFacebookMentionState.start || 0));
+    const end = Math.max(start, Number(field.selectionStart || vmAdminFacebookMentionState.end || start));
+    field.value = `${value.slice(0, start)}@${label} ${value.slice(end)}`;
+    const nextCaret = start + label.length + 2;
+    try {
+      field.focus();
+      field.setSelectionRange(nextCaret, nextCaret);
+    } catch (_) {}
+    field.dataset.vmFacebookAutofill = '';
+    hideVmAdminFacebookMentionSuggestions();
   }
 
   function readVmAdminShowField(row, keys){
@@ -2993,6 +3139,7 @@ music: {
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
                         <textarea id="vmAdminFacebookCaption" rows="5" placeholder="Write the Facebook caption here..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                        <div id="vmAdminFacebookMentionSuggestions" style="display:none; margin-top:8px; border:1px solid rgba(97,224,255,.16); border-radius:12px; background:linear-gradient(180deg,rgba(10,18,24,.96),rgba(7,11,18,.96)); overflow:hidden;"></div>
                       </label>
                     </div>
                     <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
@@ -3129,6 +3276,50 @@ music: {
         if (facebookCaption) {
           facebookCaption.addEventListener('input', () => {
             facebookCaption.dataset.vmFacebookAutofill = '';
+            refreshVmAdminFacebookMentionSuggestions(facebookCaption);
+          }, { once: false });
+          facebookCaption.addEventListener('click', () => {
+            refreshVmAdminFacebookMentionSuggestions(facebookCaption);
+          }, { once: false });
+          facebookCaption.addEventListener('keyup', (event) => {
+            const key = String(event && event.key || '');
+            if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'Enter' || key === 'Escape') return;
+            refreshVmAdminFacebookMentionSuggestions(facebookCaption);
+          }, { once: false });
+          facebookCaption.addEventListener('keydown', (event) => {
+            if (!vmAdminFacebookMentionState.active) return;
+            const suggestions = getVmAdminFacebookMentionSuggestions();
+            if (!suggestions.length) return;
+            if (event.key === 'ArrowDown') {
+              event.preventDefault();
+              vmAdminFacebookMentionState.activeIndex = (vmAdminFacebookMentionState.activeIndex + 1) % suggestions.length;
+              renderVmAdminFacebookMentionSuggestions();
+              return;
+            }
+            if (event.key === 'ArrowUp') {
+              event.preventDefault();
+              vmAdminFacebookMentionState.activeIndex = (vmAdminFacebookMentionState.activeIndex - 1 + suggestions.length) % suggestions.length;
+              renderVmAdminFacebookMentionSuggestions();
+              return;
+            }
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              insertVmAdminFacebookMention(suggestions[vmAdminFacebookMentionState.activeIndex] || '');
+              return;
+            }
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              hideVmAdminFacebookMentionSuggestions();
+            }
+          }, { once: false });
+        }
+        const facebookMentionShell = document.getElementById('vmAdminFacebookMentionSuggestions');
+        if (facebookMentionShell) {
+          facebookMentionShell.addEventListener('click', (event) => {
+            const target = event.target;
+            const btn = target && target.closest ? target.closest('[data-facebook-mention-name]') : null;
+            if (!btn) return;
+            insertVmAdminFacebookMention(String(btn.getAttribute('data-facebook-mention-name') || '').trim());
           }, { once: false });
         }
         if (facebookPickerSearch) {
