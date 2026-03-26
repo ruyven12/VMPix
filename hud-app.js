@@ -1098,9 +1098,7 @@ function pulseFrame(){
       return;
     }
     const primary = selectedItems[0];
-    const label = selectedItems.length === 1
-      ? String(primary.title || 'Photo').trim()
-      : `${String(primary.matchTitle || primary.title || 'Selected Photos').trim()} (${selectedItems.length} Photos)`;
+    const label = String(primary.title || 'Photo').trim();
     if (imageField) imageField.value = String(primary.imageFullUrl || primary.imageUrl || '').trim();
     if (titleField) titleField.value = label;
     if (hiddenIdField) hiddenIdField.value = selectedItems.map((item) => item.entityId).filter(Boolean).join(',');
@@ -1123,9 +1121,7 @@ function pulseFrame(){
       }
     }
     if (pickerStatus) {
-      pickerStatus.textContent = selectedItems.length === 1
-        ? `Selected photo: ${primary.title}`
-        : `Selected ${selectedItems.length} photos`;
+      pickerStatus.textContent = `Selected photo: ${primary.title}`;
     }
     vmAdminFacebookPickerState.selectedId = primary.id;
     vmAdminFacebookPickerState.selected = primary;
@@ -1134,12 +1130,10 @@ function pulseFrame(){
   function toggleVmAdminFacebookPhotoSelection(itemId){
     const item = (Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : []).find((photo) => photo.id === itemId) || null;
     if (!item) return;
-    const current = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds.slice() : [];
-    const index = current.indexOf(itemId);
-    if (index >= 0) current.splice(index, 1);
-    else current.push(itemId);
-    vmAdminFacebookPickerState.selectedPhotoIds = current;
-    if (!current.length) {
+    const current = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds.slice(0, 1) : [];
+    const isSame = current.length === 1 && current[0] === itemId;
+    vmAdminFacebookPickerState.selectedPhotoIds = isSame ? [] : [itemId];
+    if (isSame) {
       vmAdminFacebookPickerState.selectedId = '';
       vmAdminFacebookPickerState.selected = null;
     }
@@ -1276,7 +1270,7 @@ function pulseFrame(){
                   <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:0; border:0; background:transparent; color:${picked ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:left;">${escapeVmAdminHtml(item.title)}</button>
                   <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.subtitle || 'Photo')}</div>
                 </div>
-                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${picked ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${picked ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${picked ? 'Remove' : 'Use Photo'}</button>
+                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${picked ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${picked ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${picked ? 'Selected' : 'Use Photo'}</button>
               </div>
             </div>
           `;
@@ -1310,20 +1304,16 @@ function pulseFrame(){
       }).join('');
     }
     if (selectedPhotoItems.length) {
+      const primaryPhoto = selectedPhotoItems[0];
       selectedShell.innerHTML = `
         <div style="display:grid; gap:10px; margin-top:10px;">
-          <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;">
-            ${selectedPhotoItems.slice(0, 4).map((item) => `
-              <div style="border:1px solid rgba(97,224,255,.14); border-radius:12px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
-                <div style="aspect-ratio:1/1;">
-                  ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
-                </div>
-                <div style="padding:8px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.title)}</div>
-              </div>
-            `).join('')}
+          <div style="border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
+            <div style="aspect-ratio:4/5;">
+              ${primaryPhoto.imageUrl ? `<img src="${escapeVmAdminHtml(primaryPhoto.imageUrl)}" alt="${escapeVmAdminHtml(primaryPhoto.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
+            </div>
           </div>
-          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(selectedPhotoItems.length === 1 ? '1 Photo Selected' : `${selectedPhotoItems.length} Photos Selected`)}</div>
-          <div style="color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([(selectedPhotoItems[0] && selectedPhotoItems[0].matchTitle) || '', (selectedPhotoItems[0] && selectedPhotoItems[0].showTitle) || ''].filter(Boolean).join(' • '))}</div>
+          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(primaryPhoto.title || '1 Photo Selected')}</div>
+          <div style="color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([primaryPhoto.matchTitle || '', primaryPhoto.showTitle || '', primaryPhoto.prettyDate || ''].filter(Boolean).join(' • '))}</div>
           <button type="button" data-facebook-picker-clear="1" style="min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
         </div>
       `;
