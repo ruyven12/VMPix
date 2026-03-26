@@ -3456,7 +3456,7 @@ music: {
                       </label>
                       <div id="vmAdminFacebookPublishModeWrap" data-facebook-mode="photo-post" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Publish Mode</div>
-                        <select id="vmAdminFacebookPublishMode" onchange="window.__vmAdminSyncFacebookAlbumUi && window.__vmAdminSyncFacebookAlbumUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                        <select id="vmAdminFacebookPublishMode" onchange="window.__vmAdminSyncFacebookEntityTypeUi && window.__vmAdminSyncFacebookEntityTypeUi(); window.__vmAdminSyncFacebookAlbumUi && window.__vmAdminSyncFacebookAlbumUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
                           <option value="post" selected>Custom Multi-Photo Post</option>
                           <option value="album">Upload to Album</option>
                           <option value="both">Both</option>
