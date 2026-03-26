@@ -1987,12 +1987,27 @@ function pulseFrame(){
       ? selectedPhotos
       : (row.image_url ? [{ image_url: row.image_url, title: row.entity_label || 'shared-photo' }] : []);
     const files = [];
+    const apiBase = getVmAdminWrestlingApiBase();
+    const getFetchUrl = (rawUrl) => {
+      const clean = String(rawUrl || '').trim();
+      if (!clean) return '';
+      try {
+        const target = new URL(clean, window.location.origin);
+        const apiOrigin = new URL(apiBase).origin;
+        if (target.origin === window.location.origin || target.origin === apiOrigin) {
+          return target.toString();
+        }
+        return `${apiBase}/show-poster?url=${encodeURIComponent(target.toString())}`;
+      } catch (_) {
+        return `${apiBase}/show-poster?url=${encodeURIComponent(clean)}`;
+      }
+    };
     for (let index = 0; index < photoItems.length; index++) {
       const item = photoItems[index] && typeof photoItems[index] === 'object' ? photoItems[index] : {};
       const imageUrl = String(item.image_url || '').trim();
       if (!imageUrl) continue;
       try {
-        const res = await fetch(imageUrl, { mode: 'cors', cache: 'no-store' });
+        const res = await fetch(getFetchUrl(imageUrl), { mode: 'cors', cache: 'no-store' });
         if (!res.ok) continue;
         const blob = await res.blob();
         const mime = String(blob && blob.type || '').trim() || 'image/jpeg';
