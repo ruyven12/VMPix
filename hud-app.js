@@ -770,6 +770,7 @@ function pulseFrame(){
 
   function messageFromVmAdminError(err, fallback){
     const raw = String((err && err.message) || '').trim();
+    if (isVmAdminInvalidTokenError(err)) return 'Admin session expired. Unlock again.';
     return raw || String(fallback || 'Request failed').trim() || 'Request failed';
   }
 
@@ -1073,9 +1074,19 @@ function pulseFrame(){
       setVmAdminFacebookUiState({ connected: true, message: 'Preview ready' });
       return cleanPayload;
     } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.', { reopenModal: false });
+      }
       if (previewShell) previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to build preview right now.</div>`;
-      if (status) status.textContent = 'Preview failed';
-      setVmAdminFacebookUiState({ connected: true, message: messageFromVmAdminError(err, 'Preview failed') });
+      if (status) {
+        status.textContent = isVmAdminInvalidTokenError(err)
+          ? 'Admin session expired'
+          : 'Preview failed';
+      }
+      setVmAdminFacebookUiState({
+        connected: !isVmAdminInvalidTokenError(err),
+        message: messageFromVmAdminError(err, 'Preview failed')
+      });
       throw err;
     }
   }
@@ -1092,6 +1103,9 @@ function pulseFrame(){
       await loadVmAdminFacebookStatus({ silent: true });
       await loadVmAdminFacebookHistory({ silent: false });
     } catch (_) {
+      if (isVmAdminInvalidTokenError(_)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Facebook tools.', { reopenModal: false });
+      }
       const entityType = readVmAdminFacebookEntityType();
       const rawMessage = messageFromVmAdminError(_, 'Publish failed');
       const normalPostNeedsBackendRule = entityType === 'normal_post'
@@ -1100,11 +1114,16 @@ function pulseFrame(){
         ? 'Normal Post publish is waiting on the backend caption-only rule.'
         : rawMessage;
       if (status) {
-        status.textContent = normalPostNeedsBackendRule
-          ? 'Normal Post needs backend update'
-          : 'Publish failed';
+        status.textContent = isVmAdminInvalidTokenError(_)
+          ? 'Admin session expired'
+          : (normalPostNeedsBackendRule
+            ? 'Normal Post needs backend update'
+            : 'Publish failed');
       }
-      setVmAdminFacebookUiState({ connected: true, message: finalMessage });
+      setVmAdminFacebookUiState({
+        connected: !isVmAdminInvalidTokenError(_),
+        message: finalMessage
+      });
       throw _;
     }
   }
