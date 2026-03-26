@@ -910,6 +910,24 @@ function pulseFrame(){
     return out;
   }
 
+  function renderVmAdminFacebookNormalPostPreview(payload){
+    const caption = String(payload && payload.caption || '').trim();
+    const linkUrl = String(payload && payload.link_url || '').trim();
+    const pageLabel = 'Voodoo Media';
+    const finalMessage = linkUrl ? `${caption}\n\n${linkUrl}`.trim() : caption;
+    return `
+      <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:14px;">
+        <div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Page</div>
+          <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(pageLabel)}</div>
+          <div style="margin-top:12px; padding:14px; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(8,10,16,.78);">
+            <div style="color:rgba(214,198,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.7; white-space:pre-wrap;">${escapeVmAdminHtml(finalMessage || 'No caption yet.')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   async function loadVmAdminFacebookStatus(opts){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookMeta');
@@ -1025,6 +1043,12 @@ function pulseFrame(){
     const cleanPayload = compactVmAdminFacebookPayload(payload);
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
+    if (entityType === 'normal_post') {
+      if (previewShell) previewShell.innerHTML = renderVmAdminFacebookNormalPostPreview(cleanPayload);
+      if (status) status.textContent = 'Preview ready';
+      setVmAdminFacebookUiState({ connected: true, message: 'Preview ready' });
+      return cleanPayload;
+    }
     try {
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', cleanPayload);
       const preview = data && data.preview ? data.preview : {};
