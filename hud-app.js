@@ -1967,6 +1967,17 @@ function pulseFrame(){
     return out;
   }
 
+  function buildVmAdminFacebookSelectedPhotosPayload(){
+    return getVmAdminFacebookSelectedPhotoItems().map((item) => ({
+      id: String(item && item.id || '').trim(),
+      entity_id: String(item && item.entityId || '').trim(),
+      title: String(item && item.title || '').trim(),
+      image_url: String(item && (item.imageFullUrl || item.imageUrl) || '').trim(),
+      route_url: String(item && item.routeUrl || '').trim(),
+      route_path: String(item && item.routePath || '').trim()
+    })).filter((item) => item.image_url);
+  }
+
   function renderVmAdminFacebookNormalPostPreview(payload){
     const caption = String(payload && payload.caption || '').trim();
     const linkUrl = String(payload && payload.link_url || '').trim();
@@ -2116,6 +2127,7 @@ function pulseFrame(){
     const status = document.getElementById('vmAdminFacebookComposerStatus');
     const previewShell = document.getElementById('vmAdminFacebookPreview');
     const selectedPickerItem = vmAdminFacebookPickerState.selected;
+    const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
     const payload = {
       section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
       entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
@@ -2124,6 +2136,7 @@ function pulseFrame(){
       caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
       link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
       image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim(),
+      selected_photos: selectedPhotos,
       mentions: buildVmAdminFacebookMentionsPayload()
     };
     const entityType = String(payload.entity_type || '').trim().toLowerCase();
@@ -2149,6 +2162,9 @@ function pulseFrame(){
       }
       if (!payload.image_url && selectedPickerItem && selectedPickerItem.imageUrl) {
         payload.image_url = String(selectedPickerItem.imageUrl || '').trim();
+      }
+      if (!payload.image_url && selectedPhotos.length) {
+        payload.image_url = String(selectedPhotos[0].image_url || '').trim();
       }
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
