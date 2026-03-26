@@ -646,6 +646,326 @@ function pulseFrame(){
     return String(value);
   }
 
+  function getVmAdminWrestlingApiBase(){
+    return (
+      (typeof window !== 'undefined' && typeof window.WRESTLING_ARCHIVE_API_BASE === 'string' && window.WRESTLING_ARCHIVE_API_BASE.trim())
+        ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
+        : 'https://wrestling-archive.onrender.com'
+    );
+  }
+
+  const vmAdminFacebookPickerState = {
+    loading: false,
+    loaded: false,
+    loadError: '',
+    items: [],
+    query: '',
+    selectedId: '',
+    selected: null
+  };
+
+  function parseVmAdminCsvLine(line){
+    const out = [];
+    let current = '';
+    let inQuotes = false;
+    const src = String(line || '');
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '"') {
+        if (inQuotes && src[i + 1] === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        out.push(current);
+        current = '';
+        continue;
+      }
+      current += ch;
+    }
+    out.push(current);
+    return out;
+  }
+
+  function slugVmAdminShowDate(raw){
+    const value = String(raw || '').trim();
+    let match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (match) {
+      let yy = String(match[3] || '').trim();
+      if (yy.length === 4) yy = yy.slice(2);
+      return `${String(match[1]).padStart(2, '0')}${String(match[2]).padStart(2, '0')}${yy}`;
+    }
+    match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[2]}${match[3]}${String(match[1]).slice(2)}` : '';
+  }
+
+  function formatVmAdminShowDate(raw){
+    const value = String(raw || '').trim();
+    if (!value) return '';
+    let year = 0;
+    let month = 0;
+    let day = 0;
+    let match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (match) {
+      month = Number(match[1]);
+      day = Number(match[2]);
+      year = Number(String(match[3]).length === 2 ? `20${match[3]}` : match[3]);
+    } else {
+      match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return value;
+      year = Number(match[1]);
+      month = Number(match[2]);
+      day = Number(match[3]);
+    }
+    const date = new Date(year, month - 1, day);
+    if (Number.isNaN(date.getTime())) return value;
+    try {
+      return date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (_) {}
+    return value;
+  }
+
+  function buildVmAdminShowVenueLine(showRow){
+    const row = showRow && typeof showRow === 'object' ? showRow : {};
+    const venue = String(row.show_venue || row.venue || '').trim();
+    const city = String(row.show_city || row.city || '').trim();
+    const state = String(row.show_state || row.state || '').trim();
+    const place = city && state ? `${city}, ${state}` : (city || state);
+    return [venue, place].filter(Boolean).join(' • ');
+  }
+
+  function readVmAdminShowField(row, keys){
+    const source = row && typeof row === 'object' ? row : {};
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const value = source[key];
+      if (value != null && String(value).trim()) return String(value).trim();
+    }
+    return '';
+  }
+
+  function buildVmAdminFacebookPickerItemFromShow(row){
+    const apiBase = getVmAdminWrestlingApiBase();
+    const rawDate = readVmAdminShowField(row, ['show_date', 'date']);
+    const slug = slugVmAdminShowDate(rawDate);
+    const title = readVmAdminShowField(row, ['show_name', 'show', 'title', 'event', 'event_name']) || formatVmAdminShowDate(rawDate) || 'Wrestling Show';
+    const company = readVmAdminShowField(row, ['show_folder', 'fed', 'promotion', 'company', 'show_company', 'showCompany']);
+    const venueLine = buildVmAdminShowVenueLine(row);
+    const posterRaw = readVmAdminShowField(row, ['show_poster', 'poster_url']);
+    const posterUrl = posterRaw ? `${apiBase}/show-poster?url=${encodeURIComponent(posterRaw)}` : '';
+    const routePath = slug ? `/wrestling/shows/${slug}` : '/wrestling/shows';
+    const routeUrl = `${window.location.origin}${routePath}`;
+    const prettyDate = formatVmAdminShowDate(rawDate);
+    const searchBlob = [title, prettyDate, company, venueLine, slug].filter(Boolean).join(' ').toLowerCase();
+    return {
+      id: `show:${slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      type: 'show',
+      entityId: slug ? `wrestling-show-${slug}` : `wrestling-show-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
+      title,
+      subtitle: [prettyDate, company].filter(Boolean).join(' • '),
+      meta: venueLine,
+      prettyDate,
+      routePath,
+      routeUrl,
+      imageUrl: posterUrl,
+      imageLabel: posterUrl ? 'Show Poster' : 'No poster yet',
+      company,
+      rawDate,
+      slug,
+      searchBlob
+    };
+  }
+
+  async function loadVmAdminFacebookPickerItems(){
+    if (vmAdminFacebookPickerState.loading) return [];
+    if (vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loadError) {
+      return vmAdminFacebookPickerState.items;
+    }
+    vmAdminFacebookPickerState.loading = true;
+    vmAdminFacebookPickerState.loadError = '';
+    renderVmAdminFacebookPicker();
+    try {
+      const apiBase = getVmAdminWrestlingApiBase();
+      const res = await fetch(`${apiBase}/sheet/shows?_ts=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { Accept: 'text/plain, text/csv, application/json;q=0.9, */*;q=0.8' }
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error('Unable to load wrestling show source data');
+      const lines = String(text || '').split(/\r?\n/).filter((line) => String(line || '').trim());
+      if (!lines.length) {
+        vmAdminFacebookPickerState.items = [];
+      } else {
+        const header = parseVmAdminCsvLine(lines.shift()).map((cell) => String(cell || '').trim().toLowerCase());
+        const rows = lines.map((line) => {
+          const cols = parseVmAdminCsvLine(line);
+          const row = {};
+          header.forEach((key, index) => {
+            row[key] = String(cols[index] || '').trim();
+          });
+          return row;
+        });
+        vmAdminFacebookPickerState.items = rows
+          .map(buildVmAdminFacebookPickerItemFromShow)
+          .filter((item) => item && item.id)
+          .sort((a, b) => String(b.rawDate || '').localeCompare(String(a.rawDate || '')) || String(a.title || '').localeCompare(String(b.title || '')));
+      }
+      vmAdminFacebookPickerState.loaded = true;
+      if (vmAdminFacebookPickerState.selectedId) {
+        const selected = vmAdminFacebookPickerState.items.find((item) => item.id === vmAdminFacebookPickerState.selectedId) || null;
+        vmAdminFacebookPickerState.selected = selected;
+      }
+      return vmAdminFacebookPickerState.items;
+    } catch (err) {
+      vmAdminFacebookPickerState.loaded = false;
+      vmAdminFacebookPickerState.loadError = messageFromVmAdminError(err, 'Unable to load archive picker data');
+      throw err;
+    } finally {
+      vmAdminFacebookPickerState.loading = false;
+      renderVmAdminFacebookPicker();
+    }
+  }
+
+  function getVmAdminFacebookFilteredPickerItems(){
+    const query = String(vmAdminFacebookPickerState.query || '').trim().toLowerCase();
+    const items = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
+    if (!query) return items.slice(0, 24);
+    return items.filter((item) => String(item && item.searchBlob || '').indexOf(query) >= 0).slice(0, 24);
+  }
+
+  function buildVmAdminFacebookCaptionStarter(item){
+    const entry = item && typeof item === 'object' ? item : null;
+    if (!entry) return '';
+    const lines = [];
+    if (entry.title) lines.push(entry.title);
+    if (entry.prettyDate) lines.push(entry.prettyDate);
+    if (entry.routeUrl) lines.push(entry.routeUrl);
+    return lines.join('\n');
+  }
+
+  function syncVmAdminFacebookSelectionIntoComposer(item){
+    const entry = item && typeof item === 'object' ? item : null;
+    const imageField = document.getElementById('vmAdminFacebookImageUrl');
+    const titleField = document.getElementById('vmAdminFacebookEntityLabel');
+    const linkField = document.getElementById('vmAdminFacebookLinkUrl');
+    const captionField = document.getElementById('vmAdminFacebookCaption');
+    const hiddenIdField = document.getElementById('vmAdminFacebookEntityIdHidden');
+    const hiddenRouteField = document.getElementById('vmAdminFacebookEntityRouteHidden');
+    const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
+    const previousRoute = String((hiddenRouteField && hiddenRouteField.value) || '').trim();
+    const previousRouteUrl = previousRoute ? `${window.location.origin}${previousRoute}` : '';
+    if (!entry) {
+      if (hiddenIdField) hiddenIdField.value = '';
+      if (hiddenRouteField) hiddenRouteField.value = '';
+      if (pickerStatus) pickerStatus.textContent = 'Single-select picker ready';
+      return;
+    }
+    if (imageField) imageField.value = String(entry.imageUrl || '').trim();
+    if (titleField) titleField.value = String(entry.title || '').trim();
+    if (hiddenIdField) hiddenIdField.value = String(entry.entityId || '').trim();
+    if (hiddenRouteField) hiddenRouteField.value = String(entry.routePath || '').trim();
+    if (linkField) {
+      const currentLink = String(linkField.value || '').trim();
+      if (!currentLink || currentLink === previousRouteUrl || currentLink === previousRoute) {
+        linkField.value = String(entry.routeUrl || '').trim();
+      }
+    }
+    const starter = buildVmAdminFacebookCaptionStarter(entry);
+    if (captionField) {
+      const current = String(captionField.value || '').trim();
+      const auto = String(captionField.dataset.vmFacebookAutofill || '') === '1';
+      if (!current || auto) {
+        captionField.value = starter;
+        captionField.dataset.vmFacebookAutofill = starter ? '1' : '';
+      }
+    }
+    if (pickerStatus) {
+      pickerStatus.textContent = entry.title
+        ? `Selected ${entry.title}`
+        : 'Archive item selected';
+    }
+  }
+
+  function renderVmAdminFacebookPicker(){
+    const resultsShell = document.getElementById('vmAdminFacebookPickerResults');
+    const selectedShell = document.getElementById('vmAdminFacebookPickerSelected');
+    const countShell = document.getElementById('vmAdminFacebookPickerCount');
+    if (!resultsShell || !selectedShell) return;
+    const selected = vmAdminFacebookPickerState.selected;
+    const items = getVmAdminFacebookFilteredPickerItems();
+    if (countShell) {
+      if (vmAdminFacebookPickerState.loading) {
+        countShell.textContent = 'Loading shows...';
+      } else if (vmAdminFacebookPickerState.loadError) {
+        countShell.textContent = 'Source unavailable';
+      } else {
+        countShell.textContent = `${formatVmAdminNumber(items.length)} result${items.length === 1 ? '' : 's'}`;
+      }
+    }
+    if (vmAdminFacebookPickerState.loading) {
+      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Loading Wrestling shows...</div>`;
+    } else if (vmAdminFacebookPickerState.loadError) {
+      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,95,135,.18); border-radius:12px; background:rgba(22,10,16,.72); color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(vmAdminFacebookPickerState.loadError)}</div>`;
+    } else if (!items.length) {
+      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">No shows matched this search yet.</div>`;
+    } else {
+      resultsShell.innerHTML = items.map((item) => {
+        const active = selected && selected.id === item.id;
+        return `
+          <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94); cursor:pointer;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="min-width:0;">
+                <div style="color:${active ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.title)}</div>
+                <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.subtitle || 'Show')}</div>
+              </div>
+              <div style="flex:0 0 auto; padding:5px 7px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${active ? 'Selected' : 'Use Show'}</div>
+            </div>
+            ${item.meta ? `<div style="margin-top:6px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.meta)}</div>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
+    if (!selected) {
+      selectedShell.innerHTML = `
+        <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
+          <div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">No Selection</div>
+        </div>
+        <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Pick a show result</div>
+        <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">This first pass is single-select. Clicking a result will fill the image URL, title, route context, and a starter caption.</div>
+      `;
+      return;
+    }
+    selectedShell.innerHTML = `
+      <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
+        ${selected.imageUrl ? `<img src="${escapeVmAdminHtml(selected.imageUrl)}" alt="${escapeVmAdminHtml(selected.title)}" style="display:block; width:100%; aspect-ratio:4/5; object-fit:cover;" />` : `<div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">No Poster</div>`}
+      </div>
+      <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(selected.title)}</div>
+      <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([selected.subtitle, selected.meta, selected.routePath].filter(Boolean).join(' • '))}</div>
+      <div style="margin-top:10px; padding:9px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(7,10,16,.78); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.55; white-space:pre-wrap;">${escapeVmAdminHtml(buildVmAdminFacebookCaptionStarter(selected) || 'No caption starter')}</div>
+      <button type="button" data-facebook-picker-clear="1" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
+    `;
+  }
+
+  function selectVmAdminFacebookPickerItem(itemId){
+    const match = (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === itemId) || null;
+    vmAdminFacebookPickerState.selectedId = match ? match.id : '';
+    vmAdminFacebookPickerState.selected = match;
+    syncVmAdminFacebookSelectionIntoComposer(match);
+    renderVmAdminFacebookPicker();
+  }
+
+  function clearVmAdminFacebookPickerSelection(){
+    vmAdminFacebookPickerState.selectedId = '';
+    vmAdminFacebookPickerState.selected = null;
+    syncVmAdminFacebookSelectionIntoComposer(null);
+    renderVmAdminFacebookPicker();
+  }
+
   function buildVmAdminQuery(params){
     const qs = new URLSearchParams();
     Object.keys(params || {}).forEach((key) => {
@@ -846,6 +1166,7 @@ function pulseFrame(){
     const imageWrap = document.getElementById('vmAdminFacebookImageUrlWrap');
     const titleWrap = document.getElementById('vmAdminFacebookEntityTitleWrap');
     const modeNote = document.getElementById('vmAdminFacebookModeNote');
+    const pickerShell = document.getElementById('vmAdminFacebookPickerShell');
     const isNormal = entityType === 'normal_post';
     const isThrowback = entityType === 'throwback';
     const isPhotoMode = entityType === 'photo_post' || isThrowback;
@@ -861,9 +1182,9 @@ function pulseFrame(){
       if (isNormal) {
         modeNote.textContent = 'Normal Post uses caption plus an optional link.';
       } else if (isThrowback) {
-        modeNote.textContent = 'Throwback uses the archive picker flow, then layers in throwback-specific post styling.';
+        modeNote.textContent = 'Throwback uses the archive picker flow first, then keeps the post context tied to the selected show.';
       } else {
-        modeNote.textContent = 'Photo Post uses the archive browser below so one photo or many photos can come from the same picker.';
+        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data. First pass is single-select.';
       }
     }
 
@@ -872,15 +1193,23 @@ function pulseFrame(){
     }
 
     if (isNormal) {
+      if (pickerShell) pickerShell.style.display = 'none';
       if (imageWrap) imageWrap.style.display = 'none';
       if (linkUrlWrap) {
         const linkEnabled = String((linkMode && linkMode.value) || 'no').trim().toLowerCase() === 'yes';
         linkUrlWrap.style.display = linkEnabled ? 'block' : 'none';
       }
     } else if (isPhotoMode) {
+      if (pickerShell) pickerShell.style.display = 'block';
       if (imageWrap) imageWrap.style.display = 'block';
       if (linkUrlWrap) linkUrlWrap.style.display = 'block';
+      if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
+        loadVmAdminFacebookPickerItems().catch(() => null);
+      } else {
+        renderVmAdminFacebookPicker();
+      }
     } else {
+      if (pickerShell) pickerShell.style.display = 'block';
       if (imageWrap) imageWrap.style.display = 'block';
       if (linkUrlWrap) linkUrlWrap.style.display = 'block';
     }
@@ -939,6 +1268,30 @@ function pulseFrame(){
     `;
   }
 
+  function renderVmAdminFacebookSelectedArchivePreview(payload, selected){
+    const chosen = selected && typeof selected === 'object' ? selected : null;
+    const caption = String(payload && payload.caption || '').trim();
+    const linkUrl = String(payload && payload.link_url || '').trim();
+    const title = String(payload && payload.entity_label || (chosen && chosen.title) || 'Archive Selection').trim();
+    const meta = chosen ? [chosen.subtitle, chosen.meta].filter(Boolean).join(' • ') : '';
+    const finalMessage = linkUrl ? `${caption}\n\n${linkUrl}`.trim() : caption;
+    return `
+      <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
+        <div>
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; background:rgba(6,9,14,.82); min-height:140px;">
+            ${payload.image_url ? `<img src="${escapeVmAdminHtml(payload.image_url)}" alt="${escapeVmAdminHtml(title)}" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`}
+          </div>
+        </div>
+        <div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Selected Archive Item</div>
+          <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(title)}</div>
+          ${meta ? `<div style="margin-top:6px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(meta)}</div>` : ''}
+          <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap;">${escapeVmAdminHtml(finalMessage || 'No caption yet.')}</div>
+        </div>
+      </div>
+    `;
+  }
+
   async function loadVmAdminFacebookStatus(opts){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookMeta');
@@ -952,10 +1305,10 @@ function pulseFrame(){
       if (shell) shell.innerHTML = renderVmAdminFacebookStatus(data && data.connection, data && data.config);
       if (status) {
         const connected = !!(data && data.connection && data.connection.connected);
-        status.textContent = connected ? 'Page linked' : 'Page not linked';
+        status.textContent = connected ? 'Page connected' : 'Page not connected';
         setVmAdminFacebookUiState({
           connected,
-          message: connected ? 'Ready to preview or publish' : 'Connect a Facebook page to continue'
+          message: connected ? 'Connected and ready to post' : 'Connect a Facebook page to continue'
         });
       }
       return data;
@@ -1029,14 +1382,15 @@ function pulseFrame(){
   async function runVmAdminFacebookPreview(){
     const status = document.getElementById('vmAdminFacebookComposerStatus');
     const previewShell = document.getElementById('vmAdminFacebookPreview');
+    const selectedPickerItem = vmAdminFacebookPickerState.selected;
     const payload = {
       section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
       entity_type: String((document.getElementById('vmAdminFacebookEntityType') || {}).value || '').trim(),
-      entity_id: '',
+      entity_id: String((document.getElementById('vmAdminFacebookEntityIdHidden') || {}).value || '').trim(),
       entity_label: String((document.getElementById('vmAdminFacebookEntityLabel') || {}).value || '').trim(),
       caption: String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim(),
-      link_url: '',
-      image_url: ''
+      link_url: String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim(),
+      image_url: String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim()
     };
     const entityType = String(payload.entity_type || '').trim().toLowerCase();
     if (entityType === 'normal_post') {
@@ -1046,11 +1400,25 @@ function pulseFrame(){
         : '';
       payload.image_url = '';
     } else {
-      payload.link_url = String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim();
-      payload.image_url = String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim();
+      const selectedRoute = String((document.getElementById('vmAdminFacebookEntityRouteHidden') || {}).value || '').trim();
+      if (!payload.entity_id && selectedPickerItem && selectedPickerItem.entityId) {
+        payload.entity_id = String(selectedPickerItem.entityId || '').trim();
+      }
+      if (!payload.entity_label && selectedPickerItem && selectedPickerItem.title) {
+        payload.entity_label = String(selectedPickerItem.title || '').trim();
+      }
+      if (!payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
+        payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
+      }
+      if (!payload.link_url && selectedRoute) {
+        payload.link_url = `${window.location.origin}${selectedRoute}`;
+      }
+      if (!payload.image_url && selectedPickerItem && selectedPickerItem.imageUrl) {
+        payload.image_url = String(selectedPickerItem.imageUrl || '').trim();
+      }
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
-    payload.entity_id = buildVmAdminFacebookEntityId(payload);
+    payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
     const cleanPayload = compactVmAdminFacebookPayload(payload);
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
@@ -1059,6 +1427,9 @@ function pulseFrame(){
       if (status) status.textContent = 'Preview ready';
       setVmAdminFacebookUiState({ connected: true, message: 'Preview ready' });
       return cleanPayload;
+    }
+    if (previewShell && selectedPickerItem) {
+      previewShell.innerHTML = renderVmAdminFacebookSelectedArchivePreview(cleanPayload, selectedPickerItem);
     }
     try {
       const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', cleanPayload);
@@ -1176,6 +1547,7 @@ function pulseFrame(){
       await postVmAdminJsonWithExplicitToken('/admin/facebook/disconnect', {});
       await loadVmAdminFacebookStatus({ silent: false });
       await loadVmAdminFacebookHistory({ silent: false });
+      clearVmAdminFacebookPickerSelection();
       setVmAdminFacebookUiState({ connected: false, message: 'Page disconnected', clearPreview: true });
     } catch (err) {
       if (isVmAdminInvalidTokenError(err)) {
@@ -2020,21 +2392,21 @@ music: {
                       <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
                         <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                       </div>
-                      <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Manage the live page connection here, then use the composer below for posting tests.</div>
+                      <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Manage the live page connection here, then use the composer below for post previews and publishing.</div>
                     </div>
                     <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
                   </div>
                   <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook connection details...</div>
                   <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
                     <button type="button" id="vmAdminFacebookConnect" onclick="window.__vmAdminFacebookConnect && window.__vmAdminFacebookConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
-                    <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Status</button>
-                    <button type="button" id="vmAdminFacebookDisconnect" onclick="window.__vmAdminFacebookDisconnect && window.__vmAdminFacebookDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect</button>
+                    <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Check Connection</button>
+                    <button type="button" id="vmAdminFacebookDisconnect" onclick="window.__vmAdminFacebookDisconnect && window.__vmAdminFacebookDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect Page</button>
                   </div>
                   <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                       <div>
                         <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Composer</div>
-                        <div style="margin-top:6px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Use the current composer for preview and publish tests while the real source picker is still being built.</div>
+                        <div style="margin-top:6px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Normal Post stays manual. Photo Post now pulls from a real Wrestling show picker.</div>
                       </div>
                       <div id="vmAdminFacebookComposerStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking connection...</div>
                     </div>
@@ -2058,6 +2430,8 @@ music: {
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Title</div>
                         <input id="vmAdminFacebookEntityLabel" type="text" placeholder="Show title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
+                      <input id="vmAdminFacebookEntityIdHidden" type="hidden" value="" />
+                      <input id="vmAdminFacebookEntityRouteHidden" type="hidden" value="" />
                     </div>
                     <div id="vmAdminFacebookModeNote" style="margin-top:10px; color:rgba(166,235,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Normal Post uses caption plus an optional link.</div>
                     <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-top:10px;">
@@ -2072,37 +2446,27 @@ music: {
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link URL</div>
                         <input id="vmAdminFacebookLinkUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
-                      <div data-facebook-mode="photo-post" style="display:none; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
+                      <div id="vmAdminFacebookPickerShell" data-facebook-mode="photo-post" style="display:none; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
                         <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Choose Content</div>
+                        <div style="margin-top:6px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Show-source-first picker. Search shows, choose one result, and the composer fields will update automatically.</div>
+                        <label style="display:block; margin-top:10px;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Search Shows</div>
+                          <input id="vmAdminFacebookPickerSearch" type="search" placeholder="Search show title, date, company, or venue..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                        </label>
                         <div style="margin-top:8px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
                           <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
-                            <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Albums / Results</div>
-                            <div style="margin-top:10px; display:grid; gap:8px;">
-                              <div style="padding:10px 12px; border:1px solid rgba(97,224,255,.22); border-radius:12px; background:rgba(10,20,28,.72);">
-                                <div style="color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Bissell Brothers Bash '26</div>
-                                <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">4 featured photos ready to pick</div>
-                              </div>
-                              <div style="padding:10px 12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(16,12,20,.7);">
-                                <div style="color:rgba(245,236,242,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Limitless 3/14/26</div>
-                                <div style="margin-top:4px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">Recent results would appear here once the archive browser is wired</div>
-                              </div>
-                              <div style="padding:10px 12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(16,12,20,.7);">
-                                <div style="color:rgba(245,236,242,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Throwback Archive</div>
-                                <div style="margin-top:4px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">This pane can later swap between shows, people, and archive albums</div>
-                              </div>
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                              <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
+                              <div id="vmAdminFacebookPickerCount" style="color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Loading...</div>
                             </div>
+                            <div id="vmAdminFacebookPickerResults" style="margin-top:10px; display:grid; gap:8px;"></div>
                           </div>
                           <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                             <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
-                            <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
-                              <div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Preview Area</div>
-                            </div>
-                            <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Bissell Brothers Bash '26</div>
-                            <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Title, date, route, and source context can live here before the selection is pushed into the post composer.</div>
-                            <button type="button" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:default;">Use This Photo</button>
+                            <div id="vmAdminFacebookPickerSelected"></div>
                           </div>
                         </div>
-                        <div style="margin-top:10px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">First pass UI only: the real archive browser will replace the mock result list and selected preview card.</div>
+                        <div id="vmAdminFacebookPickerStatus" style="margin-top:10px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Single-select picker ready</div>
                       </div>
                       <label id="vmAdminFacebookImageUrlWrap" data-facebook-mode="photo-post" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Image URL</div>
@@ -2214,6 +2578,10 @@ music: {
         const facebookEntityType = document.getElementById('vmAdminFacebookEntityType');
         const facebookLinkMode = document.getElementById('vmAdminFacebookLinkMode');
         const facebookComposerStatus = document.getElementById('vmAdminFacebookComposerStatus');
+        const facebookPickerSearch = document.getElementById('vmAdminFacebookPickerSearch');
+        const facebookPickerResults = document.getElementById('vmAdminFacebookPickerResults');
+        const facebookPickerSelected = document.getElementById('vmAdminFacebookPickerSelected');
+        const facebookCaption = document.getElementById('vmAdminFacebookCaption');
         const facebookCallbackState = readVmFacebookCallbackState();
         try {
           const liveToken = getAdminToken();
@@ -2240,6 +2608,40 @@ music: {
             syncVmAdminFacebookEntityTypeUi();
           }, { once: false });
         }
+        if (facebookCaption) {
+          facebookCaption.addEventListener('input', () => {
+            facebookCaption.dataset.vmFacebookAutofill = '';
+          }, { once: false });
+        }
+        if (facebookPickerSearch) {
+          facebookPickerSearch.addEventListener('focus', () => {
+            if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
+              loadVmAdminFacebookPickerItems().catch(() => null);
+            }
+          }, { once: false });
+          facebookPickerSearch.addEventListener('input', () => {
+            vmAdminFacebookPickerState.query = String(facebookPickerSearch.value || '').trim();
+            renderVmAdminFacebookPicker();
+          }, { once: false });
+        }
+        const bindFacebookPickerShell = (shell) => {
+          if (!shell) return;
+          shell.addEventListener('click', (event) => {
+            const target = event.target;
+            const pickBtn = target && target.closest ? target.closest('[data-facebook-picker-item]') : null;
+            if (pickBtn) {
+              selectVmAdminFacebookPickerItem(String(pickBtn.getAttribute('data-facebook-picker-item') || '').trim());
+              return;
+            }
+            const clearBtn = target && target.closest ? target.closest('[data-facebook-picker-clear]') : null;
+            if (clearBtn) {
+              clearVmAdminFacebookPickerSelection();
+            }
+          }, { once: false });
+        };
+        bindFacebookPickerShell(facebookPickerResults);
+        bindFacebookPickerShell(facebookPickerSelected);
+        renderVmAdminFacebookPicker();
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
@@ -2268,7 +2670,7 @@ music: {
               if (facebookStatusEl) {
                 facebookStatusEl.textContent = facebookCallbackState.pageName
                   ? `Connected to ${facebookCallbackState.pageName}`
-                  : 'Page linked';
+                  : 'Page connected';
               }
               if (facebookComposerStatus) {
                 facebookComposerStatus.textContent = facebookCallbackState.pageName
