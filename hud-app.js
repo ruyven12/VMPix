@@ -2015,10 +2015,17 @@ function pulseFrame(){
     const shareData = buildVmAdminFacebookSharePayload(payload);
     const files = await buildVmAdminNativeShareFiles(payload);
     if (files.length) {
-      const fileShareData = Object.assign({}, shareData, { files });
+      const fileShareData = { files };
+      if (shareData.title) fileShareData.title = shareData.title;
+      if (shareData.text) fileShareData.text = shareData.text;
       if (typeof navigator.canShare === 'function' ? navigator.canShare(fileShareData) : true) {
         await navigator.share(fileShareData);
         return fileShareData;
+      }
+      const filesOnlyShareData = { files };
+      if (typeof navigator.canShare === 'function' ? navigator.canShare(filesOnlyShareData) : true) {
+        await navigator.share(filesOnlyShareData);
+        return filesOnlyShareData;
       }
     }
     if (!shareData.title && !shareData.text && !shareData.url) {
