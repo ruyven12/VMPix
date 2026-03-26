@@ -840,25 +840,31 @@ function pulseFrame(){
   function syncVmAdminFacebookEntityTypeUi(){
     const entityType = readVmAdminFacebookEntityType();
     const normalFields = document.querySelectorAll('[data-facebook-mode="normal-post"]');
-    const fallbackFields = document.querySelectorAll('[data-facebook-mode="generic-fallback"]');
+    const photoFields = document.querySelectorAll('[data-facebook-mode="photo-post"]');
     const linkMode = document.getElementById('vmAdminFacebookLinkMode');
     const linkUrlWrap = document.getElementById('vmAdminFacebookLinkUrlWrap');
     const imageWrap = document.getElementById('vmAdminFacebookImageUrlWrap');
     const titleWrap = document.getElementById('vmAdminFacebookEntityTitleWrap');
     const modeNote = document.getElementById('vmAdminFacebookModeNote');
     const isNormal = entityType === 'normal_post';
+    const isThrowback = entityType === 'throwback';
+    const isPhotoMode = entityType === 'photo_post' || isThrowback;
 
     normalFields.forEach((el) => {
       el.style.display = isNormal ? 'block' : 'none';
     });
-    fallbackFields.forEach((el) => {
-      el.style.display = isNormal ? 'none' : 'block';
+    photoFields.forEach((el) => {
+      el.style.display = isPhotoMode ? 'block' : 'none';
     });
 
     if (modeNote) {
-      modeNote.textContent = isNormal
-        ? 'Normal Post uses caption plus an optional link.'
-        : 'Detailed field mapping for this post type is the next step.';
+      if (isNormal) {
+        modeNote.textContent = 'Normal Post uses caption plus an optional link.';
+      } else if (isThrowback) {
+        modeNote.textContent = 'Throwback uses the archive picker flow, then layers in throwback-specific post styling.';
+      } else {
+        modeNote.textContent = 'Photo Post uses the archive browser below so one photo or many photos can come from the same picker.';
+      }
     }
 
     if (titleWrap) {
@@ -871,6 +877,9 @@ function pulseFrame(){
         const linkEnabled = String((linkMode && linkMode.value) || 'no').trim().toLowerCase() === 'yes';
         linkUrlWrap.style.display = linkEnabled ? 'block' : 'none';
       }
+    } else if (isPhotoMode) {
+      if (imageWrap) imageWrap.style.display = 'block';
+      if (linkUrlWrap) linkUrlWrap.style.display = 'block';
     } else {
       if (imageWrap) imageWrap.style.display = 'block';
       if (linkUrlWrap) linkUrlWrap.style.display = 'block';
@@ -2041,8 +2050,7 @@ music: {
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Type</div>
                         <select id="vmAdminFacebookEntityType" onchange="window.__vmAdminSyncFacebookEntityTypeUi && window.__vmAdminSyncFacebookEntityTypeUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
                           <option value="normal_post" selected>Normal Post</option>
-                          <option value="single_photo">Single Photo</option>
-                          <option value="multiple_photos">Multiple Photos</option>
+                          <option value="photo_post">Photo Post</option>
                           <option value="throwback">Throwback</option>
                         </select>
                       </label>
@@ -2064,7 +2072,39 @@ music: {
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link URL</div>
                         <input id="vmAdminFacebookLinkUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
-                      <label id="vmAdminFacebookImageUrlWrap" data-facebook-mode="generic-fallback" style="display:none;">
+                      <div data-facebook-mode="photo-post" style="display:none; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
+                        <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Choose Content</div>
+                        <div style="margin-top:8px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                          <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
+                            <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Albums / Results</div>
+                            <div style="margin-top:10px; display:grid; gap:8px;">
+                              <div style="padding:10px 12px; border:1px solid rgba(97,224,255,.22); border-radius:12px; background:rgba(10,20,28,.72);">
+                                <div style="color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Bissell Brothers Bash '26</div>
+                                <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">4 featured photos ready to pick</div>
+                              </div>
+                              <div style="padding:10px 12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(16,12,20,.7);">
+                                <div style="color:rgba(245,236,242,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Limitless 3/14/26</div>
+                                <div style="margin-top:4px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">Recent results would appear here once the archive browser is wired</div>
+                              </div>
+                              <div style="padding:10px 12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(16,12,20,.7);">
+                                <div style="color:rgba(245,236,242,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Throwback Archive</div>
+                                <div style="margin-top:4px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">This pane can later swap between shows, people, and archive albums</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
+                            <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
+                            <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
+                              <div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Preview Area</div>
+                            </div>
+                            <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Bissell Brothers Bash '26</div>
+                            <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Title, date, route, and source context can live here before the selection is pushed into the post composer.</div>
+                            <button type="button" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:default;">Use This Photo</button>
+                          </div>
+                        </div>
+                        <div style="margin-top:10px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">First pass UI only: the real archive browser will replace the mock result list and selected preview card.</div>
+                      </div>
+                      <label id="vmAdminFacebookImageUrlWrap" data-facebook-mode="photo-post" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Image URL</div>
                         <input id="vmAdminFacebookImageUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
