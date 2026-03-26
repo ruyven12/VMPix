@@ -843,6 +843,7 @@ function pulseFrame(){
     const linkMode = document.getElementById('vmAdminFacebookLinkMode');
     const linkUrlWrap = document.getElementById('vmAdminFacebookLinkUrlWrap');
     const imageWrap = document.getElementById('vmAdminFacebookImageUrlWrap');
+    const titleWrap = document.getElementById('vmAdminFacebookEntityTitleWrap');
     const modeNote = document.getElementById('vmAdminFacebookModeNote');
     const isNormal = entityType === 'normal_post';
 
@@ -857,6 +858,10 @@ function pulseFrame(){
       modeNote.textContent = isNormal
         ? 'Normal Post uses caption plus an optional link.'
         : 'Detailed field mapping for this post type is the next step.';
+    }
+
+    if (titleWrap) {
+      titleWrap.style.display = isNormal ? 'none' : 'block';
     }
 
     if (isNormal) {
@@ -1941,8 +1946,8 @@ music: {
                           <option value="throwback">Throwback</option>
                         </select>
                       </label>
-                      <label style="display:block;">
-                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Label</div>
+                      <label id="vmAdminFacebookEntityTitleWrap" style="display:block;">
+                        <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Title</div>
                         <input id="vmAdminFacebookEntityLabel" type="text" placeholder="Show title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
                     </div>
