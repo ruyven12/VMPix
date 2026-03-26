@@ -280,6 +280,20 @@
         padding-bottom: 84px; /* room for bottom nav on small screens */
       }
 
+      @media (max-width: 760px){
+        .showsWrap{
+          height: auto;
+          min-height: 0;
+        }
+        #showsYearContent{
+          flex: 0 0 auto;
+          min-height: auto;
+          overflow-y: visible;
+          overflow-x: visible;
+          padding-bottom: 28px;
+        }
+      }
+
       /* Sticky year selector that lives INSIDE the scrollable content area */
       .showsYearSticky{
         position: sticky;

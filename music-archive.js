@@ -79,25 +79,6 @@
     }
   }
 
-  function updateMusicViewportDebug(info) {
-    try {
-      const el = document.getElementById('musicViewportDebug');
-      if (!el) return;
-      const data = info && typeof info === 'object' ? info : {};
-      const lines = [
-        `mobile=${!!data.mobile} expanded=${!!data.expanded} mode=${String(data.mode || '').trim() || 'unknown'}`,
-        `viewport=${Number(data.viewportHeight || 0)} panelTop=${Number(data.panelTop || 0)} panelHeight=${Number(data.panelHeight || 0)}`,
-        `hudH=${Number(data.hudHeight || 0)} innerH=${Number(data.innerHeight || 0)}`
-      ];
-      el.textContent = lines.join(' | ');
-      el.style.display = 'block';
-    } catch (_) {}
-  }
-
-  function getMusicViewportDebugMarkup() {
-    return `<div id="musicViewportDebug" style="display:none; position:sticky; top:0; z-index:5; margin:0 0 10px; padding:8px 10px; border:1px solid rgba(97,224,255,.22); border-radius:10px; background:rgba(6,12,18,.92); color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.5; text-transform:none; word-break:break-word;"></div>`;
-  }
-
   function sizeContentPanelToHud() {
     // Reduce fragile layout magic numbers:
     // Compute the scrollable "green box" height from real DOM geometry,
@@ -130,16 +111,6 @@
           _contentPanelEl.style.height = `${availMobile}px`;
           _contentPanelEl.style.maxHeight = `${availMobile}px`;
           _contentPanelEl.style.minHeight = '0px';
-          updateMusicViewportDebug({
-            mobile: true,
-            expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
-            mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
-            viewportHeight,
-            panelTop: Math.round(panelRectMobile.top || 0),
-            panelHeight: availMobile,
-            hudHeight: hudMain.clientHeight || 0,
-            innerHeight: window.innerHeight || 0
-          });
           return;
         }
       } catch (_) {}
@@ -183,16 +154,6 @@
 
         _contentPanelEl.style.height = `${avail}px`;
         _contentPanelEl.style.maxHeight = `${avail}px`;
-        updateMusicViewportDebug({
-          mobile: false,
-          expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
-          mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
-          viewportHeight: window.innerHeight || 0,
-          panelTop: Math.round(panelRect.top || 0),
-          panelHeight: avail,
-          hudHeight: hudH,
-          innerHeight: innerH
-        });
         return;
       }
     } catch (_) {}
@@ -204,16 +165,6 @@
     const avail = Math.max(0, innerH - topGap - ARCHIVES_TOP_OFFSET_PX - ARCHIVES_BOTTOM_OFFSET_PX);
     _contentPanelEl.style.height = `${avail}px`;
     _contentPanelEl.style.maxHeight = `${avail}px`;
-    updateMusicViewportDebug({
-      mobile: isMusicMobileViewport(),
-      expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
-      mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
-      viewportHeight: window.innerHeight || 0,
-      panelTop: 0,
-      panelHeight: avail,
-      hudHeight: hudH,
-      innerHeight: innerH
-    });
   }
 
   // Archives-only: expand the content panel to the â€œgreen boxâ€ height.
@@ -1261,7 +1212,6 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
         }
 
         _contentPanelEl.innerHTML = `
-          ${getMusicViewportDebugMarkup()}
           <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
             <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
             Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
@@ -2151,13 +2101,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       function wipeSwapContent(nextHtml, terminalText, onAfterSwap) {
         if (!_contentPanelEl) return;
-        const debugMarkup = getMusicViewportDebugMarkup();
-        const wrappedHtml = `${debugMarkup}${String(nextHtml || '')}`;
         const prefersReduced =
           window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReduced) {
-          _contentPanelEl.innerHTML = wrappedHtml;
+          _contentPanelEl.innerHTML = nextHtml;
           if (typeof onAfterSwap === 'function') onAfterSwap();
           return;
         }
@@ -2172,11 +2120,10 @@ if (!document.getElementById('musicContentWipeStyles')) {
           if (token !== _swapToken) return;
           if (terminalText) {
             _contentPanelEl.innerHTML = `
-              ${debugMarkup}
               <div class="termLine"><span class="termText"></span><span class="termCaret">â–Œ</span></div>
             `;
           } else {
-            _contentPanelEl.innerHTML = wrappedHtml;
+            _contentPanelEl.innerHTML = nextHtml;
           }
 
           _contentPanelEl.classList.remove('wipe-out');
