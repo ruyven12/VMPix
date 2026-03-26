@@ -1,4 +1,4 @@
-// hud-app.js
+﻿// hud-app.js
 // Keeps your HUD markup + CSS untouched. This file only moves the inline logic out of index.html.
 //
 // Dependencies (optional): music-archive.js, wrestling-archive.js, about-archive.js
@@ -753,7 +753,7 @@ function pulseFrame(){
     const city = String(row.show_city || row.city || '').trim();
     const state = String(row.show_state || row.state || '').trim();
     const place = city && state ? `${city}, ${state}` : (city || state);
-    return [venue, place].filter(Boolean).join(' • ');
+    return [venue, place].filter(Boolean).join(' â€¢ ');
   }
 
   function normalizeVmAdminMatchSlug(value){
@@ -1004,7 +1004,7 @@ function pulseFrame(){
     shell.innerHTML = suggestions.map((item, index) => `
       <button type="button" data-facebook-mention-id="${escapeVmAdminHtml(item.id)}" style="padding:10px 12px; border:0; border-top:${index === 0 ? '0' : '1px solid rgba(255,255,255,.06)'}; background:${index === vmAdminFacebookMentionState.activeIndex ? 'rgba(10,20,28,.82)' : 'transparent'}; color:${index === vmAdminFacebookMentionState.activeIndex ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; text-align:left; cursor:pointer;">
         <div>${escapeVmAdminHtml(item.label)}</div>
-        ${item.subtitle || item.handle ? `<div style="margin-top:4px; color:rgba(214,198,210,.72); font-size:9px; font-weight:700; letter-spacing:.04em;">${escapeVmAdminHtml([item.handle, item.subtitle].filter(Boolean).join(' • '))}</div>` : ''}
+        ${item.subtitle || item.handle ? `<div style="margin-top:4px; color:rgba(214,198,210,.72); font-size:9px; font-weight:700; letter-spacing:.04em;">${escapeVmAdminHtml([item.handle, item.subtitle].filter(Boolean).join(' â€¢ '))}</div>` : ''}
       </button>
     `).join('');
   }
@@ -1110,7 +1110,7 @@ function pulseFrame(){
         entityId: item.slug ? `wrestling-match-${item.slug}-${routeSlug}` : `wrestling-match-${routeSlug}`,
         title: matchTitle,
         subtitle: item.title,
-        meta: [people, item.prettyDate].filter(Boolean).join(' â€¢ '),
+        meta: [people, item.prettyDate].filter(Boolean).join(' Ã¢â‚¬Â¢ '),
         prettyDate: item.prettyDate,
         routePath,
         routeUrl,
@@ -1160,7 +1160,7 @@ function pulseFrame(){
       type: 'show',
       entityId: slug ? `wrestling-show-${slug}` : `wrestling-show-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
       title,
-      subtitle: [prettyDate, company].filter(Boolean).join(' • '),
+      subtitle: [prettyDate, company].filter(Boolean).join(' â€¢ '),
       meta: venueLine,
       prettyDate,
       routePath,
@@ -1499,8 +1499,6 @@ function pulseFrame(){
               ${primaryPhoto.imageUrl ? `<img src="${escapeVmAdminHtml(primaryPhoto.imageUrl)}" alt="${escapeVmAdminHtml(primaryPhoto.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
             </div>
           </div>
-          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(primaryPhoto.title || '1 Photo Selected')}</div>
-          <div style="color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([primaryPhoto.matchTitle || '', primaryPhoto.showTitle || '', primaryPhoto.prettyDate || ''].filter(Boolean).join(' • '))}</div>
           <button type="button" data-facebook-picker-clear="1" style="min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
         </div>
       `;
@@ -1521,7 +1519,7 @@ function pulseFrame(){
         ${selected.imageUrl ? `<img src="${escapeVmAdminHtml(selected.imageUrl)}" alt="${escapeVmAdminHtml(selected.title)}" style="display:block; width:100%; aspect-ratio:4/5; object-fit:cover;" />` : `<div style="aspect-ratio:4/5; display:flex; align-items:center; justify-content:center; color:rgba(166,235,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">No Poster</div>`}
       </div>
       <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(selected.title)}</div>
-      <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([selected.subtitle, selected.meta, selected.routePath].filter(Boolean).join(' • '))}</div>
+      <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([selected.subtitle, selected.meta, selected.routePath].filter(Boolean).join(' â€¢ '))}</div>
       <div style="margin-top:10px; padding:9px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(7,10,16,.78); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.55; white-space:pre-wrap;">${escapeVmAdminHtml(buildVmAdminFacebookCaptionStarter(selected) || 'No caption starter')}</div>
       <button type="button" data-facebook-picker-clear="1" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
     `;
@@ -1605,7 +1603,7 @@ function pulseFrame(){
           entityId: `${match.entityId}-photo-${imageKey || (index + 1)}`,
           title: `Photo ${index + 1}`,
           subtitle: match.title,
-          meta: [match.showTitle, match.prettyDate].filter(Boolean).join(' • '),
+          meta: [match.showTitle, match.prettyDate].filter(Boolean).join(' â€¢ '),
           prettyDate: match.prettyDate,
           routePath: match.routePath,
           routeUrl: match.routeUrl,
@@ -1816,7 +1814,7 @@ function pulseFrame(){
         </div>
         <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(16,14,22,.9),rgba(10,10,15,.82));">
           <div style="color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Publish Readiness</div>
-          <div style="margin-top:8px; color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">${escapeVmAdminHtml(configBits.join(' • '))}</div>
+          <div style="margin-top:8px; color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">${escapeVmAdminHtml(configBits.join(' â€¢ '))}</div>
           <div style="margin-top:8px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Last sync ${escapeVmAdminHtml(updatedAt)}</div>
           <div style="margin-top:4px; color:rgba(120,224,252,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">User token expiry ${escapeVmAdminHtml(expiresAt)}</div>
         </div>
@@ -1968,7 +1966,7 @@ function pulseFrame(){
     const caption = String(payload && payload.caption || '').trim();
     const linkUrl = String(payload && payload.link_url || '').trim();
     const title = String(payload && payload.entity_label || (chosen && chosen.title) || 'Archive Selection').trim();
-    const meta = chosen ? [chosen.subtitle, chosen.meta].filter(Boolean).join(' • ') : '';
+    const meta = chosen ? [chosen.subtitle, chosen.meta].filter(Boolean).join(' â€¢ ') : '';
     const finalMessage = linkUrl ? `${caption}\n\n${linkUrl}`.trim() : caption;
     return `
       <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
@@ -2059,7 +2057,7 @@ function pulseFrame(){
               </div>
               <div style="padding:6px 9px; border-radius:999px; border:1px solid ${ok ? 'rgba(97,224,255,.22)' : 'rgba(255,95,135,.28)'}; color:${ok ? 'rgba(210,242,255,.92)' : 'rgba(255,192,205,.92)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">${escapeVmAdminHtml(ok ? 'Success' : (item.status || 'Failed'))}</div>
             </div>
-            <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.section || 'section')} • ${escapeVmAdminHtml(item.entity_type || 'show')}</div>
+            <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.section || 'section')} â€¢ ${escapeVmAdminHtml(item.entity_type || 'show')}</div>
             ${item && item.error ? `<div style="margin-top:8px; color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(item.error)}</div>` : ''}
           </div>
         `;
@@ -3494,7 +3492,7 @@ music: {
                 if (statusEl) statusEl.textContent = 'People index rebuild complete';
                 if (metaEl) {
                   const generatedAt = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'Unknown';
-                  metaEl.textContent = `${Number(data.totalPeople || 0)} people • ${Number(data.totalAppearances || 0)} appearances • rebuilt ${generatedAt}`;
+                  metaEl.textContent = `${Number(data.totalPeople || 0)} people â€¢ ${Number(data.totalAppearances || 0)} appearances â€¢ rebuilt ${generatedAt}`;
                 }
               } catch (_) {
                 if (statusEl) statusEl.textContent = 'Rebuild failed';
@@ -3584,9 +3582,9 @@ music: {
 
 
 // =============================
-// Route Transitions (DIM → WIPE → LOAD)
+// Route Transitions (DIM â†’ WIPE â†’ LOAD)
 // Goal (per your latest notes):
-//  1) Click → screen dims fully to black (everything hidden)
+//  1) Click â†’ screen dims fully to black (everything hidden)
 //  2) As soon as dim completes, run a diagonal wipe ON TOP of the blackout (slower)
 //  3) DOM swap happens while fully black (no peeking / no flinches)
 //  4) As soon as wipe completes, fade back in immediately (no extra hold)
@@ -3706,7 +3704,7 @@ function ensureRouteTransitionStyles(){
       transform-style: preserve-3d;
     }
 
-    /* Ember sync target (canvas) — brightness driven by --emberBoost */
+    /* Ember sync target (canvas) â€” brightness driven by --emberBoost */
     #hudEmbers{
       will-change: filter;
       filter: brightness(calc(1 + var(--emberBoost, 0))) saturate(calc(1 + (var(--emberBoost, 0) * 0.55)));
@@ -3886,7 +3884,7 @@ async function transitionTo(route){
   // One more settle frame
   await new Promise(r => window.requestAnimationFrame(r));
 
-  // 3) DIAGONAL WIPE (on top of blackout) — slower
+  // 3) DIAGONAL WIPE (on top of blackout) â€” slower
   if (!reduce && WIPE_MS > 0){
     await runDiagonalWipe(WIPE_MS);
   }
@@ -4152,7 +4150,7 @@ window.addEventListener('hashchange', () => {
       ctx.fillStyle = g;
       ctx.fillRect(0,0,w,h);
 
-      // Reactor "plasma tongue" wisps + base glow (sci‑fi upgrade)
+      // Reactor "plasma tongue" wisps + base glow (sciâ€‘fi upgrade)
       const prevComp = ctx.globalCompositeOperation;
       ctx.globalCompositeOperation = 'lighter';
 
@@ -4174,7 +4172,7 @@ window.addEventListener('hashchange', () => {
         ctx.fill();
       }
 
-      // Plasma ribbons (controlled, engineered motion — not chaotic flame flicker)
+      // Plasma ribbons (controlled, engineered motion â€” not chaotic flame flicker)
       const RIBBONS = 7;
       for (let r = 0; r < RIBBONS; r++){
         const phase = (now / 1550) + (r * 2.15);
@@ -4239,7 +4237,7 @@ window.addEventListener('hashchange', () => {
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
         ctx.fill();
 
-        // Subtle chromatic aberration (sci‑fi split)
+        // Subtle chromatic aberration (sciâ€‘fi split)
         ctx.beginPath();
         ctx.fillStyle = `rgba(160,70,255,${alpha*0.55})`;
         ctx.arc(p.x + 1.6, p.y, p.r * 0.98, 0, Math.PI*2);
