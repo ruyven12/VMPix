@@ -1918,6 +1918,14 @@ function pulseFrame(){
     if (albumStatus) {
       if (!needsAlbum) {
         albumStatus.textContent = 'Album upload is off. Custom multi-photo post is the active mode.';
+      } else if (mode === 'album') {
+        albumStatus.textContent = vmAdminFacebookAlbumState.loading
+          ? 'Loading Facebook albums...'
+          : 'Album-only mode uploads selected photos to the chosen album and does not create a custom wall post from this tool.';
+      } else if (mode === 'both') {
+        albumStatus.textContent = vmAdminFacebookAlbumState.loading
+          ? 'Loading Facebook albums...'
+          : 'Both mode uploads to the chosen album, then creates one custom wall post from this tool.';
       } else if (vmAdminFacebookAlbumState.loading) {
         albumStatus.textContent = 'Loading Facebook albums...';
       } else if (vmAdminFacebookAlbumState.error) {
@@ -1987,7 +1995,7 @@ function pulseFrame(){
       } else if (isThrowback) {
         modeNote.textContent = 'Throwback uses the archive picker flow first, then keeps the post context tied to the selected show.';
       } else {
-        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data, supports multi-select, and can target a custom post, album upload, or both.';
+        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data, supports multi-select, and can either make one custom wall post, upload to an album only, or do both without a second custom wall post.';
       }
     }
 
@@ -2325,9 +2333,9 @@ function pulseFrame(){
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.page_name || 'Voodoo Media')}</div>
               <div style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">
                 ${escapeVmAdminHtml(preview.publish_mode === 'both'
-                  ? `Publish mode: Both${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''}`
+                  ? `Publish mode: Both${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''} / One custom wall post`
                   : (preview.publish_mode === 'album'
-                    ? `Publish mode: Album Upload${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''}`
+                    ? `Publish mode: Album Upload${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''} / No custom wall post`
                     : 'Publish mode: Custom Multi-Photo Post'))}
               </div>
         <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(preview.final_message || '')}</div>
@@ -2365,9 +2373,9 @@ function pulseFrame(){
       await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
       const publishMode = String(payload && payload.publish_mode || 'post').trim().toLowerCase();
       const successMessage = publishMode === 'album'
-        ? 'Photos uploaded to album'
+        ? 'Photos uploaded to album only'
         : (publishMode === 'both'
-          ? 'Post published and album uploaded'
+          ? 'One wall post published and album uploaded'
           : 'Post published');
       if (status) status.textContent = successMessage;
       setVmAdminFacebookUiState({ connected: true, message: successMessage });
