@@ -153,6 +153,21 @@
   function setArchiveViewportExpanded(isExpanded) {
     if (!_contentPanelEl) return;
     const isMobile = isMusicMobileViewport();
+    const ensureViewportSizing = () => {
+      if (_onResize) {
+        window.removeEventListener('resize', _onResize);
+        _onResize = null;
+      }
+      _onResize = function musicArchiveViewportResize() {
+        sizeContentPanelToHud();
+      };
+      window.addEventListener('resize', _onResize, { passive: true });
+      try {
+        window.requestAnimationFrame(() => sizeContentPanelToHud());
+      } catch (_) {
+        sizeContentPanelToHud();
+      }
+    };
 
     if (isExpanded) {
       // Archives-only vertical positioning
@@ -187,6 +202,7 @@
       _contentPanelEl.style.minHeight = '0px';
       _contentPanelEl.style.height = '';
       _contentPanelEl.style.maxHeight = '';
+      ensureViewportSizing();
     } else {
       if (isMobile) {
         _contentPanelEl.style.marginTop = '14px';
@@ -216,6 +232,7 @@
         _contentPanelEl.style.minHeight = '0px';
         _contentPanelEl.style.height = '';
         _contentPanelEl.style.maxHeight = '';
+        ensureViewportSizing();
         return;
       }
 
