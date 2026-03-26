@@ -1946,7 +1946,7 @@ music: {
                           <option value="throwback">Throwback</option>
                         </select>
                       </label>
-                      <label id="vmAdminFacebookEntityTitleWrap" style="display:block;">
+                      <label id="vmAdminFacebookEntityTitleWrap" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Title</div>
                         <input id="vmAdminFacebookEntityLabel" type="text" placeholder="Show title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
