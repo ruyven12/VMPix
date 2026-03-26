@@ -663,6 +663,7 @@ function pulseFrame(){
     browseShowId: '',
     browseMatchId: '',
     photoItems: [],
+    selectedPhotoIds: [],
     photoLoading: false,
     photoError: '',
     selectedId: '',
@@ -1072,6 +1073,80 @@ function pulseFrame(){
     return lines.join('\n');
   }
 
+  function getVmAdminFacebookSelectedPhotoItems(){
+    const ids = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds : [];
+    const items = Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : [];
+    const map = new Map(items.map((item) => [item.id, item]));
+    return ids.map((id) => map.get(id)).filter(Boolean);
+  }
+
+  function syncVmAdminFacebookPhotoSelectionIntoComposer(){
+    const selectedItems = getVmAdminFacebookSelectedPhotoItems();
+    const imageField = document.getElementById('vmAdminFacebookImageUrl');
+    const titleField = document.getElementById('vmAdminFacebookEntityLabel');
+    const linkField = document.getElementById('vmAdminFacebookLinkUrl');
+    const captionField = document.getElementById('vmAdminFacebookCaption');
+    const hiddenIdField = document.getElementById('vmAdminFacebookEntityIdHidden');
+    const hiddenRouteField = document.getElementById('vmAdminFacebookEntityRouteHidden');
+    const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
+    if (!selectedItems.length) {
+      if (imageField) imageField.value = '';
+      if (titleField) titleField.value = '';
+      if (hiddenIdField) hiddenIdField.value = '';
+      if (hiddenRouteField) hiddenRouteField.value = '';
+      if (pickerStatus) pickerStatus.textContent = 'Browsing photos';
+      return;
+    }
+    const primary = selectedItems[0];
+    const label = selectedItems.length === 1
+      ? String(primary.title || 'Photo').trim()
+      : `${String(primary.matchTitle || primary.title || 'Selected Photos').trim()} (${selectedItems.length} Photos)`;
+    if (imageField) imageField.value = String(primary.imageFullUrl || primary.imageUrl || '').trim();
+    if (titleField) titleField.value = label;
+    if (hiddenIdField) hiddenIdField.value = selectedItems.map((item) => item.entityId).filter(Boolean).join(',');
+    if (hiddenRouteField) hiddenRouteField.value = String(primary.routePath || '').trim();
+    if (linkField && !String(linkField.value || '').trim()) {
+      linkField.value = String(primary.routeUrl || '').trim();
+    }
+    if (captionField) {
+      const starter = [
+        primary.matchTitle || primary.title,
+        primary.showTitle || '',
+        primary.prettyDate || '',
+        primary.routeUrl || ''
+      ].filter(Boolean).join('\n');
+      const current = String(captionField.value || '').trim();
+      const auto = String(captionField.dataset.vmFacebookAutofill || '') === '1';
+      if (!current || auto) {
+        captionField.value = starter;
+        captionField.dataset.vmFacebookAutofill = starter ? '1' : '';
+      }
+    }
+    if (pickerStatus) {
+      pickerStatus.textContent = selectedItems.length === 1
+        ? `Selected photo: ${primary.title}`
+        : `Selected ${selectedItems.length} photos`;
+    }
+    vmAdminFacebookPickerState.selectedId = primary.id;
+    vmAdminFacebookPickerState.selected = primary;
+  }
+
+  function toggleVmAdminFacebookPhotoSelection(itemId){
+    const item = (Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : []).find((photo) => photo.id === itemId) || null;
+    if (!item) return;
+    const current = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds.slice() : [];
+    const index = current.indexOf(itemId);
+    if (index >= 0) current.splice(index, 1);
+    else current.push(itemId);
+    vmAdminFacebookPickerState.selectedPhotoIds = current;
+    if (!current.length) {
+      vmAdminFacebookPickerState.selectedId = '';
+      vmAdminFacebookPickerState.selected = null;
+    }
+    syncVmAdminFacebookPhotoSelectionIntoComposer();
+    renderVmAdminFacebookPicker();
+  }
+
   function syncVmAdminFacebookSelectionIntoComposer(item){
     const entry = item && typeof item === 'object' ? item : null;
     const imageField = document.getElementById('vmAdminFacebookImageUrl');
@@ -1121,6 +1196,7 @@ function pulseFrame(){
     const countShell = document.getElementById('vmAdminFacebookPickerCount');
     if (!resultsShell || !selectedShell) return;
     const selected = vmAdminFacebookPickerState.selected;
+    const selectedPhotoItems = getVmAdminFacebookSelectedPhotoItems();
     const items = getVmAdminFacebookFilteredPickerItems();
     const browseMatch = getVmAdminFacebookBrowseMatch();
     const browseShow = getVmAdminFacebookBrowseShow();
@@ -1189,6 +1265,7 @@ function pulseFrame(){
       resultsShell.innerHTML = (browseMatch ? photoHeaderHtml : headerHtml) + items.map((item) => {
         const active = selected && selected.id === item.id;
         if (item.type === 'photo') {
+          const picked = selectedPhotoItems.some((photo) => photo.id === item.id);
           return `
             <div style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94);">
               <div style="display:grid; grid-template-columns:52px minmax(0,1fr) auto; align-items:center; gap:10px;">
@@ -1196,10 +1273,10 @@ function pulseFrame(){
                   ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
                 </div>
                 <div style="min-width:0;">
-                  <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:0; border:0; background:transparent; color:${active ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:left;">${escapeVmAdminHtml(item.title)}</button>
+                  <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:0; border:0; background:transparent; color:${picked ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:left;">${escapeVmAdminHtml(item.title)}</button>
                   <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.subtitle || 'Photo')}</div>
                 </div>
-                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${active ? 'Selected' : 'Use Photo'}</button>
+                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${picked ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${picked ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${picked ? 'Remove' : 'Use Photo'}</button>
               </div>
             </div>
           `;
@@ -1232,6 +1309,26 @@ function pulseFrame(){
         `;
       }).join('');
     }
+    if (selectedPhotoItems.length) {
+      selectedShell.innerHTML = `
+        <div style="display:grid; gap:10px; margin-top:10px;">
+          <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;">
+            ${selectedPhotoItems.slice(0, 4).map((item) => `
+              <div style="border:1px solid rgba(97,224,255,.14); border-radius:12px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
+                <div style="aspect-ratio:1/1;">
+                  ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
+                </div>
+                <div style="padding:8px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(item.title)}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(selectedPhotoItems.length === 1 ? '1 Photo Selected' : `${selectedPhotoItems.length} Photos Selected`)}</div>
+          <div style="color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([(selectedPhotoItems[0] && selectedPhotoItems[0].matchTitle) || '', (selectedPhotoItems[0] && selectedPhotoItems[0].showTitle) || ''].filter(Boolean).join(' • '))}</div>
+          <button type="button" data-facebook-picker-clear="1" style="min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
+        </div>
+      `;
+      return;
+    }
     if (!selected) {
       selectedShell.innerHTML = `
         <div style="margin-top:10px; border:1px solid rgba(97,224,255,.14); border-radius:14px; overflow:hidden; background:linear-gradient(180deg,rgba(10,18,24,.92),rgba(6,10,16,.92));">
@@ -1254,6 +1351,10 @@ function pulseFrame(){
   }
 
   function selectVmAdminFacebookPickerItem(itemId){
+    if (getVmAdminFacebookBrowseMatch()) {
+      toggleVmAdminFacebookPhotoSelection(itemId);
+      return;
+    }
     const rootItems = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
     let match = rootItems.find((item) => item.id === itemId) || null;
     if (!match && vmAdminFacebookPickerState.browseShowId) {
@@ -1272,6 +1373,7 @@ function pulseFrame(){
     vmAdminFacebookPickerState.browseShowId = match.id;
     vmAdminFacebookPickerState.browseMatchId = '';
     vmAdminFacebookPickerState.photoItems = [];
+    vmAdminFacebookPickerState.selectedPhotoIds = [];
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = false;
     const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
@@ -1288,6 +1390,7 @@ function pulseFrame(){
     vmAdminFacebookPickerState.browseShowId = '';
     vmAdminFacebookPickerState.browseMatchId = '';
     vmAdminFacebookPickerState.photoItems = [];
+    vmAdminFacebookPickerState.selectedPhotoIds = [];
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = false;
     const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
@@ -1303,6 +1406,7 @@ function pulseFrame(){
     if (!match) return;
     vmAdminFacebookPickerState.browseMatchId = match.id;
     vmAdminFacebookPickerState.photoItems = [];
+    vmAdminFacebookPickerState.selectedPhotoIds = [];
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = true;
     const pickerStatus = document.getElementById('vmAdminFacebookPickerStatus');
@@ -1356,6 +1460,7 @@ function pulseFrame(){
   function closeVmAdminFacebookPickerMatch(){
     vmAdminFacebookPickerState.browseMatchId = '';
     vmAdminFacebookPickerState.photoItems = [];
+    vmAdminFacebookPickerState.selectedPhotoIds = [];
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = false;
     const browseShow = getVmAdminFacebookBrowseShow();
@@ -1372,6 +1477,7 @@ function pulseFrame(){
     vmAdminFacebookPickerState.browseShowId = '';
     vmAdminFacebookPickerState.browseMatchId = '';
     vmAdminFacebookPickerState.photoItems = [];
+    vmAdminFacebookPickerState.selectedPhotoIds = [];
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = false;
     syncVmAdminFacebookSelectionIntoComposer(null);
