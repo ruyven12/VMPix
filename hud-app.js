@@ -3627,7 +3627,7 @@ music: {
                   <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
                     <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                   </div>
-                  <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Rebuild, inspect, and validate the wrestling people index from the same Admin shell.</div>
+                  <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">This area deals with the cached results of our indexes and gives us the ability to rebuild them on command.</div>
                   <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:34px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Waiting for rebuild status...</div>
                   <button type="button" data-admin-rebuild="people" style="margin-top:12px; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Rebuild Index</button>
                 </div>
