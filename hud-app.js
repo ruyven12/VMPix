@@ -1999,7 +1999,9 @@ function pulseFrame(){
       } else if (mode === 'both') {
         albumStatus.textContent = vmAdminFacebookAlbumState.loading
           ? 'Loading Facebook albums...'
-          : 'Both mode uploads to the chosen album with your caption, then creates one custom wall post from this tool.';
+          : 'Manual Post/Upload mode uploads to the chosen album with your caption, then creates one custom wall post from this tool.';
+      } else if (mode === 'share') {
+        albumStatus.textContent = 'Share mode is active. Album selection is not needed.';
       } else if (vmAdminFacebookAlbumState.loading) {
         albumStatus.textContent = 'Loading Facebook albums...';
       } else if (vmAdminFacebookAlbumState.error) {
@@ -2069,7 +2071,7 @@ function pulseFrame(){
       } else if (isThrowback) {
         modeNote.textContent = 'Throwback uses the archive picker flow first, then keeps the post context tied to the selected show.';
       } else {
-        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data, supports multi-select, and can either make one custom wall post, upload to an album with your caption, or do both without a second custom wall post from this tool.';
+        modeNote.textContent = 'Photo Post now reads from real Wrestling show source data, supports multi-select, and can either make one custom wall post, upload to an album with your caption, manually post plus upload, or use share mode.';
       }
     }
 
@@ -2296,7 +2298,9 @@ function pulseFrame(){
         if (publishMode === 'album') {
           modeBits.push('Album Upload');
         } else if (publishMode === 'both') {
-          modeBits.push('Both');
+          modeBits.push('Manual Post/Upload');
+        } else if (publishMode === 'share') {
+          modeBits.push('Share');
         } else if (publishMode === 'post') {
           modeBits.push('Custom Post');
         }
@@ -2421,10 +2425,12 @@ function pulseFrame(){
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.page_name || 'Voodoo Media')}</div>
               <div style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">
                 ${escapeVmAdminHtml(preview.publish_mode === 'both'
-                  ? `Publish mode: Both${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''} / Album caption + one custom wall post`
-                  : (preview.publish_mode === 'album'
+                  ? `Publish mode: Manual Post/Upload${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''} / Album caption + one custom wall post`
+                  : (preview.publish_mode === 'share'
+                    ? 'Publish mode: Share'
+                    : (preview.publish_mode === 'album'
                     ? `Publish mode: Album Upload${preview.facebook_album_name ? ` / Album: ${preview.facebook_album_name}` : ''} / Album caption / No custom wall post`
-                    : 'Publish mode: Custom Multi-Photo Post'))}
+                    : 'Publish mode: Custom Multi-Photo Post')))}
               </div>
         <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(preview.final_message || '')}</div>
             </div>
@@ -2464,7 +2470,9 @@ function pulseFrame(){
         ? 'Photos uploaded to album only'
         : (publishMode === 'both'
           ? 'One wall post published and album uploaded'
-          : 'Post published');
+          : (publishMode === 'share'
+            ? 'Share published'
+            : 'Post published'));
       if (status) status.textContent = successMessage;
       setVmAdminFacebookUiState({ connected: true, message: successMessage });
       await loadVmAdminFacebookStatus({ silent: true });
@@ -3488,7 +3496,8 @@ music: {
                         <select id="vmAdminFacebookPublishMode" onchange="window.__vmAdminSyncFacebookEntityTypeUi && window.__vmAdminSyncFacebookEntityTypeUi(); window.__vmAdminSyncFacebookAlbumUi && window.__vmAdminSyncFacebookAlbumUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
                           <option value="post" selected>Custom Multi-Photo Post</option>
                           <option value="album">Upload to Album</option>
-                          <option value="both">Both</option>
+                          <option value="both">Manual Post/Upload</option>
+                          <option value="share">Share</option>
                         </select>
                       </div>
                       <div id="vmAdminFacebookAlbumWrap" data-facebook-mode="photo-post" style="display:none;">
