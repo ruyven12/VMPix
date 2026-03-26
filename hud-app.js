@@ -2387,18 +2387,25 @@ function pulseFrame(){
       { label: 'Wrestling-Shows', base: getVmAdminWrestlingApiBase(), endpoints: ['/index/shows'] },
       { label: 'Wrestling-People', base: getVmAdminWrestlingApiBase(), endpoints: ['/index/index', '/index/people'] }
     ];
-    shell.innerHTML = renderVmAdminIndexTableShell(rows.map((row) => Object.assign({}, row, { generatedAtLabel: 'Checking rebuild time...' })));
-    const resolvedRows = await Promise.all(rows.map(async (row) => {
+    const resolvedRows = rows.map((row) => Object.assign({}, row, { generatedAtLabel: 'Checking rebuild time...' }));
+    shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+    const loadRow = async (row) => {
       let generatedAt = '';
       for (let i = 0; i < row.endpoints.length; i++) {
         const endpoint = String(row.endpoints[i] || '').trim();
         if (!endpoint) continue;
         try {
+          const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+          const timeout = window.setTimeout(() => {
+            try { if (ctrl) ctrl.abort(); } catch (_) {}
+          }, 9000);
           const res = await fetch(`${row.base}${endpoint}?cb=${Date.now()}`, {
             method: 'GET',
             cache: 'no-store',
-            headers: { Accept: 'application/json' }
+            headers: { Accept: 'application/json' },
+            signal: ctrl ? ctrl.signal : undefined
           });
+          window.clearTimeout(timeout);
           if (!res.ok) continue;
           const data = await res.json().catch(() => null);
           if (data && data.generatedAt) {
@@ -2409,9 +2416,17 @@ function pulseFrame(){
       }
       return Object.assign({}, row, {
         generatedAtLabel: formatVmAdminIndexGeneratedAt(generatedAt)
+      });      
+    };
+    resolvedRows.forEach((row, index) => {
+      loadRow(row).then((nextRow) => {
+        resolvedRows[index] = nextRow;
+        if (shell) shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+      }).catch(() => {
+        resolvedRows[index] = Object.assign({}, row, { generatedAtLabel: 'Not available' });
+        if (shell) shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
       });
-    }));
-    shell.innerHTML = renderVmAdminIndexTableShell(resolvedRows);
+    });
     return resolvedRows;
   }
 
