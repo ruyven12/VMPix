@@ -1987,7 +1987,7 @@ function pulseFrame(){
           <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Selected Archive Item</div>
           <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(title)}</div>
           ${meta ? `<div style="margin-top:6px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(meta)}</div>` : ''}
-          <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap;">${escapeVmAdminHtml(finalMessage || 'No caption yet.')}</div>
+          <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(finalMessage || 'No caption yet.')}</div>
         </div>
       </div>
     `;
@@ -2147,7 +2147,7 @@ function pulseFrame(){
             <div>
               <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Page</div>
               <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.page_name || 'Voodoo Media')}</div>
-              <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap;">${escapeVmAdminHtml(preview.final_message || '')}</div>
+        <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(preview.final_message || '')}</div>
             </div>
           </div>
         `;
