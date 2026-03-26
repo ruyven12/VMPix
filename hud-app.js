@@ -899,6 +899,17 @@ function pulseFrame(){
     return firstLine || 'Untitled Post';
   }
 
+  function compactVmAdminFacebookPayload(payload){
+    const out = {};
+    Object.keys(payload || {}).forEach((key) => {
+      const value = payload[key];
+      if (value == null) return;
+      if (typeof value === 'string' && !value.trim()) return;
+      out[key] = value;
+    });
+    return out;
+  }
+
   async function loadVmAdminFacebookStatus(opts){
     const options = opts || {};
     const shell = document.getElementById('vmAdminFacebookMeta');
@@ -1004,16 +1015,18 @@ function pulseFrame(){
       payload.link_url = linkMode === 'yes'
         ? String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim()
         : '';
+      payload.image_url = '';
     } else {
       payload.link_url = String((document.getElementById('vmAdminFacebookLinkUrl') || {}).value || '').trim();
       payload.image_url = String((document.getElementById('vmAdminFacebookImageUrl') || {}).value || '').trim();
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
     payload.entity_id = buildVmAdminFacebookEntityId(payload);
+    const cleanPayload = compactVmAdminFacebookPayload(payload);
     setVmAdminFacebookUiState({ connected: true, busy: true, message: 'Building preview...' });
     if (status) status.textContent = 'Building preview...';
     try {
-      const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', payload);
+      const data = await postVmAdminJsonWithExplicitToken('/admin/facebook/preview', cleanPayload);
       const preview = data && data.preview ? data.preview : {};
       if (previewShell) {
         previewShell.innerHTML = `
@@ -1033,7 +1046,7 @@ function pulseFrame(){
       }
       if (status) status.textContent = 'Preview ready';
       setVmAdminFacebookUiState({ connected: true, message: 'Preview ready' });
-      return payload;
+      return cleanPayload;
     } catch (err) {
       if (previewShell) previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to build preview right now.</div>`;
       if (status) status.textContent = 'Preview failed';
