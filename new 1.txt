@@ -1,23 +1,25 @@
-What’s Done
+Absolutely. Here’s the short next-step list for tomorrow:
 
-We’ve effectively finished the Facebook connection foundation:
+Wire Photo Post picker to real Wrestling source data.
+Decide the first source path:
+show photos first
+or show + people together
+Replace the mock Albums / Results pane with real searchable/selectable results.
+Make Selected Item populate from the clicked result.
+Push selected data back into the composer:
+image URL
+entity title
+entity ID/context
+optional default caption parts
+Decide whether first pass is:
+single-select only
+or multi-select ready from day one
+Make Photo Post preview render from selected archive items instead of manual URLs.
+Keep Normal Post working as-is while we build the real picker.
+After frontend wiring, confirm backend publish still behaves correctly for image-based posts.
+Useful summary line for tomorrow:
 
-Meta app created correctly
-required scopes wired
-Wrestling backend OAuth flow working
-VMPix Admin shell connected to backend
-Voodoo Media Page now connected
-token state/status UI working
-So yes, this is essentially Phase 1 and the Facebook connect portion of Phase 2 done.
-
-First real publish test
-
-Use the current manual composer once
-verify preview works
-verify publish succeeds to the Voodoo Media Page
-confirm the publish log/history records it correctly
-
-
+Photo Post
 
 Tighten the current Facebook Admin tool
 
