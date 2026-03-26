@@ -1256,25 +1256,19 @@ function pulseFrame(){
           <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseShow.title)}</div>
         </div>
       ` : '';
-      resultsShell.innerHTML = (browseMatch ? photoHeaderHtml : headerHtml) + items.map((item) => {
-        const active = selected && selected.id === item.id;
-        if (item.type === 'photo') {
-          const picked = selectedPhotoItems.some((photo) => photo.id === item.id);
-          return `
-            <div style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94);">
-              <div style="display:grid; grid-template-columns:52px minmax(0,1fr) auto; align-items:center; gap:10px;">
-                <div style="width:52px; height:52px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,.06); background:rgba(8,10,16,.8);">
+      const bodyHtml = browseMatch
+        ? `<div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">${items.map((item) => {
+            const picked = selectedPhotoItems.some((photo) => photo.id === item.id);
+            return `
+              <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerSelectPhoto && window.__vmAdminFacebookPickerSelectPhoto('${escapeVmAdminHtml(item.id)}'); return false;" style="display:block; width:100%; padding:0; border:${picked ? '2px solid rgba(97,224,255,.86)' : '1px solid rgba(255,255,255,.08)'}; border-radius:12px; overflow:hidden; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; box-shadow:${picked ? '0 0 0 1px rgba(97,224,255,.18), 0 0 18px rgba(97,224,255,.18)' : 'none'}; cursor:pointer;">
+                <div style="aspect-ratio:1/1; background:rgba(8,10,16,.8);">
                   ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
                 </div>
-                <div style="min-width:0;">
-                  <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:0; border:0; background:transparent; color:${picked ? 'rgba(210,242,255,.94)' : 'rgba(245,236,242,.9)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:left;">${escapeVmAdminHtml(item.title)}</button>
-                  <div style="margin-top:4px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.45;">${escapeVmAdminHtml(item.subtitle || 'Photo')}</div>
-                </div>
-                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${picked ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${picked ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${picked ? 'Selected' : 'Use Photo'}</button>
-              </div>
-            </div>
-          `;
-        }
+              </button>
+            `;
+          }).join('')}</div>`
+        : items.map((item) => {
+        const active = selected && selected.id === item.id;
         const actionLabel = item.type === 'match' ? 'Use Match' : 'Use Show';
         const titleAction = item.type === 'show'
           ? `data-facebook-picker-open-show="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerOpenShow && window.__vmAdminFacebookPickerOpenShow('${escapeVmAdminHtml(item.id)}'); return false;"`
@@ -1302,6 +1296,7 @@ function pulseFrame(){
           </div>
         `;
       }).join('');
+      resultsShell.innerHTML = (browseMatch ? photoHeaderHtml : headerHtml) + bodyHtml;
     }
     if (selectedPhotoItems.length) {
       const primaryPhoto = selectedPhotoItems[0];
@@ -2092,6 +2087,9 @@ function pulseFrame(){
   };
   window.__vmAdminFacebookPickerBackToMatches = function __vmAdminFacebookPickerBackToMatches(){
     return closeVmAdminFacebookPickerMatch();
+  };
+  window.__vmAdminFacebookPickerSelectPhoto = function __vmAdminFacebookPickerSelectPhoto(itemId){
+    return toggleVmAdminFacebookPhotoSelection(itemId);
   };
   window.__vmAdminSyncFacebookEntityTypeUi = function __vmAdminSyncFacebookEntityTypeUi(){
     return syncVmAdminFacebookEntityTypeUi();
