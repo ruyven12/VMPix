@@ -1,7 +1,7 @@
-// music-archive.js (user working file)
+﻿// music-archive.js (user working file)
 // Phase 2 clean baseline (DEDUPED)
 // - Keeps HUD neon frame visible on Music route
-// - Removes HUD main container fill only (Music only) — border stays
+// - Removes HUD main container fill only (Music only) â€” border stays
 // - Allows Music-only frame height + vertical placement control
 // - OPTION B: Re-parent #hudMainMount so .neonFrameTextInner can be display:none (glass removed)
 // - Displays: THE WORLD OF MUSIC
@@ -25,7 +25,7 @@
   let _prevHudMainFlexDirection = null;
   let _prevHudMainAlignItems = null;
   let _prevHudMainJustifyContent = null;
-  // ORANGE BOX (info strip) restore — Music route only
+  // ORANGE BOX (info strip) restore â€” Music route only
   let _orangeBoxEl = null;
   let _prevHudMainPadding = null;
 
@@ -33,7 +33,7 @@
   let _prevHtmlOverflowX = null;
   let _prevBodyOverflowX = null;
 
-  // GREEN BOX (main changing content area) — Music route only
+  // GREEN BOX (main changing content area) â€” Music route only
   let _contentPanelEl = null;
 
   // inner glass panel restore
@@ -79,6 +79,25 @@
     }
   }
 
+  function updateMusicViewportDebug(info) {
+    try {
+      const el = document.getElementById('musicViewportDebug');
+      if (!el) return;
+      const data = info && typeof info === 'object' ? info : {};
+      const lines = [
+        `mobile=${!!data.mobile} expanded=${!!data.expanded} mode=${String(data.mode || '').trim() || 'unknown'}`,
+        `viewport=${Number(data.viewportHeight || 0)} panelTop=${Number(data.panelTop || 0)} panelHeight=${Number(data.panelHeight || 0)}`,
+        `hudH=${Number(data.hudHeight || 0)} innerH=${Number(data.innerHeight || 0)}`
+      ];
+      el.textContent = lines.join(' | ');
+      el.style.display = 'block';
+    } catch (_) {}
+  }
+
+  function getMusicViewportDebugMarkup() {
+    return `<div id="musicViewportDebug" style="display:none; position:sticky; top:0; z-index:5; margin:0 0 10px; padding:8px 10px; border:1px solid rgba(97,224,255,.22); border-radius:10px; background:rgba(6,12,18,.92); color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.5; text-transform:none; word-break:break-word;"></div>`;
+  }
+
   function sizeContentPanelToHud() {
     // Reduce fragile layout magic numbers:
     // Compute the scrollable "green box" height from real DOM geometry,
@@ -111,6 +130,16 @@
           _contentPanelEl.style.height = `${availMobile}px`;
           _contentPanelEl.style.maxHeight = `${availMobile}px`;
           _contentPanelEl.style.minHeight = '0px';
+          updateMusicViewportDebug({
+            mobile: true,
+            expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
+            mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
+            viewportHeight,
+            panelTop: Math.round(panelRectMobile.top || 0),
+            panelHeight: availMobile,
+            hudHeight: hudMain.clientHeight || 0,
+            innerHeight: window.innerHeight || 0
+          });
           return;
         }
       } catch (_) {}
@@ -154,6 +183,16 @@
 
         _contentPanelEl.style.height = `${avail}px`;
         _contentPanelEl.style.maxHeight = `${avail}px`;
+        updateMusicViewportDebug({
+          mobile: false,
+          expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
+          mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
+          viewportHeight: window.innerHeight || 0,
+          panelTop: Math.round(panelRect.top || 0),
+          panelHeight: avail,
+          hudHeight: hudH,
+          innerHeight: innerH
+        });
         return;
       }
     } catch (_) {}
@@ -165,9 +204,19 @@
     const avail = Math.max(0, innerH - topGap - ARCHIVES_TOP_OFFSET_PX - ARCHIVES_BOTTOM_OFFSET_PX);
     _contentPanelEl.style.height = `${avail}px`;
     _contentPanelEl.style.maxHeight = `${avail}px`;
+    updateMusicViewportDebug({
+      mobile: isMusicMobileViewport(),
+      expanded: !!(_contentPanelEl.style.flex && _contentPanelEl.style.flex.indexOf('1 1 auto') >= 0),
+      mode: document.querySelector('#musicInfoStrip .hudTab.is-active, #musicInfoStrip .hudTab[aria-selected="true"]')?.textContent || '',
+      viewportHeight: window.innerHeight || 0,
+      panelTop: 0,
+      panelHeight: avail,
+      hudHeight: hudH,
+      innerHeight: innerH
+    });
   }
 
-  // Archives-only: expand the content panel to the “green box” height.
+  // Archives-only: expand the content panel to the â€œgreen boxâ€ height.
   // For other tabs, revert to the original auto-sizing behavior.
   function setArchiveViewportExpanded(isExpanded) {
     if (!_contentPanelEl) return;
@@ -294,24 +343,24 @@
   }
 
   // ---- Music-only tuning ----
-  const MUSIC_FRAME_HEIGHT = '5px'; // adjust safely (100px–130px)
+  const MUSIC_FRAME_HEIGHT = '5px'; // adjust safely (100pxâ€“130px)
 
-  // 👉 HEADER WRAP (translucent layer) HEIGHT CONTROL (MUSIC ONLY)
+  // ðŸ‘‰ HEADER WRAP (translucent layer) HEIGHT CONTROL (MUSIC ONLY)
   // This controls .neonFrameWrap (the magenta debug layer we confirmed).
   // Use MIN height for safety; set strict=true only if you want a fixed box.
-  const NEON_WRAP_MIN_HEIGHT = '5px'; // try 140px–260px
+  const NEON_WRAP_MIN_HEIGHT = '5px'; // try 140pxâ€“260px
   const NEON_WRAP_STRICT_HEIGHT = false; // true = force exact height (can clip)
 
-  // 👉 VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
+  // ðŸ‘‰ VERTICAL POSITION ADJUSTMENT FOR THE NEON FRAME (MUSIC ONLY)
   // Negative values move the frame UP, positive values move it DOWN.
   const MUSIC_FRAME_Y_OFFSET = '0px';
 
-  // 👉 TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
+  // ðŸ‘‰ TITLE POSITION INSIDE THE FRAME (MUSIC ONLY)
   // Negative = move title UP, positive = move title DOWN.
   const MUSIC_TITLE_Y_OFFSET = '-80px';
 
-  // 👉 OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
-  // Use small values like '6px'–'14px'. Set to '0px' for none.
+  // ðŸ‘‰ OPTIONAL: add breathing room inside the frame (MUSIC ONLY)
+  // Use small values like '6px'â€“'14px'. Set to '0px' for none.
   const MUSIC_TITLE_PADDING_Y = '0px';
   const MUSIC_TITLE_VISUAL_NUDGE = '-93px';
 
@@ -344,7 +393,7 @@
 
   // Layout sizing
   const GREEN_BOX_DESKTOP_MIN_HEIGHT = '0px'; // desktop: auto-size to content (set to e.g. '320px' if you want a minimum)
-  const GREEN_BOX_MOBILE_MIN_HEIGHT = '520px'; // mobile baseline (try 420px–820px)
+  const GREEN_BOX_MOBILE_MIN_HEIGHT = '520px'; // mobile baseline (try 420pxâ€“820px)
   const GREEN_BOX_MAX_WIDTH = ORANGE_BOX_MAX_WIDTH; // keep aligned with strip by default
 
   // Positioning inside hudMain
@@ -368,7 +417,7 @@
   // Optional: make it scroll if content is tall
   const GREEN_BOX_OVERFLOW_Y = 'auto'; // 'auto' | 'hidden' | 'scroll'
 
-  // 👉 MUSIC LANDING PANELS (green/orange translucent boxes)
+  // ðŸ‘‰ MUSIC LANDING PANELS (green/orange translucent boxes)
   // Set false to hide/remove the two translucent boxes on the Music route landing view.
   // (Tabs + content panel remain in code for later re-enable.)
   const SHOW_MUSIC_PANELS = true;
@@ -1174,7 +1223,7 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
       hudMain.style.position = 'relative';
       hudMain.style.padding = '0px'; // strip moved above content panel
 
-      // Ensure hudMain has a reliable height context for our “green box” sizing
+      // Ensure hudMain has a reliable height context for our â€œgreen boxâ€ sizing
       hudMain.style.boxSizing = 'border-box';
       hudMain.style.overflow = 'visible';
       hudMain.style.overflowX = 'hidden';
@@ -1212,9 +1261,10 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
         }
 
         _contentPanelEl.innerHTML = `
+          ${getMusicViewportDebugMarkup()}
           <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
             <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
-          Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
+            Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
           </div>
         `;
 
@@ -2030,7 +2080,7 @@ if (!document.getElementById('musicContentWipeStyles')) {
               rgba(255,255,255,.10) 45%,
               rgba(255,255,255,0) 100%
             );
-            /* Keep the ping’s box *within* the strip so it can’t create horizontal scroll */
+            /* Keep the pingâ€™s box *within* the strip so it canâ€™t create horizontal scroll */
             background-size:200% 100%;
             background-position:-100% 0;
             filter:blur(.2px);
@@ -2101,11 +2151,13 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
       function wipeSwapContent(nextHtml, terminalText, onAfterSwap) {
         if (!_contentPanelEl) return;
+        const debugMarkup = getMusicViewportDebugMarkup();
+        const wrappedHtml = `${debugMarkup}${String(nextHtml || '')}`;
         const prefersReduced =
           window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReduced) {
-          _contentPanelEl.innerHTML = nextHtml;
+          _contentPanelEl.innerHTML = wrappedHtml;
           if (typeof onAfterSwap === 'function') onAfterSwap();
           return;
         }
@@ -2120,10 +2172,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
           if (token !== _swapToken) return;
           if (terminalText) {
             _contentPanelEl.innerHTML = `
-              <div class="termLine"><span class="termText"></span><span class="termCaret">▌</span></div>
+              ${debugMarkup}
+              <div class="termLine"><span class="termText"></span><span class="termCaret">â–Œ</span></div>
             `;
           } else {
-            _contentPanelEl.innerHTML = nextHtml;
+            _contentPanelEl.innerHTML = wrappedHtml;
           }
 
           _contentPanelEl.classList.remove('wipe-out');
@@ -2132,7 +2185,6 @@ if (!document.getElementById('musicContentWipeStyles')) {
 
           window.setTimeout(() => {
             if (token !== _swapToken) return;
-          if (token !== _swapToken) return;
             _contentPanelEl.classList.remove('wipe-in');
             if (typeof onAfterSwap === 'function') onAfterSwap();
 
@@ -2215,7 +2267,7 @@ return;
                         const mountPeople = () => {
                           const html =
                             window.MusicArchivePeople?.render?.() ||
-                            `<div style="opacity:.8; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">People – Coming Soon</div>`;
+                            `<div style="opacity:.8; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">People â€“ Coming Soon</div>`;
 
                           wipeSwapContent(html, '', () => {
                             const panel = document.getElementById('musicContentPanel');
@@ -2239,7 +2291,7 @@ return;
                           if (existing) {
                             existing.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                             existing.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
-                            wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                            wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading Peopleâ€¦</div>`, '');
                             return;
                           }
 
@@ -2250,7 +2302,7 @@ return;
                           s.addEventListener('load', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                           s.addEventListener('error', () => { try { mountPeople(); } catch (_) {} }, { once: true });
                           document.head.appendChild(s);
-                          wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading People…</div>`, '');
+                          wipeSwapContent(`<div style="opacity:.8; font-size:13px; letter-spacing:.12em; text-transform:uppercase;">Loading Peopleâ€¦</div>`, '');
                           return;
                         } catch (_) {
                           mountPeople();
@@ -2317,9 +2369,9 @@ The actual process for this project is below (with progress markers). Overall pr
 
 <strong>What the project involves</strong>
 
-* <span style="color:#5CFF8A;"><strong>Archive organization:</strong> Reorganized the entire archive into a consistent region → band → show hierarchy.</span>
+* <span style="color:#5CFF8A;"><strong>Archive organization:</strong> Reorganized the entire archive into a consistent region â†’ band â†’ show hierarchy.</span>
 * <span style="color:#5CFF8A;"><strong>Location history:</strong> Embedded GPS/location data into individual photos to preserve historical context.</span>
-* <span style="color:#FFD700;"><strong>Show metadata (“Job”):</strong> Added Job data to identify the specific show associated with each image. (still need to do for candid shots)</span>
+* <span style="color:#FFD700;"><strong>Show metadata (â€œJobâ€):</strong> Added Job data to identify the specific show associated with each image. (still need to do for candid shots)</span>
 
 <strong>Additional work</strong>
 
@@ -2343,8 +2395,8 @@ Why do this though? Why put in this much effort for a small-scale operation? Sim
             return;
           }// Updates (or anything else)
           wipeSwapContent(
-            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} – Coming Soon</div>`,
-            `${label} – Coming Soon`
+            `<div style="opacity:.7; font-size:14px; letter-spacing:.12em; text-transform:uppercase;">${label} â€“ Coming Soon</div>`,
+            `${label} â€“ Coming Soon`
           );
         });
       });
