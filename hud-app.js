@@ -1093,6 +1093,9 @@ function pulseFrame(){
   window.__vmAdminFacebookPublishNow = function __vmAdminFacebookPublishNow(){
     return runVmAdminFacebookPublish();
   };
+  window.__vmAdminSyncFacebookEntityTypeUi = function __vmAdminSyncFacebookEntityTypeUi(){
+    return syncVmAdminFacebookEntityTypeUi();
+  };
 
   function readVmFacebookCallbackState(){
     try {
@@ -1931,7 +1934,7 @@ music: {
                       </label>
                       <label style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Entity Type</div>
-                        <select id="vmAdminFacebookEntityType" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                        <select id="vmAdminFacebookEntityType" onchange="window.__vmAdminSyncFacebookEntityTypeUi && window.__vmAdminSyncFacebookEntityTypeUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
                           <option value="normal_post" selected>Normal Post</option>
                           <option value="single_photo">Single Photo</option>
                           <option value="multiple_photos">Multiple Photos</option>
@@ -1947,12 +1950,12 @@ music: {
                     <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-top:10px;">
                       <label data-facebook-mode="normal-post" style="display:block;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link</div>
-                        <select id="vmAdminFacebookLinkMode" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                        <select id="vmAdminFacebookLinkMode" onchange="window.__vmAdminSyncFacebookEntityTypeUi && window.__vmAdminSyncFacebookEntityTypeUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
                           <option value="no" selected>No</option>
                           <option value="yes">Yes</option>
                         </select>
                       </label>
-                      <label id="vmAdminFacebookLinkUrlWrap" style="display:none;">
+                      <label id="vmAdminFacebookLinkUrlWrap" data-facebook-mode="normal-post" style="display:none;">
                         <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Link URL</div>
                         <input id="vmAdminFacebookLinkUrl" type="url" placeholder="https://..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
                       </label>
