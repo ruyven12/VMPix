@@ -1942,6 +1942,7 @@ function pulseFrame(){
   }
 
   function syncVmAdminFacebookPhotoOptionsUi(){
+    const publishMode = readVmAdminFacebookPublishMode();
     const titleMode = readVmAdminFacebookPhotoToggle('vmAdminFacebookPhotoTitleMode', 'no');
     const linkMode = readVmAdminFacebookPhotoToggle('vmAdminFacebookPhotoLinkMode', 'no');
     const hashtagsMode = readVmAdminFacebookPhotoToggle('vmAdminFacebookPhotoHashtagsMode', 'no');
@@ -1952,13 +1953,38 @@ function pulseFrame(){
     const linkUrlWrap = document.getElementById('vmAdminFacebookLinkUrlWrap');
     const hashtagsWrap = document.getElementById('vmAdminFacebookHashtagsWrap');
     const isPhotoMode = readVmAdminFacebookEntityType() !== 'normal_post';
+    const isShareMode = publishMode === 'share';
 
-    if (titleToggleWrap) titleToggleWrap.style.display = isPhotoMode ? 'block' : 'none';
-    if (linkToggleWrap) linkToggleWrap.style.display = isPhotoMode ? 'block' : 'none';
-    if (hashtagsToggleWrap) hashtagsToggleWrap.style.display = isPhotoMode ? 'block' : 'none';
-    if (titleWrap) titleWrap.style.display = isPhotoMode && titleMode === 'yes' ? 'block' : 'none';
-    if (linkUrlWrap) linkUrlWrap.style.display = isPhotoMode && linkMode === 'yes' ? 'block' : 'none';
-    if (hashtagsWrap) hashtagsWrap.style.display = isPhotoMode && hashtagsMode === 'yes' ? 'block' : 'none';
+    if (titleToggleWrap) titleToggleWrap.style.display = isPhotoMode && !isShareMode ? 'block' : 'none';
+    if (linkToggleWrap) linkToggleWrap.style.display = isPhotoMode && !isShareMode ? 'block' : 'none';
+    if (hashtagsToggleWrap) hashtagsToggleWrap.style.display = isPhotoMode && !isShareMode ? 'block' : 'none';
+    if (titleWrap) titleWrap.style.display = isPhotoMode && !isShareMode && titleMode === 'yes' ? 'block' : 'none';
+    if (linkUrlWrap) linkUrlWrap.style.display = isPhotoMode && !isShareMode && linkMode === 'yes' ? 'block' : 'none';
+    if (hashtagsWrap) hashtagsWrap.style.display = isPhotoMode && !isShareMode && hashtagsMode === 'yes' ? 'block' : 'none';
+  }
+
+  function buildVmAdminFacebookSharePayload(payload){
+    const row = payload && typeof payload === 'object' ? payload : {};
+    const title = String(row.entity_label || '').trim();
+    const text = String(row.caption || '').trim();
+    const linkUrl = String(row.link_url || '').trim();
+    const shareData = {};
+    if (title) shareData.title = title;
+    if (text) shareData.text = text;
+    if (linkUrl) shareData.url = linkUrl;
+    return shareData;
+  }
+
+  async function runVmAdminNativeShare(payload){
+    if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+      throw new Error('Native share is not available in this browser.');
+    }
+    const shareData = buildVmAdminFacebookSharePayload(payload);
+    if (!shareData.title && !shareData.text && !shareData.url) {
+      throw new Error('Nothing is ready to share yet.');
+    }
+    await navigator.share(shareData);
+    return shareData;
   }
 
   function renderVmAdminFacebookAlbumUi(){
@@ -2381,8 +2407,18 @@ function pulseFrame(){
       if (!payload.image_url && selectedPhotos.length) {
         payload.image_url = String(selectedPhotos[0].image_url || '').trim();
       }
-      payload.caption = buildVmAdminFacebookPhotoMessage();
-      payload.link_url = '';
+      if (albumPayload.publish_mode === 'share') {
+        payload.caption = String((document.getElementById('vmAdminFacebookCaption') || {}).value || '').trim();
+        if (!payload.link_url && selectedPickerItem && selectedPickerItem.routeUrl) {
+          payload.link_url = String(selectedPickerItem.routeUrl || '').trim();
+        }
+        if (!payload.link_url && selectedRoute) {
+          payload.link_url = `${window.location.origin}${selectedRoute}`;
+        }
+      } else {
+        payload.caption = buildVmAdminFacebookPhotoMessage();
+        payload.link_url = '';
+      }
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
     payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
@@ -2464,6 +2500,12 @@ function pulseFrame(){
     if (status) status.textContent = 'Publishing post...';
     try {
       const payload = await runVmAdminFacebookPreview();
+      if (String(payload && payload.publish_mode || '').trim().toLowerCase() === 'share') {
+        await runVmAdminNativeShare(payload || {});
+        if (status) status.textContent = 'Share sheet opened';
+        setVmAdminFacebookUiState({ connected: true, message: 'Share sheet opened' });
+        return payload;
+      }
       await postVmAdminJsonWithExplicitToken('/admin/facebook/publish', payload || {});
       const publishMode = String(payload && payload.publish_mode || 'post').trim().toLowerCase();
       const successMessage = publishMode === 'album'
