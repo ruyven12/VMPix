@@ -1513,7 +1513,6 @@ function pulseFrame(){
               </div>
               <div style="display:grid; gap:6px; justify-items:end;">
                 ${browseAction}
-                <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" style="padding:5px 8px; border-radius:999px; border:1px solid ${active ? 'rgba(97,224,255,.22)' : 'rgba(255,255,255,.08)'}; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(14,16,24,.88)'}; color:${active ? 'rgba(210,242,255,.92)' : 'rgba(214,198,210,.72)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">${active ? 'Selected' : actionLabel}</button>
               </div>
             </div>
           </div>
