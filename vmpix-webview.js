@@ -138,7 +138,7 @@
     banner.id = "vmWebviewBanner";
     banner.className = "vmWebviewBanner";
     banner.innerHTML = `
-      <div class="vmWebviewBannerText" style="font-size:18px">System detected.</div>
+      <div class="vmWebviewBannerText" style="font-size:18px">System detected that you are in WebView from social media. This site is best viewed in an external browser (and can be done via the 3 dots to the upper right). This view breaks in-app views and overall scrolling.</div>
       <button type="button" class="vmWebviewBannerClose" aria-label="Dismiss notice">Close</button>
     `;
     document.body.appendChild(banner);
