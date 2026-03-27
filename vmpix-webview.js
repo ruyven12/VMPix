@@ -138,7 +138,7 @@
     banner.id = "vmWebviewBanner";
     banner.className = "vmWebviewBanner";
     banner.innerHTML = `
-      <div class="vmWebviewBannerText">Best viewed in your browser. In-app webviews can break navigation, scrolling, and media loading.</div>
+      <div class="vmWebviewBannerText" style="font-size:18px">System detected.</div>
       <button type="button" class="vmWebviewBannerClose" aria-label="Dismiss notice">Close</button>
     `;
     document.body.appendChild(banner);
