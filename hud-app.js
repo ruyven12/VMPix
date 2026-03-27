@@ -2863,6 +2863,15 @@ function pulseFrame(){
     }
     payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
     payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
+    if (!payload.image_url && !selectedPhotos.length) {
+      const message = 'Select at least one archive photo before previewing Instagram.';
+      if (previewShell) {
+        previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">${escapeVmAdminHtml(message)}</div>`;
+      }
+      if (status) status.textContent = 'Photo required';
+      setVmAdminInstagramUiState({ connected: true, message });
+      throw new Error(message);
+    }
     if (!payload.caption) {
       const message = 'Add an Instagram caption before previewing.';
       if (previewShell) {
@@ -4518,7 +4527,7 @@ music: {
                         <div id="vmAdminInstagramPickerShell" style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
                           <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Choose Content</div>
                           <div style="margin-top:6px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Reuse the show-source-first archive browser and selected-photo flow to target Instagram with the same archive item.</div>
-                          <div id="vmAdminInstagramPickerLayout" style="margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                          <div id="vmAdminInstagramPickerLayout" style="margin-top:10px; display:grid; grid-template-columns:minmax(0,1fr); gap:12px;">
                             <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                               <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                                 <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
@@ -4526,7 +4535,7 @@ music: {
                               </div>
                               <div id="vmAdminInstagramPickerResults" style="margin-top:10px; display:grid; gap:8px; max-height:332px; overflow-y:auto; padding-right:4px;"></div>
                             </div>
-                            <div id="vmAdminInstagramPickerSelectedPanel" style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
+                            <div id="vmAdminInstagramPickerSelectedPanel" style="display:none; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                               <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
                               <div id="vmAdminInstagramPickerSelected"></div>
                             </div>
@@ -4809,6 +4818,9 @@ music: {
         bindFacebookPickerShell(instagramPickerResults);
         bindFacebookPickerShell(instagramPickerSelected);
         renderVmAdminFacebookPicker();
+        if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
+          loadVmAdminFacebookPickerItems().catch(() => null);
+        }
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
