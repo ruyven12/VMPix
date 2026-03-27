@@ -1915,6 +1915,43 @@ function pulseFrame(){
     `;
   }
 
+  function renderVmAdminInstagramStatus(connection, config){
+    const info = connection && typeof connection === 'object' ? connection : {};
+    const page = info && info.page && typeof info.page === 'object' ? info.page : {};
+    const account = info && info.instagram_account && typeof info.instagram_account === 'object' ? info.instagram_account : {};
+    const cfg = config && typeof config === 'object' ? config : {};
+    const connected = !!info.connected;
+    const pageName = String(page.name || cfg.page_target || 'Voodoo Media').trim() || 'Voodoo Media';
+    const igName = String(account.username || account.name || cfg.instagram_account_target || 'Instagram Account').trim() || 'Instagram Account';
+    const tokenStatus = String(info.token_status || (connected ? 'valid' : 'not_connected')).trim() || 'not_connected';
+    const updatedAt = info.updated_at ? formatVmAdminDate(info.updated_at) : 'Not connected yet';
+    const checkedAt = info.last_checked_at ? formatVmAdminDate(info.last_checked_at) : 'Awaiting first connection';
+    const expiresAt = info.user_token_expires_at ? formatVmAdminDate(info.user_token_expires_at) : 'Not available yet';
+    const readinessLabel = cfg.connect_ready ? 'Backend ready for Instagram connection.' : 'Instagram setup still needs attention.';
+
+    return `
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
+        <div style="border:1px solid rgba(97,224,255,.18); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(10,16,24,.9),rgba(8,10,16,.82));">
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Instagram Link</div>
+          <div style="margin-top:8px; color:${connected ? 'rgba(210,242,255,.96)' : 'rgba(245,236,242,.96)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:18px; font-weight:900; letter-spacing:.03em; text-transform:uppercase;">${escapeVmAdminHtml(connected ? 'Connected' : 'Not Linked')}</div>
+          <div style="margin-top:8px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">IG: ${escapeVmAdminHtml(igName)}</div>
+          <div style="margin-top:4px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Page: ${escapeVmAdminHtml(pageName)}</div>
+        </div>
+        <div style="border:1px solid rgba(255,70,110,.18); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(19,11,23,.92),rgba(12,9,17,.82));">
+          <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Token State</div>
+          <div style="margin-top:8px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.03em; text-transform:uppercase;">${escapeVmAdminHtml(tokenStatus.replace(/_/g, ' '))}</div>
+          <div style="margin-top:8px; color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Checked ${escapeVmAdminHtml(checkedAt)}</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(16,14,22,.9),rgba(10,10,15,.82));">
+          <div style="color:rgba(214,198,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Connection Readiness</div>
+          <div style="margin-top:8px; color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">${escapeVmAdminHtml(readinessLabel)}</div>
+          <div style="margin-top:8px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">Last sync ${escapeVmAdminHtml(updatedAt)}</div>
+          <div style="margin-top:4px; color:rgba(120,224,252,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">User token expiry ${escapeVmAdminHtml(expiresAt)}</div>
+        </div>
+      </div>
+    `;
+  }
+
   function setVmAdminFacebookUiState(opts){
     const options = opts || {};
     const connected = !!options.connected;
@@ -1940,6 +1977,23 @@ function pulseFrame(){
     }
     if (composerStatus && options.message) composerStatus.textContent = options.message;
     if (previewShell && options.clearPreview) previewShell.innerHTML = 'Facebook preview will appear here.';
+  }
+
+  function setVmAdminInstagramUiState(opts){
+    const options = opts || {};
+    const connected = !!options.connected;
+    const busy = !!options.busy;
+    const connectBtn = document.getElementById('vmAdminInstagramConnect');
+    const refreshBtn = document.getElementById('vmAdminInstagramRefresh');
+    const disconnectBtn = document.getElementById('vmAdminInstagramDisconnect');
+    const statusEl = document.getElementById('vmAdminInstagramStatus');
+    if (connectBtn) {
+      connectBtn.textContent = connected ? 'Manage Connection' : 'Connect Instagram';
+      connectBtn.disabled = busy;
+    }
+    if (refreshBtn) refreshBtn.disabled = busy;
+    if (disconnectBtn) disconnectBtn.disabled = busy || !connected;
+    if (statusEl && options.message) statusEl.textContent = options.message;
   }
 
   function readVmAdminFacebookEntityType(){
@@ -2628,6 +2682,47 @@ function pulseFrame(){
     }
   }
 
+  async function loadVmAdminInstagramStatus(opts){
+    const options = opts || {};
+    const shell = document.getElementById('vmAdminInstagramMeta');
+    const status = document.getElementById('vmAdminInstagramStatus');
+    if (!options.silent) {
+      if (status) status.textContent = 'Checking status...';
+      if (shell) shell.innerHTML = `<div style="color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Loading Instagram connection status...</div>`;
+    }
+    try {
+      const data = await fetchVmAdminJsonWithExplicitToken('/admin/instagram/status');
+      if (shell) shell.innerHTML = renderVmAdminInstagramStatus(data && data.connection, data && data.config);
+      if (status) {
+        const connected = !!(data && data.connection && data.connection.connected);
+        status.textContent = connected ? 'Instagram connected' : 'Instagram not connected';
+        setVmAdminInstagramUiState({
+          connected,
+          message: connected ? 'Connected and ready for Instagram publishing' : 'Connect Instagram to continue'
+        });
+      }
+      return data;
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.', { reopenModal: false });
+      }
+      if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Instagram status right now.</div>`;
+      if (status) status.textContent = 'Status unavailable';
+      setVmAdminInstagramUiState({ connected: false, message: 'Unable to load Instagram tools' });
+      throw err;
+    }
+  }
+
+  window.__vmAdminRefreshInstagram = function __vmAdminRefreshInstagram(){
+    const disconnectBtn = document.getElementById('vmAdminInstagramDisconnect');
+    setVmAdminInstagramUiState({
+      connected: !!(disconnectBtn && !disconnectBtn.disabled),
+      busy: true,
+      message: 'Refreshing status...'
+    });
+    return loadVmAdminInstagramStatus();
+  };
+
   window.__vmAdminRefreshFacebook = function __vmAdminRefreshFacebook(){
     const disconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
     setVmAdminFacebookUiState({
@@ -2928,6 +3023,58 @@ function pulseFrame(){
     return loadVmAdminFacebookAlbums({ force: true }).catch(() => null);
   };
 
+  async function startVmAdminInstagramConnect(){
+    const statusEl = document.getElementById('vmAdminInstagramStatus');
+    const connectBtn = document.getElementById('vmAdminInstagramConnect');
+    setVmAdminInstagramUiState({ connected: false, busy: true, message: 'Opening Instagram login...' });
+    if (connectBtn) connectBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Opening Instagram login...';
+    try {
+      const returnTo = `${window.location.origin}/admin`;
+      const data = await postVmAdminJsonWithExplicitToken('/admin/instagram/connect/start', { return_to: returnTo });
+      const authorizeUrl = String(data && data.authorize_url || '').trim();
+      if (!authorizeUrl) throw new Error('instagram authorize url missing');
+      window.location.href = authorizeUrl;
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.');
+      }
+      const msg = messageFromVmAdminError(err, 'Instagram authorization could not start');
+      if (statusEl) statusEl.textContent = msg;
+      setVmAdminInstagramUiState({ connected: false, message: msg });
+      if (connectBtn) connectBtn.disabled = false;
+      throw err;
+    }
+  }
+
+  async function disconnectVmAdminInstagram(){
+    const statusEl = document.getElementById('vmAdminInstagramStatus');
+    const disconnectBtn = document.getElementById('vmAdminInstagramDisconnect');
+    setVmAdminInstagramUiState({ connected: true, busy: true, message: 'Disconnecting Instagram...' });
+    if (disconnectBtn) disconnectBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Disconnecting Instagram...';
+    try {
+      await postVmAdminJsonWithExplicitToken('/admin/instagram/disconnect', {});
+      await loadVmAdminInstagramStatus({ silent: false });
+      setVmAdminInstagramUiState({ connected: false, message: 'Instagram disconnected' });
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.');
+      }
+      const msg = messageFromVmAdminError(err, 'Instagram disconnect failed');
+      if (statusEl) statusEl.textContent = msg;
+      setVmAdminInstagramUiState({ connected: true, message: msg });
+      throw err;
+    }
+  }
+
+  window.__vmAdminInstagramConnect = function __vmAdminInstagramConnect(){
+    return startVmAdminInstagramConnect();
+  };
+  window.__vmAdminInstagramDisconnect = function __vmAdminInstagramDisconnect(){
+    return disconnectVmAdminInstagram();
+  };
+
   function readVmFacebookCallbackState(){
     try {
       const params = new URLSearchParams(window.location.search || '');
@@ -2951,6 +3098,37 @@ function pulseFrame(){
       url.searchParams.delete('message');
       url.searchParams.delete('page_id');
       url.searchParams.delete('page_name');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch (_) {}
+  }
+
+  function readVmInstagramCallbackState(){
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const mode = String(params.get('instagram') || '').trim().toLowerCase();
+      if (!mode) return null;
+      return {
+        mode,
+        message: String(params.get('message') || '').trim(),
+        pageId: String(params.get('page_id') || '').trim(),
+        pageName: String(params.get('page_name') || '').trim(),
+        instagramId: String(params.get('instagram_id') || '').trim(),
+        instagramUsername: String(params.get('instagram_username') || '').trim()
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function clearVmInstagramCallbackState(){
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('instagram');
+      url.searchParams.delete('message');
+      url.searchParams.delete('page_id');
+      url.searchParams.delete('page_name');
+      url.searchParams.delete('instagram_id');
+      url.searchParams.delete('instagram_username');
       window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
     } catch (_) {}
   }
@@ -3977,13 +4155,15 @@ music: {
                   <div style="margin-top:10px;">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                       <div style="flex:1 1 100%; min-width:0;">
-                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Instagram account connection, preview, and publishing controls will be added here next using the same archive-driven admin flow.</div>
+                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Connect the linked Instagram professional account here first, then we can wire the composer and posting flow after.</div>
                       </div>
-                      <div style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Coming Soon</div>
+                      <div id="vmAdminInstagramStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
                     </div>
-                    <div style="margin-top:14px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
-                      <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Instagram Shell</div>
-                      <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; text-align:center;">This block is reserved for Instagram connection status, publish controls, preview output, and history once we start the platform wiring.</div>
+                    <div id="vmAdminInstagramMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Instagram connection details...</div>
+                    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                      <button type="button" id="vmAdminInstagramConnect" onclick="window.__vmAdminInstagramConnect && window.__vmAdminInstagramConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:178px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Instagram</button>
+                      <button type="button" id="vmAdminInstagramRefresh" onclick="window.__vmAdminRefreshInstagram && window.__vmAdminRefreshInstagram(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Check Connection</button>
+                      <button type="button" id="vmAdminInstagramDisconnect" onclick="window.__vmAdminInstagramDisconnect && window.__vmAdminInstagramDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect Instagram</button>
                     </div>
                   </div>
                 </details>
@@ -4077,6 +4257,7 @@ music: {
         const analyticsRefresh = document.getElementById('vmAdminAnalyticsRefresh');
         const analyticsReset = document.getElementById('vmAdminAnalyticsReset');
         const facebookStatusEl = document.getElementById('vmAdminFacebookStatus');
+        const instagramStatusEl = document.getElementById('vmAdminInstagramStatus');
         const facebookConnectBtn = document.getElementById('vmAdminFacebookConnect');
         const facebookRefreshBtn = document.getElementById('vmAdminFacebookRefresh');
         const facebookDisconnectBtn = document.getElementById('vmAdminFacebookDisconnect');
@@ -4090,6 +4271,7 @@ music: {
         const facebookPickerSelected = document.getElementById('vmAdminFacebookPickerSelected');
         const facebookCaption = document.getElementById('vmAdminFacebookCaption');
         const facebookCallbackState = readVmFacebookCallbackState();
+        const instagramCallbackState = readVmInstagramCallbackState();
         try {
           const liveToken = getAdminToken();
           if (liveToken) {
@@ -4220,8 +4402,10 @@ music: {
         verifyAdminAccess().then((ok) => {
           if (!ok) {
             if (facebookStatusEl) facebookStatusEl.textContent = 'Unlock Admin';
+            if (instagramStatusEl) instagramStatusEl.textContent = 'Unlock Admin';
             if (facebookComposerStatus) facebookComposerStatus.textContent = 'Unlock Admin to continue';
             setVmAdminFacebookUiState({ connected: false, message: 'Unlock Admin to continue' });
+            setVmAdminInstagramUiState({ connected: false, message: 'Unlock Admin to continue' });
             const historyShell = document.getElementById('vmAdminFacebookHistory');
             if (historyShell) {
               historyShell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unlock Admin to load Facebook publish history.</div>`;
@@ -4235,9 +4419,13 @@ music: {
             loadVmAdminFacebookStatus({ silent: false });
           } catch (_) {}
           try {
+            loadVmAdminInstagramStatus({ silent: false });
+          } catch (_) {}
+          try {
             loadVmAdminFacebookHistory({ silent: false });
           } catch (_) {}
           setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
+          setVmAdminInstagramUiState({ connected: false, message: 'Checking connection...' });
 
           if (facebookCallbackState) {
             if (facebookCallbackState.mode === 'connected') {
@@ -4270,6 +4458,30 @@ music: {
             clearVmFacebookCallbackState();
           }
 
+          if (instagramCallbackState) {
+            if (instagramCallbackState.mode === 'connected') {
+              if (instagramStatusEl) {
+                instagramStatusEl.textContent = instagramCallbackState.instagramUsername
+                  ? `Connected to @${instagramCallbackState.instagramUsername}`
+                  : 'Instagram connected';
+              }
+              setVmAdminInstagramUiState({
+                connected: true,
+                message: instagramCallbackState.instagramUsername
+                  ? `Connected to @${instagramCallbackState.instagramUsername}`
+                  : 'Connection complete'
+              });
+              try {
+                loadVmAdminInstagramStatus({ silent: true });
+              } catch (_) {}
+            } else if (instagramCallbackState.mode === 'error') {
+              const msg = instagramCallbackState.message || 'Instagram connection failed';
+              if (instagramStatusEl) instagramStatusEl.textContent = 'Instagram connection error';
+              setVmAdminInstagramUiState({ connected: false, message: msg });
+            }
+            clearVmInstagramCallbackState();
+          }
+
           try {
             loadVmAdminIndexingTable();
           } catch (_) {}
@@ -4295,6 +4507,11 @@ music: {
               if (facebookStatusEl && (!facebookCallbackState || facebookCallbackState.mode !== 'error')) {
                 if (String(facebookStatusEl.textContent || '').trim().toLowerCase() === 'waiting for status...' || String(facebookStatusEl.textContent || '').trim().toLowerCase() === 'admin verify failed') {
                   facebookStatusEl.textContent = 'Admin token verified';
+                }
+              }
+              if (instagramStatusEl && (!instagramCallbackState || instagramCallbackState.mode !== 'error')) {
+                if (String(instagramStatusEl.textContent || '').trim().toLowerCase() === 'checking status...' || String(instagramStatusEl.textContent || '').trim().toLowerCase() === 'admin verify failed') {
+                  instagramStatusEl.textContent = 'Admin token verified';
                 }
               }
             })
