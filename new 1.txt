@@ -1,7 +1,6 @@
 Instagram Plan
 
 Connection setup
-Add an Instagram Publishing block to the admin shell beside or under Facebook.
 Create backend auth flow for Instagram through Meta.
 Require an Instagram professional account connected to a Facebook Page.
 Store:
