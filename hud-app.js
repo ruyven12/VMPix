@@ -679,6 +679,23 @@ function pulseFrame(){
     selected: null
   };
 
+  const vmAdminInstagramPickerState = {
+    loading: false,
+    loadingSince: 0,
+    loaded: false,
+    loadError: '',
+    items: [],
+    query: '',
+    browseShowId: '',
+    browseMatchId: '',
+    photoItems: [],
+    selectedPhotoIds: [],
+    photoLoading: false,
+    photoError: '',
+    selectedId: '',
+    selected: null
+  };
+
   const vmAdminFacebookMentionState = {
     loading: false,
     loaded: false,
@@ -1186,16 +1203,18 @@ function pulseFrame(){
     return out;
   }
 
-  function getVmAdminFacebookBrowseShow(){
-    const browseShowId = String(vmAdminFacebookPickerState.browseShowId || '').trim();
+  function getVmAdminFacebookBrowseShow(pickerState){
+    const state = pickerState || vmAdminFacebookPickerState;
+    const browseShowId = String(state.browseShowId || '').trim();
     if (!browseShowId) return null;
-    return (Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : []).find((item) => item.id === browseShowId) || null;
+    return (Array.isArray(state.items) ? state.items : []).find((item) => item.id === browseShowId) || null;
   }
 
-  function getVmAdminFacebookBrowseMatch(){
-    const browseMatchId = String(vmAdminFacebookPickerState.browseMatchId || '').trim();
+  function getVmAdminFacebookBrowseMatch(pickerState){
+    const state = pickerState || vmAdminFacebookPickerState;
+    const browseMatchId = String(state.browseMatchId || '').trim();
     if (!browseMatchId) return null;
-    const parent = getVmAdminFacebookBrowseShow();
+    const parent = getVmAdminFacebookBrowseShow(state);
     if (!parent) return null;
     return buildVmAdminFacebookPickerMatchItems(parent).find((item) => item.id === browseMatchId) || null;
   }
@@ -1327,16 +1346,17 @@ function pulseFrame(){
     renderVmAdminFacebookPicker();
   }
 
-  function getVmAdminFacebookFilteredPickerItems(){
-    const query = String(vmAdminFacebookPickerState.query || '').trim().toLowerCase();
-    const items = Array.isArray(vmAdminFacebookPickerState.items) ? vmAdminFacebookPickerState.items : [];
-    const browseMatch = getVmAdminFacebookBrowseMatch();
+  function getVmAdminFacebookFilteredPickerItems(pickerState){
+    const state = pickerState || vmAdminFacebookPickerState;
+    const query = String(state.query || '').trim().toLowerCase();
+    const items = Array.isArray(state.items) ? state.items : [];
+    const browseMatch = getVmAdminFacebookBrowseMatch(state);
     if (browseMatch) {
-      const photoItems = Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : [];
+      const photoItems = Array.isArray(state.photoItems) ? state.photoItems : [];
       if (!query) return photoItems;
       return photoItems.filter((item) => String(item && item.searchBlob || '').indexOf(query) >= 0);
     }
-    const parent = getVmAdminFacebookBrowseShow();
+    const parent = getVmAdminFacebookBrowseShow(state);
     if (parent) {
       const matchItems = buildVmAdminFacebookPickerMatchItems(parent);
       if (!query) return matchItems;
@@ -1358,15 +1378,16 @@ function pulseFrame(){
     return lines.join('\n');
   }
 
-  function getVmAdminFacebookSelectedPhotoItems(){
-    const ids = Array.isArray(vmAdminFacebookPickerState.selectedPhotoIds) ? vmAdminFacebookPickerState.selectedPhotoIds : [];
-    const items = Array.isArray(vmAdminFacebookPickerState.photoItems) ? vmAdminFacebookPickerState.photoItems : [];
+  function getVmAdminFacebookSelectedPhotoItems(pickerState){
+    const state = pickerState || vmAdminFacebookPickerState;
+    const ids = Array.isArray(state.selectedPhotoIds) ? state.selectedPhotoIds : [];
+    const items = Array.isArray(state.photoItems) ? state.photoItems : [];
     const map = new Map(items.map((item) => [item.id, item]));
     return ids.map((id) => map.get(id)).filter(Boolean);
   }
 
   function syncVmAdminFacebookPhotoSelectionIntoComposer(){
-    const selectedItems = getVmAdminFacebookSelectedPhotoItems();
+    const selectedItems = getVmAdminFacebookSelectedPhotoItems(vmAdminInstagramPickerState);
     const imageField = document.getElementById('vmAdminFacebookImageUrl');
     const titleField = document.getElementById('vmAdminFacebookEntityLabel');
     const linkField = document.getElementById('vmAdminFacebookLinkUrl');
@@ -1576,18 +1597,21 @@ function pulseFrame(){
     }
   }
 
-  function renderVmAdminSharedPicker(prefix){
+  function renderVmAdminSharedPicker(prefix, pickerState){
+    const state = pickerState || vmAdminFacebookPickerState;
+    const actionPrefix = String(prefix || 'Facebook').trim();
+    const actionSlug = actionPrefix.toLowerCase();
     const resultsShell = document.getElementById(`vmAdmin${prefix}PickerResults`);
     const selectedShell = document.getElementById(`vmAdmin${prefix}PickerSelected`);
     const selectedPanel = document.getElementById(`vmAdmin${prefix}PickerSelectedPanel`);
     const layoutShell = document.getElementById(`vmAdmin${prefix}PickerLayout`);
     const countShell = document.getElementById(`vmAdmin${prefix}PickerCount`);
     if (!resultsShell || !selectedShell) return;
-    const selected = vmAdminFacebookPickerState.selected;
-    const selectedPhotoItems = getVmAdminFacebookSelectedPhotoItems();
-    const items = getVmAdminFacebookFilteredPickerItems();
-    const browseMatch = getVmAdminFacebookBrowseMatch();
-    const browseShow = getVmAdminFacebookBrowseShow();
+    const selected = state.selected;
+    const selectedPhotoItems = getVmAdminFacebookSelectedPhotoItems(state);
+    const items = getVmAdminFacebookFilteredPickerItems(state);
+    const browseMatch = getVmAdminFacebookBrowseMatch(state);
+    const browseShow = getVmAdminFacebookBrowseShow(state);
     if (layoutShell) {
       layoutShell.style.gridTemplateColumns = 'minmax(0,1fr)';
     }
@@ -1595,12 +1619,12 @@ function pulseFrame(){
       selectedPanel.style.display = 'none';
     }
     if (countShell) {
-      if (vmAdminFacebookPickerState.loading) {
+      if (state.loading) {
         countShell.textContent = 'Loading shows...';
-      } else if (vmAdminFacebookPickerState.loadError) {
+      } else if (state.loadError) {
         countShell.textContent = 'Source unavailable';
       } else if (browseMatch) {
-        countShell.textContent = vmAdminFacebookPickerState.photoLoading
+        countShell.textContent = state.photoLoading
           ? 'Loading photos...'
           : `${formatVmAdminNumber(items.length)} photo${items.length === 1 ? '' : 's'}`;
       } else if (browseShow) {
@@ -1609,33 +1633,33 @@ function pulseFrame(){
         countShell.textContent = `${formatVmAdminNumber(items.length)} result${items.length === 1 ? '' : 's'}`;
       }
     }
-    if (vmAdminFacebookPickerState.loading) {
+    if (state.loading) {
       resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Loading Wrestling shows...</div>`;
-    } else if (browseMatch && vmAdminFacebookPickerState.photoLoading) {
+    } else if (browseMatch && state.photoLoading) {
       resultsShell.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-          <button type="button" data-facebook-picker-back-to-match="1" onclick="window.__vmAdminFacebookPickerBackToMatches && window.__vmAdminFacebookPickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
+          <button type="button" data-${actionSlug}-picker-back-to-match="1" onclick="window.__vmAdmin${actionPrefix}PickerBackToMatches && window.__vmAdmin${actionPrefix}PickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
           <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseMatch.title)}</div>
         </div>
         <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Loading match photos...</div>
       `;
-    } else if (vmAdminFacebookPickerState.loadError) {
-      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,95,135,.18); border-radius:12px; background:rgba(22,10,16,.72); color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(vmAdminFacebookPickerState.loadError)}</div>`;
+    } else if (state.loadError) {
+      resultsShell.innerHTML = `<div style="padding:12px; border:1px solid rgba(255,95,135,.18); border-radius:12px; background:rgba(22,10,16,.72); color:rgba(255,192,205,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(state.loadError)}</div>`;
     } else if (!items.length) {
       if (browseMatch) {
         resultsShell.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-            <button type="button" data-facebook-picker-back-to-match="1" onclick="window.__vmAdminFacebookPickerBackToMatches && window.__vmAdminFacebookPickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
+            <button type="button" data-${actionSlug}-picker-back-to-match="1" onclick="window.__vmAdmin${actionPrefix}PickerBackToMatches && window.__vmAdmin${actionPrefix}PickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
             <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseMatch.title)}</div>
           </div>
-          <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(vmAdminFacebookPickerState.photoError || 'No photos found for this match yet.')}</div>
+          <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(state.photoError || 'No photos found for this match yet.')}</div>
         `;
         return;
       }
       if (browseShow) {
         resultsShell.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-            <button type="button" data-facebook-picker-back="1" onclick="window.__vmAdminFacebookPickerBackToShows && window.__vmAdminFacebookPickerBackToShows(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
+            <button type="button" data-${actionSlug}-picker-back="1" onclick="window.__vmAdmin${actionPrefix}PickerBackToShows && window.__vmAdmin${actionPrefix}PickerBackToShows(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
             <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseShow.title)}</div>
           </div>
           <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">No matches found for this show yet. The picker has switched into match-browser mode, but this source row does not appear to have match entries we can parse.</div>
@@ -1646,13 +1670,13 @@ function pulseFrame(){
     } else {
       const photoHeaderHtml = browseMatch ? `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-          <button type="button" data-facebook-picker-back-to-match="1" onclick="window.__vmAdminFacebookPickerBackToMatches && window.__vmAdminFacebookPickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
+          <button type="button" data-${actionSlug}-picker-back-to-match="1" onclick="window.__vmAdmin${actionPrefix}PickerBackToMatches && window.__vmAdmin${actionPrefix}PickerBackToMatches(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Matches</button>
           <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseMatch.title)}</div>
         </div>
       ` : '';
       const headerHtml = browseShow ? `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
-          <button type="button" data-facebook-picker-back="1" onclick="window.__vmAdminFacebookPickerBackToShows && window.__vmAdminFacebookPickerBackToShows(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
+          <button type="button" data-${actionSlug}-picker-back="1" onclick="window.__vmAdmin${actionPrefix}PickerBackToShows && window.__vmAdmin${actionPrefix}PickerBackToShows(); return false;" style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Back to Shows</button>
           <div style="min-width:0; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:right;">${escapeVmAdminHtml(browseShow.title)}</div>
         </div>
       ` : '';
@@ -1660,7 +1684,7 @@ function pulseFrame(){
         ? `<div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">${items.map((item) => {
             const picked = selectedPhotoItems.some((photo) => photo.id === item.id);
             return `
-              <button type="button" data-facebook-picker-item="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerSelectPhoto && window.__vmAdminFacebookPickerSelectPhoto('${escapeVmAdminHtml(item.id)}'); return false;" style="display:block; width:100%; padding:0; border:${picked ? '2px solid rgba(97,224,255,.86)' : '1px solid rgba(255,255,255,.08)'}; border-radius:12px; overflow:hidden; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; box-shadow:${picked ? '0 0 0 1px rgba(97,224,255,.18), 0 0 18px rgba(97,224,255,.18)' : 'none'}; cursor:pointer;">
+              <button type="button" data-${actionSlug}-picker-item="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdmin${actionPrefix}PickerSelectPhoto && window.__vmAdmin${actionPrefix}PickerSelectPhoto('${escapeVmAdminHtml(item.id)}'); return false;" style="display:block; width:100%; padding:0; border:${picked ? '2px solid rgba(97,224,255,.86)' : '1px solid rgba(255,255,255,.08)'}; border-radius:12px; overflow:hidden; background:${picked ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; box-shadow:${picked ? '0 0 0 1px rgba(97,224,255,.18), 0 0 18px rgba(97,224,255,.18)' : 'none'}; cursor:pointer;">
                 <div style="aspect-ratio:1/1; background:rgba(8,10,16,.8);">
                   ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
                 </div>
@@ -1669,16 +1693,15 @@ function pulseFrame(){
           }).join('')}</div>`
         : items.map((item) => {
         const active = selected && selected.id === item.id;
-        const actionLabel = item.type === 'match' ? 'Use Match' : 'Use Show';
         const titleAction = item.type === 'show'
-          ? `data-facebook-picker-open-show="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerOpenShow && window.__vmAdminFacebookPickerOpenShow('${escapeVmAdminHtml(item.id)}'); return false;"`
+          ? `data-${actionSlug}-picker-open-show="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdmin${actionPrefix}PickerOpenShow && window.__vmAdmin${actionPrefix}PickerOpenShow('${escapeVmAdminHtml(item.id)}'); return false;"`
           : (item.type === 'match'
-            ? `data-facebook-picker-open-match="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerOpenMatch && window.__vmAdminFacebookPickerOpenMatch('${escapeVmAdminHtml(item.id)}'); return false;"`
-            : `data-facebook-picker-item="${escapeVmAdminHtml(item.id)}"`);
+            ? `data-${actionSlug}-picker-open-match="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdmin${actionPrefix}PickerOpenMatch && window.__vmAdmin${actionPrefix}PickerOpenMatch('${escapeVmAdminHtml(item.id)}'); return false;"`
+            : `data-${actionSlug}-picker-item="${escapeVmAdminHtml(item.id)}"`);
         const browseAction = item.type === 'show'
-          ? `<button type="button" data-facebook-picker-open-show="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerOpenShow && window.__vmAdminFacebookPickerOpenShow('${escapeVmAdminHtml(item.id)}'); return false;" style="padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Open Matches</button>`
+          ? `<button type="button" data-${actionSlug}-picker-open-show="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdmin${actionPrefix}PickerOpenShow && window.__vmAdmin${actionPrefix}PickerOpenShow('${escapeVmAdminHtml(item.id)}'); return false;" style="padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Open Matches</button>`
           : (item.type === 'match'
-            ? `<button type="button" data-facebook-picker-open-match="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdminFacebookPickerOpenMatch && window.__vmAdminFacebookPickerOpenMatch('${escapeVmAdminHtml(item.id)}'); return false;" style="padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Open Photos</button>`
+            ? `<button type="button" data-${actionSlug}-picker-open-match="${escapeVmAdminHtml(item.id)}" onclick="window.__vmAdmin${actionPrefix}PickerOpenMatch && window.__vmAdmin${actionPrefix}PickerOpenMatch('${escapeVmAdminHtml(item.id)}'); return false;" style="padding:5px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(14,16,24,.88); color:rgba(247,237,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Open Photos</button>`
             : '');
         return `
           <div style="width:100%; text-align:left; padding:10px 12px; border:1px solid ${active ? 'rgba(97,224,255,.24)' : 'rgba(255,255,255,.06)'}; border-radius:12px; background:${active ? 'rgba(10,20,28,.82)' : 'rgba(16,12,20,.7)'}; color:rgba(245,236,242,.94);">
@@ -1705,7 +1728,7 @@ function pulseFrame(){
               ${primaryPhoto.imageUrl ? `<img src="${escapeVmAdminHtml(primaryPhoto.imageUrl)}" alt="${escapeVmAdminHtml(primaryPhoto.title)}" style="display:block; width:100%; height:100%; object-fit:cover;" />` : ''}
             </div>
           </div>
-          <button type="button" data-facebook-picker-clear="1" style="min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
+          <button type="button" data-${actionSlug}-picker-clear="1" style="min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
         </div>
       `;
       return;
@@ -1727,13 +1750,13 @@ function pulseFrame(){
       <div style="margin-top:10px; color:rgba(245,236,242,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(selected.title)}</div>
       <div style="margin-top:5px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml([selected.subtitle, selected.meta, selected.routePath].filter(Boolean).join(' â€¢ '))}</div>
       <div style="margin-top:10px; padding:9px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(7,10,16,.78); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.55; white-space:pre-wrap;">${escapeVmAdminHtml(buildVmAdminFacebookCaptionStarter(selected) || 'No caption starter')}</div>
-      <button type="button" data-facebook-picker-clear="1" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
+      <button type="button" data-${actionSlug}-picker-clear="1" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
     `;
   }
 
   function renderVmAdminFacebookPicker(){
     try {
-      renderVmAdminSharedPicker('Facebook');
+      renderVmAdminSharedPicker('Facebook', vmAdminFacebookPickerState);
     } catch (err) {
       try { console.error('Facebook picker render failed:', err); } catch (_) {}
     }
@@ -1746,7 +1769,7 @@ function pulseFrame(){
       if (igSelectedPanel) {
         igSelectedPanel.style.display = 'none';
       }
-      renderVmAdminSharedPicker('Instagram');
+      renderVmAdminSharedPicker('Instagram', vmAdminInstagramPickerState);
     } catch (err) {
       try { console.error('Instagram picker render failed:', err); } catch (_) {}
     }
@@ -1883,6 +1906,228 @@ function pulseFrame(){
     vmAdminFacebookPickerState.photoError = '';
     vmAdminFacebookPickerState.photoLoading = false;
     syncVmAdminFacebookSelectionIntoComposer(null);
+    renderVmAdminFacebookPicker();
+  }
+
+  async function loadVmAdminInstagramPickerItems(){
+    if (vmAdminInstagramPickerState.loading) return [];
+    if (vmAdminInstagramPickerState.loaded && !vmAdminInstagramPickerState.loadError) {
+      return vmAdminInstagramPickerState.items;
+    }
+    vmAdminInstagramPickerState.loading = true;
+    vmAdminInstagramPickerState.loadingSince = Date.now();
+    vmAdminInstagramPickerState.loadError = '';
+    renderVmAdminFacebookPicker();
+    try {
+      const apiBase = getVmAdminWrestlingApiBase();
+      const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const timeout = window.setTimeout(() => {
+        try { if (ctrl) ctrl.abort(); } catch (_) {}
+      }, 15000);
+      const res = await fetch(`${apiBase}/sheet/shows?_ts=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { Accept: 'text/plain, text/csv, application/json;q=0.9, */*;q=0.8' },
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      window.clearTimeout(timeout);
+      const text = await res.text();
+      if (!res.ok) throw new Error('Unable to load wrestling show source data');
+      const lines = String(text || '').split(/\r?\n/).filter((line) => String(line || '').trim());
+      if (!lines.length) {
+        vmAdminInstagramPickerState.items = [];
+      } else {
+        const header = parseVmAdminCsvLine(lines.shift()).map((cell) => String(cell || '').trim().toLowerCase());
+        const rows = lines.map((line) => {
+          const cols = parseVmAdminCsvLine(line);
+          const row = {};
+          header.forEach((key, index) => {
+            row[key] = String(cols[index] || '').trim();
+          });
+          return row;
+        });
+        vmAdminInstagramPickerState.items = rows
+          .map(buildVmAdminFacebookPickerItemFromShow)
+          .filter((item) => item && item.id)
+          .sort((a, b) => (Number(b.sortKey || 0) - Number(a.sortKey || 0)) || String(a.title || '').localeCompare(String(b.title || '')));
+      }
+      vmAdminInstagramPickerState.loaded = true;
+      if (vmAdminInstagramPickerState.selectedId) {
+        vmAdminInstagramPickerState.selected = vmAdminInstagramPickerState.items.find((item) => item.id === vmAdminInstagramPickerState.selectedId) || null;
+      }
+      return vmAdminInstagramPickerState.items;
+    } catch (err) {
+      vmAdminInstagramPickerState.loaded = false;
+      const timedOut = String(err && err.name || '').trim() === 'AbortError';
+      vmAdminInstagramPickerState.loadError = timedOut
+        ? 'Wrestling show source timed out while loading. Please try again.'
+        : messageFromVmAdminError(err, 'Unable to load archive picker data');
+      throw err;
+    } finally {
+      vmAdminInstagramPickerState.loading = false;
+      vmAdminInstagramPickerState.loadingSince = 0;
+      renderVmAdminFacebookPicker();
+    }
+  }
+
+  function ensureVmAdminInstagramPickerReady(forceReload){
+    const force = !!forceReload;
+    const now = Date.now();
+    const staleLoading = vmAdminInstagramPickerState.loading
+      && vmAdminInstagramPickerState.loadingSince
+      && (now - Number(vmAdminInstagramPickerState.loadingSince || 0) > 20000);
+    if (staleLoading) {
+      vmAdminInstagramPickerState.loading = false;
+      vmAdminInstagramPickerState.loadingSince = 0;
+      vmAdminInstagramPickerState.loadError = 'Archive picker stalled while loading. Retrying...';
+      renderVmAdminFacebookPicker();
+    }
+    if (force) {
+      vmAdminInstagramPickerState.loaded = false;
+      vmAdminInstagramPickerState.loadError = '';
+    }
+    if (!vmAdminInstagramPickerState.loaded && !vmAdminInstagramPickerState.loading) {
+      loadVmAdminInstagramPickerItems().catch(() => null);
+      return;
+    }
+    renderVmAdminFacebookPicker();
+  }
+
+  function selectVmAdminInstagramPickerItem(itemId){
+    if (getVmAdminFacebookBrowseMatch(vmAdminInstagramPickerState)) {
+      toggleVmAdminInstagramPhotoSelection(itemId);
+      return;
+    }
+    const rootItems = Array.isArray(vmAdminInstagramPickerState.items) ? vmAdminInstagramPickerState.items : [];
+    let match = rootItems.find((item) => item.id === itemId) || null;
+    if (!match && vmAdminInstagramPickerState.browseShowId) {
+      const parent = rootItems.find((item) => item.id === vmAdminInstagramPickerState.browseShowId) || null;
+      match = buildVmAdminFacebookPickerMatchItems(parent).find((item) => item.id === itemId) || null;
+    }
+    vmAdminInstagramPickerState.selectedId = match ? match.id : '';
+    vmAdminInstagramPickerState.selected = match;
+    syncVmAdminInstagramSelectionIntoComposer(match);
+    renderVmAdminFacebookPicker();
+  }
+
+  function toggleVmAdminInstagramPhotoSelection(itemId){
+    const item = (Array.isArray(vmAdminInstagramPickerState.photoItems) ? vmAdminInstagramPickerState.photoItems : []).find((photo) => photo.id === itemId) || null;
+    if (!item) return;
+    const current = Array.isArray(vmAdminInstagramPickerState.selectedPhotoIds) ? vmAdminInstagramPickerState.selectedPhotoIds.slice() : [];
+    const existingIndex = current.indexOf(itemId);
+    if (existingIndex >= 0) current.splice(existingIndex, 1);
+    else current.push(itemId);
+    vmAdminInstagramPickerState.selectedPhotoIds = current;
+    if (!current.length) {
+      vmAdminInstagramPickerState.selectedId = '';
+      vmAdminInstagramPickerState.selected = null;
+    }
+    syncVmAdminInstagramSelectionIntoComposer(vmAdminInstagramPickerState.selected);
+    renderVmAdminFacebookPicker();
+  }
+
+  function openVmAdminInstagramPickerShow(itemId){
+    const match = (Array.isArray(vmAdminInstagramPickerState.items) ? vmAdminInstagramPickerState.items : []).find((item) => item.id === itemId) || null;
+    if (!match) return;
+    vmAdminInstagramPickerState.browseShowId = match.id;
+    vmAdminInstagramPickerState.browseMatchId = '';
+    vmAdminInstagramPickerState.photoItems = [];
+    vmAdminInstagramPickerState.selectedPhotoIds = [];
+    vmAdminInstagramPickerState.photoError = '';
+    vmAdminInstagramPickerState.photoLoading = false;
+    const pickerStatus = document.getElementById('vmAdminInstagramPickerStatus');
+    const matchItems = buildVmAdminFacebookPickerMatchItems(match);
+    if (pickerStatus) pickerStatus.textContent = matchItems.length ? `Browsing matches for ${match.title}` : `No matches found for ${match.title}`;
+    renderVmAdminFacebookPicker();
+  }
+
+  function closeVmAdminInstagramPickerShow(){
+    vmAdminInstagramPickerState.browseShowId = '';
+    vmAdminInstagramPickerState.browseMatchId = '';
+    vmAdminInstagramPickerState.photoItems = [];
+    vmAdminInstagramPickerState.selectedPhotoIds = [];
+    vmAdminInstagramPickerState.photoError = '';
+    vmAdminInstagramPickerState.photoLoading = false;
+    const pickerStatus = document.getElementById('vmAdminInstagramPickerStatus');
+    if (pickerStatus && !vmAdminInstagramPickerState.selected) pickerStatus.textContent = 'Single-select picker ready';
+    renderVmAdminFacebookPicker();
+  }
+
+  async function openVmAdminInstagramPickerMatch(itemId){
+    const parent = getVmAdminFacebookBrowseShow(vmAdminInstagramPickerState);
+    const match = parent ? buildVmAdminFacebookPickerMatchItems(parent).find((item) => item.id === itemId) || null : null;
+    if (!match) return;
+    vmAdminInstagramPickerState.browseMatchId = match.id;
+    vmAdminInstagramPickerState.photoItems = [];
+    vmAdminInstagramPickerState.selectedPhotoIds = [];
+    vmAdminInstagramPickerState.photoError = '';
+    vmAdminInstagramPickerState.photoLoading = true;
+    const pickerStatus = document.getElementById('vmAdminInstagramPickerStatus');
+    if (pickerStatus) pickerStatus.textContent = `Loading photos for ${match.title}`;
+    renderVmAdminFacebookPicker();
+    try {
+      const albumUrl = String(match.sourceAlbumUrl || '').trim();
+      if (!albumUrl) throw new Error('No album URL found for this match');
+      const albumKey = await resolveVmAdminAlbumKeyFromUrl(albumUrl);
+      if (!albumKey) throw new Error('Could not resolve this match album yet');
+      const images = await fetchVmAdminAlbumImages(albumKey);
+      const photoItems = images.map((img, index) => {
+        const imageKey = String(img?.ImageKey || img?.Image?.ImageKey || `photo-${index + 1}`).trim();
+        const thumbUrl = getVmAdminPhotoThumb(img);
+        const fullUrl = getVmAdminPhotoFull(img) || thumbUrl;
+        return {
+          id: `${match.id}:photo:${imageKey || (index + 1)}`,
+          type: 'photo',
+          entityId: `${match.entityId}-photo-${imageKey || (index + 1)}`,
+          title: `Photo ${index + 1}`,
+          subtitle: match.title,
+          meta: [match.showTitle, match.prettyDate].filter(Boolean).join(' â€¢ '),
+          prettyDate: match.prettyDate,
+          routePath: match.routePath,
+          routeUrl: match.routeUrl,
+          imageUrl: thumbUrl || fullUrl,
+          imageFullUrl: fullUrl || thumbUrl,
+          matchTitle: match.title,
+          showTitle: match.showTitle,
+          sourceAlbumUrl: albumUrl,
+          searchBlob: [`photo ${index + 1}`, match.title, match.showTitle, match.prettyDate].filter(Boolean).join(' ').toLowerCase()
+        };
+      }).filter((item) => item.imageUrl || item.imageFullUrl);
+      vmAdminInstagramPickerState.photoItems = photoItems;
+      vmAdminInstagramPickerState.photoError = photoItems.length ? '' : 'No photos found for this match yet.';
+      if (pickerStatus) pickerStatus.textContent = photoItems.length ? `Browsing photos for ${match.title}` : `No photos found for ${match.title}`;
+    } catch (err) {
+      vmAdminInstagramPickerState.photoItems = [];
+      vmAdminInstagramPickerState.photoError = messageFromVmAdminError(err, 'Unable to load match photos');
+      if (pickerStatus) pickerStatus.textContent = vmAdminInstagramPickerState.photoError;
+    } finally {
+      vmAdminInstagramPickerState.photoLoading = false;
+      renderVmAdminFacebookPicker();
+    }
+  }
+
+  function closeVmAdminInstagramPickerMatch(){
+    vmAdminInstagramPickerState.browseMatchId = '';
+    vmAdminInstagramPickerState.photoItems = [];
+    vmAdminInstagramPickerState.selectedPhotoIds = [];
+    vmAdminInstagramPickerState.photoError = '';
+    vmAdminInstagramPickerState.photoLoading = false;
+    const browseShow = getVmAdminFacebookBrowseShow(vmAdminInstagramPickerState);
+    const pickerStatus = document.getElementById('vmAdminInstagramPickerStatus');
+    if (pickerStatus && browseShow) pickerStatus.textContent = `Browsing matches for ${browseShow.title}`;
+    renderVmAdminFacebookPicker();
+  }
+
+  function clearVmAdminInstagramPickerSelection(){
+    vmAdminInstagramPickerState.selectedId = '';
+    vmAdminInstagramPickerState.selected = null;
+    vmAdminInstagramPickerState.browseShowId = '';
+    vmAdminInstagramPickerState.browseMatchId = '';
+    vmAdminInstagramPickerState.photoItems = [];
+    vmAdminInstagramPickerState.selectedPhotoIds = [];
+    vmAdminInstagramPickerState.photoError = '';
+    vmAdminInstagramPickerState.photoLoading = false;
+    syncVmAdminInstagramSelectionIntoComposer(null);
     renderVmAdminFacebookPicker();
   }
 
@@ -2632,10 +2877,10 @@ function pulseFrame(){
     const previewShell = document.getElementById('vmAdminFacebookPreview');
     const status = document.getElementById('vmAdminFacebookComposerStatus');
     const entityType = readVmAdminFacebookEntityType();
-    const selectedPickerItem = vmAdminFacebookPickerState.selected && typeof vmAdminFacebookPickerState.selected === 'object'
-      ? vmAdminFacebookPickerState.selected
+    const selectedPickerItem = vmAdminInstagramPickerState.selected && typeof vmAdminInstagramPickerState.selected === 'object'
+      ? vmAdminInstagramPickerState.selected
       : null;
-    const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
+    const selectedPhotos = buildVmAdminInstagramSelectedPhotosPayload();
     const albumPayload = buildVmAdminFacebookAlbumPayload();
     const payload = {
       section: String((document.getElementById('vmAdminFacebookSection') || {}).value || '').trim(),
@@ -2718,6 +2963,17 @@ function pulseFrame(){
     })).filter((item) => item.image_url);
   }
 
+  function buildVmAdminInstagramSelectedPhotosPayload(){
+    return getVmAdminFacebookSelectedPhotoItems(vmAdminInstagramPickerState).map((item) => ({
+      id: String(item && item.id || '').trim(),
+      entity_id: String(item && item.entityId || '').trim(),
+      title: String(item && item.title || '').trim(),
+      image_url: String(item && (item.imageFullUrl || item.imageUrl) || '').trim(),
+      route_url: String(item && item.routeUrl || '').trim(),
+      route_path: String(item && item.routePath || '').trim()
+    })).filter((item) => item.image_url);
+  }
+
   function buildVmAdminFacebookAlbumPayload(){
     const mode = readVmAdminFacebookPublishMode();
     const albumField = document.getElementById('vmAdminFacebookAlbumId');
@@ -2754,7 +3010,7 @@ function pulseFrame(){
 
   function renderVmAdminFacebookSelectedArchivePreview(payload, selected){
     const chosen = selected && typeof selected === 'object' ? selected : null;
-    const selectedPhotos = getVmAdminFacebookSelectedPhotoItems();
+    const selectedPhotos = getVmAdminFacebookSelectedPhotoItems(vmAdminInstagramPickerState);
     const showPhotoGrid = selectedPhotos.length > 1;
     const caption = String(payload && payload.caption || '').trim();
     const linkUrl = String(payload && payload.link_url || '').trim();
@@ -3040,7 +3296,7 @@ function pulseFrame(){
   async function runVmAdminInstagramPreview(){
     const status = document.getElementById('vmAdminInstagramComposerStatus');
     const previewShell = document.getElementById('vmAdminInstagramPreview');
-    const selectedPickerItem = vmAdminFacebookPickerState.selected;
+    const selectedPickerItem = vmAdminInstagramPickerState.selected;
     const cleanPayload = buildVmAdminInstagramComposerPayload();
     setVmAdminInstagramUiState({ connected: true, busy: true, message: 'Building Instagram preview...' });
     if (status) status.textContent = 'Building preview...';
@@ -3397,6 +3653,21 @@ function pulseFrame(){
   };
   window.__vmAdminFacebookPickerSelectPhoto = function __vmAdminFacebookPickerSelectPhoto(itemId){
     return toggleVmAdminFacebookPhotoSelection(itemId);
+  };
+  window.__vmAdminInstagramPickerOpenShow = function __vmAdminInstagramPickerOpenShow(itemId){
+    return openVmAdminInstagramPickerShow(itemId);
+  };
+  window.__vmAdminInstagramPickerBackToShows = function __vmAdminInstagramPickerBackToShows(){
+    return closeVmAdminInstagramPickerShow();
+  };
+  window.__vmAdminInstagramPickerOpenMatch = function __vmAdminInstagramPickerOpenMatch(itemId){
+    return openVmAdminInstagramPickerMatch(itemId);
+  };
+  window.__vmAdminInstagramPickerBackToMatches = function __vmAdminInstagramPickerBackToMatches(){
+    return closeVmAdminInstagramPickerMatch();
+  };
+  window.__vmAdminInstagramPickerSelectPhoto = function __vmAdminInstagramPickerSelectPhoto(itemId){
+    return toggleVmAdminInstagramPhotoSelection(itemId);
   };
   window.__vmAdminFacebookMentionRefresh = function __vmAdminFacebookMentionRefresh(event){
     return handleVmAdminFacebookMentionRefresh(event);
@@ -4763,16 +5034,17 @@ music: {
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
         initVmAdminCollapsibles(document.getElementById('vmAdminPanelRoot'));
 
-        const bindArchivePickerBootstrap = (detailsEl) => {
+        const bindArchivePickerBootstrap = (detailsEl, platform) => {
           if (!detailsEl) return;
           detailsEl.addEventListener('toggle', () => {
             if (detailsEl.open) {
-              ensureVmAdminArchivePickerReady(false);
+              if (String(platform || '').toLowerCase() === 'instagram') ensureVmAdminInstagramPickerReady(false);
+              else ensureVmAdminArchivePickerReady(false);
             }
           }, { once: false });
         };
-        bindArchivePickerBootstrap(facebookDetails);
-        bindArchivePickerBootstrap(instagramDetails);
+        bindArchivePickerBootstrap(facebookDetails, 'facebook');
+        bindArchivePickerBootstrap(instagramDetails, 'instagram');
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
@@ -4853,48 +5125,61 @@ music: {
             renderVmAdminFacebookPicker();
           }, { once: false });
         }
-        const bindFacebookPickerShell = (shell) => {
+        const bindPickerShell = (shell, platform) => {
           if (!shell) return;
+          const key = String(platform || 'facebook').trim().toLowerCase();
           shell.addEventListener('click', (event) => {
             const target = event.target;
-            const browseBtn = target && target.closest ? target.closest('[data-facebook-picker-open-show]') : null;
+            const browseBtn = target && target.closest ? target.closest(`[data-${key}-picker-open-show]`) : null;
             if (browseBtn) {
-              openVmAdminFacebookPickerShow(String(browseBtn.getAttribute('data-facebook-picker-open-show') || '').trim());
+              const id = String(browseBtn.getAttribute(`data-${key}-picker-open-show`) || '').trim();
+              if (key === 'instagram') openVmAdminInstagramPickerShow(id);
+              else openVmAdminFacebookPickerShow(id);
               return;
             }
-            const backBtn = target && target.closest ? target.closest('[data-facebook-picker-back]') : null;
+            const backBtn = target && target.closest ? target.closest(`[data-${key}-picker-back]`) : null;
             if (backBtn) {
-              closeVmAdminFacebookPickerShow();
+              if (key === 'instagram') closeVmAdminInstagramPickerShow();
+              else closeVmAdminFacebookPickerShow();
               return;
             }
-            const openMatchBtn = target && target.closest ? target.closest('[data-facebook-picker-open-match]') : null;
+            const openMatchBtn = target && target.closest ? target.closest(`[data-${key}-picker-open-match]`) : null;
             if (openMatchBtn) {
-              openVmAdminFacebookPickerMatch(String(openMatchBtn.getAttribute('data-facebook-picker-open-match') || '').trim());
+              const id = String(openMatchBtn.getAttribute(`data-${key}-picker-open-match`) || '').trim();
+              if (key === 'instagram') openVmAdminInstagramPickerMatch(id);
+              else openVmAdminFacebookPickerMatch(id);
               return;
             }
-            const backToMatchBtn = target && target.closest ? target.closest('[data-facebook-picker-back-to-match]') : null;
+            const backToMatchBtn = target && target.closest ? target.closest(`[data-${key}-picker-back-to-match]`) : null;
             if (backToMatchBtn) {
-              closeVmAdminFacebookPickerMatch();
+              if (key === 'instagram') closeVmAdminInstagramPickerMatch();
+              else closeVmAdminFacebookPickerMatch();
               return;
             }
-            const pickBtn = target && target.closest ? target.closest('[data-facebook-picker-item]') : null;
+            const pickBtn = target && target.closest ? target.closest(`[data-${key}-picker-item]`) : null;
             if (pickBtn) {
-              selectVmAdminFacebookPickerItem(String(pickBtn.getAttribute('data-facebook-picker-item') || '').trim());
+              const id = String(pickBtn.getAttribute(`data-${key}-picker-item`) || '').trim();
+              if (key === 'instagram') selectVmAdminInstagramPickerItem(id);
+              else selectVmAdminFacebookPickerItem(id);
               return;
             }
-            const clearBtn = target && target.closest ? target.closest('[data-facebook-picker-clear]') : null;
+            const clearBtn = target && target.closest ? target.closest(`[data-${key}-picker-clear]`) : null;
             if (clearBtn) {
-              clearVmAdminFacebookPickerSelection();
+              if (key === 'instagram') clearVmAdminInstagramPickerSelection();
+              else clearVmAdminFacebookPickerSelection();
             }
           }, { once: false });
         };
-        bindFacebookPickerShell(facebookPickerResults);
-        bindFacebookPickerShell(facebookPickerSelected);
-        bindFacebookPickerShell(instagramPickerResults);
-        bindFacebookPickerShell(instagramPickerSelected);
+        bindPickerShell(facebookPickerResults, 'facebook');
+        bindPickerShell(facebookPickerSelected, 'facebook');
+        bindPickerShell(instagramPickerResults, 'instagram');
+        bindPickerShell(instagramPickerSelected, 'instagram');
         renderVmAdminFacebookPicker();
-        if ((facebookDetails && facebookDetails.open) || (instagramDetails && instagramDetails.open)) {
+        if (facebookDetails && facebookDetails.open) {
           ensureVmAdminArchivePickerReady(false);
+        }
+        if (instagramDetails && instagramDetails.open) {
+          ensureVmAdminInstagramPickerReady(false);
         }
 
         verifyAdminAccess().then((ok) => {
@@ -4927,6 +5212,9 @@ music: {
           } catch (_) {}
           try {
             ensureVmAdminArchivePickerReady(false);
+          } catch (_) {}
+          try {
+            ensureVmAdminInstagramPickerReady(false);
           } catch (_) {}
           setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
           setVmAdminInstagramUiState({ connected: false, message: 'Checking connection...' });
