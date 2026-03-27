@@ -80,9 +80,9 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleEventPosterCol{display:flex;align-items:center;justify-content:center;}
   .waPeopleEventPosterBox{width:86px;height:86px;border-radius:16px;overflow:hidden;background:radial-gradient(120% 160% at 0% 0%, rgba(255,70,110,.18) 0%, rgba(0,0,0,.30) 55%, rgba(0,0,0,.18) 100%);box-shadow:0 0 0 1px rgba(255,70,110,.30) inset,0 16px 32px rgba(0,0,0,.40);display:flex;align-items:center;justify-content:center;}
   .waPeopleEventPosterFallback{font-family:"Orbitron",system-ui,sans-serif;font-size:30px;font-weight:900;letter-spacing:.02em;color:rgba(255,236,244,.88);text-shadow:0 0 20px rgba(255,70,110,.20);}
-  .waPeopleEventMatchCopy{min-width:0;display:grid;gap:6px;padding:2px 0;align-self:stretch;align-content:center;}
-  .waPeopleEventMatchTitle{margin:0;max-width:100%;color:rgba(226,232,240,.96);font-size:16px;font-weight:900;line-height:1.08;letter-spacing:.02em;text-transform:none;text-shadow:0 0 26px rgba(255,70,110,.12);text-wrap:wrap;overflow-wrap:anywhere;word-break:normal;}
-  .waPeopleEventMatchMeta{font-size:12px;color:rgba(226,232,240,.72);letter-spacing:.03em;line-height:1.35;text-transform:none;}
+  .waPeopleEventMatchCopy{min-width:0;width:100%;display:block;padding:2px 0;align-self:center;}
+  .waPeopleEventMatchTitle{display:block;width:100%;margin:0;color:rgba(226,232,240,.96);font-size:16px;font-weight:900;line-height:1.08;letter-spacing:.02em;text-transform:none;text-shadow:0 0 26px rgba(255,70,110,.12);white-space:normal;overflow-wrap:normal;word-break:keep-all;text-wrap:auto;}
+  .waPeopleEventMatchMeta{display:block;width:100%;margin-top:6px;font-size:12px;color:rgba(226,232,240,.72);letter-spacing:.03em;line-height:1.35;text-transform:none;white-space:normal;overflow-wrap:normal;word-break:keep-all;}
   .waPeopleEventMatchStats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .waPeopleAppearanceShots{display:inline-flex;align-items:center;gap:8px;width:fit-content;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,120,164,.16);background:rgba(255,255,255,.04);color:rgba(243,234,240,.88);font-family:"Orbitron",system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
   .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;align-items:center;align-self:center;margin-left:auto;padding-left:8px;}
