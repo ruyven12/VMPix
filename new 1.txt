@@ -1,8 +1,13 @@
 Instagram Plan
 
 Frontend composer wiring
-Reuse the current Photo Post picker and selected-photo flow.
-Add platform-aware mode so the same selected archive item can target Instagram.
+
+Fix the Instagram picker so it loads independently of Facebook Photo Post
+Confirm the Instagram archive browser works fully in its own section:
+shows
+matches
+photos
+Confirm selected archive photos sync reliably into Instagram preview/payload
 Keep first version simple:
 Photo Post only
 no Normal Post
@@ -11,79 +16,118 @@ Reuse:
 title toggle
 hashtags toggle
 caption box
-Hide unsupported fields when Instagram is selected.
-
+Hide unsupported fields when Instagram is selected
 Single-image first pass
-Start with one selected photo only.
-Backend publish flow:
+
+Confirm successful Instagram single-image feed post end-to-end
+Backend publish flow is in place:
 create Instagram media container
 publish container
 Preview should show:
 target IG account
 image preview
 final caption
-Confirm successful feed post end-to-end before touching carousel.
-
 Multi-photo carousel second
-After single-image works, add multi-photo publish.
-Backend flow:
+
+After single-image works, confirm multi-photo publish live
+Backend flow is in place:
 create child media containers
 create carousel container
 publish carousel
-Use the current multi-select picker UI as the source.
-Keep album-style branching out of scope for Instagram first pass.
-
+Use the current multi-select picker UI as the source
+Keep album-style branching out of scope for Instagram first pass
 Caption rules
-Build Instagram-specific final message assembly:
+
+Confirm Instagram-specific final message assembly is working correctly:
 optional title
 caption
 optional hashtags
-Do not append site URL by default unless you explicitly want it.
-Keep formatting cleaner than Facebook because IG is caption-first.
-
+Do not append site URL by default unless explicitly wanted
+Keep formatting cleaner than Facebook because IG is caption-first
 Media requirements
-Make sure selected images use full-resolution public URLs.
-Verify Meta can fetch the image URLs from the backend/source.
+
+Make sure selected images use full-resolution public URLs
+Verify Meta can fetch the image URLs from the backend/source
+Finish stabilizing Instagram media ingestion
 Add clear error handling for:
 invalid image URL
 unsupported media
 container creation failure
 publish failure
-
 History and status
-Add Instagram publish history panel like Facebook.
-Log:
+
+Confirm Instagram publish history panel behaves correctly like Facebook
+Log and verify:
 entity label
 selected photo count
 publish status
 Instagram media/container IDs
 error message if failed
-Show friendly status copy in the admin shell.
-
+Show friendly status copy in the admin shell
 Verification checklist
-Connect account successfully
-Fetch Instagram account status successfully
+
 Publish one single-image post
 Confirm caption formatting
 Confirm image is full-res
 Publish one carousel
 Confirm history logging
-Confirm disconnect/reconnect works
-
+Confirm disconnect/reconnect works after publishing
 Nice-to-have after core works
+
+Instagram-safe crop workflow for selected photo batches
+Batch crop mode options:
+Original
+Portrait
+Square
+Landscape
+Apply one crop style across all selected photos in the batch
+Add per-photo positioning/fit adjustment after crop mode is chosen
+Prefer pad/fit behavior so photos are not cut off
 Instagram-specific mention/handle drafting
 scheduled posting
 reels/video path
 platform-specific caption presets
 cross-post workflow from one selected archive item
-
-
 Best build order
-Instagram auth + status
+
+Fix Instagram picker independence
 Single-image publish
-Preview + history
+Preview + history verification
 Carousel publish
 polish/error handling
+crop workflow
+Hot Notes
+
+Instagram auth + status are done and working
+Instagram backend routes are already added:
+/admin/instagram/status
+/admin/instagram/connect/start
+/admin/instagram/connect/callback
+/admin/instagram/disconnect
+/admin/instagram/preview
+/admin/instagram/publish
+/admin/instagram/history
+Frontend Instagram block exists and is wired for preview/publish/history
+Biggest current frontend bug:
+Instagram picker still appears coupled to Facebook Photo Post in live behavior
+code has been partially decoupled, but may still need a full split into:
+neutral archive loader
+separate Facebook picker state/render
+separate Instagram picker state/render
+Biggest current backend/publish concern:
+Instagram publish was failing with Meta media-type errors
+backend was patched to proxy image URLs through the Wrestling backend for Instagram
+make sure the live deployed Wrestling backend includes the newest proxy fix before retesting publish
+Useful file references
+
+Frontend: hud-app.js
+Backend: server.js
+Best next-thread starting point
+
+First verify whether the newest deploy fixed the Instagram picker independence issue.
+If not, do the full picker decoupling pass before more Instagram publish testing.
+Once selection is stable, retest single-image publish.
+Then move on to carousel confirmation and crop workflow.
 
 Important constraint
 Instagram should be treated as its own backend publishing system, not a copy of Facebook with renamed labels. The picker/frontend can be reused heavily, but the actual publish logic should be platform-specific.
