@@ -1697,8 +1697,16 @@ function pulseFrame(){
   }
 
   function renderVmAdminFacebookPicker(){
-    renderVmAdminSharedPicker('Facebook');
-    renderVmAdminSharedPicker('Instagram');
+    try {
+      renderVmAdminSharedPicker('Facebook');
+    } catch (err) {
+      try { console.error('Facebook picker render failed:', err); } catch (_) {}
+    }
+    try {
+      renderVmAdminSharedPicker('Instagram');
+    } catch (err) {
+      try { console.error('Instagram picker render failed:', err); } catch (_) {}
+    }
   }
 
   function selectVmAdminFacebookPickerItem(itemId){
@@ -4533,7 +4541,9 @@ music: {
                                 <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
                                 <div id="vmAdminInstagramPickerCount" style="color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Loading...</div>
                               </div>
-                              <div id="vmAdminInstagramPickerResults" style="margin-top:10px; display:grid; gap:8px; max-height:332px; overflow-y:auto; padding-right:4px;"></div>
+                              <div id="vmAdminInstagramPickerResults" style="margin-top:10px; display:grid; gap:8px; max-height:332px; overflow-y:auto; padding-right:4px;">
+                                <div style="padding:12px; border:1px solid rgba(255,255,255,.06); border-radius:12px; background:rgba(11,14,20,.72); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Loading Wrestling shows...</div>
+                              </div>
                             </div>
                             <div id="vmAdminInstagramPickerSelectedPanel" style="display:none; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
                               <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
