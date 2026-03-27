@@ -60,41 +60,36 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleCardCounts{display:flex;align-items:center;gap:6px;flex:0 0 auto;grid-column:2;grid-row:1 / span 2;align-self:center;justify-self:end;}
   .waPeopleCountChip{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:26px;height:24px;padding:0 8px;border-radius:999px;border:1px solid rgba(255,120,164,.18);background:rgba(0,0,0,.12);color:rgba(239,228,236,.92);font-family:"Orbitron",system-ui,sans-serif;font-size:11px;font-weight:900;letter-spacing:.04em;box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;}
   .waPeopleCountChip svg{width:12px;height:12px;opacity:.82;flex:0 0 auto;}
-  .waPeopleDetailHead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px;}
+  .waPeopleDetailHead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:6px 0 10px;}
   .waPeopleDetailTop{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
-  .waPeopleDetailTitle{color:rgba(239,232,238,.92);font-size:13px;font-weight:900;letter-spacing:.02em;text-transform:none;}
-  .waPeopleDetailMeta{margin-top:2px;color:rgba(216,199,213,.72);font-size:10px;letter-spacing:.06em;text-transform:none;}
-  .waPeopleDetailStats{text-align:right;color:rgba(232,219,229,.82);font-size:12px;letter-spacing:.04em;text-transform:none;}
+  .waPeopleDetailTitle{color:rgba(239,232,238,.96);font-size:13px;font-weight:900;letter-spacing:.02em;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .waPeopleDetailMeta{margin-top:3px;color:rgba(216,199,213,.72);font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+  .waPeopleDetailStats{text-align:right;color:rgba(232,219,229,.82);font-size:12px;letter-spacing:.04em;text-transform:none;min-width:0;}
   .waPeopleDetailList{display:grid;gap:16px;}
-  .waPeopleAppearanceCard{position:relative;padding:18px 20px;border-color:rgba(255,106,152,.22);border-radius:18px;background:linear-gradient(180deg,rgba(25,14,30,.94),rgba(18,10,24,.97));box-shadow:0 0 0 1px rgba(255,255,255,.02) inset,0 14px 30px rgba(0,0,0,.18);}
-  .waPeopleAppearanceCard::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 34%),radial-gradient(140% 160% at 0% 0%,rgba(255,92,140,.08) 0%,rgba(255,255,255,0) 52%);}
-  .waPeopleAppearanceShell{position:relative;display:grid;gap:14px;}
-  .waPeopleAppearanceTop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;}
-  .waPeopleAppearanceTitleWrap{min-width:0;display:grid;gap:7px;}
-  .waPeopleAppearanceEyebrow,.waPeopleAppearanceVenue,.waPeopleAppearanceShots{margin:0;}
-  .waPeopleAppearanceEyebrow{color:rgba(230,214,225,.82);font-size:12px;letter-spacing:.02em;text-transform:none;}
-  .waPeopleAppearanceTitle{margin:0;color:rgba(246,240,245,.98);font-size:clamp(22px,1.85vw,28px);font-weight:900;line-height:1.08;letter-spacing:-.01em;text-transform:none;text-wrap:balance;}
-  .waPeopleAppearanceSub{margin:0;color:rgba(234,218,229,.84);font-size:13px;letter-spacing:.02em;text-transform:none;}
-  .waPeopleAppearanceVenue{color:rgba(210,193,207,.72);font-size:12px;letter-spacing:.02em;line-height:1.32;}
-  .waPeopleAppearanceShots{display:inline-flex;align-items:center;gap:8px;width:fit-content;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,120,164,.16);background:rgba(255,255,255,.04);color:rgba(243,234,240,.88);font-family:"Orbitron",system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
-  .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;align-items:center;align-self:end;}
-  .waPeopleEventGroup{position:relative;padding:18px 20px;border:1px solid rgba(255,106,152,.22);border-radius:18px;background:linear-gradient(180deg,rgba(25,14,30,.94),rgba(18,10,24,.97));box-shadow:0 0 0 1px rgba(255,255,255,.02) inset,0 14px 30px rgba(0,0,0,.18);}
-  .waPeopleEventGroup::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 34%),radial-gradient(140% 160% at 0% 0%,rgba(255,92,140,.08) 0%,rgba(255,255,255,0) 52%);}
-  .waPeopleEventHead{position:relative;display:grid;gap:6px;margin-bottom:10px;}
-  .waPeopleEventMeta{color:rgba(214,198,211,.78);font-size:16px;letter-spacing:.02em;line-height:1.28;text-transform:none;}
-  .waPeopleEventVenue{color:rgba(210,193,207,.72);font-size:12px;letter-spacing:.02em;line-height:1.32;}
-  .waPeopleEventMatches{position:relative;display:grid;}
-  .waPeopleEventMatch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 0;cursor:pointer;transition:transform .18s ease;}
-  .waPeopleEventMatch:hover{transform:translateY(-1px);}
-  .waPeopleEventMatch + .waPeopleEventMatch{border-top:1px solid rgba(255,96,144,.14);}
-  .waPeopleEventMatch.is-open{border-color:rgba(255,132,170,.56);}
-  .waPeopleEventMatchCopy{min-width:0;display:grid;gap:8px;}
-  .waPeopleEventMatchTitle{margin:0;color:rgba(246,240,245,.98);font-size:24px;font-weight:900;line-height:1.06;letter-spacing:-.015em;text-transform:none;text-wrap:balance;}
+  .waPeopleEventGroup{position:relative;padding:12px 0 2px;}
+  .waPeopleEventHead{position:relative;display:grid;gap:4px;margin:0 0 8px 48px;padding:0 4px;}
+  .waPeopleEventMeta{color:rgba(214,198,211,.82);font-size:14px;font-weight:800;letter-spacing:.02em;line-height:1.28;text-transform:none;}
+  .waPeopleEventVenue{color:rgba(210,193,207,.66);font-size:11px;letter-spacing:.02em;line-height:1.32;}
+  .waPeopleEventMatches{position:relative;display:grid;gap:14px;padding-left:0;}
+  .waPeopleEventMatches::before{content:"";position:absolute;top:2px;bottom:14px;left:16px;width:2px;border-radius:999px;background:linear-gradient(to bottom, rgba(255,70,110,.10), rgba(255,70,110,.70), rgba(255,70,110,.10));box-shadow:0 0 18px rgba(255,70,110,.24);}
+  .waPeopleEventMatch{position:relative;display:grid;grid-template-columns:36px 86px minmax(0,1fr) auto;column-gap:12px;align-items:center;width:100%;padding:12px;margin:0;border:1px solid rgba(255,70,110,.18);border-radius:20px;background:rgba(0,0,0,.16);box-shadow:0 0 0 1px rgba(255,70,110,.10) inset,0 14px 30px rgba(0,0,0,.24);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
+  .waPeopleEventMatch:hover{transform:translateY(-1px);border-color:rgba(255,92,140,.30);box-shadow:0 0 0 1px rgba(255,70,110,.14) inset,0 18px 36px rgba(0,0,0,.28);}
+  .waPeopleEventMatch.is-open{border-color:rgba(255,92,140,.42);box-shadow:0 0 0 1px rgba(255,70,110,.22) inset,0 18px 40px rgba(0,0,0,.32);}
+  .waPeopleEventNode{position:absolute;left:16px;top:26px;transform:translateX(-50%);width:16px;height:16px;border-radius:999px;background:rgba(255,70,110,.18);box-shadow:0 0 0 2px rgba(255,70,110,.55),0 0 24px rgba(255,70,110,.35);}
+  .waPeopleEventNode::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:999px;background:rgba(255,194,214,.98);box-shadow:0 0 12px rgba(255,126,176,.42);}
+  .waPeopleEventPosterCol{display:flex;align-items:center;justify-content:center;}
+  .waPeopleEventPosterBox{width:86px;height:86px;border-radius:16px;overflow:hidden;background:radial-gradient(120% 160% at 0% 0%, rgba(255,70,110,.18) 0%, rgba(0,0,0,.30) 55%, rgba(0,0,0,.18) 100%);box-shadow:0 0 0 1px rgba(255,70,110,.30) inset,0 16px 32px rgba(0,0,0,.40);display:flex;align-items:center;justify-content:center;}
+  .waPeopleEventPosterFallback{font-family:"Orbitron",system-ui,sans-serif;font-size:30px;font-weight:900;letter-spacing:.02em;color:rgba(255,236,244,.88);text-shadow:0 0 20px rgba(255,70,110,.20);}
+  .waPeopleEventMatchCopy{min-width:0;display:grid;gap:6px;padding:2px 4px;}
+  .waPeopleEventMatchTitle{margin:0;color:rgba(226,232,240,.96);font-size:24px;font-weight:900;line-height:1.12;letter-spacing:.02em;text-transform:none;text-shadow:0 0 26px rgba(255,70,110,.12);text-wrap:balance;}
+  .waPeopleEventMatchMeta{font-size:12px;color:rgba(226,232,240,.72);letter-spacing:.03em;line-height:1.35;text-transform:none;}
   .waPeopleEventMatchStats{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
-  .waPeopleEventMatch .waPeopleShotPanel{grid-column:1 / -1;}
-  .waPeopleJump{padding:7px 11px;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:none;}
+  .waPeopleAppearanceShots{display:inline-flex;align-items:center;gap:8px;width:fit-content;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,120,164,.16);background:rgba(255,255,255,.04);color:rgba(243,234,240,.88);font-family:"Orbitron",system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:none;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;}
+  .waPeopleAppearanceActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;align-items:center;align-self:center;}
+  .waPeopleEventMatch .waPeopleShotPanel{grid-column:1 / -1;margin-left:48px;}
+  .waPeopleJump{padding:10px 16px;border-radius:16px;font-size:11px;font-weight:900;letter-spacing:.10em;text-transform:uppercase;background:rgba(0,0,0,.16);box-shadow:0 0 0 1px rgba(255,70,110,.12) inset,0 0 26px rgba(255,70,110,.10);}
   .waPeopleJump.is-secondary{border-color:rgba(128,142,255,.2);background:rgba(18,14,30,.7);color:rgba(236,228,234,.92);}
-  .waPeopleShotPanel{margin-top:2px;border-top:1px solid rgba(255,96,144,.16);padding-top:14px;cursor:default;}
+  .waPeopleShotPanel{margin-top:6px;border-top:1px solid rgba(255,96,144,.16);padding-top:14px;cursor:default;}
   .waPeopleShotHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:12px;}
   .waPeopleShotHeaderCopy{min-width:0;}
   .waPeopleShotStatus{margin-top:0;color:#f1e7ee;font-size:14px;font-weight:900;line-height:1.05;}
@@ -121,17 +116,24 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleIntroDivider{margin:0 auto 10px;}
     .waPeopleIntroTitle{font-size:20px;letter-spacing:.08em;}
     .waPeopleIntroBody{font-size:12px;line-height:1.3;margin:0 auto 12px;}
-    .waPeopleCard,.waPeopleAppearanceCard{border-radius:16px;}
+    .waPeopleCard,.waPeopleEventMatch{border-radius:16px;}
     .waPeopleGrid{grid-template-columns:1fr;}
     .waPeopleCard{min-height:60px;padding:10px 12px;}
     .waPeopleCardName{font-size:15px;}
-    .waPeopleDetailHead,.waPeopleAppearanceTop,.waPeopleShotHeader,.waPeopleEventMatch{grid-template-columns:1fr;display:grid;}
+    .waPeopleDetailHead,.waPeopleShotHeader{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
-    .waPeopleAppearanceTitle{font-size:clamp(18px,6vw,22px);}
+    .waPeopleEventHead{margin-left:42px;}
     .waPeopleEventMeta{font-size:16px;}
-    .waPeopleEventMatchTitle{font-size:24px;}
+    .waPeopleEventMatches::before{left:14px;}
+    .waPeopleEventMatch{grid-template-columns:32px 80px minmax(0,1fr);padding:10px;}
+    .waPeopleEventNode{left:14px;top:22px;}
+    .waPeopleEventPosterBox{width:72px;height:72px;border-radius:12px;}
+    .waPeopleEventPosterFallback{font-size:24px;}
+    .waPeopleEventMatchTitle{font-size:20px;}
     .waPeopleAppearanceShots{font-size:12px;}
-    .waPeopleJump{font-size:16px;}
+    .waPeopleAppearanceActions{grid-column:3;justify-content:flex-start;}
+    .waPeopleJump{padding:9px 14px;border-radius:14px;font-size:10px;}
+    .waPeopleEventMatch .waPeopleShotPanel{grid-column:1 / -1;margin-left:42px;}
     .waPeopleShotGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
   @media (max-width: 520px){
@@ -202,7 +204,7 @@ async function shotsForAppearance(app,person){const who=String(person||'').trim(
   function letterForName(name){const s=String(name||'').trim(); if(!s)return'#'; const ch=s[0].toUpperCase(); return (ch>='A'&&ch<='Z')?ch:'#';}
   function renderLetters(){const nav=root&&root.querySelector('#waPeopleLetterNav'); if(!nav)return; if(view.mode==='person'){nav.style.display='none';return;} nav.style.display=''; const counts={}; for(let i=65;i<=90;i++)counts[String.fromCharCode(i)]=0; peopleMap.forEach(e=>{const L=letterForName(e.person); counts[L]=(counts[L]||0)+1;}); const mk=(label,key,disabled)=>`<button type="button" class="waPeopleLetterBtn${activeLetter===key?' is-active':''}${disabled?' is-disabled':''}" data-letter="${eh(key)}" ${disabled?'disabled':''}>${eh(label)}</button>`; let html=''; for(let i=65;i<=90;i++){const L=String.fromCharCode(i); html+=mk(L,L,!counts[L]);} nav.innerHTML=html; }
   function renderList(){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entries=Array.from(peopleMap.values()).filter(e=>!activeLetter||letterForName(e.person)===activeLetter).sort((a,b)=>a.person.localeCompare(b.person)); if(!entries.length){body.innerHTML='<div class="waPeopleEmpty">No performers matched that letter yet. Try another letter.</div>'; return;} const grouped={}; CATEGORY_ORDER.forEach((c)=>grouped[c]=[]); entries.forEach((e)=>{const cat=CATEGORY_ORDER.includes(e.category)?e.category:'Miscellaneous'; grouped[cat].push(e);}); body.innerHTML=`<div class="waPeopleGrouped">${CATEGORY_ORDER.map((cat)=>{const list=grouped[cat]||[]; if(!list.length)return''; const collapsed=collapsedCategories.has(cat); return `<section class="waPeopleSection${collapsed?' is-collapsed':''}" data-category="${eh(cat)}"><button type="button" class="waPeopleSectionHead" data-category-toggle="${eh(cat)}" aria-expanded="${collapsed?'false':'true'}"><div class="waPeopleSectionHeadCopy"><div class="waPeopleSectionChevron" aria-hidden="true">▼</div><div class="waPeopleSectionTitle">${eh(cat)}</div></div><div class="waPeopleSectionMeta">${list.length.toLocaleString()} indexed</div></button><div class="waPeopleSectionGrid"><div class="waPeopleGrid">${list.map(e=>{const aliasLine=e.aliases&&e.aliases.length?`<div class="waPeopleCardAlias">${eh(e.aliases.join(', '))}</div>`:''; return `<button type="button" class="waPeopleCard" data-person="${eh(e.person)}" aria-label="Open ${eh(e.person)}"><div class="waPeopleCardInfo"><div class="waPeopleCardName">${eh(e.person)}</div></div>${aliasLine}<div class="waPeopleCardCounts"><span class="waPeopleCountChip" title="Photos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span>${(Number(e.photoCount)||0).toLocaleString()}</span></span><span class="waPeopleCountChip" title="Albums"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"></path><path d="M4 16.5A2.5 2.5 0 0 0 6.5 19H20"></path><path d="M4 3h16v13H6.5A2.5 2.5 0 0 0 4 18.5z"></path></svg><span>${(e.appearances.length||0).toLocaleString()}</span></span></div></button>`;}).join('')}</div></div></section>`;}).join('')}</div>`; }
-  function renderPerson(name){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entry=peopleMap.get(String(name||'').toLowerCase()); if(!entry){view={mode:'list',person:''}; syncPeoplePath('',{replace:true}); renderLetters(); renderList(); return;} const apps=Array.isArray(entry.appearances)?entry.appearances:[]; const groups=groupAppearancesByEvent(apps); body.innerHTML=`<div class="waPeopleDetailHead"><div class="waPeopleDetailTop"><button type="button" class="waPeopleBack" data-action="back">Back</button></div><div class="waPeopleDetailStats"><div class="waPeopleDetailTitle">${eh(entry.person)}</div><div class="waPeopleDetailMeta">Albums: ${apps.length.toLocaleString()}</div></div></div><div class="waPeopleDetailList">${groups.map(group=>`<div class="waPeopleEventGroup"><div class="waPeopleEventHead"><div class="waPeopleEventMeta">${eh(group.eventMeta)}</div>${group.venue?`<div class="waPeopleEventVenue">${eh(group.venue)}</div>`:''}</div><div class="waPeopleEventMatches">${group.items.map(item=>`<div class="waPeopleEventMatch${''}" data-appearance-route="${eh(item.route)}" aria-expanded="false"><div class="waPeopleEventMatchCopy"><div class="waPeopleEventMatchTitle">${eh(item.detailTitle)}</div><div class="waPeopleEventMatchStats">${appearanceShotsLabel(item)?`<div class="waPeopleAppearanceShots">${eh(appearanceShotsLabel(item))}</div>`:''}</div></div><div class="waPeopleAppearanceActions"><button type="button" class="waPeopleJump" data-route="${eh(item.route)}">Open Match</button></div><div class="waPeopleShotPanel" data-shot-panel="${eh(item.route)}" style="display:none;"></div></div>`).join('')}</div></div>`).join('')}</div>`; }
+  function renderPerson(name){const body=root&&root.querySelector('#waPeopleBody'); if(!body)return; const entry=peopleMap.get(String(name||'').toLowerCase()); if(!entry){view={mode:'list',person:''}; syncPeoplePath('',{replace:true}); renderLetters(); renderList(); return;} const apps=Array.isArray(entry.appearances)?entry.appearances:[]; const groups=groupAppearancesByEvent(apps); body.innerHTML=`<div class="waPeopleDetailHead"><div class="waPeopleDetailTop"><button type="button" class="waPeopleBack" data-action="back">Back</button></div><div class="waPeopleDetailStats"><div class="waPeopleDetailTitle">${eh(entry.person)}</div><div class="waPeopleDetailMeta">Albums: ${apps.length.toLocaleString()}</div></div></div><div class="waPeopleDetailList">${groups.map(group=>`<div class="waPeopleEventGroup"><div class="waPeopleEventHead"><div class="waPeopleEventMeta">${eh(group.eventMeta)}</div>${group.venue?`<div class="waPeopleEventVenue">${eh(group.venue)}</div>`:''}</div><div class="waPeopleEventMatches">${group.items.map(item=>{const shotLabel=appearanceShotsLabel(item); const fallback=(String(item&&item.detailTitle||'').trim()[0]||'M').toUpperCase(); const matchMeta=String(item&&item.showDatePretty||item&&item.showDateRaw||'').trim(); return `<div class="waPeopleEventMatch${''}" data-appearance-route="${eh(item.route)}" aria-expanded="false"><div class="waPeopleEventNode" aria-hidden="true"></div><div class="waPeopleEventPosterCol"><div class="waPeopleEventPosterBox"><div class="waPeopleEventPosterFallback">${eh(fallback)}</div></div></div><div class="waPeopleEventMatchCopy"><div class="waPeopleEventMatchTitle">${eh(item.detailTitle)}</div>${matchMeta?`<div class="waPeopleEventMatchMeta">${eh(matchMeta)}</div>`:''}<div class="waPeopleEventMatchStats">${shotLabel?`<div class="waPeopleAppearanceShots">${eh(shotLabel)}</div>`:''}</div></div><div class="waPeopleAppearanceActions"><button type="button" class="waPeopleJump" data-route="${eh(item.route)}">Open Match</button></div><div class="waPeopleShotPanel" data-shot-panel="${eh(item.route)}" style="display:none;"></div></div>`;}).join('')}</div></div>`).join('')}</div>`; }
   function renderCurrent(){renderMeta(); renderLetters(); if(view.mode==='person'&&view.person)renderPerson(view.person); else renderList(); }
   function syncPeoplePath(personName,opts){const slug=slugPerson(personName); const path=slug?`/wrestling/people/${slug}`:'/wrestling/people'; const target=path+(window.location.search||''); const method=(opts&&opts.replace)?'replaceState':'pushState'; try{window.history[method]({},'',target);}catch(_){}}
 function openPerson(personName,opts){const who=String(personName||'').trim(); if(!who)return; const entry=peopleMap.get(String(who||'').toLowerCase()); trackWrestlingPeopleEvent('wrestling_person_open',{entity_type:'person',entity_id:slugPerson(who),entity_label:who,meta:{person:who,photo_count:Number(entry&&entry.photoCount||0),appearance_count:Number(entry&&entry.appearances&&entry.appearances.length||0)}}); view={mode:'person',person:who}; if(!opts||opts.syncUrl!==false)syncPeoplePath(who,{replace:!!(opts&&opts.replace)}); renderCurrent(); try{const p=panel||document.getElementById('wrestlingContentPanel'); if(p)p.scrollTop=0;}catch(_){}}
