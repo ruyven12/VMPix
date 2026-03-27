@@ -1,26 +1,5 @@
 Instagram Plan
 
-Connection setup
-Create backend auth flow for Instagram through Meta.
-Require an Instagram professional account connected to a Facebook Page.
-Store:
-Instagram account ID
-linked Facebook Page ID
-access token
-token expiry / refresh info
-Add Connect Instagram, Check Connection, and Disconnect Instagram.
-
-Backend basics
-Add backend routes for:
-/admin/instagram/status
-/admin/instagram/connect/start
-/admin/instagram/connect/callback
-/admin/instagram/disconnect
-/admin/instagram/preview
-/admin/instagram/publish
-/admin/instagram/history
-Reuse the same admin-token protection pattern as Facebook.
-
 Frontend composer wiring
 Reuse the current Photo Post picker and selected-photo flow.
 Add platform-aware mode so the same selected archive item can target Instagram.
