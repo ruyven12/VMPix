@@ -2794,8 +2794,10 @@ function pulseFrame(){
     const options = opts || {};
     const shell = document.getElementById('vmAdminInstagramMeta');
     const status = document.getElementById('vmAdminInstagramStatus');
+    const composerStatus = document.getElementById('vmAdminInstagramComposerStatus');
     if (!options.silent) {
       if (status) status.textContent = 'Checking status...';
+      if (composerStatus) composerStatus.textContent = 'Checking Instagram connection...';
       if (shell) shell.innerHTML = `<div style="color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.5;">Loading Instagram connection status...</div>`;
     }
     try {
@@ -2804,6 +2806,11 @@ function pulseFrame(){
       if (status) {
         const connected = !!(data && data.connection && data.connection.connected);
         status.textContent = connected ? 'Instagram connected' : 'Instagram not connected';
+        if (composerStatus) {
+          composerStatus.textContent = connected
+            ? 'Connected and ready for Instagram Photo Post preview/publish.'
+            : 'Connect Instagram to continue.';
+        }
         setVmAdminInstagramUiState({
           connected,
           message: connected ? 'Connected and ready for Instagram publishing' : 'Connect Instagram to continue'
@@ -2816,6 +2823,7 @@ function pulseFrame(){
       }
       if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Instagram status right now.</div>`;
       if (status) status.textContent = 'Status unavailable';
+      if (composerStatus) composerStatus.textContent = 'Unable to verify Instagram connection right now.';
       setVmAdminInstagramUiState({ connected: false, message: 'Unable to load Instagram tools' });
       throw err;
     }
@@ -4837,9 +4845,6 @@ music: {
         bindFacebookPickerShell(instagramPickerResults);
         bindFacebookPickerShell(instagramPickerSelected);
         renderVmAdminFacebookPicker();
-        if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
-          loadVmAdminFacebookPickerItems().catch(() => null);
-        }
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
@@ -4868,6 +4873,11 @@ music: {
           } catch (_) {}
           try {
             loadVmAdminInstagramHistory({ silent: false });
+          } catch (_) {}
+          try {
+            if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
+              loadVmAdminFacebookPickerItems().catch(() => null);
+            }
           } catch (_) {}
           setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
           setVmAdminInstagramUiState({ connected: false, message: 'Checking connection...' });
