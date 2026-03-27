@@ -3774,21 +3774,21 @@ music: {
                 </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:14px; margin-top:16px;">
-                <div data-admin-collapsible-section="indexing-tools" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
-                  <div data-admin-collapsible-header="indexing-tools" onclick="window.__vmAdminToggleCollapsibleSection && window.__vmAdminToggleCollapsibleSection('indexing-tools'); return false;" aria-expanded="false" style="position:relative; z-index:3; pointer-events:auto; display:block; width:100%; cursor:pointer;">
+                <details style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                  <summary style="list-style:none; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:12px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                     </div>
-                    <div style="display:grid; grid-template-columns:30px minmax(0,1fr) 30px; align-items:center; gap:10px; margin-top:10px;">
+                    <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:10px;">
                       <div></div>
                       <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Indexing Tools</div>
-                      <div data-admin-collapsible-chevron="indexing-tools" style="width:30px; height:30px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:17px; font-weight:900; line-height:1; margin-left:auto;">+</div>
+                      <div style="min-width:84px; padding:7px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-left:auto;">Expand</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                     </div>
-                  </div>
-                  <div data-admin-collapsible-body="indexing-tools" style="display:none;">
+                  </summary>
+                  <div style="margin-top:10px;">
                     <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">This area deals with the cached results of our indexes and gives us the ability to rebuild them on command.</div>
                     <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:220px;">${renderVmAdminIndexTableShell([
                       { label: 'Music-Bands', generatedAtLabel: 'Checking rebuild time...' },
@@ -3798,7 +3798,7 @@ music: {
                       { label: 'Wrestling-People', generatedAtLabel: 'Checking rebuild time...' }
                     ])}</div>
                   </div>
-                </div>
+                </details>
                 <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                     <div style="flex:1 1 100%; min-width:0;">
