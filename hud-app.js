@@ -1251,11 +1251,17 @@ function pulseFrame(){
     renderVmAdminFacebookPicker();
     try {
       const apiBase = getVmAdminWrestlingApiBase();
+      const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const timeout = window.setTimeout(() => {
+        try { if (ctrl) ctrl.abort(); } catch (_) {}
+      }, 15000);
       const res = await fetch(`${apiBase}/sheet/shows?_ts=${Date.now()}`, {
         method: 'GET',
         cache: 'no-store',
-        headers: { Accept: 'text/plain, text/csv, application/json;q=0.9, */*;q=0.8' }
+        headers: { Accept: 'text/plain, text/csv, application/json;q=0.9, */*;q=0.8' },
+        signal: ctrl ? ctrl.signal : undefined
       });
+      window.clearTimeout(timeout);
       const text = await res.text();
       if (!res.ok) throw new Error('Unable to load wrestling show source data');
       const lines = String(text || '').split(/\r?\n/).filter((line) => String(line || '').trim());
@@ -1284,7 +1290,10 @@ function pulseFrame(){
       return vmAdminFacebookPickerState.items;
     } catch (err) {
       vmAdminFacebookPickerState.loaded = false;
-      vmAdminFacebookPickerState.loadError = messageFromVmAdminError(err, 'Unable to load archive picker data');
+      const timedOut = String(err && err.name || '').trim() === 'AbortError';
+      vmAdminFacebookPickerState.loadError = timedOut
+        ? 'Wrestling show source timed out while loading. Please try again.'
+        : messageFromVmAdminError(err, 'Unable to load archive picker data');
       throw err;
     } finally {
       vmAdminFacebookPickerState.loading = false;
