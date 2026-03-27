@@ -3961,26 +3961,33 @@ music: {
                   </div>
                 </details>
               </div>
-              <div style="margin-top:20px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+              <details style="margin-top:20px;">
+                <summary style="list-style:none; cursor:pointer;">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                  </div>
+                  <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:10px;">
+                    <div></div>
+                    <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Analytics</div>
+                    <div style="min-width:84px; padding:7px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-left:auto;">Expand</div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+                    <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                  </div>
+                </summary>
+                <div style="margin-top:10px;">
+                  <div style="margin-top:10px; display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap;">
+                    <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Time Period</div>
+                    <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
+                      <option value="24h">24h</option>
+                      <option value="7d" selected>7d</option>
+                      <option value="30d">30d</option>
+                    </select>
+                    <button type="button" id="vmAdminAnalyticsRefresh" onclick="window.__vmAdminRefreshAnalytics && window.__vmAdminRefreshAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
+                    <button type="button" id="vmAdminAnalyticsReset" onclick="window.__vmAdminResetAnalytics && window.__vmAdminResetAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
+                  </div>
                 </div>
-                <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Analytics</div>
-                <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-                  <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
-                </div>
-                <div style="margin-top:10px; display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap;">
-                  <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Time Period</div>
-                  <select id="vmAdminAnalyticsRange" style="min-width:96px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,95,135,.28); background:rgba(14,8,16,.92); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">
-                    <option value="24h">24h</option>
-                    <option value="7d" selected>7d</option>
-                    <option value="30d">30d</option>
-                  </select>
-                  <button type="button" id="vmAdminAnalyticsRefresh" onclick="window.__vmAdminRefreshAnalytics && window.__vmAdminRefreshAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Refresh Analytics</button>
-                  <button type="button" id="vmAdminAnalyticsReset" onclick="window.__vmAdminResetAnalytics && window.__vmAdminResetAnalytics(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Reset Analytics</button>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
+                <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin-top:14px;">
                 <div data-analytics-section="overview" data-collapsed="false" style="border:1px solid rgba(255,70,110,.18); border-radius:20px; padding:18px; background:linear-gradient(180deg,rgba(12,10,18,.88),rgba(10,8,14,.74)); min-height:0;">
                   <button type="button" data-analytics-toggle="overview" onclick="window.__vmAdminToggleAnalyticsSection && window.__vmAdminToggleAnalyticsSection('overview'); return false;" aria-expanded="true" style="position:relative; z-index:2; pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:0; border:0; background:none; text-align:left; cursor:pointer;">
                     <div>
@@ -4023,7 +4030,8 @@ music: {
                     <div id="vmAdminAnalyticsEvents" style="margin-top:14px; max-height:460px; overflow-y:auto; padding-right:8px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">Loading recent events...</div>
                   </div>
                 </div>
-              </div>
+                </div>
+              </details>
             </div>
           </div>
         `;
