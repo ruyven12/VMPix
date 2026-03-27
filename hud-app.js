@@ -1712,7 +1712,36 @@ function pulseFrame(){
       try { console.error('Facebook picker render failed:', err); } catch (_) {}
     }
     try {
-      renderVmAdminSharedPicker('Instagram');
+      const fbResults = document.getElementById('vmAdminFacebookPickerResults');
+      const fbSelected = document.getElementById('vmAdminFacebookPickerSelected');
+      const fbCount = document.getElementById('vmAdminFacebookPickerCount');
+      const fbStatus = document.getElementById('vmAdminFacebookPickerStatus');
+      const igResults = document.getElementById('vmAdminInstagramPickerResults');
+      const igSelected = document.getElementById('vmAdminInstagramPickerSelected');
+      const igCount = document.getElementById('vmAdminInstagramPickerCount');
+      const igStatus = document.getElementById('vmAdminInstagramPickerStatus');
+      const igLayout = document.getElementById('vmAdminInstagramPickerLayout');
+      const igSelectedPanel = document.getElementById('vmAdminInstagramPickerSelectedPanel');
+      if (igLayout) {
+        igLayout.style.gridTemplateColumns = 'minmax(0,1fr)';
+      }
+      if (igSelectedPanel) {
+        igSelectedPanel.style.display = 'none';
+      }
+      if (igResults && fbResults) {
+        igResults.innerHTML = fbResults.innerHTML;
+      } else {
+        renderVmAdminSharedPicker('Instagram');
+      }
+      if (igSelected && fbSelected) {
+        igSelected.innerHTML = fbSelected.innerHTML;
+      }
+      if (igCount && fbCount) {
+        igCount.textContent = String(fbCount.textContent || '').trim() || 'Loading...';
+      }
+      if (igStatus && fbStatus) {
+        igStatus.textContent = String(fbStatus.textContent || '').trim() || 'Single-select picker ready';
+      }
     } catch (err) {
       try { console.error('Instagram picker render failed:', err); } catch (_) {}
     }
@@ -2089,6 +2118,7 @@ function pulseFrame(){
     const previewBtn = document.getElementById('vmAdminInstagramPreviewBtn');
     const publishBtn = document.getElementById('vmAdminInstagramPublishBtn');
     const statusEl = document.getElementById('vmAdminInstagramStatus');
+    const composerStatus = document.getElementById('vmAdminInstagramComposerStatus');
     if (connectBtn) {
       connectBtn.textContent = connected ? 'Manage Connection' : 'Connect Instagram';
       connectBtn.disabled = busy;
@@ -2098,6 +2128,7 @@ function pulseFrame(){
     if (previewBtn) previewBtn.disabled = busy || !connected;
     if (publishBtn) publishBtn.disabled = busy || !connected;
     if (statusEl && options.message) statusEl.textContent = options.message;
+    if (composerStatus && options.composerMessage) composerStatus.textContent = options.composerMessage;
     if (options.clearPreview) {
       const previewEl = document.getElementById('vmAdminInstagramPreview');
       if (previewEl) previewEl.innerHTML = 'Instagram preview will appear here.';
@@ -2803,19 +2834,22 @@ function pulseFrame(){
     try {
       const data = await fetchVmAdminJsonWithExplicitToken('/admin/instagram/status');
       if (shell) shell.innerHTML = renderVmAdminInstagramStatus(data && data.connection, data && data.config);
-      if (status) {
-        const connected = !!(data && data.connection && data.connection.connected);
-        status.textContent = connected ? 'Instagram connected' : 'Instagram not connected';
-        if (composerStatus) {
-          composerStatus.textContent = connected
-            ? 'Connected and ready for Instagram Photo Post preview/publish.'
-            : 'Connect Instagram to continue.';
+        if (status) {
+          const connected = !!(data && data.connection && data.connection.connected);
+          status.textContent = connected ? 'Instagram connected' : 'Instagram not connected';
+          if (composerStatus) {
+            composerStatus.textContent = connected
+              ? 'Connected and ready for Instagram Photo Post preview/publish.'
+              : 'Connect Instagram to continue.';
+          }
+          setVmAdminInstagramUiState({
+            connected,
+            message: connected ? 'Connected and ready for Instagram publishing' : 'Connect Instagram to continue',
+            composerMessage: connected
+              ? 'Connected and ready for Instagram Photo Post preview/publish.'
+              : 'Connect Instagram to continue.'
+          });
         }
-        setVmAdminInstagramUiState({
-          connected,
-          message: connected ? 'Connected and ready for Instagram publishing' : 'Connect Instagram to continue'
-        });
-      }
       return data;
     } catch (err) {
       if (isVmAdminInvalidTokenError(err)) {
@@ -2824,7 +2858,7 @@ function pulseFrame(){
       if (shell) shell.innerHTML = `<div style="color:rgba(255,168,168,.86); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Instagram status right now.</div>`;
       if (status) status.textContent = 'Status unavailable';
       if (composerStatus) composerStatus.textContent = 'Unable to verify Instagram connection right now.';
-      setVmAdminInstagramUiState({ connected: false, message: 'Unable to load Instagram tools' });
+      setVmAdminInstagramUiState({ connected: false, message: 'Unable to load Instagram tools', composerMessage: 'Unable to verify Instagram connection right now.' });
       throw err;
     }
   }
