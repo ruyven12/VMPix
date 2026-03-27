@@ -3960,6 +3960,33 @@ music: {
                   </div>
                   </div>
                 </details>
+                <details style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                  <summary style="list-style:none; cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                      <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:10px;">
+                      <div></div>
+                      <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Instagram Publishing</div>
+                      <div style="min-width:84px; padding:7px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-left:auto;">Expand</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+                      <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                    </div>
+                  </summary>
+                  <div style="margin-top:10px;">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                      <div style="flex:1 1 100%; min-width:0;">
+                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Instagram account connection, preview, and publishing controls will be added here next using the same archive-driven admin flow.</div>
+                      </div>
+                      <div style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Coming Soon</div>
+                    </div>
+                    <div style="margin-top:14px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
+                      <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Instagram Shell</div>
+                      <div style="margin-top:8px; color:rgba(214,198,210,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; text-align:center;">This block is reserved for Instagram connection status, publish controls, preview output, and history once we start the platform wiring.</div>
+                    </div>
+                  </div>
+                </details>
               </div>
               <details style="margin-top:20px;">
                 <summary style="list-style:none; cursor:pointer;">
