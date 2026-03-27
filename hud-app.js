@@ -3160,6 +3160,17 @@ function pulseFrame(){
     try {
       window.__vmAdminToggleCollapsibleSection = toggleVmAdminCollapsibleSection;
     } catch (_) {}
+    if (shell.__vmAdminCollapsibleDelegatedBound) return;
+    shell.addEventListener('click', (event) => {
+      const target = event.target;
+      const button = target && target.closest ? target.closest('[data-admin-collapsible-toggle]') : null;
+      if (!button) return;
+      const section = button.closest('[data-admin-collapsible-section]');
+      if (!section) return;
+      event.preventDefault();
+      toggleVmAdminCollapsibleSection(section.getAttribute('data-admin-collapsible-section'));
+    }, { once: false });
+    shell.__vmAdminCollapsibleDelegatedBound = true;
   }
 
   function triggerVmAdminAnalyticsRefresh(){
