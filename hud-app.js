@@ -3799,27 +3799,34 @@ music: {
                     ])}</div>
                   </div>
                 </details>
-                <div style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
-                  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                    <div style="flex:1 1 100%; min-width:0;">
-                      <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
-                      </div>
-                      <div style="margin-top:10px; color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Facebook Publishing</div>
-                      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-                        <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
-                      </div>
-                      <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Manage the live page connection here, then use the composer below for post previews and publishing.</div>
+                <details style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                  <summary style="list-style:none; cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                      <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                     </div>
-                    <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
-                  </div>
-                  <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook connection details...</div>
-                  <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-                    <button type="button" id="vmAdminFacebookConnect" onclick="window.__vmAdminFacebookConnect && window.__vmAdminFacebookConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
-                    <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Check Connection</button>
-                    <button type="button" id="vmAdminFacebookDisconnect" onclick="window.__vmAdminFacebookDisconnect && window.__vmAdminFacebookDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect Page</button>
-                  </div>
-                  <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
+                    <div style="display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:10px;">
+                      <div></div>
+                      <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:16px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; text-align:center;">Facebook Publishing</div>
+                      <div style="min-width:84px; padding:7px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.24); display:flex; align-items:center; justify-content:center; color:rgba(210,242,255,.92); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-left:auto;">Expand</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+                      <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
+                    </div>
+                  </summary>
+                  <div style="margin-top:10px;">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                      <div style="flex:1 1 100%; min-width:0;">
+                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Manage the live page connection here, then use the composer below for post previews and publishing.</div>
+                      </div>
+                      <div id="vmAdminFacebookStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(97,224,255,.22); background:rgba(10,18,24,.72); color:rgba(210,242,255,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
+                    </div>
+                    <div id="vmAdminFacebookMeta" style="margin-top:12px; min-height:52px; color:rgba(208,222,232,.82); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Facebook connection details...</div>
+                    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                      <button type="button" id="vmAdminFacebookConnect" onclick="window.__vmAdminFacebookConnect && window.__vmAdminFacebookConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Page</button>
+                      <button type="button" id="vmAdminFacebookRefresh" onclick="window.__vmAdminRefreshFacebook && window.__vmAdminRefreshFacebook(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Check Connection</button>
+                      <button type="button" id="vmAdminFacebookDisconnect" onclick="window.__vmAdminFacebookDisconnect && window.__vmAdminFacebookDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect Page</button>
+                    </div>
+                    <div style="margin-top:16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(9,12,18,.84),rgba(6,8,14,.86));">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                       <div>
                         <div style="color:rgba(255,130,164,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Composer</div>
@@ -3951,7 +3958,8 @@ music: {
                       <div id="vmAdminFacebookHistory" style="margin-top:10px; display:grid; grid-template-columns:minmax(0,1fr); gap:10px;"></div>
                     </div>
                   </div>
-                </div>
+                  </div>
+                </details>
               </div>
               <div style="margin-top:20px;">
                 <div style="display:flex; align-items:center; gap:12px;">
