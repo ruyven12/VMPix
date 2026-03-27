@@ -1712,14 +1712,6 @@ function pulseFrame(){
       try { console.error('Facebook picker render failed:', err); } catch (_) {}
     }
     try {
-      const fbResults = document.getElementById('vmAdminFacebookPickerResults');
-      const fbSelected = document.getElementById('vmAdminFacebookPickerSelected');
-      const fbCount = document.getElementById('vmAdminFacebookPickerCount');
-      const fbStatus = document.getElementById('vmAdminFacebookPickerStatus');
-      const igResults = document.getElementById('vmAdminInstagramPickerResults');
-      const igSelected = document.getElementById('vmAdminInstagramPickerSelected');
-      const igCount = document.getElementById('vmAdminInstagramPickerCount');
-      const igStatus = document.getElementById('vmAdminInstagramPickerStatus');
       const igLayout = document.getElementById('vmAdminInstagramPickerLayout');
       const igSelectedPanel = document.getElementById('vmAdminInstagramPickerSelectedPanel');
       if (igLayout) {
@@ -1728,20 +1720,7 @@ function pulseFrame(){
       if (igSelectedPanel) {
         igSelectedPanel.style.display = 'none';
       }
-      if (igResults && fbResults) {
-        igResults.innerHTML = fbResults.innerHTML;
-      } else {
-        renderVmAdminSharedPicker('Instagram');
-      }
-      if (igSelected && fbSelected) {
-        igSelected.innerHTML = fbSelected.innerHTML;
-      }
-      if (igCount && fbCount) {
-        igCount.textContent = String(fbCount.textContent || '').trim() || 'Loading...';
-      }
-      if (igStatus && fbStatus) {
-        igStatus.textContent = String(fbStatus.textContent || '').trim() || 'Single-select picker ready';
-      }
+      renderVmAdminSharedPicker('Instagram');
     } catch (err) {
       try { console.error('Instagram picker render failed:', err); } catch (_) {}
     }
