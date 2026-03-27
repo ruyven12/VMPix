@@ -11,6 +11,7 @@
 (function () {
   const ua = navigator.userAgent || "";
   const html = document.documentElement;
+  const DISMISS_KEY = "vm_webview_banner_dismissed_v1";
 
   const isMessenger = /\bFBAN\/Messenger\b|\bMessenger\b/i.test(ua);
   const isFacebook = /\bFBAN\/FB4A\b|\bFBAV\/\d+/i.test(ua) && !isMessenger;
@@ -59,5 +60,103 @@
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", onResize, { passive: true });
     window.visualViewport.addEventListener("scroll", onResize, { passive: true });
+  }
+
+  function installWebviewBanner() {
+    if (!(isMessenger || isFacebook || isInstagram || isTwitterX)) return;
+    try {
+      if (window.localStorage && window.localStorage.getItem(DISMISS_KEY) === "1") return;
+    } catch (_) {}
+    if (document.getElementById("vmWebviewBanner")) return;
+
+    const style = document.createElement("style");
+    style.id = "vmWebviewBannerStyle";
+    style.textContent = `
+      .vmWebviewBanner{
+        position: fixed;
+        top: max(10px, calc(var(--vv-top, 0px) + 10px));
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(640px, calc(100vw - 24px));
+        z-index: 20000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,95,135,0.34);
+        background: linear-gradient(180deg, rgba(28,10,19,0.96), rgba(14,8,15,0.94));
+        box-shadow: 0 18px 36px rgba(0,0,0,0.34), 0 0 0 1px rgba(255,255,255,0.03) inset;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: rgba(245,236,242,0.94);
+        font-family: "Orbitron", system-ui, sans-serif;
+      }
+      .vmWebviewBannerText{
+        min-width: 0;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.35;
+        letter-spacing: .04em;
+        text-transform: none;
+      }
+      .vmWebviewBannerClose{
+        flex: 0 0 auto;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        color: rgba(245,236,242,0.92);
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-family: "Orbitron", system-ui, sans-serif;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        cursor: pointer;
+      }
+      .vmWebviewBannerClose:hover{
+        background: rgba(255,255,255,0.10);
+      }
+      @media (max-width: 560px){
+        .vmWebviewBanner{
+          align-items: flex-start;
+          padding: 10px 12px;
+          gap: 10px;
+        }
+        .vmWebviewBannerText{
+          font-size: 10px;
+        }
+        .vmWebviewBannerClose{
+          padding: 6px 9px;
+          font-size: 9px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const banner = document.createElement("div");
+    banner.id = "vmWebviewBanner";
+    banner.className = "vmWebviewBanner";
+    banner.innerHTML = `
+      <div class="vmWebviewBannerText">Best viewed in your browser. In-app webviews can break navigation, scrolling, and media loading.</div>
+      <button type="button" class="vmWebviewBannerClose" aria-label="Dismiss notice">Close</button>
+    `;
+    document.body.appendChild(banner);
+
+    const closeBtn = banner.querySelector(".vmWebviewBannerClose");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        try {
+          if (window.localStorage) window.localStorage.setItem(DISMISS_KEY, "1");
+        } catch (_) {}
+        try { banner.remove(); } catch (_) {}
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", installWebviewBanner, { once: true });
+  } else {
+    installWebviewBanner();
   }
 })();
