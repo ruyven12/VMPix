@@ -123,13 +123,13 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleDetailHead,.waPeopleShotHeader{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
     .waPeopleEventHead{margin-left:42px;}
-    .waPeopleEventMeta{font-size:12px;}
+    .waPeopleEventMeta{font-size:18px;}
     .waPeopleEventMatches::before{left:14px;}
     .waPeopleEventMatch{grid-template-columns:32px 80px minmax(0,1fr);padding:10px;}
     .waPeopleEventNode{left:14px;top:22px;}
     .waPeopleEventPosterBox{width:72px;height:72px;border-radius:12px;}
     .waPeopleEventPosterFallback{font-size:24px;}
-    .waPeopleEventMatchTitle{font-size:15px;}
+    .waPeopleEventMatchTitle{font-size:14px;}
     .waPeopleAppearanceShots{font-size:12px;}
     .waPeopleAppearanceActions{grid-column:3;justify-content:flex-start;}
     .waPeopleJump{padding:9px 14px;border-radius:14px;font-size:10px;}
