@@ -5778,6 +5778,16 @@ function navigate(route){
       const trail = ['/', '/wrestling'];
       const sub = String(parts[1] || '').toLowerCase();
       if (sub) trail.push('/wrestling/' + sub);
+      if (sub === 'people') {
+        const personSlug = String(parts[2] || '').trim();
+        if (personSlug) trail.push('/wrestling/people/' + personSlug);
+      }
+      if (sub === 'shows') {
+        const showSlug = String(parts[2] || '').trim();
+        const matchSlug = String(parts[3] || '').trim();
+        if (showSlug) trail.push('/wrestling/shows/' + showSlug);
+        if (showSlug && matchSlug) trail.push('/wrestling/shows/' + showSlug + '/' + matchSlug);
+      }
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
     }
 
