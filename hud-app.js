@@ -3129,7 +3129,7 @@ function pulseFrame(){
   function setVmAdminCollapsibleSectionState(section, collapsed){
     const root = section && typeof section === 'object' ? section : null;
     if (!root) return false;
-    const button = root.querySelector('[data-admin-collapsible-toggle]');
+    const button = root.querySelector('[data-admin-collapsible-header]');
     const body = root.querySelector('[data-admin-collapsible-body]');
     const icon = root.querySelector('[data-admin-collapsible-chevron]');
     if (!button || !body) return false;
@@ -3163,7 +3163,7 @@ function pulseFrame(){
     if (shell.__vmAdminCollapsibleDelegatedBound) return;
     shell.addEventListener('click', (event) => {
       const target = event.target;
-      const button = target && target.closest ? target.closest('[data-admin-collapsible-toggle]') : null;
+      const button = target && target.closest ? target.closest('[data-admin-collapsible-header]') : null;
       if (!button) return;
       const section = button.closest('[data-admin-collapsible-section]');
       if (!section) return;
@@ -3775,7 +3775,7 @@ music: {
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:14px; margin-top:16px;">
                 <div data-admin-collapsible-section="indexing-tools" data-collapsed="true" style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
-                  <button type="button" data-admin-collapsible-toggle="indexing-tools" onclick="window.__vmAdminToggleCollapsibleSection && window.__vmAdminToggleCollapsibleSection('indexing-tools'); return false;" aria-expanded="false" style="position:relative; z-index:2; pointer-events:auto; display:block; width:100%; padding:0; border:0; background:none; cursor:pointer;">
+                  <div data-admin-collapsible-header="indexing-tools" onclick="window.__vmAdminToggleCollapsibleSection && window.__vmAdminToggleCollapsibleSection('indexing-tools'); return false;" aria-expanded="false" style="position:relative; z-index:3; pointer-events:auto; display:block; width:100%; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:12px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                     </div>
@@ -3787,7 +3787,7 @@ music: {
                     <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
                     </div>
-                  </button>
+                  </div>
                   <div data-admin-collapsible-body="indexing-tools" style="display:none;">
                     <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">This area deals with the cached results of our indexes and gives us the ability to rebuild them on command.</div>
                     <div id="vmAdminPeopleMeta" style="margin-top:12px; min-height:220px;">${renderVmAdminIndexTableShell([
