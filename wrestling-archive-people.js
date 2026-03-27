@@ -68,7 +68,7 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleDetailList{display:grid;gap:16px;}
   .waPeopleEventGroup{position:relative;padding:12px 0 2px;}
   .waPeopleEventHead{position:relative;display:grid;gap:4px;margin:0 0 8px 48px;padding:0 4px;}
-  .waPeopleEventMeta{color:rgba(214,198,211,.82);font-size:12px;font-weight:800;letter-spacing:.02em;line-height:1.28;text-transform:none;}
+  .waPeopleEventMeta{color:rgba(214,198,211,.82);font-size:18px;font-weight:800;letter-spacing:.02em;line-height:1.28;text-transform:none;}
   .waPeopleEventVenue{color:rgba(210,193,207,.66);font-size:11px;letter-spacing:.02em;line-height:1.32;}
   .waPeopleEventMatches{position:relative;display:grid;gap:14px;padding-left:0;}
   .waPeopleEventMatches::before{content:"";position:absolute;top:2px;bottom:14px;left:16px;width:2px;border-radius:999px;background:linear-gradient(to bottom, rgba(255,70,110,.10), rgba(255,70,110,.70), rgba(255,70,110,.10));box-shadow:0 0 18px rgba(255,70,110,.24);}
