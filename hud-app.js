@@ -664,6 +664,7 @@ function pulseFrame(){
 
   const vmAdminFacebookPickerState = {
     loading: false,
+    loadingSince: 0,
     loaded: false,
     loadError: '',
     items: [],
@@ -1247,6 +1248,7 @@ function pulseFrame(){
       return vmAdminFacebookPickerState.items;
     }
     vmAdminFacebookPickerState.loading = true;
+    vmAdminFacebookPickerState.loadingSince = Date.now();
     vmAdminFacebookPickerState.loadError = '';
     renderVmAdminFacebookPicker();
     try {
@@ -1297,8 +1299,32 @@ function pulseFrame(){
       throw err;
     } finally {
       vmAdminFacebookPickerState.loading = false;
+      vmAdminFacebookPickerState.loadingSince = 0;
       renderVmAdminFacebookPicker();
     }
+  }
+
+  function ensureVmAdminArchivePickerReady(forceReload){
+    const force = !!forceReload;
+    const now = Date.now();
+    const staleLoading = vmAdminFacebookPickerState.loading
+      && vmAdminFacebookPickerState.loadingSince
+      && (now - Number(vmAdminFacebookPickerState.loadingSince || 0) > 20000);
+    if (staleLoading) {
+      vmAdminFacebookPickerState.loading = false;
+      vmAdminFacebookPickerState.loadingSince = 0;
+      vmAdminFacebookPickerState.loadError = 'Archive picker stalled while loading. Retrying...';
+      renderVmAdminFacebookPicker();
+    }
+    if (force) {
+      vmAdminFacebookPickerState.loaded = false;
+      vmAdminFacebookPickerState.loadError = '';
+    }
+    if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
+      loadVmAdminFacebookPickerItems().catch(() => null);
+      return;
+    }
+    renderVmAdminFacebookPicker();
   }
 
   function getVmAdminFacebookFilteredPickerItems(){
@@ -2452,11 +2478,7 @@ function pulseFrame(){
     } else if (isPhotoMode) {
       if (pickerShell) pickerShell.style.display = 'block';
       if (imageWrap) imageWrap.style.display = 'none';
-      if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
-        loadVmAdminFacebookPickerItems().catch(() => null);
-      } else {
-        renderVmAdminFacebookPicker();
-      }
+      ensureVmAdminArchivePickerReady(false);
       renderVmAdminFacebookAlbumUi();
       syncVmAdminFacebookPhotoOptionsUi();
       if ((readVmAdminFacebookPublishMode() === 'album' || readVmAdminFacebookPublishMode() === 'both')
@@ -4335,7 +4357,7 @@ music: {
                 </div>
               </div>
               <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:14px; margin-top:16px;">
-                <details style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                <details id="vmAdminFacebookDetails" style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <summary style="list-style:none; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:12px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
@@ -4360,7 +4382,7 @@ music: {
                     ])}</div>
                   </div>
                 </details>
-                <details style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
+                <details id="vmAdminInstagramDetails" style="border:1px solid rgba(255,70,110,.18); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(17,11,25,.92),rgba(12,10,18,.72));">
                   <summary style="list-style:none; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:12px;">
                       <div style="flex:1; height:2px; background:linear-gradient(90deg,rgba(255,70,110,.04),rgba(255,70,110,.62),rgba(97,224,255,.56),rgba(255,70,110,.04));"></div>
@@ -4725,6 +4747,8 @@ music: {
         const facebookPickerResults = document.getElementById('vmAdminFacebookPickerResults');
         const facebookPickerSelected = document.getElementById('vmAdminFacebookPickerSelected');
         const facebookCaption = document.getElementById('vmAdminFacebookCaption');
+        const facebookDetails = document.getElementById('vmAdminFacebookDetails');
+        const instagramDetails = document.getElementById('vmAdminInstagramDetails');
         const instagramPickerResults = document.getElementById('vmAdminInstagramPickerResults');
         const instagramPickerSelected = document.getElementById('vmAdminInstagramPickerSelected');
         const facebookCallbackState = readVmFacebookCallbackState();
@@ -4738,6 +4762,17 @@ music: {
 
         initVmAdminAnalyticsCollapsibles(document.getElementById('vmAdminPanelRoot'));
         initVmAdminCollapsibles(document.getElementById('vmAdminPanelRoot'));
+
+        const bindArchivePickerBootstrap = (detailsEl) => {
+          if (!detailsEl) return;
+          detailsEl.addEventListener('toggle', () => {
+            if (detailsEl.open) {
+              ensureVmAdminArchivePickerReady(false);
+            }
+          }, { once: false });
+        };
+        bindArchivePickerBootstrap(facebookDetails);
+        bindArchivePickerBootstrap(instagramDetails);
 
         if (analyticsRange) {
           analyticsRange.addEventListener('change', () => {
@@ -4858,6 +4893,9 @@ music: {
         bindFacebookPickerShell(instagramPickerResults);
         bindFacebookPickerShell(instagramPickerSelected);
         renderVmAdminFacebookPicker();
+        if ((facebookDetails && facebookDetails.open) || (instagramDetails && instagramDetails.open)) {
+          ensureVmAdminArchivePickerReady(false);
+        }
 
         verifyAdminAccess().then((ok) => {
           if (!ok) {
@@ -4888,9 +4926,7 @@ music: {
             loadVmAdminInstagramHistory({ silent: false });
           } catch (_) {}
           try {
-            if (!vmAdminFacebookPickerState.loaded && !vmAdminFacebookPickerState.loading) {
-              loadVmAdminFacebookPickerItems().catch(() => null);
-            }
+            ensureVmAdminArchivePickerReady(false);
           } catch (_) {}
           setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
           setVmAdminInstagramUiState({ connected: false, message: 'Checking connection...' });
