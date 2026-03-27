@@ -1393,6 +1393,7 @@ function pulseFrame(){
         warmVmAdminNativeShareFiles(payload).catch(() => null);
       } catch (_) {}
     }
+    syncVmAdminInstagramSelectionIntoComposer(vmAdminFacebookPickerState.selected);
   }
 
   function toggleVmAdminFacebookPhotoSelection(itemId){
@@ -1461,14 +1462,91 @@ function pulseFrame(){
         warmVmAdminNativeShareFiles(payload).catch(() => null);
       } catch (_) {}
     }
+    syncVmAdminInstagramSelectionIntoComposer(entry);
   }
 
-  function renderVmAdminFacebookPicker(){
-    const resultsShell = document.getElementById('vmAdminFacebookPickerResults');
-    const selectedShell = document.getElementById('vmAdminFacebookPickerSelected');
-    const selectedPanel = document.getElementById('vmAdminFacebookPickerSelectedPanel');
-    const layoutShell = document.getElementById('vmAdminFacebookPickerLayout');
-    const countShell = document.getElementById('vmAdminFacebookPickerCount');
+  function syncVmAdminInstagramSelectionIntoComposer(item){
+    const entry = item && typeof item === 'object' ? item : null;
+    const selectedItems = getVmAdminFacebookSelectedPhotoItems();
+    const imageField = document.getElementById('vmAdminInstagramImageUrl');
+    const titleField = document.getElementById('vmAdminInstagramEntityLabel');
+    const captionField = document.getElementById('vmAdminInstagramCaption');
+    const hiddenIdField = document.getElementById('vmAdminInstagramEntityIdHidden');
+    const hiddenRouteField = document.getElementById('vmAdminInstagramEntityRouteHidden');
+    const pickerStatus = document.getElementById('vmAdminInstagramPickerStatus');
+    if (selectedItems.length) {
+      const primary = selectedItems[0];
+      const label = selectedItems.length > 1
+        ? `${selectedItems.length} Photos Selected`
+        : String(primary.title || 'Photo').trim();
+      if (imageField) imageField.value = String(primary.imageFullUrl || primary.imageUrl || '').trim();
+      if (titleField) titleField.value = label;
+      if (hiddenIdField) hiddenIdField.value = selectedItems.map((photo) => photo.entityId).filter(Boolean).join(',');
+      if (hiddenRouteField) hiddenRouteField.value = String(primary.routePath || '').trim();
+      if (captionField) {
+        const starter = selectedItems.length > 1
+          ? [
+              `${selectedItems.length} photos selected`,
+              primary.matchTitle || primary.title,
+              primary.showTitle || '',
+              primary.prettyDate || ''
+            ].filter(Boolean).join('\n')
+          : [
+              primary.matchTitle || primary.title,
+              primary.showTitle || '',
+              primary.prettyDate || ''
+            ].filter(Boolean).join('\n');
+        const current = String(captionField.value || '').trim();
+        const auto = String(captionField.dataset.vmInstagramAutofill || '') === '1';
+        if (!current || auto) {
+          captionField.value = starter;
+          captionField.dataset.vmInstagramAutofill = starter ? '1' : '';
+        }
+      }
+      if (pickerStatus) {
+        pickerStatus.textContent = selectedItems.length > 1
+          ? `Selected ${selectedItems.length} photos`
+          : `Selected photo: ${primary.title}`;
+      }
+      return;
+    }
+    if (!entry) {
+      if (imageField) imageField.value = '';
+      if (hiddenIdField) hiddenIdField.value = '';
+      if (hiddenRouteField) hiddenRouteField.value = '';
+      if (pickerStatus) pickerStatus.textContent = 'Single-select picker ready';
+      return;
+    }
+    if (imageField) imageField.value = String(entry.imageFullUrl || entry.imageUrl || '').trim();
+    if (titleField) titleField.value = String(entry.title || '').trim();
+    if (hiddenIdField) hiddenIdField.value = String(entry.entityId || '').trim();
+    if (hiddenRouteField) hiddenRouteField.value = String(entry.routePath || '').trim();
+    if (captionField) {
+      const starter = [
+        entry.title || '',
+        entry.showTitle || '',
+        entry.prettyDate || ''
+      ].filter(Boolean).join('\n');
+      const current = String(captionField.value || '').trim();
+      const auto = String(captionField.dataset.vmInstagramAutofill || '') === '1';
+      if (!current || auto) {
+        captionField.value = starter;
+        captionField.dataset.vmInstagramAutofill = starter ? '1' : '';
+      }
+    }
+    if (pickerStatus) {
+      pickerStatus.textContent = entry.title
+        ? `Selected ${entry.type === 'match' ? 'match' : 'show'}: ${entry.title}`
+        : 'Archive item selected';
+    }
+  }
+
+  function renderVmAdminSharedPicker(prefix){
+    const resultsShell = document.getElementById(`vmAdmin${prefix}PickerResults`);
+    const selectedShell = document.getElementById(`vmAdmin${prefix}PickerSelected`);
+    const selectedPanel = document.getElementById(`vmAdmin${prefix}PickerSelectedPanel`);
+    const layoutShell = document.getElementById(`vmAdmin${prefix}PickerLayout`);
+    const countShell = document.getElementById(`vmAdmin${prefix}PickerCount`);
     if (!resultsShell || !selectedShell) return;
     const selected = vmAdminFacebookPickerState.selected;
     const selectedPhotoItems = getVmAdminFacebookSelectedPhotoItems();
@@ -1616,6 +1694,11 @@ function pulseFrame(){
       <div style="margin-top:10px; padding:9px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(7,10,16,.78); color:rgba(208,222,232,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; line-height:1.55; white-space:pre-wrap;">${escapeVmAdminHtml(buildVmAdminFacebookCaptionStarter(selected) || 'No caption starter')}</div>
       <button type="button" data-facebook-picker-clear="1" style="margin-top:10px; min-width:148px; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Clear Selection</button>
     `;
+  }
+
+  function renderVmAdminFacebookPicker(){
+    renderVmAdminSharedPicker('Facebook');
+    renderVmAdminSharedPicker('Instagram');
   }
 
   function selectVmAdminFacebookPickerItem(itemId){
@@ -1986,6 +2069,8 @@ function pulseFrame(){
     const connectBtn = document.getElementById('vmAdminInstagramConnect');
     const refreshBtn = document.getElementById('vmAdminInstagramRefresh');
     const disconnectBtn = document.getElementById('vmAdminInstagramDisconnect');
+    const previewBtn = document.getElementById('vmAdminInstagramPreviewBtn');
+    const publishBtn = document.getElementById('vmAdminInstagramPublishBtn');
     const statusEl = document.getElementById('vmAdminInstagramStatus');
     if (connectBtn) {
       connectBtn.textContent = connected ? 'Manage Connection' : 'Connect Instagram';
@@ -1993,7 +2078,13 @@ function pulseFrame(){
     }
     if (refreshBtn) refreshBtn.disabled = busy;
     if (disconnectBtn) disconnectBtn.disabled = busy || !connected;
+    if (previewBtn) previewBtn.disabled = busy || !connected;
+    if (publishBtn) publishBtn.disabled = busy || !connected;
     if (statusEl && options.message) statusEl.textContent = options.message;
+    if (options.clearPreview) {
+      const previewEl = document.getElementById('vmAdminInstagramPreview');
+      if (previewEl) previewEl.innerHTML = 'Instagram preview will appear here.';
+    }
   }
 
   function readVmAdminFacebookEntityType(){
@@ -2713,6 +2804,242 @@ function pulseFrame(){
     }
   }
 
+  function readVmAdminInstagramPhotoToggle(id, fallback){
+    const field = document.getElementById(id);
+    const value = String((field && field.value) || fallback || 'no').trim().toLowerCase();
+    return value === 'yes' ? 'yes' : 'no';
+  }
+
+  function syncVmAdminInstagramPhotoOptionsUi(){
+    const titleEnabled = readVmAdminInstagramPhotoToggle('vmAdminInstagramPhotoTitleMode', 'no') === 'yes';
+    const hashtagsEnabled = readVmAdminInstagramPhotoToggle('vmAdminInstagramPhotoHashtagsMode', 'no') === 'yes';
+    const titleWrap = document.getElementById('vmAdminInstagramEntityTitleWrap');
+    const hashtagsWrap = document.getElementById('vmAdminInstagramHashtagsWrap');
+    if (titleWrap) titleWrap.style.display = titleEnabled ? 'block' : 'none';
+    if (hashtagsWrap) hashtagsWrap.style.display = hashtagsEnabled ? 'block' : 'none';
+  }
+
+  function buildVmAdminInstagramPhotoMessage(){
+    const titleMode = readVmAdminInstagramPhotoToggle('vmAdminInstagramPhotoTitleMode', 'no');
+    const hashtagsMode = readVmAdminInstagramPhotoToggle('vmAdminInstagramPhotoHashtagsMode', 'no');
+    const title = String((document.getElementById('vmAdminInstagramEntityLabel') || {}).value || '').trim();
+    const caption = String((document.getElementById('vmAdminInstagramCaption') || {}).value || '').trim();
+    const hashtags = String((document.getElementById('vmAdminInstagramHashtags') || {}).value || '').trim();
+    return [
+      titleMode === 'yes' ? title : '',
+      caption,
+      hashtagsMode === 'yes' ? hashtags : ''
+    ].filter(Boolean).join('\n\n').trim();
+  }
+
+  function buildVmAdminInstagramComposerPayload(){
+    const previewShell = document.getElementById('vmAdminInstagramPreview');
+    const status = document.getElementById('vmAdminInstagramComposerStatus');
+    const selectedPickerItem = vmAdminFacebookPickerState.selected && typeof vmAdminFacebookPickerState.selected === 'object'
+      ? vmAdminFacebookPickerState.selected
+      : null;
+    const selectedPhotos = buildVmAdminFacebookSelectedPhotosPayload();
+    const payload = {
+      section: String((document.getElementById('vmAdminInstagramSection') || {}).value || '').trim(),
+      entity_type: 'photo_post',
+      entity_id: String((document.getElementById('vmAdminInstagramEntityIdHidden') || {}).value || '').trim(),
+      entity_label: String((document.getElementById('vmAdminInstagramEntityLabel') || {}).value || '').trim(),
+      caption: buildVmAdminInstagramPhotoMessage(),
+      link_url: '',
+      image_url: String((document.getElementById('vmAdminInstagramImageUrl') || {}).value || '').trim(),
+      selected_photos: selectedPhotos
+    };
+    if (!payload.entity_id && selectedPickerItem && selectedPickerItem.entityId) {
+      payload.entity_id = String(selectedPickerItem.entityId || '').trim();
+    }
+    if (!payload.entity_label && selectedPickerItem && selectedPickerItem.title) {
+      payload.entity_label = String(selectedPickerItem.title || '').trim();
+    }
+    if (!payload.image_url && selectedPickerItem && selectedPickerItem.imageUrl) {
+      payload.image_url = String(selectedPickerItem.imageFullUrl || selectedPickerItem.imageUrl || '').trim();
+    }
+    if (!payload.image_url && selectedPhotos.length) {
+      payload.image_url = String(selectedPhotos[0].image_url || '').trim();
+    }
+    payload.entity_label = buildVmAdminFacebookEntityLabel(payload);
+    payload.entity_id = payload.entity_id || buildVmAdminFacebookEntityId(payload);
+    if (!payload.caption) {
+      const message = 'Add an Instagram caption before previewing.';
+      if (previewShell) {
+        previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">${escapeVmAdminHtml(message)}</div>`;
+      }
+      if (status) status.textContent = 'Caption required';
+      setVmAdminInstagramUiState({ connected: true, message });
+      throw new Error(message);
+    }
+    return compactVmAdminFacebookPayload(payload);
+  }
+
+  function renderVmAdminInstagramSelectedArchivePreview(payload, selected){
+    const chosen = selected && typeof selected === 'object' ? selected : null;
+    const selectedPhotos = getVmAdminFacebookSelectedPhotoItems();
+    const showPhotoGrid = selectedPhotos.length > 1;
+    const caption = String(payload && payload.caption || '').trim();
+    const title = String(
+      payload && payload.entity_label ||
+      (showPhotoGrid ? `${selectedPhotos.length} Photos Selected` : '') ||
+      (chosen && chosen.title) ||
+      'Archive Selection'
+    ).trim();
+    const meta = chosen ? [chosen.subtitle, chosen.meta].filter(Boolean).join(' • ') : '';
+    return `
+      <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
+        <div>
+          <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; background:rgba(6,9,14,.82); min-height:140px;">
+            ${showPhotoGrid ? `
+              <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px; min-height:140px;">
+                ${selectedPhotos.slice(0, 4).map((item) => `
+                  <div style="background:rgba(8,10,16,.82); min-height:69px;">
+                    ${item.imageUrl ? `<img src="${escapeVmAdminHtml(item.imageUrl)}" alt="${escapeVmAdminHtml(item.title || 'Selected photo')}" style="display:block; width:100%; height:100%; min-height:69px; object-fit:cover;" />` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : (payload.image_url ? `<img src="${escapeVmAdminHtml(payload.image_url)}" alt="${escapeVmAdminHtml(title)}" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`)}
+          </div>
+        </div>
+        <div>
+          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Instagram Archive Item</div>
+          <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(title)}</div>
+          ${meta ? `<div style="margin-top:6px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(meta)}</div>` : ''}
+          <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(caption || 'No caption yet.')}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderVmAdminInstagramHistoryItems(items){
+    const rows = Array.isArray(items) ? items : [];
+    if (!rows.length) {
+      return `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">No Instagram publish history yet.</div>`;
+    }
+    return rows.map((item) => {
+      const when = formatVmAdminDate(item && item.created_at);
+      const label = String(item && item.entity_label || 'Instagram Post').trim() || 'Instagram Post';
+      const statusLabel = String(item && item.status || 'unknown').trim().toUpperCase();
+      const details = [
+        item && item.media_type ? String(item.media_type).trim() : '',
+        item && item.selected_photo_count ? `${formatVmAdminNumber(item.selected_photo_count)} photo${Number(item.selected_photo_count) === 1 ? '' : 's'}` : '',
+        item && item.instagram_account_name ? `@${String(item.instagram_account_name).trim()}` : ''
+      ].filter(Boolean).join(' • ');
+      const error = String(item && item.error || '').trim();
+      return `
+        <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px; background:linear-gradient(180deg,rgba(10,14,20,.9),rgba(8,10,16,.84));">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div style="color:rgba(245,236,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(label)}</div>
+            <div style="padding:6px 10px; border-radius:999px; border:1px solid ${statusLabel === 'PUBLISHED' ? 'rgba(97,224,255,.24)' : 'rgba(255,95,135,.26)'}; color:${statusLabel === 'PUBLISHED' ? 'rgba(210,242,255,.92)' : 'rgba(247,237,242,.92)'}; font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">${escapeVmAdminHtml(statusLabel)}</div>
+          </div>
+          <div style="margin-top:8px; color:rgba(208,222,232,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(when)}</div>
+          ${details ? `<div style="margin-top:6px; color:rgba(166,235,210,.76); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.5;">${escapeVmAdminHtml(details)}</div>` : ''}
+          ${error ? `<div style="margin-top:8px; color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(error)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadVmAdminInstagramHistory(opts){
+    const options = opts || {};
+    const shell = document.getElementById('vmAdminInstagramHistory');
+    if (!shell) return null;
+    if (!getVmAdminTokenValue()) {
+      if (!options.silent) {
+        shell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unlock Admin to load Instagram publish history.</div>`;
+      }
+      return null;
+    }
+    if (!options.silent) {
+      shell.innerHTML = `<div style="color:rgba(214,198,210,.68); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Loading Instagram publish history...</div>`;
+    }
+    try {
+      const data = await fetchVmAdminJsonWithExplicitToken('/admin/instagram/history', { limit: 10 });
+      const items = Array.isArray(data && data.items) ? data.items : [];
+      shell.innerHTML = renderVmAdminInstagramHistoryItems(items);
+      return items;
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.', { reopenModal: false });
+      }
+      shell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to load Instagram history right now.</div>`;
+      throw err;
+    }
+  }
+
+  async function runVmAdminInstagramPreview(){
+    const status = document.getElementById('vmAdminInstagramComposerStatus');
+    const previewShell = document.getElementById('vmAdminInstagramPreview');
+    const selectedPickerItem = vmAdminFacebookPickerState.selected;
+    const cleanPayload = buildVmAdminInstagramComposerPayload();
+    setVmAdminInstagramUiState({ connected: true, busy: true, message: 'Building Instagram preview...' });
+    if (status) status.textContent = 'Building preview...';
+    if (previewShell && selectedPickerItem) {
+      previewShell.innerHTML = renderVmAdminInstagramSelectedArchivePreview(cleanPayload, selectedPickerItem);
+    }
+    try {
+      const data = await postVmAdminJsonWithExplicitToken('/admin/instagram/preview', cleanPayload);
+      const preview = data && data.preview ? data.preview : {};
+      if (previewShell) {
+        previewShell.innerHTML = `
+          <div style="display:grid; grid-template-columns:minmax(0,180px) minmax(0,1fr); gap:14px;">
+            <div>
+              <div style="border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; background:rgba(6,9,14,.82); min-height:140px;">
+                ${preview.image_url ? `<img src="${escapeVmAdminHtml(preview.image_url)}" alt="" style="display:block; width:100%; height:100%; min-height:140px; object-fit:cover;" />` : `<div style="padding:24px; color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; text-transform:uppercase;">No image</div>`}
+              </div>
+            </div>
+            <div>
+              <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Target Instagram</div>
+              <div style="margin-top:6px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:14px; font-weight:900;">${escapeVmAdminHtml(preview.account_name || 'Instagram Account')}</div>
+              <div style="margin-top:8px; color:rgba(208,222,232,.72); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">${escapeVmAdminHtml(preview.post_kind === 'carousel' ? 'Photo Post mode: Carousel' : 'Photo Post mode: Single Image')}</div>
+              <div style="margin-top:10px; color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;">${escapeVmAdminHtml(preview.final_message || '')}</div>
+            </div>
+          </div>
+        `;
+      }
+      if (status) status.textContent = 'Preview ready';
+      setVmAdminInstagramUiState({ connected: true, message: 'Instagram preview ready' });
+      return cleanPayload;
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.', { reopenModal: false });
+      }
+      if (previewShell) previewShell.innerHTML = `<div style="color:rgba(255,168,168,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Unable to build Instagram preview right now.</div>`;
+      if (status) status.textContent = isVmAdminInvalidTokenError(err) ? 'Admin session expired' : 'Preview failed';
+      setVmAdminInstagramUiState({
+        connected: !isVmAdminInvalidTokenError(err),
+        message: messageFromVmAdminError(err, 'Instagram preview failed')
+      });
+      throw err;
+    }
+  }
+
+  async function runVmAdminInstagramPublish(){
+    const status = document.getElementById('vmAdminInstagramComposerStatus');
+    try {
+      setVmAdminInstagramUiState({ connected: true, busy: true, message: 'Publishing to Instagram...' });
+      if (status) status.textContent = 'Publishing to Instagram...';
+      const payload = await runVmAdminInstagramPreview();
+      await postVmAdminJsonWithExplicitToken('/admin/instagram/publish', payload || {});
+      if (status) status.textContent = 'Instagram post published';
+      setVmAdminInstagramUiState({ connected: true, message: 'Instagram post published' });
+      await loadVmAdminInstagramStatus({ silent: true });
+      await loadVmAdminInstagramHistory({ silent: false });
+      return payload;
+    } catch (err) {
+      if (isVmAdminInvalidTokenError(err)) {
+        handleVmAdminInvalidToken('Admin session expired. Unlock again for Instagram tools.', { reopenModal: false });
+      }
+      if (status) status.textContent = isVmAdminInvalidTokenError(err) ? 'Admin session expired' : 'Instagram publish failed';
+      setVmAdminInstagramUiState({
+        connected: !isVmAdminInvalidTokenError(err),
+        message: messageFromVmAdminError(err, 'Instagram publish failed')
+      });
+      throw err;
+    }
+  }
+
   window.__vmAdminRefreshInstagram = function __vmAdminRefreshInstagram(){
     const disconnectBtn = document.getElementById('vmAdminInstagramDisconnect');
     setVmAdminInstagramUiState({
@@ -3073,6 +3400,15 @@ function pulseFrame(){
   };
   window.__vmAdminInstagramDisconnect = function __vmAdminInstagramDisconnect(){
     return disconnectVmAdminInstagram();
+  };
+  window.__vmAdminInstagramPreviewDraft = function __vmAdminInstagramPreviewDraft(){
+    return runVmAdminInstagramPreview();
+  };
+  window.__vmAdminInstagramPublishNow = function __vmAdminInstagramPublishNow(){
+    return runVmAdminInstagramPublish();
+  };
+  window.__vmAdminSyncInstagramPhotoOptionsUi = function __vmAdminSyncInstagramPhotoOptionsUi(){
+    return syncVmAdminInstagramPhotoOptionsUi();
   };
 
   function readVmFacebookCallbackState(){
@@ -4155,7 +4491,7 @@ music: {
                   <div style="margin-top:10px;">
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                       <div style="flex:1 1 100%; min-width:0;">
-                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Connect the linked Instagram professional account here first, then we can wire the composer and posting flow after.</div>
+                        <div style="margin-top:10px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55; text-align:center;">Instagram first pass is Photo Post only. It reuses the archive picker flow, title toggle, hashtags toggle, and caption box without a final link line in the Instagram caption.</div>
                       </div>
                       <div id="vmAdminInstagramStatus" style="padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(208,222,232,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Checking status...</div>
                     </div>
@@ -4164,6 +4500,76 @@ music: {
                       <button type="button" id="vmAdminInstagramConnect" onclick="window.__vmAdminInstagramConnect && window.__vmAdminInstagramConnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:178px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.28); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Connect Instagram</button>
                       <button type="button" id="vmAdminInstagramRefresh" onclick="window.__vmAdminRefreshInstagram && window.__vmAdminRefreshInstagram(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:144px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(23,18,29,.94),rgba(13,11,18,.92)); color:rgba(247,237,242,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Check Connection</button>
                       <button type="button" id="vmAdminInstagramDisconnect" onclick="window.__vmAdminInstagramDisconnect && window.__vmAdminInstagramDisconnect(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:168px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Disconnect Instagram</button>
+                    </div>
+                    <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,.06); padding-top:16px;">
+                      <div style="padding:12px 14px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,rgba(12,15,22,.92),rgba(8,10,16,.86)); color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">
+                        <div style="color:rgba(255,130,164,.84); font-size:10px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Composer</div>
+                        <div id="vmAdminInstagramComposerStatus" style="margin-top:8px;">Checking Instagram connection...</div>
+                      </div>
+                      <div style="display:grid; grid-template-columns:minmax(0,1fr); gap:10px; margin-top:10px;">
+                        <label style="display:block;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Section</div>
+                          <select id="vmAdminInstagramSection" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                            <option value="wrestling" selected>Wrestling</option>
+                          </select>
+                        </label>
+                        <input id="vmAdminInstagramEntityIdHidden" type="hidden" value="" />
+                        <input id="vmAdminInstagramEntityRouteHidden" type="hidden" value="" />
+                        <div id="vmAdminInstagramPickerShell" style="border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:14px; background:linear-gradient(180deg,rgba(11,14,20,.9),rgba(8,10,16,.84));">
+                          <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Choose Content</div>
+                          <div style="margin-top:6px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Reuse the show-source-first archive browser and selected-photo flow to target Instagram with the same archive item.</div>
+                          <div id="vmAdminInstagramPickerLayout" style="margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                            <div style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
+                              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                                <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Shows / Results</div>
+                                <div id="vmAdminInstagramPickerCount" style="color:rgba(214,198,210,.66); font-family:'Orbitron',system-ui,sans-serif; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Loading...</div>
+                              </div>
+                              <div id="vmAdminInstagramPickerResults" style="margin-top:10px; display:grid; gap:8px; max-height:332px; overflow-y:auto; padding-right:4px;"></div>
+                            </div>
+                            <div id="vmAdminInstagramPickerSelectedPanel" style="border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; background:rgba(9,11,16,.76);">
+                              <div style="color:rgba(245,236,242,.9); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Selected Item</div>
+                              <div id="vmAdminInstagramPickerSelected"></div>
+                            </div>
+                          </div>
+                          <div id="vmAdminInstagramPickerStatus" style="margin-top:10px; color:rgba(214,198,210,.64); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; line-height:1.55;">Single-select picker ready</div>
+                        </div>
+                        <input id="vmAdminInstagramImageUrl" type="hidden" value="" />
+                        <label id="vmAdminInstagramPhotoTitleModeWrap" style="display:block;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Title</div>
+                          <select id="vmAdminInstagramPhotoTitleMode" onchange="window.__vmAdminSyncInstagramPhotoOptionsUi && window.__vmAdminSyncInstagramPhotoOptionsUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                            <option value="no" selected>No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                        </label>
+                        <label id="vmAdminInstagramEntityTitleWrap" style="display:none;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Title</div>
+                          <input id="vmAdminInstagramEntityLabel" type="text" placeholder="Instagram title" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;" />
+                        </label>
+                        <label id="vmAdminInstagramPhotoHashtagsModeWrap" style="display:block;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Hashtags</div>
+                          <select id="vmAdminInstagramPhotoHashtagsMode" onchange="window.__vmAdminSyncInstagramPhotoOptionsUi && window.__vmAdminSyncInstagramPhotoOptionsUi();" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px;">
+                            <option value="no" selected>No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                        </label>
+                        <label id="vmAdminInstagramHashtagsWrap" style="display:none;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Hashtags</div>
+                          <textarea id="vmAdminInstagramHashtags" rows="2" placeholder="#Hashtags" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                        </label>
+                        <label style="display:block;">
+                          <div style="margin-bottom:6px; color:rgba(214,198,210,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;">Caption</div>
+                          <textarea id="vmAdminInstagramCaption" rows="5" placeholder="Write the Instagram caption here..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(10,12,18,.94); color:rgba(245,236,242,.95); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.6; resize:vertical;"></textarea>
+                        </label>
+                      </div>
+                      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                        <button type="button" id="vmAdminInstagramPreviewBtn" onclick="window.__vmAdminInstagramPreviewDraft && window.__vmAdminInstagramPreviewDraft(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:148px; padding:10px 15px; border-radius:999px; border:1px solid rgba(97,224,255,.26); background:linear-gradient(180deg,rgba(11,26,34,.94),rgba(8,16,23,.92)); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Preview Draft</button>
+                        <button type="button" id="vmAdminInstagramPublishBtn" onclick="window.__vmAdminInstagramPublishNow && window.__vmAdminInstagramPublishNow(); return false;" style="position:relative; z-index:2; pointer-events:auto; min-width:156px; padding:10px 15px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;">Publish Now</button>
+                      </div>
+                      <div id="vmAdminInstagramPreview" style="margin-top:14px; min-height:80px; color:rgba(214,198,210,.7); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.55;">Instagram preview will appear here.</div>
+                      <div style="margin-top:14px;">
+                        <div style="color:rgba(166,235,210,.84); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;">Recent Publish History</div>
+                        <div id="vmAdminInstagramHistory" style="margin-top:10px; display:grid; grid-template-columns:minmax(0,1fr); gap:10px;"></div>
+                      </div>
                     </div>
                   </div>
                 </details>
@@ -4270,6 +4676,8 @@ music: {
         const facebookPickerResults = document.getElementById('vmAdminFacebookPickerResults');
         const facebookPickerSelected = document.getElementById('vmAdminFacebookPickerSelected');
         const facebookCaption = document.getElementById('vmAdminFacebookCaption');
+        const instagramPickerResults = document.getElementById('vmAdminInstagramPickerResults');
+        const instagramPickerSelected = document.getElementById('vmAdminInstagramPickerSelected');
         const facebookCallbackState = readVmFacebookCallbackState();
         const instagramCallbackState = readVmInstagramCallbackState();
         try {
@@ -4288,6 +4696,7 @@ music: {
           }, { once: false });
         }
         syncVmAdminFacebookEntityTypeUi();
+        syncVmAdminInstagramPhotoOptionsUi();
         if (facebookEntityType) {
           facebookEntityType.addEventListener('change', () => {
             syncVmAdminFacebookEntityTypeUi();
@@ -4397,6 +4806,8 @@ music: {
         };
         bindFacebookPickerShell(facebookPickerResults);
         bindFacebookPickerShell(facebookPickerSelected);
+        bindFacebookPickerShell(instagramPickerResults);
+        bindFacebookPickerShell(instagramPickerSelected);
         renderVmAdminFacebookPicker();
 
         verifyAdminAccess().then((ok) => {
@@ -4423,6 +4834,9 @@ music: {
           } catch (_) {}
           try {
             loadVmAdminFacebookHistory({ silent: false });
+          } catch (_) {}
+          try {
+            loadVmAdminInstagramHistory({ silent: false });
           } catch (_) {}
           setVmAdminFacebookUiState({ connected: false, message: 'Checking connection...' });
           setVmAdminInstagramUiState({ connected: false, message: 'Checking connection...' });
@@ -4473,6 +4887,7 @@ music: {
               });
               try {
                 loadVmAdminInstagramStatus({ silent: true });
+                loadVmAdminInstagramHistory({ silent: true });
               } catch (_) {}
             } else if (instagramCallbackState.mode === 'error') {
               const msg = instagramCallbackState.message || 'Instagram connection failed';
