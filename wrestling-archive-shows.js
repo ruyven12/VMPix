@@ -1680,6 +1680,38 @@
     } catch (_) {}
   }
 
+  function slugWrestlingPersonName(name) {
+    return String(name || "")
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function openWrestlingPersonRoute(name) {
+    const label = String(name || "").trim();
+    const slug = slugWrestlingPersonName(label);
+    if (!slug) return;
+    trackWrestlingShowsEvent("wrestling_person_chip_open", {
+      entity_type: "person",
+      entity_id: slug,
+      entity_label: label,
+      meta: {
+        source_surface: "show_match_keywords"
+      }
+    });
+    const target = `/wrestling/people/${slug}` + (window.location.search || "");
+    try {
+      window.history.pushState({}, "", target);
+    } catch (_) {}
+    try {
+      window.WrestlingArchive && window.WrestlingArchive.setMode && window.WrestlingArchive.setMode("people", { replace: true, preservePath: true });
+    } catch (_) {}
+  }
+
   function waPickFirst(obj, keys) {
     for (let i = 0; i < keys.length; i++) {
       const k = keys[i];
@@ -2552,19 +2584,11 @@ const meta = document.createElement("div");
                 // Make chips clickable (keyword search modal)
                 chip.setAttribute("role", "button");
                 chip.setAttribute("tabindex", "0");
-                chip.title = "Search albums for " + list[i];
+                chip.title = "Open " + list[i] + " in Performers";
 
                 const kw = list[i];
-                // Open the keyword search modal with context so results can open INSIDE the HUD
-                // (no new window), and still return back to this show.
                 const openKw = function () {
-                  openWrestlingKeywordSearchModal(kw, {
-                    showRow: showRow,
-                    // Best-effort context for analytics/debugging; not required for routing.
-                    fromAlbumUrl: matchUrl,
-                    fromAlbumKey: albumKey,
-                    fromAlbumTitle: (albumTitle || matchTitle || matchId || "").trim()
-                  });
+                  openWrestlingPersonRoute(kw);
                 };
 
                 chip.addEventListener("click", function (e) {
