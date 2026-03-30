@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  const WRESTLING_FRONTEND_VERSION = '20260327-people-posters-r4';
+  const WRESTLING_FRONTEND_VERSION = '20260330-people-header-r1';
 
   // ✅ IMPORTANT: this must be reachable on the SAME origin as the page (repo root, like /music-archive-shows.js)
   const SHOWS_SCRIPT_SRC = (function(){
