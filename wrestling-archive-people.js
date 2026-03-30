@@ -175,7 +175,7 @@ function render(){return `
           <div class="waPeopleIntro" aria-label="Wrestling Performers Introduction">
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
             <div class="waPeopleIntroTitle">The Archives - Filter By Person</div>
-            <div class="waPeopleIntroBody">Welcome to the Wrestling archive, sorted by performer. As you can see, this section is split into the "type" of person or performer that there is, whether you are a fan, a performer, a crew member or more. There is more incoming so this is an incomplete section. Keep checking back for more!<br><br>Testing</div>
+            <div class="waPeopleIntroBody">Welcome to the Wrestling archive, sorted by performer. As you can see, this section is split into the "type" of person or performer that there is, whether you are a fan, a performer, a crew member or more. There is more incoming so this is an incomplete section. Keep checking back for more!<br><br>Note: This ONLY covers people that I officially have photographed or seen in person.</div>
             <div class="waPeopleIntroDivider" aria-hidden="true"></div>
           </div>
           <div id="waPeopleMeta" class="waPeopleMeta"></div>
