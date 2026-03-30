@@ -71,9 +71,10 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   .waPeopleDetailStats{text-align:right;color:rgba(232,219,229,.82);font-size:12px;letter-spacing:.04em;text-transform:none;min-width:0;}
   .waPeopleDetailList{display:grid;gap:16px;}
   .waPeopleEventGroup{position:relative;padding:12px 0 2px;}
-  .waPeopleEventHead{position:relative;display:grid;gap:4px;margin:0 0 8px 48px;padding:0 4px;}
-  .waPeopleEventMeta{color:rgba(214,198,211,.82);font-size:18px;font-weight:800;letter-spacing:.02em;line-height:1.28;text-transform:none;}
-  .waPeopleEventVenue{color:rgba(210,193,207,.66);font-size:11px;letter-spacing:.02em;line-height:1.32;}
+  .waPeopleEventHead{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:14px;row-gap:4px;margin:0 0 8px 48px;padding:0 4px;}
+  .waPeopleEventHead::before,.waPeopleEventHead::after{content:"";display:block;height:1px;border-radius:999px;background:linear-gradient(90deg, rgba(73,210,255,.55), rgba(255,75,116,.55));box-shadow:0 0 10px rgba(73,210,255,.18), 0 0 14px rgba(255,75,116,.18);}
+  .waPeopleEventMeta{grid-column:2;color:#ff9fb6;font-family:'Orbitron','Rajdhani',sans-serif;font-size:18px;font-weight:800;letter-spacing:.16em;line-height:1.1;text-transform:uppercase;text-align:center;white-space:nowrap;text-shadow:0 0 14px rgba(255,74,116,.26);}
+  .waPeopleEventVenue{grid-column:1 / -1;justify-self:center;color:rgba(210,193,207,.66);font-size:11px;letter-spacing:.08em;line-height:1.32;text-transform:uppercase;text-align:center;}
   .waPeopleEventMatches{position:relative;display:grid;gap:14px;padding-left:0;}
   .waPeopleEventMatches::before{content:"";position:absolute;top:2px;bottom:14px;left:16px;width:2px;border-radius:999px;background:linear-gradient(to bottom, rgba(255,70,110,.10), rgba(255,70,110,.70), rgba(255,70,110,.10));box-shadow:0 0 18px rgba(255,70,110,.24);}
   .waPeopleEventMatch{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) auto;column-gap:18px;align-items:center;width:100%;padding:12px 16px 12px 12px;margin:0;border:1px solid rgba(255,70,110,.18);border-radius:20px;background:rgba(0,0,0,.16);box-shadow:0 0 0 1px rgba(255,70,110,.10) inset,0 14px 30px rgba(0,0,0,.24);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
@@ -123,8 +124,8 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
     .waPeopleCardName{font-size:15px;}
     .waPeopleDetailHead,.waPeopleShotHeader{grid-template-columns:1fr;display:grid;}
     .waPeopleDetailStats,.waPeopleAppearanceActions{text-align:left;justify-content:flex-start;}
-    .waPeopleEventHead{margin-left:42px;}
-    .waPeopleEventMeta{font-size:18px;}
+    .waPeopleEventHead{margin-left:42px;column-gap:10px;}
+    .waPeopleEventMeta{font-size:15px;letter-spacing:.12em;white-space:normal;}
     .waPeopleEventMatches::before{left:14px;}
     .waPeopleEventMatch{grid-template-columns:32px minmax(0,1fr);padding:10px 12px 10px 10px;column-gap:14px;}
     .waPeopleEventNode{left:14px;top:22px;}
@@ -138,6 +139,9 @@ function ensureStyles(){if(document.getElementById('waPeopleStyles'))return;cons
   @media (max-width: 520px){
     .waPeopleIntroTitle{font-size:16px;letter-spacing:.05em;}
     .waPeopleIntroBody{margin:0 auto 10px;font-size:11px;}
+    .waPeopleEventHead{margin-left:36px;column-gap:8px;}
+    .waPeopleEventMeta{font-size:12px;letter-spacing:.1em;}
+    .waPeopleEventVenue{font-size:10px;letter-spacing:.06em;}
   }
 `;document.head.appendChild(s);}
 function render(){return `
