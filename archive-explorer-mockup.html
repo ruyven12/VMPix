@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VMPix Archive Explorer Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05060a;
+      --panel: rgba(18, 10, 18, 0.78);
+      --panel-strong: rgba(24, 12, 24, 0.92);
+      --panel-soft: rgba(12, 9, 18, 0.72);
+      --line: rgba(255, 74, 133, 0.30);
+      --line-strong: rgba(255, 74, 133, 0.52);
+      --text: rgba(248, 232, 243, 0.92);
+      --muted: rgba(231, 199, 218, 0.66);
+      --cyan: #56d7ff;
+      --magenta: #ff4f9a;
+      --gold: #ffcc70;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(255, 82, 145, 0.18), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(46, 181, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, #05060a 0%, #080a12 48%, #05060a 100%);
+      color: var(--text);
+      font-family: "Orbitron", system-ui, sans-serif;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(86, 215, 255, 0.04) 50%, transparent 100%),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.025) 0px,
+          rgba(255, 255, 255, 0.025) 1px,
+          transparent 4px,
+          transparent 8px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.5;
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 79, 154, 0.12) 0 1px, transparent 2px),
+        radial-gradient(circle at 78% 26%, rgba(86, 215, 255, 0.10) 0 1px, transparent 2px),
+        radial-gradient(circle at 64% 72%, rgba(255, 204, 112, 0.10) 0 1px, transparent 2px);
+      background-size: 220px 220px, 280px 280px, 320px 320px;
+      opacity: 0.7;
+    }
+
+    .shell {
+      width: min(1240px, calc(100% - 32px));
+      margin: 24px auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(180deg, rgba(18, 9, 16, 0.86), rgba(8, 9, 18, 0.88)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 79, 154, 0.12), transparent 34%),
+        linear-gradient(180deg, rgba(255, 79, 154, 0.05), transparent 24%);
+      pointer-events: none;
+    }
+
+    .topbar {
+      display: grid;
+      gap: 18px;
+      padding: 24px 24px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(22, 10, 20, 0.96), rgba(16, 9, 18, 0.8));
+    }
+
+    .titleRow {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .kicker {
+      color: var(--cyan);
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .summaryPill {
+      padding: 12px 16px;
+      border: 1px solid rgba(86, 215, 255, 0.26);
+      border-radius: var(--radius-sm);
+      color: rgba(208, 240, 255, 0.9);
+      background: rgba(10, 21, 30, 0.55);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .modeRail {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: rgba(12, 7, 15, 0.72);
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .modePill,
+    .chip,
+    .sortPill {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .modePill {
+      padding: 12px 18px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .modePill.active {
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(255, 79, 154, 0.2), rgba(86, 215, 255, 0.12));
+      border-color: var(--line-strong);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 18px rgba(255, 79, 154, 0.18);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.72fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .searchCard,
+    .insightCard,
+    .filters,
+    .resultsPanel,
+    .previewPanel {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, rgba(21, 12, 22, 0.88), rgba(10, 10, 18, 0.82));
+      overflow: hidden;
+    }
+
+    .searchCard::before,
+    .insightCard::before,
+    .filters::before,
+    .resultsPanel::before,
+    .previewPanel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 79, 154, 0.08), transparent 38%, rgba(86, 215, 255, 0.05));
+      pointer-events: none;
+    }
+
+    .searchCard {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .searchLabel,
+    .sectionLabel {
+      color: var(--cyan);
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    .searchInputWrap {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(10, 11, 18, 0.8);
+    }
+
+    .searchIcon {
+      color: var(--magenta);
+      font-size: 18px;
+    }
+
+    .searchInput {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+    }
+
+    .searchMeta {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .searchHints {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    .insightCard {
+      padding: 18px;
+      display: grid;
+      align-content: space-between;
+      gap: 14px;
+    }
+
+    .insightNumber {
+      font-size: clamp(26px, 4vw, 42px);
+      color: #fff6fb;
+      line-height: 1;
+    }
+
+    .insightText {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .filters {
+      margin: 18px 24px 0;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .filterRow {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chipRow,
+    .sortRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip,
+    .sortPill {
+      padding: 9px 14px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .chip.active,
+    .sortPill.active {
+      color: #fff7fb;
+      border-color: var(--line-strong);
+      background: rgba(255, 79, 154, 0.12);
+      box-shadow: 0 0 14px rgba(255, 79, 154, 0.16);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+      gap: 18px;
+      padding: 18px 24px 24px;
+    }
+
+    .resultsPanel,
+    .previewPanel {
+      padding: 18px;
+      min-height: 620px;
+    }
+
+    .panelHeader {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .panelTitle {
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .panelMeta {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .resultsList {
+      display: grid;
+      gap: 14px;
+    }
+
+    .resultCard {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(18, 14, 28, 0.9), rgba(11, 13, 24, 0.9));
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .resultCard:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 79, 154, 0.36);
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+    }
+
+    .cardBadge {
+      height: 76px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255, 79, 154, 0.28), transparent 40%),
+        linear-gradient(135deg, rgba(86, 215, 255, 0.16), rgba(255, 79, 154, 0.14)),
+        rgba(15, 18, 30, 0.95);
+      display: grid;
+      place-items: center;
+      color: #fff8fb;
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+    }
+
+    .cardMain {
+      min-width: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 10px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+    }
+
+    .cardTitle {
+      font-size: 18px;
+      line-height: 1.3;
+      color: #fff7fb;
+    }
+
+    .cardSub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .metaRow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .metaPill {
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .cardAction {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(86, 215, 255, 0.22);
+      background: rgba(8, 20, 28, 0.58);
+      color: rgba(214, 245, 255, 0.92);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .previewGrid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .previewHero {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at top right, rgba(255, 204, 112, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(20, 15, 18, 0.9), rgba(11, 13, 24, 0.88));
+    }
+
+    .previewName {
+      margin: 8px 0 10px;
+      font-size: 24px;
+      line-height: 1.25;
+      color: #fff6fb;
+    }
+
+    .previewBody {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .statGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .statCard {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .statLabel {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .statValue {
+      margin-top: 8px;
+      color: #fff7fb;
+      font-size: 22px;
+    }
+
+    .miniMap {
+      min-height: 180px;
+      border-radius: 20px;
+      border: 1px solid rgba(86, 215, 255, 0.18);
+      background:
+        linear-gradient(135deg, rgba(86, 215, 255, 0.08), rgba(255, 79, 154, 0.08)),
+        radial-gradient(circle at 62% 34%, rgba(255, 255, 255, 0.14) 0 2px, transparent 3px),
+        radial-gradient(circle at 38% 62%, rgba(255, 79, 154, 0.65) 0 4px, transparent 5px),
+        rgba(8, 12, 22, 0.94);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .miniMap::before,
+    .miniMap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .miniMap::before {
+      background:
+        linear-gradient(90deg, transparent 0 19%, rgba(255, 255, 255, 0.06) 20%, transparent 21% 39%, rgba(255, 255, 255, 0.06) 40%, transparent 41% 59%, rgba(255, 255, 255, 0.06) 60%, transparent 61% 79%, rgba(255, 255, 255, 0.06) 80%, transparent 81%),
+        linear-gradient(transparent 0 19%, rgba(255, 255, 255, 0.06) 20%, transparent 21% 39%, rgba(255, 255, 255, 0.06) 40%, transparent 41% 59%, rgba(255, 255, 255, 0.06) 60%, transparent 61% 79%, rgba(255, 255, 255, 0.06) 80%, transparent 81%);
+      opacity: 0.35;
+    }
+
+    .miniMap::after {
+      background: radial-gradient(circle at 38% 62%, rgba(255, 79, 154, 0.32), transparent 18%);
+    }
+
+    .previewList {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      list-style: none;
+      margin: 0;
+    }
+
+    .previewItem {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .previewItem strong {
+      color: #fff7fb;
+      font-weight: 500;
+    }
+
+    @media (max-width: 1080px) {
+      .controls,
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .previewPanel {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100%, calc(100% - 16px));
+        margin: 8px auto 16px;
+      }
+
+      .topbar,
+      .filters,
+      .content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .resultCard {
+        grid-template-columns: 60px minmax(0, 1fr);
+      }
+
+      .cardAction {
+        grid-column: 1 / -1;
+        justify-self: start;
+      }
+
+      .statGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div class="titleRow">
+        <div>
+          <div class="kicker">Unified Archive Screen</div>
+          <h1>Archive Explorer</h1>
+          <div class="subtitle">
+            One screen for searching the archive by people, bands, shows, or venues without bouncing between separate pages first.
+          </div>
+        </div>
+        <div class="summaryPill">Mode-aware search + filters + shared results</div>
+      </div>
+
+      <div class="modeRail">
+        <button class="modePill active">People</button>
+        <button class="modePill">Bands</button>
+        <button class="modePill">Shows</button>
+        <button class="modePill">Venues</button>
+      </div>
+
+      <div class="controls">
+        <section class="searchCard">
+          <div class="searchLabel">Search Across The Archive</div>
+          <div class="searchInputWrap">
+            <div class="searchIcon">⌕</div>
+            <input class="searchInput" value="widow sunday poughkeepsie 2012" aria-label="Search archive" />
+            <div class="searchMeta">Type, place, year</div>
+          </div>
+          <div class="searchHints">
+            <div class="hint">Alias aware</div>
+            <div class="hint">Venue aware</div>
+            <div class="hint">Geo enhanced</div>
+            <div class="hint">Recent activity sort</div>
+          </div>
+        </section>
+
+        <section class="insightCard">
+          <div class="sectionLabel">Current Mode</div>
+          <div class="insightNumber">People</div>
+          <div class="insightText">
+            Search performer names, ring names, side projects, known venues, and linked shows from one shared results pane.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="filters">
+      <div class="filterRow">
+        <div class="sectionLabel">Quick Filters</div>
+        <div class="panelMeta">Keep this row mode-aware, not overloaded</div>
+      </div>
+      <div class="chipRow">
+        <button class="chip active">Newly Updated</button>
+        <button class="chip">Has Photos</button>
+        <button class="chip">Has Geo</button>
+        <button class="chip">Hudson Valley</button>
+        <button class="chip">2008-2015</button>
+      </div>
+      <div class="sortRow">
+        <button class="sortPill active">Sort: Relevance</button>
+        <button class="sortPill">Recent Activity</button>
+        <button class="sortPill">A-Z</button>
+        <button class="sortPill">Most Shows</button>
+      </div>
+    </section>
+
+    <section class="content">
+      <section class="resultsPanel">
+        <div class="panelHeader">
+          <div>
+            <div class="sectionLabel">Results</div>
+            <div class="panelTitle">Shared Explorer Cards</div>
+          </div>
+          <div class="panelMeta">126 matches from people, bands, shows, venues</div>
+        </div>
+
+        <div class="resultsList">
+          <article class="resultCard">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Widow Sunday</div>
+              <div class="cardSub">Linked to 12 show appearances, 3 related bands, and repeat venue history in Poughkeepsie and Newburgh.</div>
+              <div class="metaRow">
+                <div class="metaPill">12 shows</div>
+                <div class="metaPill">3 bands</div>
+                <div class="metaPill">Last update 9h ago</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard">
+            <div class="cardBadge">BND</div>
+            <div class="cardMain">
+              <div class="eyebrow">Band</div>
+              <div class="cardTitle">Hope Before The Fall</div>
+              <div class="cardSub">Cross-linked from people mode because this band appears with the selected performer on multiple 2012-2015 shows.</div>
+              <div class="metaRow">
+                <div class="metaPill">24 albums</div>
+                <div class="metaPill">8 members</div>
+                <div class="metaPill">Related artist</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Band</div>
+          </article>
+
+          <article class="resultCard">
+            <div class="cardBadge">SHW</div>
+            <div class="cardMain">
+              <div class="eyebrow">Show</div>
+              <div class="cardTitle">Widow Sunday w/ Guests 2012 - Round 2</div>
+              <div class="cardSub">June 8th, 2012 at The Chance, Poughkeepsie, NY. Geo-tagged and linked to multiple people and band records.</div>
+              <div class="metaRow">
+                <div class="metaPill">7 bands</div>
+                <div class="metaPill">Geo present</div>
+                <div class="metaPill">Venue match</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Show</div>
+          </article>
+
+          <article class="resultCard">
+            <div class="cardBadge">VEN</div>
+            <div class="cardMain">
+              <div class="eyebrow">Venue</div>
+              <div class="cardTitle">The Chance</div>
+              <div class="cardSub">Derived venue index built from show data. Great candidate for a new first-class browse type without manual maintenance.</div>
+              <div class="metaRow">
+                <div class="metaPill">Poughkeepsie, NY</div>
+                <div class="metaPill">31 shows</div>
+                <div class="metaPill">Geo anchor</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Venue</div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="previewPanel">
+        <div class="panelHeader">
+          <div>
+            <div class="sectionLabel">Focused Preview</div>
+            <div class="panelTitle">Venue-Aware Detail Rail</div>
+          </div>
+          <div class="panelMeta">Right side changes with the selected card</div>
+        </div>
+
+        <div class="previewGrid">
+          <section class="previewHero">
+            <div class="sectionLabel">Selected Result</div>
+            <div class="previewName">The Chance, Poughkeepsie, NY</div>
+            <div class="previewBody">
+              Treat venues as a derived archive type. Let users sort into them from the same screen, then expose show count, people linked, latest appearance, and geo status without leaving the explorer.
+            </div>
+          </section>
+
+          <div class="statGrid">
+            <div class="statCard">
+              <div class="statLabel">Shows</div>
+              <div class="statValue">31</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Bands</div>
+              <div class="statValue">88</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">People</div>
+              <div class="statValue">112</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Geo Tagged</div>
+              <div class="statValue">24</div>
+            </div>
+          </div>
+
+          <div class="miniMap"></div>
+
+          <ul class="previewList">
+            <li class="previewItem"><span>Latest show</span><strong>Noblefest 2015</strong></li>
+            <li class="previewItem"><span>Primary sort hook</span><strong>Most shows</strong></li>
+            <li class="previewItem"><span>Search fields</span><strong>Name, city, state</strong></li>
+            <li class="previewItem"><span>Route target</span><strong>/music/venues/the-chance</strong></li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
