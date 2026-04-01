@@ -806,6 +806,9 @@
           grid-template-columns: minmax(0, 1fr) 260px;
           gap: 0;
       }
+      .showsDetailGeoCard.is-visible.no-map{
+          grid-template-columns: 1fr;
+      }
       @media (max-width: 860px){
         .showsDetailGeoCard.is-visible{ grid-template-columns: 1fr; }
       }
@@ -897,6 +900,9 @@
           border: 0;
           display: block;
           filter: saturate(.82) contrast(1.02) brightness(.92);
+      }
+      .showsDetailGeoCard.no-map .showsDetailGeoMapPane{
+          display:none;
       }
       .showsDetailSectionTitle{
           font-size: 11px;
@@ -1746,29 +1752,29 @@ async function ensureShowsLoaded(opts) {
     const geo = findGeoFootprintForShow(show, footprint);
     const lat = Number(geo?.lat);
     const lng = Number(geo?.lng);
-    if (!geoCard || !geo || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    if (!geoCard) return;
 
-    const coverage = Number(geo?.coveragePct);
     const geoTagged = Number(geo?.geoTaggedImages);
-    const embedUrl = buildMiniMapEmbedUrl(lat, lng);
+    const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+    const embedUrl = hasCoords ? buildMiniMapEmbedUrl(lat, lng) : "";
     const prettyDate = String(geo?.prettyDate || date || "").trim();
     const venue = String(geo?.venueLine || venueLine || "").trim();
 
     if (geoTitleEl) {
-      geoTitleEl.textContent = venue || "Geo-tagged photo cluster";
+      geoTitleEl.textContent = venue || "Venue details";
     }
 
     if (geoMetaEl) {
-      const coordText = `(${roundGeoCoord(lat)}, ${roundGeoCoord(lng)})`;
+      const coordText = hasCoords ? `(${roundGeoCoord(lat)}, ${roundGeoCoord(lng)})` : "";
       geoMetaEl.innerHTML = `
-        <div class="showsDetailGeoCoord">${safe(coordText)}</div>
+        ${coordText ? `<div class="showsDetailGeoCoord">${safe(coordText)}</div>` : ``}
         ${prettyDate ? `
           <div class="showsDetailGeoMetaSection">
             <div class="showsDetailGeoMetaLabel">Date</div>
             <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
           </div>
         ` : ``}
-        <div class="showsDetailGeoMetaSub">${safe(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`)}</div>
+        ${geo && Number.isFinite(geoTagged) ? `<div class="showsDetailGeoMetaSub">${safe(`${geoTagged} geo-tagged shots`)}</div>` : ``}
       `;
     }
 
@@ -1776,9 +1782,25 @@ async function ensureShowsLoaded(opts) {
       geoFrameEl.src = embedUrl;
     }
 
+    geoCard.classList.toggle("no-map", !embedUrl);
     geoCard.classList.add("is-visible");
   }).catch((err) => {
     console.warn("Failed to render show geo card:", err);
+    try {
+      if (!geoCard) return;
+      const prettyDate = String(date || "").trim();
+      const venue = String(venueLine || "").trim();
+      if (geoTitleEl) geoTitleEl.textContent = venue || "Venue details";
+      if (geoMetaEl) {
+        geoMetaEl.innerHTML = prettyDate ? `
+          <div class="showsDetailGeoMetaSection">
+            <div class="showsDetailGeoMetaLabel">Date</div>
+            <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
+          </div>
+        ` : "";
+      }
+      geoCard.classList.add("no-map", "is-visible");
+    } catch (_) {}
   });
 
   // Populate bands list in the focused view (Bands-side style: logo + name + green/red tint).
