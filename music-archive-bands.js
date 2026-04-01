@@ -913,11 +913,11 @@ box-shadow: 0 10px 25px rgba(0,0,0,0.28);
         color: rgba(226,232,240,0.75);
         margin-bottom: 8px;
       }
-      .albumKeywordChips{
-        display:flex;
-        flex-wrap:wrap;
-        gap: 8px;
-        align-items:center;
+        .albumKeywordChips{
+          display:flex;
+          flex-wrap:wrap;
+          gap: 8px;
+          align-items:center;
       }
       .albumKeywordChip{
         display:inline-flex;
@@ -1151,14 +1151,59 @@ color: rgba(226,232,240,0.92);
       .albumKeywordChips{
         justify-content: center;
       }
-      .albumKeywordTitle{
-        font-family: "Orbitron", system-ui, sans-serif;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: .10em;
-        margin-bottom: 8px;
-        opacity: .90;
-      }
+        .albumKeywordTitle{
+          font-family: "Orbitron", system-ui, sans-serif;
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: .10em;
+          margin-bottom: 8px;
+          opacity: .90;
+        }
+        .albumGeoBox{
+          margin-top: 10px;
+          padding: 10px 14px;
+          border-radius: 16px;
+          border: 1px solid rgba(103,203,255,0.22);
+          background: rgba(18,24,42,0.36);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.22), 0 0 0 1px rgba(103,203,255,0.08) inset;
+          max-width: 1100px;
+          margin-left: auto;
+          margin-right: auto;
+          display: none;
+          text-align: center;
+        }
+        .albumGeoBox.is-visible{
+          display: block;
+        }
+        .albumGeoTitle{
+          font-family: "Orbitron", system-ui, sans-serif;
+          font-size: 11px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+          color: rgba(160,225,255,0.84);
+          margin-bottom: 6px;
+        }
+        .albumGeoMeta{
+          color: rgba(226,232,240,0.82);
+          font-size: 12px;
+          line-height: 1.5;
+          letter-spacing: .04em;
+        }
+        .albumGeoMap{
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 8px;
+          font-size: 11px;
+          letter-spacing: .08em;
+          color: rgba(160,225,255,0.96);
+          text-decoration: none;
+          border-bottom: 1px solid rgba(160,225,255,0.42);
+        }
+        .albumGeoMap:hover{
+          color: rgba(210,240,255,0.98);
+          border-bottom-color: rgba(210,240,255,0.72);
+        }
 .backToBandsBtn:hover{
   color: rgba(226,232,240,0.98);
   border-bottom-color: rgba(239,68,68,0.90) !important;
@@ -3419,6 +3464,21 @@ async function fetchTextFirstOkWithSessionCache(urls, ttlMs, key) {
     }
   }
 
+  async function fetchAlbumGeoSummary(query) {
+    const q = (query && typeof query === "object") ? query : {};
+    const parts = [];
+    const albumKey = String(q.albumKey || "").trim();
+    const url = String(q.url || "").trim();
+    if (albumKey) parts.push("albumKey=" + encodeURIComponent(albumKey));
+    if (url) parts.push("url=" + encodeURIComponent(url));
+    if (!parts.length) return null;
+    try {
+      return await fetchJsonSafe(`${API_BASE}/geo/album-summary?${parts.join("&")}`, { retries: 1 }).catch(() => null);
+    } catch (_) {
+      return null;
+    }
+  }
+
   
   
   // ================== "Also appears in these albums" (cross-band via Bands CSV + SmugMug album keywords) ==================
@@ -5594,12 +5654,56 @@ const grid = document.createElement("div");
     const kwChips = document.createElement("div");
     kwChips.className = "albumKeywordChips";
 
-    keywordBox.appendChild(kwTitle);
-    keywordBox.appendChild(kwLabel);
-    keywordBox.appendChild(kwChips);
-    wrap.appendChild(keywordBox);
+      keywordBox.appendChild(kwTitle);
+      keywordBox.appendChild(kwLabel);
+      keywordBox.appendChild(kwChips);
+      wrap.appendChild(keywordBox);
 
-    // ===== Multi-select toolbar (Select mode + Download ZIP) =====
+      const geoBox = document.createElement("div");
+      geoBox.className = "albumGeoBox";
+      const geoTitle = document.createElement("div");
+      geoTitle.className = "albumGeoTitle";
+      geoTitle.textContent = "Photo Geo";
+      const geoMeta = document.createElement("div");
+      geoMeta.className = "albumGeoMeta";
+      geoMeta.textContent = "Checking photo geolocation…";
+      const geoMap = document.createElement("a");
+      geoMap.className = "albumGeoMap";
+      geoMap.textContent = "Open map";
+      geoMap.href = "#";
+      geoMap.target = "_blank";
+      geoMap.rel = "noopener";
+      geoMap.style.display = "none";
+      geoBox.appendChild(geoTitle);
+      geoBox.appendChild(geoMeta);
+      geoBox.appendChild(geoMap);
+      wrap.appendChild(geoBox);
+
+      (async () => {
+        try {
+          const alb = info && info.album ? info.album : null;
+          const albumKey = String(alb && (alb.AlbumKey || alb.Key || alb.albumKey || alb.key) || "").trim();
+          const albumUrl = String(alb && (alb.WebUri || alb.Url || alb.url) || "").trim();
+          const geo = await fetchAlbumGeoSummary({ albumKey, url: albumUrl });
+          if (!geo || !wrap.isConnected) return;
+          const tagged = Number(geo.geoTaggedImages || 0);
+          const scanned = Number(geo.totalImagesScanned || 0);
+          const center = geo && geo.center ? geo.center : null;
+          if (!tagged || !center) return;
+          const parts = [];
+          parts.push(`${tagged.toLocaleString()} geo-tagged`);
+          if (scanned > 0) parts.push(`${Number(geo.coveragePct || 0)}% coverage`);
+          parts.push(`${Number(center.lat).toFixed(4)}, ${Number(center.lng).toFixed(4)}`);
+          geoMeta.textContent = parts.join(" • ");
+          if (geo.mapUrl) {
+            geoMap.href = String(geo.mapUrl || "").trim();
+            geoMap.style.display = "";
+          }
+          geoBox.classList.add("is-visible");
+        } catch (_) {}
+      })();
+
+      // ===== Multi-select toolbar (Select mode + Download ZIP) =====
     // UI is currently hidden (feature-flagged), but code remains for later.
     let selectMode = false;
     const selected = new Set(); // stores indices as strings
