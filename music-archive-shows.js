@@ -2278,18 +2278,34 @@ async function fetchJsonSafe(url, opts) {
 
     const showCode = toMMDDYY(show?.date || show?.showDate || "");
     const showTitleNorm = normalizeGeoShowText(show?.title || show?.show_name || "");
+    const showVenueNorm = normalizeGeoShowText(show?.venueLine || show?.venue_line || "");
     let best = null;
     let bestScore = -1;
 
     items.forEach((item) => {
       const itemCode = toMMDDYY(item?.showDate || "");
       const itemTitleNorm = normalizeGeoShowText(item?.showName || "");
+      const itemVenueNorm = normalizeGeoShowText(item?.venueLine || "");
       let score = 0;
+      const sameDate = !!(showCode && itemCode && showCode === itemCode);
+      const exactTitle = !!(showTitleNorm && itemTitleNorm && showTitleNorm === itemTitleNorm);
+      const partialTitle = !!(showTitleNorm && itemTitleNorm && (showTitleNorm.includes(itemTitleNorm) || itemTitleNorm.includes(showTitleNorm)));
+      const exactVenue = !!(showVenueNorm && itemVenueNorm && showVenueNorm === itemVenueNorm);
+      const partialVenue = !!(showVenueNorm && itemVenueNorm && (showVenueNorm.includes(itemVenueNorm) || itemVenueNorm.includes(showVenueNorm)));
 
-      if (showCode && itemCode && showCode === itemCode) score += 3;
-      if (showTitleNorm && itemTitleNorm && showTitleNorm === itemTitleNorm) score += 4;
-      if (showTitleNorm && itemTitleNorm && (showTitleNorm.includes(itemTitleNorm) || itemTitleNorm.includes(showTitleNorm))) score += 2;
-      if (Number(item?.geoTaggedImages) > 0) score += 1;
+      if (sameDate) score += 3;
+      if (exactTitle) score += 5;
+      else if (partialTitle) score += 2;
+      if (exactVenue) score += 4;
+      else if (partialVenue) score += 2;
+
+      const qualifies =
+        exactTitle ||
+        (sameDate && exactVenue) ||
+        (sameDate && partialTitle) ||
+        (sameDate && partialVenue);
+
+      if (!qualifies) return;
 
       if (score > bestScore) {
         best = item;
@@ -2297,7 +2313,7 @@ async function fetchJsonSafe(url, opts) {
       }
     });
 
-    return bestScore >= 4 ? best : null;
+    return best;
   }
 
   function roundGeoCoord(value) {
