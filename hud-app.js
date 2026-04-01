@@ -5719,6 +5719,10 @@ async function transitionTo(route){
   }
 
   if (!(await canAccessProtectedRoute(next))) {
+    if (dim) {
+      dim.style.opacity = '0';
+      dim.style.display = 'none';
+    }
     unlock();
     document.body.classList.remove('is-routing');
     _isRouting = false;
