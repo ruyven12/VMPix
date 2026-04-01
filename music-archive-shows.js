@@ -720,7 +720,7 @@
         box-shadow: 0 0 12px rgba(103,203,255,0.18);
       }
       .showsDetailShowNameText{
-        font-size: 14px;
+        font-size: 20px;
         font-weight: 900;
         letter-spacing: 0.14em;
         color: rgba(255, 150, 190, 0.92);
@@ -737,7 +737,7 @@
           max-width: 84px;
         }
         .showsDetailShowNameText{
-          font-size: 12px;
+          font-size: 16px;
           letter-spacing: 0.1em;
         }
       }
