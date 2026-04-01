@@ -9,6 +9,8 @@
 (function(){
   "use strict";
 
+  const TEMP_ALWAYS_SHOW_TESTING = true;
+
   // =============================
   // GLOBAL "DING" (tiny audible cue)
   // =============================
@@ -139,7 +141,6 @@
         : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
     let adminVerifiedMemory = false;
-    const TEMP_ALWAYS_SHOW_TESTING = true;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
     const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
 
