@@ -659,15 +659,54 @@ function formatMusicRecentRelative(value) {
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function escapeMusicRecentHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
+  function escapeMusicRecentHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;'
-  }[ch]));
-}
+    }[ch]));
+  }
+
+  function slugMusicRecentValue(value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function musicRecentDateSlug(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const parts = value.split('-');
+      return `${parts[1]}${parts[2]}${String(parts[0] || '').slice(2)}`.toLowerCase();
+    }
+    const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!match) return '';
+    const mm = String(match[1] || '').padStart(2, '0');
+    const dd = String(match[2] || '').padStart(2, '0');
+    const yyRaw = String(match[3] || '').trim();
+    const yy = (yyRaw.length === 4 ? yyRaw.slice(2) : yyRaw).padStart(2, '0');
+    return `${mm}${dd}${yy}`.toLowerCase();
+  }
+
+  function buildMusicRecentInternalRoute(item) {
+    const explicit = String(item && (item.internalRoute || item.route) || '').trim();
+    if (explicit && explicit.charAt(0) === '/') {
+      return `${explicit}${window.location.search || ''}`;
+    }
+    const bandSlug = slugMusicRecentValue(String(item && (item.bandSlug || item.band) || '').trim());
+    if (!bandSlug) return '';
+    const dateSlug = musicRecentDateSlug(item && item.showDate);
+    return dateSlug
+      ? `/music/bands/${bandSlug}/${dateSlug}${window.location.search || ''}`
+      : `/music/bands/${bandSlug}${window.location.search || ''}`;
+  }
 
 function renderMusicLandingPanel() {
   return `
@@ -699,21 +738,21 @@ function renderMusicLandingPanel() {
   `;
 }
 
-function renderMusicRecentActivityItems(items, modeLabel) {
-  const list = Array.isArray(items) ? items : [];
-  if (!list.length) {
-    return `<div class="musicLandingRecentEmpty">No recent ${modeLabel.toLowerCase()} items were found.</div>`;
-  }
+  function renderMusicRecentActivityItems(items, modeLabel) {
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) {
+      return `<div class="musicLandingRecentEmpty">No recent ${modeLabel.toLowerCase()} items were found.</div>`;
+    }
   return list.map((item) => {
-    const showName = String(item && (item.showName || item.title) || 'Untitled show').trim();
-    const band = String(item && item.band || '').trim();
-    const prettyDate = String(item && item.prettyDate || '').trim();
-    const href = String(item && item.url || '').trim();
-    const thumb = String(item && (item.showUrl || item.thumbUrl) || '').trim();
-    const stamp = modeLabel === 'Updated' ? String(item && item.lastUpdated || '').trim() : String(item && item.dateUploaded || '').trim();
-    const relative = formatMusicRecentRelative(stamp);
-    const dateLine = relative || stamp;
-    const inner = `
+      const showName = String(item && (item.showName || item.title) || 'Untitled show').trim();
+      const band = String(item && item.band || '').trim();
+      const prettyDate = String(item && item.prettyDate || '').trim();
+      const href = buildMusicRecentInternalRoute(item) || String(item && item.url || '').trim();
+      const thumb = String(item && (item.showUrl || item.thumbUrl) || '').trim();
+      const stamp = modeLabel === 'Updated' ? String(item && item.lastUpdated || '').trim() : String(item && item.dateUploaded || '').trim();
+      const relative = formatMusicRecentRelative(stamp);
+      const dateLine = relative || stamp;
+      const inner = `
       ${thumb ? `<div class="musicLandingRecentThumb"><img src="${escapeMusicRecentHtml(thumb)}" alt="${escapeMusicRecentHtml(showName)}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${modeLabel[0]}</div>`}
       <div class="musicLandingRecentCopy">
         <div class="musicLandingRecentItemTitle">${escapeMusicRecentHtml(showName)}</div>
@@ -721,12 +760,12 @@ function renderMusicRecentActivityItems(items, modeLabel) {
         <div class="musicLandingRecentItemDate">${escapeMusicRecentHtml(prettyDate || 'Date unavailable')}</div>
         <div class="musicLandingRecentItemMeta">${modeLabel}${dateLine ? ` • ${escapeMusicRecentHtml(dateLine)}` : ''}</div>
       </div>
-    `;
-    return href
-      ? `<a class="musicLandingRecentItem" href="${escapeMusicRecentHtml(href)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
-      : `<div class="musicLandingRecentItem">${inner}</div>`;
-  }).join('');
-}
+      `;
+      return href
+        ? `<a class="musicLandingRecentItem" href="${escapeMusicRecentHtml(href)}">${inner}</a>`
+        : `<div class="musicLandingRecentItem">${inner}</div>`;
+    }).join('');
+  }
 
 async function mountMusicLandingActivity(panel) {
   const scope = panel || document.getElementById('musicContentPanel');
