@@ -2607,10 +2607,11 @@ header.appendChild(posterWrap);
     // Start waking the backend ASAP (Render cold start)
     try { _wakeBackendOnce(); } catch (_) {}
 
-    const years = [
-      'Upcoming', 2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
+    const BASE_YEARS = [
+      2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015,
       2014, 2013, 2012, 2011, 2010, 2009,
     ];
+    let years = BASE_YEARS.slice();
 
     // Condense the visible year pills and push the rest into a "More" menu
     const YEARS_MAX_VISIBLE = 6;
@@ -2625,12 +2626,12 @@ header.appendChild(posterWrap);
     const routeShowCode = getShowRouteCodeFromPath();
 
     // If the parent app re-mounts Shows when switching tabs, restore last viewed year
-    let activeYear = persisted.activeYear || 2025;
+    let activeYear = persisted.activeYear || BASE_YEARS[0] || 2026;
     if (routeShowCode) {
       const routeYear = getYearFromShowRouteCode(routeShowCode);
       if (routeYear) activeYear = routeYear;
     }
-    if (!years.includes(activeYear)) activeYear = years[0] || 2025;
+    if (!years.includes(activeYear)) activeYear = years[0] || BASE_YEARS[0] || 2026;
 
     const pillClass = "YearPill";
     const pillActiveClass = "YearPillActive";
@@ -2638,8 +2639,19 @@ header.appendChild(posterWrap);
     const mountEl = panelEl.querySelector("#showsYearsMount");
     if (!mountEl) return;
 	
-	const contentEl = panelEl.querySelector("#showsYearContent");
+const contentEl = panelEl.querySelector("#showsYearContent");
 if (!contentEl) return;
+
+function syncAvailableYears(allShows) {
+  const numericYears = BASE_YEARS.filter((year) => getShowsForYear(year, allShows).length > 0);
+  const nextYears = getUpcomingShows(allShows).length
+    ? ['Upcoming', ...numericYears]
+    : numericYears;
+  years = nextYears.length ? nextYears : BASE_YEARS.slice();
+  if (!years.includes(activeYear)) {
+    activeYear = years[0] || BASE_YEARS[0] || 2026;
+  }
+}
 
 // ===== Sticky year selector (inside the scrollable content area) =====
 function ensureStickyYears() {
@@ -2951,21 +2963,29 @@ currentYearPretty = (showsForYear || []).map((s) => {
   }
 }
 
+    (async () => {
+      try {
+        const all = await ensureShowsLoaded();
+        syncAvailableYears(all);
+      } catch (_) {
+        years = BASE_YEARS.slice();
+        if (!years.includes(activeYear)) activeYear = years[0] || BASE_YEARS[0] || 2026;
+      }
 
+      mountYearsPillsOverflow({
+        containerEl: mountEl,
+        years,
+        activeYear,
+        maxVisible: YEARS_MAX_VISIBLE,
+        onSelectYear: handleSelectYear,
+        pillClass,
+        pillActiveClass,
+        moreLabel: "More ▾",
+      });
 
-    mountYearsPillsOverflow({
-      containerEl: mountEl,
-      years,
-      activeYear,
-      maxVisible: YEARS_MAX_VISIBLE,
-      onSelectYear: handleSelectYear,
-      pillClass,
-      pillActiveClass,
-      moreLabel: "More ▾",
-    });
-
-    // Initial render: restore last selected year (prevents reset when returning to Shows tab)
-    handleSelectYear(activeYear);
+      // Initial render: restore last selected year (prevents reset when returning to Shows tab)
+      handleSelectYear(activeYear);
+    })();
 
   }
 
