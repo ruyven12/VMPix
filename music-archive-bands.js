@@ -5659,50 +5659,6 @@ const grid = document.createElement("div");
       keywordBox.appendChild(kwChips);
       wrap.appendChild(keywordBox);
 
-      const geoBox = document.createElement("div");
-      geoBox.className = "albumGeoBox";
-      const geoTitle = document.createElement("div");
-      geoTitle.className = "albumGeoTitle";
-      geoTitle.textContent = "Photo Geo";
-      const geoMeta = document.createElement("div");
-      geoMeta.className = "albumGeoMeta";
-      geoMeta.textContent = "Checking photo geolocation…";
-      const geoMap = document.createElement("a");
-      geoMap.className = "albumGeoMap";
-      geoMap.textContent = "Open map";
-      geoMap.href = "#";
-      geoMap.target = "_blank";
-      geoMap.rel = "noopener";
-      geoMap.style.display = "none";
-      geoBox.appendChild(geoTitle);
-      geoBox.appendChild(geoMeta);
-      geoBox.appendChild(geoMap);
-      wrap.appendChild(geoBox);
-
-      (async () => {
-        try {
-          const alb = info && info.album ? info.album : null;
-          const albumKey = String(alb && (alb.AlbumKey || alb.Key || alb.albumKey || alb.key) || "").trim();
-          const albumUrl = String(alb && (alb.WebUri || alb.Url || alb.url) || "").trim();
-          const geo = await fetchAlbumGeoSummary({ albumKey, url: albumUrl });
-          if (!geo || !wrap.isConnected) return;
-          const tagged = Number(geo.geoTaggedImages || 0);
-          const scanned = Number(geo.totalImagesScanned || 0);
-          const center = geo && geo.center ? geo.center : null;
-          if (!tagged || !center) return;
-          const parts = [];
-          parts.push(`${tagged.toLocaleString()} geo-tagged`);
-          if (scanned > 0) parts.push(`${Number(geo.coveragePct || 0)}% coverage`);
-          parts.push(`${Number(center.lat).toFixed(4)}, ${Number(center.lng).toFixed(4)}`);
-          geoMeta.textContent = parts.join(" • ");
-          if (geo.mapUrl) {
-            geoMap.href = String(geo.mapUrl || "").trim();
-            geoMap.style.display = "";
-          }
-          geoBox.classList.add("is-visible");
-        } catch (_) {}
-      })();
-
       // ===== Multi-select toolbar (Select mode + Download ZIP) =====
     // UI is currently hidden (feature-flagged), but code remains for later.
     let selectMode = false;
