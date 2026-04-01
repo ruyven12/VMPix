@@ -702,6 +702,45 @@
         padding: 14px;
         align-items: center;
       }
+      .showsDetailShowName{
+        padding: 0 14px 14px;
+      }
+      .showsDetailShowNameBar{
+        display:flex;
+        align-items:center;
+        gap: 12px;
+        justify-content:center;
+      }
+      .showsDetailShowNameLine{
+        flex: 1 1 0;
+        max-width: 180px;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(103,203,255,0.22) 18%, rgba(103,203,255,0.58) 50%, rgba(100,227,186,0.18) 82%, rgba(255,255,255,0) 100%);
+        box-shadow: 0 0 12px rgba(103,203,255,0.18);
+      }
+      .showsDetailShowNameText{
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        color: rgba(255, 150, 190, 0.92);
+        text-align:center;
+        text-transform: uppercase;
+        line-height: 1.2;
+        text-wrap: balance;
+      }
+      @media (max-width: 720px){
+        .showsDetailShowNameBar{
+          gap: 8px;
+        }
+        .showsDetailShowNameLine{
+          max-width: 84px;
+        }
+        .showsDetailShowNameText{
+          font-size: 12px;
+          letter-spacing: 0.1em;
+        }
+      }
 
       .showsDetailPosterPane{
         border-radius: 16px;
@@ -1704,6 +1743,14 @@ async function ensureShowsLoaded(opts) {
         <div class="showsDetailTop">
           <div class="showsDetailPosterPane">
             ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ``}
+          </div>
+        </div>
+
+        <div class="showsDetailShowName">
+          <div class="showsDetailShowNameBar">
+            <div class="showsDetailShowNameLine" aria-hidden="true"></div>
+            <div class="showsDetailShowNameText">${safe(title)}</div>
+            <div class="showsDetailShowNameLine" aria-hidden="true"></div>
           </div>
         </div>
 
