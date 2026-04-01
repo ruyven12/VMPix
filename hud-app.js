@@ -4537,8 +4537,8 @@ music: {
         const m = mount();
         if (!m) return;
         m.innerHTML = `
-          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:8px 2px 24px;">
-            <div style="position:relative; overflow:hidden; border:1px solid rgba(255,95,135,.22); border-radius:24px; padding:22px; background:
+          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:4px 0 20px;">
+            <div style="position:relative; overflow:hidden; border:1px solid rgba(255,95,135,.22); border-radius:24px; padding:14px 12px 12px; background:
               radial-gradient(circle at top right, rgba(86,216,255,.12), transparent 34%),
               radial-gradient(circle at bottom left, rgba(255,74,131,.10), transparent 40%),
               linear-gradient(180deg,rgba(18,10,24,.86),rgba(8,7,14,.92)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset, 0 20px 52px rgba(0,0,0,.28);">
@@ -4553,8 +4553,8 @@ music: {
                   <div style="padding:9px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Mockups and prototypes live here</div>
                 </div>
               </div>
-              <div style="margin-top:20px; display:grid; grid-template-columns:minmax(0,1fr); gap:16px;">
-                <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(16,13,24,.9),rgba(10,12,20,.84));">
+              <div style="margin-top:14px; display:grid; grid-template-columns:minmax(0,1fr); gap:12px;">
+                <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px 14px 12px; background:linear-gradient(180deg,rgba(16,13,24,.9),rgba(10,12,20,.84));">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                     <div>
                       <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Current Prototype</div>
@@ -4564,8 +4564,8 @@ music: {
                   </div>
                   <div style="margin-top:14px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">Tonight this gives you a safe, token-gated place in the main nav. Tomorrow we can start dropping real explorer work here without exposing it publicly in the normal site flow.</div>
                 </div>
-                <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:720px;">
-                  <iframe src="/archive-explorer-mockup.html" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:720px; border:0; background:#05060a;"></iframe>
+                <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:760px;">
+                  <iframe src="/archive-explorer-mockup.html" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:760px; border:0; background:#05060a;"></iframe>
                 </div>
               </div>
             </div>
