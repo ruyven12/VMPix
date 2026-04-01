@@ -1679,13 +1679,6 @@ async function ensureShowsLoaded(opts) {
                 </div>
               ` : ``}
 
-              ${venueLine ? `
-                <div class="showsDetailPill">
-                  <div class="showsDetailPillLabel">Venue</div>
-                  <div class="showsDetailPillValue">${safe(venueLine)}</div>
-                </div>
-              ` : ``}
-
               <div class="showsDetailPill">
                 <div class="showsDetailPillLabel">Band Amount</div>
                 <div class="showsDetailPillValue">${safe(String(bandCount))}</div>
@@ -1698,7 +1691,7 @@ async function ensureShowsLoaded(opts) {
         <div class="showsDetailGeo">
           <div class="showsDetailGeoCard" data-show-geo-card="1">
             <div class="showsDetailGeoCopy">
-              <div class="showsDetailGeoKicker">Photo Location</div>
+              <div class="showsDetailGeoKicker">Venue</div>
               <div class="showsDetailGeoTitle" data-show-geo-title="1">Loading map preview...</div>
               <div class="showsDetailGeoMeta" data-show-geo-meta="1"></div>
             </div>
