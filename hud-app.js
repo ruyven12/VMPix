@@ -139,17 +139,18 @@
         : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
     let adminVerifiedMemory = false;
+    const TEMP_ALWAYS_SHOW_TESTING = true;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
     const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
 
     function setAdminUnlockedUI(unlocked){
-      const showAdminOnly = !!(unlocked && adminVerifiedMemory);
       if (adminPill) {
         adminPill.classList.toggle('is-admin-unlocked', !!unlocked);
         adminPill.classList.toggle('is-disabled', !unlocked);
         adminPill.setAttribute('aria-expanded', 'false');
       }
       adminOnlyPills.forEach((pill) => {
+        const showAdminOnly = TEMP_ALWAYS_SHOW_TESTING || !!(unlocked && adminVerifiedMemory);
         pill.hidden = !showAdminOnly;
         pill.style.display = showAdminOnly ? '' : 'none';
         pill.setAttribute('aria-hidden', showAdminOnly ? 'false' : 'true');
@@ -622,6 +623,7 @@ function pulseFrame(){
   async function canAccessProtectedRoute(route){
     const key = sanitizeRouteKey(route) || 'home';
     if (key !== 'testing') return true;
+    if (TEMP_ALWAYS_SHOW_TESTING) return true;
     try {
       const check = (typeof window.__vmVerifyAdminAccess === 'function')
         ? await window.__vmVerifyAdminAccess()
