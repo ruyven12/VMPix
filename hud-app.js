@@ -138,19 +138,21 @@
         ? window.WRESTLING_ARCHIVE_API_BASE.trim().replace(/\/$/, '')
         : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
+    let adminVerifiedMemory = false;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
     const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
 
     function setAdminUnlockedUI(unlocked){
+      const showAdminOnly = !!(unlocked && adminVerifiedMemory);
       if (adminPill) {
         adminPill.classList.toggle('is-admin-unlocked', !!unlocked);
         adminPill.classList.toggle('is-disabled', !unlocked);
         adminPill.setAttribute('aria-expanded', 'false');
       }
       adminOnlyPills.forEach((pill) => {
-        const show = !!unlocked;
-        pill.hidden = !show;
-        pill.setAttribute('aria-hidden', show ? 'false' : 'true');
+        pill.hidden = !showAdminOnly;
+        pill.style.display = showAdminOnly ? '' : 'none';
+        pill.setAttribute('aria-hidden', showAdminOnly ? 'false' : 'true');
       });
     }
 
@@ -174,6 +176,7 @@
     function markAdminUnlocked(token){
       if (!token) return;
       adminTokenMemory = String(token || '').trim();
+      adminVerifiedMemory = true;
       try { window.__VM_ADMIN_TOKEN__ = adminTokenMemory; } catch (_) {}
       try { sessionStorage.setItem(ADMIN_TOKEN_KEY, adminTokenMemory); } catch (_) {}
       setAdminUnlockedUI(true);
@@ -181,6 +184,7 @@
 
     function clearAdminUnlocked(){
       adminTokenMemory = '';
+      adminVerifiedMemory = false;
       try { window.__VM_ADMIN_TOKEN__ = ''; } catch (_) {}
       try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (_) {}
       setAdminUnlockedUI(false);
@@ -207,11 +211,13 @@
           clearAdminUnlocked();
           return false;
         }
+        adminVerifiedMemory = true;
         try { sessionStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (_) {}
         setAdminUnlockedUI(true);
         return true;
       } catch (_) {
-        return true;
+        clearAdminUnlocked();
+        return false;
       }
     }
     try { window.__vmVerifyAdminAccess = verifyAdminAccess; } catch (_) {}
