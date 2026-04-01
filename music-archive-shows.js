@@ -697,14 +697,10 @@
       }
 
       .showsDetailTop{
-        display:grid;
-        grid-template-columns: 280px 1fr;
-        gap: 14px;
+        display:flex;
+        justify-content:center;
         padding: 14px;
-        align-items: start;
-      }
-      @media (max-width: 860px){
-        .showsDetailTop{ grid-template-columns: 1fr; }
+        align-items: center;
       }
 
       .showsDetailPosterPane{
@@ -714,6 +710,8 @@
         padding: 10px;
         display:flex;
         justify-content:center;
+        width: fit-content;
+        margin: 0 auto;
       }
       .showsDetailImg{
         width: 100%;
@@ -815,7 +813,7 @@
       .showsDetailGeoCopy{
           padding: 14px;
           display:grid;
-          gap: 8px;
+          gap: 6px;
           align-content:center;
       }
       .showsDetailGeoKicker{
@@ -862,7 +860,14 @@
           line-height: 1.35;
       }
       .showsDetailGeoMetaSub{
+          margin-top: 4px;
+      }
+      .showsDetailGeoStatLine{
           margin-top: 6px;
+          font-size: 13px;
+          font-weight: 800;
+          color: rgba(238,243,252,0.92);
+          line-height: 1.35;
       }
       .showsDetailGeoLink{
           display:inline-flex;
@@ -1700,19 +1705,6 @@ async function ensureShowsLoaded(opts) {
           <div class="showsDetailPosterPane">
             ${posterUrl ? `<img class="showsDetailImg" src="${safe(posterUrl)}" alt="${safe(title) || "Show"}" />` : ``}
           </div>
-
-          <div class="showsDetailInfoPane">
-            <div class="showsDetailKicker">Show:</div>
-            <div class="showsDetailTitle">${safe(title)}</div>
-
-            <div class="showsDetailPills">
-              <div class="showsDetailPill">
-                <div class="showsDetailPillLabel">Band Amount</div>
-                <div class="showsDetailPillValue">${safe(String(bandCount))}</div>
-              </div>
-
-            </div>
-          </div>
         </div>
 
         <div class="showsDetailGeo">
@@ -1760,6 +1752,7 @@ async function ensureShowsLoaded(opts) {
     const embedUrl = hasCoords ? buildMiniMapEmbedUrl(lat, lng) : "";
     const prettyDate = String(geo?.prettyDate || date || "").trim();
     const venue = String(geo?.venueLine || venueLine || "").trim();
+    const statLine = `${bandCount} Bands / ${Number.isFinite(geoTagged) ? geoTagged : 0} Photos`;
 
     if (geoTitleEl) {
       geoTitleEl.textContent = venue || "Venue details";
@@ -1775,7 +1768,10 @@ async function ensureShowsLoaded(opts) {
             <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
           </div>
         ` : ``}
-        ${geo && Number.isFinite(geoTagged) ? `<div class="showsDetailGeoMetaSub">${safe(`${geoTagged} geo-tagged shots`)}</div>` : ``}
+        <div class="showsDetailGeoMetaSection">
+          <div class="showsDetailGeoMetaLabel">Stats</div>
+          <div class="showsDetailGeoStatLine">${safe(statLine)}</div>
+        </div>
       `;
     }
 
@@ -1791,14 +1787,21 @@ async function ensureShowsLoaded(opts) {
       if (!geoCard) return;
       const prettyDate = String(date || "").trim();
       const venue = String(venueLine || "").trim();
+      const statLine = `${bandCount} Bands / 0 Photos`;
       if (geoTitleEl) geoTitleEl.textContent = venue || "Venue details";
       if (geoMetaEl) {
-        geoMetaEl.innerHTML = prettyDate ? `
+        geoMetaEl.innerHTML = `
+          ${prettyDate ? `
+            <div class="showsDetailGeoMetaSection">
+              <div class="showsDetailGeoMetaLabel">Date</div>
+              <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
+            </div>
+          ` : ``}
           <div class="showsDetailGeoMetaSection">
-            <div class="showsDetailGeoMetaLabel">Date</div>
-            <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
+            <div class="showsDetailGeoMetaLabel">Stats</div>
+            <div class="showsDetailGeoStatLine">${safe(statLine)}</div>
           </div>
-        ` : "";
+        `;
       }
       geoCard.classList.add("no-map", "is-visible");
     } catch (_) {}
