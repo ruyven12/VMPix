@@ -1741,6 +1741,26 @@ async function ensureShowsLoaded(opts) {
   const geoMetaEl = containerEl.querySelector('[data-show-geo-meta="1"]');
   const geoFrameEl = containerEl.querySelector('[data-show-geo-frame="1"]');
 
+  if (geoCard) {
+    const initialStatLine = `${bandCount} Bands / 0 Photos`;
+    if (geoTitleEl) geoTitleEl.textContent = venueLine || "Venue details";
+    if (geoMetaEl) {
+      geoMetaEl.innerHTML = `
+        ${date ? `
+          <div class="showsDetailGeoMetaSection">
+            <div class="showsDetailGeoMetaLabel">Date</div>
+            <div class="showsDetailGeoMetaValue">${safe(date)}</div>
+          </div>
+        ` : ``}
+        <div class="showsDetailGeoMetaSection">
+          <div class="showsDetailGeoMetaLabel">Stats</div>
+          <div class="showsDetailGeoStatLine">${safe(initialStatLine)}</div>
+        </div>
+      `;
+    }
+    geoCard.classList.add("no-map", "is-visible");
+  }
+
   fetchGeoFootprint(false).then((footprint) => {
     const geo = findGeoFootprintForShow(show, footprint);
     const lat = Number(geo?.lat);
