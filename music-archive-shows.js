@@ -1701,7 +1701,6 @@ async function ensureShowsLoaded(opts) {
               <div class="showsDetailGeoKicker">Photo Location</div>
               <div class="showsDetailGeoTitle" data-show-geo-title="1">Loading map preview...</div>
               <div class="showsDetailGeoMeta" data-show-geo-meta="1"></div>
-              <a class="showsDetailGeoLink" data-show-geo-link="1" href="#" target="_blank" rel="noopener noreferrer">Open full map</a>
             </div>
             <div class="showsDetailGeoMapPane">
               <iframe
@@ -1728,7 +1727,6 @@ async function ensureShowsLoaded(opts) {
   const geoCard = containerEl.querySelector('[data-show-geo-card="1"]');
   const geoTitleEl = containerEl.querySelector('[data-show-geo-title="1"]');
   const geoMetaEl = containerEl.querySelector('[data-show-geo-meta="1"]');
-  const geoLinkEl = containerEl.querySelector('[data-show-geo-link="1"]');
   const geoFrameEl = containerEl.querySelector('[data-show-geo-frame="1"]');
 
   fetchGeoFootprint(false).then((footprint) => {
@@ -1739,7 +1737,6 @@ async function ensureShowsLoaded(opts) {
 
     const coverage = Number(geo?.coveragePct);
     const geoTagged = Number(geo?.geoTaggedImages);
-    const mapUrl = String(geo?.mapUrl || "").trim();
     const embedUrl = buildMiniMapEmbedUrl(lat, lng);
     const prettyDate = String(geo?.prettyDate || date || "").trim();
     const venue = String(geo?.venueLine || venueLine || "").trim();
@@ -1752,14 +1749,8 @@ async function ensureShowsLoaded(opts) {
       const lines = [];
       if (prettyDate) lines.push(prettyDate);
       lines.push(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`);
-      if (Number.isFinite(coverage)) lines.push(`${coverage}% coverage`);
       lines.push(`${roundGeoCoord(lat)}, ${roundGeoCoord(lng)}`);
       geoMetaEl.innerHTML = lines.map((line) => `<div>${safe(line)}</div>`).join("");
-    }
-
-    if (geoLinkEl) {
-      if (mapUrl) geoLinkEl.href = mapUrl;
-      else geoLinkEl.remove();
     }
 
     if (geoFrameEl && embedUrl) {
