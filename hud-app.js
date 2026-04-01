@@ -139,12 +139,19 @@
         : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
+    const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
 
     function setAdminUnlockedUI(unlocked){
-      if (!adminPill) return;
-      adminPill.classList.toggle('is-admin-unlocked', !!unlocked);
-      adminPill.classList.toggle('is-disabled', !unlocked);
-      adminPill.setAttribute('aria-expanded', 'false');
+      if (adminPill) {
+        adminPill.classList.toggle('is-admin-unlocked', !!unlocked);
+        adminPill.classList.toggle('is-disabled', !unlocked);
+        adminPill.setAttribute('aria-expanded', 'false');
+      }
+      adminOnlyPills.forEach((pill) => {
+        const show = !!unlocked;
+        pill.hidden = !show;
+        pill.setAttribute('aria-hidden', show ? 'false' : 'true');
+      });
     }
 
     function getAdminToken(){
@@ -162,6 +169,7 @@
     function isAdminUnlocked(){
       return !!getAdminToken();
     }
+    try { window.__vmIsAdminUnlocked = isAdminUnlocked; } catch (_) {}
 
     function markAdminUnlocked(token){
       if (!token) return;
@@ -206,6 +214,7 @@
         return true;
       }
     }
+    try { window.__vmVerifyAdminAccess = verifyAdminAccess; } catch (_) {}
 
     function ensureAdminModal(){
       if (adminModal && adminModal.parentNode) return adminModal;
@@ -533,7 +542,7 @@ function pulseFrame(){
     }catch(_){ }
   }
 
-    const VALID_ROUTE_KEYS = new Set(['home','music','wrestling','calendar','about','pricing','contact','admin']);
+    const VALID_ROUTE_KEYS = new Set(['home','music','wrestling','testing','calendar','about','pricing','contact','admin']);
 
   function sanitizeRouteKey(v){
     const key = String(v || '').trim().toLowerCase();
@@ -602,6 +611,22 @@ function pulseFrame(){
     const key = routeKeyFromAny(route);
     syncUrlToRoute(key, opts);
     navigate(key);
+  }
+
+  async function canAccessProtectedRoute(route){
+    const key = sanitizeRouteKey(route) || 'home';
+    if (key !== 'testing') return true;
+    try {
+      const check = (typeof window.__vmVerifyAdminAccess === 'function')
+        ? await window.__vmVerifyAdminAccess()
+        : !!(typeof window.__vmIsAdminUnlocked === 'function' && window.__vmIsAdminUnlocked());
+      if (check) return true;
+    } catch (_) {}
+    try {
+      if (typeof window.__vmOpenAdminModal === 'function') window.__vmOpenAdminModal();
+    } catch (_) {}
+    syncUrlToRoute('home', { replace: true });
+    return false;
   }
 
   async function __vmAdminFetch(path, options){
@@ -4501,6 +4526,52 @@ music: {
       }
     },
 
+    testing: {
+      render(){
+        const m = mount();
+        if (!m) return;
+        m.innerHTML = `
+          <div id="vmTestingPanelRoot" style="width:min(1120px,100%); margin:0 auto; padding:18px 18px 28px;">
+            <div style="position:relative; overflow:hidden; border:1px solid rgba(255,95,135,.22); border-radius:24px; padding:22px; background:
+              radial-gradient(circle at top right, rgba(86,216,255,.12), transparent 34%),
+              radial-gradient(circle at bottom left, rgba(255,74,131,.10), transparent 40%),
+              linear-gradient(180deg,rgba(18,10,24,.86),rgba(8,7,14,.92)); box-shadow:0 0 0 1px rgba(255,255,255,.03) inset, 0 20px 52px rgba(0,0,0,.28);">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="min-width:min(100%,420px); max-width:720px;">
+                  <div style="color:rgba(97,224,255,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.18em; text-transform:uppercase;">Protected Workspace</div>
+                  <div style="margin-top:7px; color:rgba(245,236,242,.98); font-family:'Orbitron',system-ui,sans-serif; font-size:32px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; line-height:1;">Testing Lab</div>
+                  <div style="margin-top:12px; color:rgba(225,208,220,.78); font-family:'Orbitron',system-ui,sans-serif; font-size:12px; line-height:1.65;">This route is meant for protected experiments, prototype screens, and in-progress archive work that should only be visible after the admin token verifies successfully.</div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px; min-width:220px; align-items:flex-start;">
+                  <div style="padding:9px 12px; border-radius:999px; border:1px solid rgba(97,224,255,.24); background:rgba(8,18,26,.58); color:rgba(210,242,255,.94); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Admin token verified</div>
+                  <div style="padding:9px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); color:rgba(214,198,210,.8); font-family:'Orbitron',system-ui,sans-serif; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;">Mockups and prototypes live here</div>
+                </div>
+              </div>
+              <div style="margin-top:20px; display:grid; grid-template-columns:minmax(0,1fr); gap:16px;">
+                <div style="border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:16px; background:linear-gradient(180deg,rgba(16,13,24,.9),rgba(10,12,20,.84));">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                    <div>
+                      <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Current Prototype</div>
+                      <div style="margin-top:8px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:20px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">Archive Explorer Mockup</div>
+                    </div>
+                    <a href="/archive-explorer-mockup.html" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; min-width:186px; padding:11px 16px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); text-decoration:none; font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Open Standalone Mockup</a>
+                  </div>
+                  <div style="margin-top:14px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">Tonight this gives you a safe, token-gated place in the main nav. Tomorrow we can start dropping real explorer work here without exposing it publicly in the normal site flow.</div>
+                </div>
+                <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:720px;">
+                  <iframe src="/archive-explorer-mockup.html" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:720px; border:0; background:#05060a;"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+      onEnter(){
+        setDocumentTitle('Testing');
+      },
+      onLeave(){}
+    },
+
     calendar: {
       render(){
         const m = mount();
@@ -5639,7 +5710,14 @@ async function transitionTo(route){
     try { modules[currentRoute].onLeave(); } catch(e) {}
   }
 
-  document.body.classList.remove('route-home','route-music','route-wrestling','route-calendar','route-about','route-pricing','route-contact');
+  if (!(await canAccessProtectedRoute(next))) {
+    unlock();
+    document.body.classList.remove('is-routing');
+    _isRouting = false;
+    return;
+  }
+
+  document.body.classList.remove('route-home','route-music','route-wrestling','route-testing','route-calendar','route-about','route-pricing','route-contact');
   document.body.classList.add(`route-${next}`);
 
   setActiveTopNav(next);
