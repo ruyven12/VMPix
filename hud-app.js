@@ -4537,7 +4537,7 @@ music: {
         const m = mount();
         if (!m) return;
         m.innerHTML = `
-          <div id="vmTestingPanelRoot" style="width:min(1120px,100%); margin:0 auto; padding:18px 18px 28px;">
+          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:8px 2px 24px;">
             <div style="position:relative; overflow:hidden; border:1px solid rgba(255,95,135,.22); border-radius:24px; padding:22px; background:
               radial-gradient(circle at top right, rgba(86,216,255,.12), transparent 34%),
               radial-gradient(circle at bottom left, rgba(255,74,131,.10), transparent 40%),
