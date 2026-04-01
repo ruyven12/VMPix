@@ -708,36 +708,48 @@ function formatMusicRecentRelative(value) {
       : `/music/bands/${bandSlug}${window.location.search || ''}`;
   }
 
-function renderMusicLandingPanel() {
-  return `
-    <div class="musicLandingPanel">
-      <div class="musicLandingIntro">
+  function renderMusicLandingPanel() {
+    return `
+      <div class="musicLandingPanel">
+        <div class="musicLandingIntro">
         <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
         Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
       </div>
-      <div class="musicLandingRecentShell" id="musicLandingRecentShell">
-        <div class="musicLandingRecentDivider" aria-hidden="true"></div>
-        <div class="musicLandingRecentHead">Latest Archive Activity</div>
-        <div class="musicLandingRecentSub">Tracking the most recently updated and newly added albums across the Music archive.</div>
-        <div class="musicLandingRecentGrid">
-          <section class="musicLandingRecentColumn">
-            <div class="musicLandingRecentColumnTitle">Latest Updated</div>
-            <div class="musicLandingRecentList" id="musicLandingLatestUpdated">
-              <div class="musicLandingRecentLoading">Loading recent updates...</div>
-            </div>
-          </section>
-          <section class="musicLandingRecentColumn">
-            <div class="musicLandingRecentColumnTitle">Latest Added</div>
-            <div class="musicLandingRecentList" id="musicLandingLatestAdded">
-              <div class="musicLandingRecentLoading">Loading recent uploads...</div>
+        <div class="musicLandingRecentShell" id="musicLandingRecentShell">
+          <div class="musicLandingRecentDivider" aria-hidden="true"></div>
+          <div class="musicLandingRecentHead">Latest Archive Activity</div>
+          <div class="musicLandingRecentSub">Tracking the most recently updated and newly added albums across the Music archive.</div>
+          <section class="musicLandingRecentColumn musicLandingRecentColumnSingle">
+            <div class="musicLandingRecentList" id="musicLandingLatestActivity">
+              <div class="musicLandingRecentLoading">Loading recent activity...</div>
             </div>
           </section>
         </div>
       </div>
-    </div>
-  `;
-}
+    `;
+  }
 
+  function mergeMusicRecentActivity(data) {
+    const updated = (Array.isArray(data && data.latestUpdated) ? data.latestUpdated : []).map((item) => Object.assign({}, item, {
+      __activityLabel: 'Updated',
+      __activityStamp: String(item && item.lastUpdated || '').trim()
+    }));
+    const added = (Array.isArray(data && data.latestAdded) ? data.latestAdded : []).map((item) => Object.assign({}, item, {
+      __activityLabel: 'Added',
+      __activityStamp: String(item && item.dateUploaded || '').trim()
+    }));
+    const seen = new Set();
+    return updated.concat(added)
+      .filter((item) => {
+        const key = String(item && (item.albumKey || item.url || `${item.showName}|${item.showDate}|${item.__activityLabel}`) || '').trim();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => String(b && b.__activityStamp || '').localeCompare(String(a && a.__activityStamp || '')))
+      .slice(0, 10);
+  }
+  
   function renderMusicRecentActivityItems(items, modeLabel) {
     const list = Array.isArray(items) ? items : [];
     if (!list.length) {
@@ -745,45 +757,43 @@ function renderMusicLandingPanel() {
     }
   return list.map((item) => {
       const showName = String(item && (item.showName || item.title) || 'Untitled show').trim();
-      const band = String(item && item.band || '').trim();
-      const prettyDate = String(item && item.prettyDate || '').trim();
-      const href = buildMusicRecentInternalRoute(item) || String(item && item.url || '').trim();
-      const thumb = String(item && (item.showUrl || item.thumbUrl) || '').trim();
-      const stamp = modeLabel === 'Updated' ? String(item && item.lastUpdated || '').trim() : String(item && item.dateUploaded || '').trim();
-      const relative = formatMusicRecentRelative(stamp);
-      const dateLine = relative || stamp;
-      const inner = `
-      ${thumb ? `<div class="musicLandingRecentThumb"><img src="${escapeMusicRecentHtml(thumb)}" alt="${escapeMusicRecentHtml(showName)}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${modeLabel[0]}</div>`}
-      <div class="musicLandingRecentCopy">
-        <div class="musicLandingRecentItemTitle">${escapeMusicRecentHtml(showName)}</div>
-        <div class="musicLandingRecentItemBand">${band ? `with ${escapeMusicRecentHtml(band)}` : 'with N/A'}</div>
-        <div class="musicLandingRecentItemDate">${escapeMusicRecentHtml(prettyDate || 'Date unavailable')}</div>
-        <div class="musicLandingRecentItemMeta">${modeLabel}${dateLine ? ` • ${escapeMusicRecentHtml(dateLine)}` : ''}</div>
-      </div>
-      `;
-      return href
-        ? `<a class="musicLandingRecentItem" href="${escapeMusicRecentHtml(href)}">${inner}</a>`
-        : `<div class="musicLandingRecentItem">${inner}</div>`;
-    }).join('');
+        const band = String(item && item.band || '').trim();
+        const prettyDate = String(item && item.prettyDate || '').trim();
+        const href = buildMusicRecentInternalRoute(item) || String(item && item.url || '').trim();
+        const thumb = String(item && (item.showUrl || item.thumbUrl) || '').trim();
+        const activityLabel = String(item && (item.__activityLabel || modeLabel) || modeLabel || 'Updated').trim() || 'Updated';
+        const stamp = String(item && (item.__activityStamp || (activityLabel === 'Added' ? item.dateUploaded : item.lastUpdated)) || '').trim();
+        const relative = formatMusicRecentRelative(stamp);
+        const dateLine = relative || stamp;
+        const inner = `
+        ${thumb ? `<div class="musicLandingRecentThumb"><img src="${escapeMusicRecentHtml(thumb)}" alt="${escapeMusicRecentHtml(showName)}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${escapeMusicRecentHtml(activityLabel.charAt(0) || 'U')}</div>`}
+        <div class="musicLandingRecentCopy">
+          <div class="musicLandingRecentItemTitle">${escapeMusicRecentHtml(showName)}</div>
+          <div class="musicLandingRecentItemBand">${band ? `with ${escapeMusicRecentHtml(band)}` : 'with N/A'}</div>
+          <div class="musicLandingRecentItemDate">${escapeMusicRecentHtml(prettyDate || 'Date unavailable')}</div>
+          <div class="musicLandingRecentItemMeta">${escapeMusicRecentHtml(activityLabel)}${dateLine ? ` • ${escapeMusicRecentHtml(dateLine)}` : ''}</div>
+        </div>
+        `;
+        return href
+          ? `<a class="musicLandingRecentItem" href="${escapeMusicRecentHtml(href)}">${inner}</a>`
+          : `<div class="musicLandingRecentItem">${inner}</div>`;
+      }).join('');
+    }
+  
+  async function mountMusicLandingActivity(panel) {
+    const scope = panel || document.getElementById('musicContentPanel');
+    if (!scope) return;
+    const listEl = scope.querySelector('#musicLandingLatestActivity');
+    if (!listEl) return;
+    try {
+      const data = await fetchMusicRecentActivityData();
+      if (!scope.isConnected) return;
+      listEl.innerHTML = renderMusicRecentActivityItems(mergeMusicRecentActivity(data), 'Activity');
+    } catch (_) {
+      if (!scope.isConnected) return;
+      listEl.innerHTML = '<div class="musicLandingRecentEmpty">Recent activity is unavailable right now.</div>';
+    }
   }
-
-async function mountMusicLandingActivity(panel) {
-  const scope = panel || document.getElementById('musicContentPanel');
-  if (!scope) return;
-  const updatedEl = scope.querySelector('#musicLandingLatestUpdated');
-  const addedEl = scope.querySelector('#musicLandingLatestAdded');
-  if (!updatedEl || !addedEl) return;
-  try {
-    const data = await fetchMusicRecentActivityData();
-    if (!scope.isConnected) return;
-    updatedEl.innerHTML = renderMusicRecentActivityItems(data && data.latestUpdated, 'Updated');
-    addedEl.innerHTML = renderMusicRecentActivityItems(data && data.latestAdded, 'Added');
-  } catch (_) {
-    if (!scope.isConnected) return;
-    updatedEl.innerHTML = '<div class="musicLandingRecentEmpty">Recent updates are unavailable right now.</div>';
-    addedEl.innerHTML = '<div class="musicLandingRecentEmpty">Recent uploads are unavailable right now.</div>';
-  }
-}
 
 function parseMusicCsvLine(line) {
   const out = [];
@@ -1473,11 +1483,6 @@ if (!document.getElementById('musicContentWipeStyles')) {
             line-height:1.45;
             letter-spacing:.04em;
           }
-          .musicLandingRecentGrid{
-            display:grid;
-            grid-template-columns:repeat(2, minmax(0,1fr));
-            gap:14px;
-          }
           .musicLandingRecentColumn{
             display:grid;
             gap:10px;
@@ -1486,6 +1491,11 @@ if (!document.getElementById('musicContentWipeStyles')) {
             border-radius:18px;
             background:linear-gradient(180deg, rgba(22,10,28,0.72), rgba(10,8,18,0.82));
             box-shadow:0 0 0 1px rgba(255,70,110,0.08) inset, 0 0 18px rgba(255,70,110,0.10);
+          }
+          .musicLandingRecentColumnSingle{
+            max-width:780px;
+            width:100%;
+            margin:0 auto;
           }
           .musicLandingRecentColumnTitle{
             text-align:center;
@@ -1585,7 +1595,6 @@ if (!document.getElementById('musicContentWipeStyles')) {
           @media (max-width:520px){
             .musicProjectTitle{ font-size:22px; }
             .musicProjectBody{ font-size:14px; }
-            .musicLandingRecentGrid{ grid-template-columns:1fr; }
             .musicLandingRecentHead{ font-size:16px; }
           }
 
