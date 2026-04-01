@@ -788,13 +788,94 @@
       }
 
       .showsDetailSection{
-        padding: 0 14px 14px;
+          padding: 0 14px 14px;
+        }
+      .showsDetailGeo{
+          padding: 0 14px 14px;
+      }
+      .showsDetailGeoCard{
+          display:none;
+          border-radius: 16px;
+          border: 1px solid rgba(103,203,255,0.18);
+          background: linear-gradient(180deg, rgba(16,20,34,0.72), rgba(10,12,22,0.86));
+          box-shadow: 0 10px 26px rgba(0,0,0,0.30), 0 0 0 1px rgba(103,203,255,0.08) inset;
+          overflow: hidden;
+      }
+      .showsDetailGeoCard.is-visible{
+          display:grid;
+          grid-template-columns: minmax(0, 1fr) 260px;
+          gap: 0;
+      }
+      @media (max-width: 860px){
+        .showsDetailGeoCard.is-visible{ grid-template-columns: 1fr; }
+      }
+      .showsDetailGeoCopy{
+          padding: 14px;
+          display:grid;
+          gap: 8px;
+          align-content:center;
+      }
+      .showsDetailGeoKicker{
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+          color: rgba(160,225,255,0.68);
+          text-transform: uppercase;
+      }
+      .showsDetailGeoTitle{
+          font-size: 15px;
+          font-weight: 800;
+          color: rgba(245,248,255,0.94);
+          line-height: 1.25;
+      }
+      .showsDetailGeoMeta{
+          font-size: 12px;
+          line-height: 1.5;
+          color: rgba(224,232,240,0.80);
+      }
+      .showsDetailGeoLink{
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width: fit-content;
+          padding: 7px 12px;
+          border-radius: 999px;
+          border: 1px solid rgba(103,203,255,0.26);
+          color: rgba(200,240,255,0.96);
+          text-decoration: none;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          background: rgba(103,203,255,0.08);
+      }
+      .showsDetailGeoLink:hover{
+          background: rgba(103,203,255,0.14);
+          border-color: rgba(103,203,255,0.42);
+      }
+      .showsDetailGeoMapPane{
+          min-height: 180px;
+          border-left: 1px solid rgba(255,255,255,0.08);
+          background: rgba(0,0,0,0.18);
+      }
+      @media (max-width: 860px){
+        .showsDetailGeoMapPane{
+          border-left: 0;
+          border-top: 1px solid rgba(255,255,255,0.08);
+        }
+      }
+      .showsDetailGeoMap{
+          width: 100%;
+          height: 100%;
+          min-height: 180px;
+          border: 0;
+          display: block;
+          filter: saturate(.82) contrast(1.02) brightness(.92);
       }
       .showsDetailSectionTitle{
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        color: rgba(255,255,255,0.62);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          color: rgba(255,255,255,0.62);
         margin: 10px 4px 10px;
       }
 
@@ -1614,6 +1695,26 @@ async function ensureShowsLoaded(opts) {
           </div>
         </div>
 
+        <div class="showsDetailGeo">
+          <div class="showsDetailGeoCard" data-show-geo-card="1">
+            <div class="showsDetailGeoCopy">
+              <div class="showsDetailGeoKicker">Photo Location</div>
+              <div class="showsDetailGeoTitle" data-show-geo-title="1">Loading map preview...</div>
+              <div class="showsDetailGeoMeta" data-show-geo-meta="1"></div>
+              <a class="showsDetailGeoLink" data-show-geo-link="1" href="#" target="_blank" rel="noopener noreferrer">Open full map</a>
+            </div>
+            <div class="showsDetailGeoMapPane">
+              <iframe
+                class="showsDetailGeoMap"
+                data-show-geo-frame="1"
+                title="Show photo location map"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+
         <div class="showsDetailSection">
           <div class="showsDetailSectionTitle">BANDS ON THIS BILL:</div>
           <div class="showsDetailBands bandGrid" data-detail-bands="1">
@@ -1623,6 +1724,52 @@ async function ensureShowsLoaded(opts) {
       </div>
     </div>
   `;
+
+  const geoCard = containerEl.querySelector('[data-show-geo-card="1"]');
+  const geoTitleEl = containerEl.querySelector('[data-show-geo-title="1"]');
+  const geoMetaEl = containerEl.querySelector('[data-show-geo-meta="1"]');
+  const geoLinkEl = containerEl.querySelector('[data-show-geo-link="1"]');
+  const geoFrameEl = containerEl.querySelector('[data-show-geo-frame="1"]');
+
+  fetchGeoFootprint(false).then((footprint) => {
+    const geo = findGeoFootprintForShow(show, footprint);
+    const lat = Number(geo?.lat);
+    const lng = Number(geo?.lng);
+    if (!geoCard || !geo || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    const coverage = Number(geo?.coveragePct);
+    const geoTagged = Number(geo?.geoTaggedImages);
+    const mapUrl = String(geo?.mapUrl || "").trim();
+    const embedUrl = buildMiniMapEmbedUrl(lat, lng);
+    const prettyDate = String(geo?.prettyDate || date || "").trim();
+    const venue = String(geo?.venueLine || venueLine || "").trim();
+
+    if (geoTitleEl) {
+      geoTitleEl.textContent = venue || "Geo-tagged photo cluster";
+    }
+
+    if (geoMetaEl) {
+      const lines = [];
+      if (prettyDate) lines.push(prettyDate);
+      lines.push(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`);
+      if (Number.isFinite(coverage)) lines.push(`${coverage}% coverage`);
+      lines.push(`${roundGeoCoord(lat)}, ${roundGeoCoord(lng)}`);
+      geoMetaEl.innerHTML = lines.map((line) => `<div>${safe(line)}</div>`).join("");
+    }
+
+    if (geoLinkEl) {
+      if (mapUrl) geoLinkEl.href = mapUrl;
+      else geoLinkEl.remove();
+    }
+
+    if (geoFrameEl && embedUrl) {
+      geoFrameEl.src = embedUrl;
+    }
+
+    geoCard.classList.add("is-visible");
+  }).catch((err) => {
+    console.warn("Failed to render show geo card:", err);
+  });
 
   // Populate bands list in the focused view (Bands-side style: logo + name + green/red tint).
   const bandsHost = containerEl.querySelector('[data-detail-bands="1"]');
@@ -2059,6 +2206,84 @@ async function fetchJsonSafe(url, opts) {
     }
   }
 }
+
+  let _geoFootprintPromise = null;
+  let _geoFootprintCache = null;
+
+  function normalizeGeoShowText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  async function fetchGeoFootprint(forceFresh) {
+    if (_geoFootprintCache && !forceFresh) return _geoFootprintCache;
+    if (_geoFootprintPromise && !forceFresh) return _geoFootprintPromise;
+
+    const url = `${API_BASE}/geo/footprint${forceFresh ? "?force=1" : ""}`;
+    _geoFootprintPromise = fetchJsonSafe(url, { retries: 2, timeoutMs: 30000 })
+      .then((data) => {
+        _geoFootprintCache = data || { items: [] };
+        return _geoFootprintCache;
+      })
+      .catch((err) => {
+        console.warn("Failed to load geo footprint:", err);
+        return { items: [] };
+      })
+      .finally(() => {
+        _geoFootprintPromise = null;
+      });
+
+    return _geoFootprintPromise;
+  }
+
+  function findGeoFootprintForShow(show, footprint) {
+    const items = Array.isArray(footprint?.items) ? footprint.items : [];
+    if (!items.length) return null;
+
+    const showCode = toMMDDYY(show?.date || show?.showDate || "");
+    const showTitleNorm = normalizeGeoShowText(show?.title || show?.show_name || "");
+    let best = null;
+    let bestScore = -1;
+
+    items.forEach((item) => {
+      const itemCode = toMMDDYY(item?.showDate || "");
+      const itemTitleNorm = normalizeGeoShowText(item?.showName || "");
+      let score = 0;
+
+      if (showCode && itemCode && showCode === itemCode) score += 3;
+      if (showTitleNorm && itemTitleNorm && showTitleNorm === itemTitleNorm) score += 4;
+      if (showTitleNorm && itemTitleNorm && (showTitleNorm.includes(itemTitleNorm) || itemTitleNorm.includes(showTitleNorm))) score += 2;
+      if (Number(item?.geoTaggedImages) > 0) score += 1;
+
+      if (score > bestScore) {
+        best = item;
+        bestScore = score;
+      }
+    });
+
+    return bestScore >= 4 ? best : null;
+  }
+
+  function roundGeoCoord(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num.toFixed(4) : "";
+  }
+
+  function buildMiniMapEmbedUrl(lat, lng) {
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return "";
+    const span = 0.012;
+    const left = (lngNum - span).toFixed(6);
+    const right = (lngNum + span).toFixed(6);
+    const top = (latNum + span).toFixed(6);
+    const bottom = (latNum - span).toFixed(6);
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(left + "," + bottom + "," + right + "," + top)}&layer=mapnik&marker=${encodeURIComponent(latNum.toFixed(6) + "," + lngNum.toFixed(6))}`;
+  }
 
 
   // get all albums inside a SmugMug folder using the same backend pattern as script.js
