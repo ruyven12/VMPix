@@ -659,6 +659,16 @@ function formatMusicRecentRelative(value) {
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function escapeMusicRecentHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
 function renderMusicLandingPanel() {
   return `
     <div class="musicLandingPanel">
@@ -695,21 +705,25 @@ function renderMusicRecentActivityItems(items, modeLabel) {
     return `<div class="musicLandingRecentEmpty">No recent ${modeLabel.toLowerCase()} items were found.</div>`;
   }
   return list.map((item) => {
-    const title = String(item && item.title || 'Untitled album').trim();
+    const showName = String(item && (item.showName || item.title) || 'Untitled show').trim();
+    const band = String(item && item.band || '').trim();
+    const prettyDate = String(item && item.prettyDate || '').trim();
     const href = String(item && item.url || '').trim();
-    const thumb = String(item && item.thumbUrl || '').trim();
+    const thumb = String(item && (item.showUrl || item.thumbUrl) || '').trim();
     const stamp = modeLabel === 'Updated' ? String(item && item.lastUpdated || '').trim() : String(item && item.dateUploaded || '').trim();
     const relative = formatMusicRecentRelative(stamp);
     const dateLine = relative || stamp;
     const inner = `
-      ${thumb ? `<div class="musicLandingRecentThumb"><img src="${thumb}" alt="${title.replace(/"/g, '&quot;')}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${modeLabel[0]}</div>`}
+      ${thumb ? `<div class="musicLandingRecentThumb"><img src="${escapeMusicRecentHtml(thumb)}" alt="${escapeMusicRecentHtml(showName)}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${modeLabel[0]}</div>`}
       <div class="musicLandingRecentCopy">
-        <div class="musicLandingRecentItemTitle">${title}</div>
-        <div class="musicLandingRecentItemMeta">${modeLabel}${dateLine ? ` • ${dateLine}` : ''}</div>
+        <div class="musicLandingRecentItemTitle">${escapeMusicRecentHtml(showName)}</div>
+        <div class="musicLandingRecentItemBand">${band ? `with ${escapeMusicRecentHtml(band)}` : 'with N/A'}</div>
+        <div class="musicLandingRecentItemDate">${escapeMusicRecentHtml(prettyDate || 'Date unavailable')}</div>
+        <div class="musicLandingRecentItemMeta">${modeLabel}${dateLine ? ` • ${escapeMusicRecentHtml(dateLine)}` : ''}</div>
       </div>
     `;
     return href
-      ? `<a class="musicLandingRecentItem" href="${href}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+      ? `<a class="musicLandingRecentItem" href="${escapeMusicRecentHtml(href)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
       : `<div class="musicLandingRecentItem">${inner}</div>`;
   }).join('');
 }
@@ -1500,6 +1514,16 @@ if (!document.getElementById('musicContentWipeStyles')) {
             font-weight:800;
             line-height:1.35;
             letter-spacing:.03em;
+            text-transform:none;
+            white-space:normal;
+            overflow-wrap:anywhere;
+          }
+          .musicLandingRecentItemBand,
+          .musicLandingRecentItemDate{
+            color:rgba(226,232,240,0.78);
+            font-size:11px;
+            letter-spacing:.05em;
+            line-height:1.35;
             text-transform:none;
             white-space:normal;
             overflow-wrap:anywhere;
