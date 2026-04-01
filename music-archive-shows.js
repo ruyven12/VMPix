@@ -850,6 +850,13 @@
           color: rgba(245,248,255,0.94);
           line-height: 1.25;
       }
+      .showsDetailGeoCoord{
+          margin-top: 4px;
+          font-size: 12px;
+          font-weight: 700;
+          color: rgba(224,232,240,0.80);
+          line-height: 1.35;
+      }
       .showsDetailGeoMetaSub{
           margin-top: 6px;
       }
@@ -1692,13 +1699,6 @@ async function ensureShowsLoaded(opts) {
             <div class="showsDetailTitle">${safe(title)}</div>
 
             <div class="showsDetailPills">
-              ${date ? `
-                <div class="showsDetailPill">
-                  <div class="showsDetailPillLabel">Date</div>
-                  <div class="showsDetailPillValue">${safe(date)}</div>
-                </div>
-              ` : ``}
-
               <div class="showsDetailPill">
                 <div class="showsDetailPillLabel">Band Amount</div>
                 <div class="showsDetailPillValue">${safe(String(bandCount))}</div>
@@ -1759,7 +1759,9 @@ async function ensureShowsLoaded(opts) {
     }
 
     if (geoMetaEl) {
+      const coordText = `(${roundGeoCoord(lat)}, ${roundGeoCoord(lng)})`;
       geoMetaEl.innerHTML = `
+        <div class="showsDetailGeoCoord">${safe(coordText)}</div>
         ${prettyDate ? `
           <div class="showsDetailGeoMetaSection">
             <div class="showsDetailGeoMetaLabel">Date</div>
@@ -1767,7 +1769,6 @@ async function ensureShowsLoaded(opts) {
           </div>
         ` : ``}
         <div class="showsDetailGeoMetaSub">${safe(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`)}</div>
-        <div>${safe(`${roundGeoCoord(lat)}, ${roundGeoCoord(lng)}`)}</div>
       `;
     }
 
