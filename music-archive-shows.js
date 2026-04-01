@@ -833,6 +833,26 @@
           line-height: 1.5;
           color: rgba(224,232,240,0.80);
       }
+      .showsDetailGeoMetaSection{
+          margin-top: 4px;
+      }
+      .showsDetailGeoMetaLabel{
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+          color: rgba(160,225,255,0.68);
+          text-transform: uppercase;
+          margin-bottom: 2px;
+      }
+      .showsDetailGeoMetaValue{
+          font-size: 15px;
+          font-weight: 800;
+          color: rgba(245,248,255,0.94);
+          line-height: 1.25;
+      }
+      .showsDetailGeoMetaSub{
+          margin-top: 6px;
+      }
       .showsDetailGeoLink{
           display:inline-flex;
           align-items:center;
@@ -1739,11 +1759,16 @@ async function ensureShowsLoaded(opts) {
     }
 
     if (geoMetaEl) {
-      const lines = [];
-      if (prettyDate) lines.push(prettyDate);
-      lines.push(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`);
-      lines.push(`${roundGeoCoord(lat)}, ${roundGeoCoord(lng)}`);
-      geoMetaEl.innerHTML = lines.map((line) => `<div>${safe(line)}</div>`).join("");
+      geoMetaEl.innerHTML = `
+        ${prettyDate ? `
+          <div class="showsDetailGeoMetaSection">
+            <div class="showsDetailGeoMetaLabel">Date</div>
+            <div class="showsDetailGeoMetaValue">${safe(prettyDate)}</div>
+          </div>
+        ` : ``}
+        <div class="showsDetailGeoMetaSub">${safe(`${Number.isFinite(geoTagged) ? geoTagged : 0} geo-tagged shots`)}</div>
+        <div>${safe(`${roundGeoCoord(lat)}, ${roundGeoCoord(lng)}`)}</div>
+      `;
     }
 
     if (geoFrameEl && embedUrl) {
