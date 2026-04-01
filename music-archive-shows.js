@@ -2312,6 +2312,34 @@ async function fetchJsonSafe(url, opts) {
 
   let _geoFootprintPromise = null;
   let _geoFootprintCache = null;
+  const GEO_FOOTPRINT_STORAGE_KEY = "vm_music_geo_footprint_v1";
+  const GEO_FOOTPRINT_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+
+  function readGeoFootprintStorage() {
+    try {
+      const raw = localStorage.getItem(GEO_FOOTPRINT_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const ts = Number(parsed?.t);
+      const data = parsed?.v;
+      if (!Number.isFinite(ts) || !data || (Date.now() - ts) > GEO_FOOTPRINT_TTL_MS) {
+        try { localStorage.removeItem(GEO_FOOTPRINT_STORAGE_KEY); } catch (_) {}
+        return null;
+      }
+      return data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeGeoFootprintStorage(data) {
+    try {
+      localStorage.setItem(GEO_FOOTPRINT_STORAGE_KEY, JSON.stringify({
+        t: Date.now(),
+        v: data || { items: [] }
+      }));
+    } catch (_) {}
+  }
 
   function normalizeGeoShowText(value) {
     return String(value || "")
@@ -2325,11 +2353,19 @@ async function fetchJsonSafe(url, opts) {
   async function fetchGeoFootprint(forceFresh) {
     if (_geoFootprintCache && !forceFresh) return _geoFootprintCache;
     if (_geoFootprintPromise && !forceFresh) return _geoFootprintPromise;
+    if (!forceFresh) {
+      const stored = readGeoFootprintStorage();
+      if (stored) {
+        _geoFootprintCache = stored;
+        return _geoFootprintCache;
+      }
+    }
 
     const url = `${API_BASE}/geo/footprint${forceFresh ? "?force=1" : ""}`;
     _geoFootprintPromise = fetchJsonSafe(url, { retries: 2, timeoutMs: 30000 })
       .then((data) => {
         _geoFootprintCache = data || { items: [] };
+        writeGeoFootprintStorage(_geoFootprintCache);
         return _geoFootprintCache;
       })
       .catch((err) => {
