@@ -854,7 +854,7 @@
           line-height: 1.25;
       }
       .showsDetailGeoCoord{
-          margin-top: 4px;
+          margin-top: 10px;
           font-size: 12px;
           font-weight: 700;
           color: rgba(224,232,240,0.80);
