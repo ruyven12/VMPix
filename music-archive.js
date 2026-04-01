@@ -616,6 +616,7 @@ const MUSIC_STATS_SHOTS_FALLBACK = 61289;
 const MUSIC_STATS_NOT_UPGRADED_FALLBACK = 22506;
 const MUSIC_STATS_ON_SITE_FALLBACK = 36342;
 let _musicStatsPromise = null;
+let _musicRecentActivityPromise = null;
 
 function getMusicArchiveApiBase() {
   try {
@@ -624,6 +625,110 @@ function getMusicArchiveApiBase() {
       : 'https://music-archive-3lfa.onrender.com';
   } catch (_) {
     return 'https://music-archive-3lfa.onrender.com';
+  }
+}
+
+async function fetchMusicRecentActivityData(forceFresh) {
+  if (_musicRecentActivityPromise && !forceFresh) return _musicRecentActivityPromise;
+  _musicRecentActivityPromise = (async () => {
+    const apiBase = getMusicArchiveApiBase();
+    const url = apiBase + '/recent-activity' + (forceFresh ? '?force=1' : '');
+    const res = await fetch(url, { cache: forceFresh ? 'no-store' : 'default' });
+    if (!res.ok) throw new Error('recent activity request failed');
+    return res.json();
+  })();
+  try {
+    return await _musicRecentActivityPromise;
+  } finally {
+    if (forceFresh) _musicRecentActivityPromise = null;
+  }
+}
+
+function formatMusicRecentRelative(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) return '';
+  const diffMs = Date.now() - dt.getTime();
+  const diffMin = Math.max(0, Math.round(diffMs / 60000));
+  if (diffMin < 60) return diffMin <= 1 ? '1 minute ago' : `${diffMin} minutes ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return diffHr === 1 ? '1 hour ago' : `${diffHr} hours ago`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay < 30) return diffDay === 1 ? '1 day ago' : `${diffDay} days ago`;
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function renderMusicLandingPanel() {
+  return `
+    <div class="musicLandingPanel">
+      <div class="musicLandingIntro">
+        <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
+        Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
+      </div>
+      <div class="musicLandingRecentShell" id="musicLandingRecentShell">
+        <div class="musicLandingRecentDivider" aria-hidden="true"></div>
+        <div class="musicLandingRecentHead">Latest Archive Activity</div>
+        <div class="musicLandingRecentSub">Tracking the most recently updated and newly added albums across the Music archive.</div>
+        <div class="musicLandingRecentGrid">
+          <section class="musicLandingRecentColumn">
+            <div class="musicLandingRecentColumnTitle">Latest Updated</div>
+            <div class="musicLandingRecentList" id="musicLandingLatestUpdated">
+              <div class="musicLandingRecentLoading">Loading recent updates...</div>
+            </div>
+          </section>
+          <section class="musicLandingRecentColumn">
+            <div class="musicLandingRecentColumnTitle">Latest Added</div>
+            <div class="musicLandingRecentList" id="musicLandingLatestAdded">
+              <div class="musicLandingRecentLoading">Loading recent uploads...</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMusicRecentActivityItems(items, modeLabel) {
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) {
+    return `<div class="musicLandingRecentEmpty">No recent ${modeLabel.toLowerCase()} items were found.</div>`;
+  }
+  return list.map((item) => {
+    const title = String(item && item.title || 'Untitled album').trim();
+    const href = String(item && item.url || '').trim();
+    const thumb = String(item && item.thumbUrl || '').trim();
+    const stamp = modeLabel === 'Updated' ? String(item && item.lastUpdated || '').trim() : String(item && item.dateUploaded || '').trim();
+    const relative = formatMusicRecentRelative(stamp);
+    const dateLine = relative || stamp;
+    const inner = `
+      ${thumb ? `<div class="musicLandingRecentThumb"><img src="${thumb}" alt="${title.replace(/"/g, '&quot;')}" loading="lazy" decoding="async" /></div>` : `<div class="musicLandingRecentThumb is-empty">${modeLabel[0]}</div>`}
+      <div class="musicLandingRecentCopy">
+        <div class="musicLandingRecentItemTitle">${title}</div>
+        <div class="musicLandingRecentItemMeta">${modeLabel}${dateLine ? ` • ${dateLine}` : ''}</div>
+      </div>
+    `;
+    return href
+      ? `<a class="musicLandingRecentItem" href="${href}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+      : `<div class="musicLandingRecentItem">${inner}</div>`;
+  }).join('');
+}
+
+async function mountMusicLandingActivity(panel) {
+  const scope = panel || document.getElementById('musicContentPanel');
+  if (!scope) return;
+  const updatedEl = scope.querySelector('#musicLandingLatestUpdated');
+  const addedEl = scope.querySelector('#musicLandingLatestAdded');
+  if (!updatedEl || !addedEl) return;
+  try {
+    const data = await fetchMusicRecentActivityData();
+    if (!scope.isConnected) return;
+    updatedEl.innerHTML = renderMusicRecentActivityItems(data && data.latestUpdated, 'Updated');
+    addedEl.innerHTML = renderMusicRecentActivityItems(data && data.latestAdded, 'Added');
+  } catch (_) {
+    if (!scope.isConnected) return;
+    updatedEl.innerHTML = '<div class="musicLandingRecentEmpty">Recent updates are unavailable right now.</div>';
+    addedEl.innerHTML = '<div class="musicLandingRecentEmpty">Recent uploads are unavailable right now.</div>';
   }
 }
 
@@ -747,7 +852,8 @@ async function fetchMusicStatsData(forceFresh) {
       const n = Number(person && person.photoCount);
       return sum + (Number.isFinite(n) ? n : 0);
     }, 0);
-    const albumCount = Number(peopleJson.albumsScanned || 0) || 0;
+    const peopleStats = (peopleJson && typeof peopleJson.stats === 'object') ? peopleJson.stats : peopleJson;
+    const albumCount = Number(peopleStats.albumsScanned || 0) || 0;
     const generatedAt = String(peopleJson.generatedAt || '').trim();
     const totalShots = (() => {
       if (statsRes.status === 'fulfilled') {
@@ -1154,14 +1260,10 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
       copy.style.textAlign = 'center';
       copy.style.padding = '26px 0';
 
-      copy.innerHTML = `
-        <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-          <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
-          Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
-        </div>
-      `;
+      copy.innerHTML = renderMusicLandingPanel();
 
       hudMain.appendChild(copy);
+      try { mountMusicLandingActivity(copy); } catch (_) {}
       return;
     }
 
@@ -1211,14 +1313,10 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
           _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
         }
 
-        _contentPanelEl.innerHTML = `
-          <div style="max-width:720px; opacity:.85; font-size:14px; line-height:1.6; letter-spacing:.04em; text-transform:none;">
-            <strong>Welcome to the Music section under Voodoo Media - one of the biggest projects that I have in my arsenal.</strong><br><br>
-            Filters to sort the way you look at the archive are above along with some info bits - please make your selection above.
-          </div>
-        `;
+        _contentPanelEl.innerHTML = renderMusicLandingPanel();
 
         hudMain.appendChild(_contentPanelEl);
+        try { mountMusicLandingActivity(_contentPanelEl); } catch (_) {}
       }
 
       _orangeBoxEl = document.createElement('div');
@@ -1263,9 +1361,169 @@ if (!document.getElementById('musicContentWipeStyles')) {
             letter-spacing:.04em;
             white-space:pre-wrap;
           }
+          .musicLandingPanel{
+            width:100%;
+            max-width:1020px;
+            margin:0 auto;
+            display:grid;
+            gap:18px;
+          }
+          .musicLandingIntro{
+            max-width:720px;
+            margin:0 auto;
+            opacity:.85;
+            font-size:14px;
+            line-height:1.6;
+            letter-spacing:.04em;
+            text-transform:none;
+            text-align:center;
+          }
+          .musicLandingRecentShell{
+            width:100%;
+            max-width:980px;
+            margin:0 auto;
+            display:grid;
+            gap:12px;
+          }
+          .musicLandingRecentDivider{
+            position:relative;
+            display:block;
+            height:2px;
+            width:min(100%, 860px);
+            margin:0 auto;
+            border-radius:999px;
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,84,120,0.18) 10%, rgba(255,84,120,0.62) 50%, rgba(255,84,120,0.18) 90%, rgba(255,255,255,0) 100%);
+            box-shadow:0 0 10px rgba(255,84,120,0.26), 0 0 18px rgba(255,84,120,0.16);
+            overflow:hidden;
+          }
+          .musicLandingRecentDivider::after{
+            content:"";
+            position:absolute;
+            inset:0;
+            border-radius:inherit;
+            background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,220,228,0.40) 50%, rgba(255,255,255,0) 100%);
+            opacity:.9;
+            filter:blur(.2px);
+          }
+          .musicLandingRecentHead{
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:18px;
+            font-weight:900;
+            letter-spacing:.12em;
+            color:rgba(236,241,250,0.96);
+          }
+          .musicLandingRecentSub{
+            text-align:center;
+            color:rgba(212,223,242,0.70);
+            font-size:12px;
+            line-height:1.45;
+            letter-spacing:.04em;
+          }
+          .musicLandingRecentGrid{
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0,1fr));
+            gap:14px;
+          }
+          .musicLandingRecentColumn{
+            display:grid;
+            gap:10px;
+            padding:14px;
+            border:1px solid rgba(255,70,110,0.22);
+            border-radius:18px;
+            background:linear-gradient(180deg, rgba(22,10,28,0.72), rgba(10,8,18,0.82));
+            box-shadow:0 0 0 1px rgba(255,70,110,0.08) inset, 0 0 18px rgba(255,70,110,0.10);
+          }
+          .musicLandingRecentColumnTitle{
+            text-align:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:12px;
+            font-weight:900;
+            letter-spacing:.14em;
+            color:#ff9fb6;
+            text-transform:none;
+          }
+          .musicLandingRecentList{
+            display:grid;
+            gap:10px;
+          }
+          .musicLandingRecentItem{
+            display:grid;
+            grid-template-columns:56px minmax(0,1fr);
+            gap:10px;
+            align-items:center;
+            padding:10px;
+            border-radius:14px;
+            border:1px solid rgba(120,138,255,0.16);
+            background:rgba(10,18,34,0.52);
+            text-decoration:none;
+            color:inherit;
+            transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+          }
+          .musicLandingRecentItem:hover{
+            transform:translateY(-1px);
+            border-color:rgba(255,112,156,0.28);
+            box-shadow:0 0 14px rgba(255,84,120,0.12);
+          }
+          .musicLandingRecentThumb{
+            width:56px;
+            height:56px;
+            border-radius:12px;
+            overflow:hidden;
+            border:1px solid rgba(255,255,255,0.10);
+            background:rgba(0,0,0,0.22);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-family:"Orbitron", system-ui, sans-serif;
+            font-size:18px;
+            font-weight:900;
+            color:rgba(255,190,210,0.78);
+          }
+          .musicLandingRecentThumb img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+          }
+          .musicLandingRecentThumb.is-empty{
+            background:linear-gradient(180deg, rgba(255,84,120,0.18), rgba(0,0,0,0.12));
+          }
+          .musicLandingRecentCopy{
+            min-width:0;
+            display:grid;
+            gap:5px;
+          }
+          .musicLandingRecentItemTitle{
+            color:rgba(244,247,255,0.96);
+            font-size:13px;
+            font-weight:800;
+            line-height:1.35;
+            letter-spacing:.03em;
+            text-transform:none;
+            white-space:normal;
+            overflow-wrap:anywhere;
+          }
+          .musicLandingRecentItemMeta{
+            color:rgba(212,223,242,0.66);
+            font-size:11px;
+            letter-spacing:.06em;
+            line-height:1.35;
+            text-transform:none;
+          }
+          .musicLandingRecentLoading,
+          .musicLandingRecentEmpty{
+            text-align:center;
+            color:rgba(212,223,242,0.66);
+            font-size:12px;
+            padding:12px 8px;
+            line-height:1.45;
+          }
           @media (max-width:520px){
             .musicProjectTitle{ font-size:22px; }
             .musicProjectBody{ font-size:14px; }
+            .musicLandingRecentGrid{ grid-template-columns:1fr; }
+            .musicLandingRecentHead{ font-size:16px; }
           }
 
           .musicStatsShell{

@@ -4165,7 +4165,8 @@ const pollDelayMs = 2000;
   }
 } catch (_) {}
 
-      const scanned = Number.isFinite(Number(data?.albumsScanned)) ? Number(data.albumsScanned) : null;
+      const payloadStats = (data && typeof data.stats === 'object') ? data.stats : data;
+      const scanned = Number.isFinite(Number(payloadStats?.albumsScanned)) ? Number(payloadStats.albumsScanned) : null;
       if (metaEl) {
         const left = `${idx.size} people indexed`;
         const extra = scanned !== null ? ` - albums scanned: ${scanned}` : "";
