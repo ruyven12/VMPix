@@ -1187,7 +1187,7 @@
                 </button>
                 <div class="subjectMenu" id="filterMenu" hidden>
                   <button class="hint modeHint active" type="button" data-filter="all" data-filter-role="all" aria-pressed="true">All</button>
-                  <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">People/Performer</button>
+                  <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">Performers</button>
                   <button class="hint modeHint" type="button" data-filter="band" data-filter-role="band" aria-pressed="false">Bands</button>
                   <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
                   <button class="hint modeHint" type="button" data-filter="venue" data-filter-role="venue" aria-pressed="false">Venues</button>
@@ -1202,7 +1202,7 @@
 
     <section class="content">
       <div class="subFilterBar" id="peopleBrowser" hidden>
-        <div class="subFilterLabel">People Browser</div>
+        <div class="subFilterLabel">Performers Browser</div>
         <div class="subFilterControls">
           <button class="subHint active" type="button" data-subfilter="all" aria-pressed="true">All</button>
         </div>
@@ -1400,7 +1400,7 @@
 
     const filterLabels = {
       all: "all categories",
-      person: "people",
+      person: "performers",
       band: "bands",
       show: "shows",
       venue: "venues"
@@ -1435,14 +1435,14 @@
     const filterRowBySubject = {
       all: {
         all: { label: "All", filter: "all", hidden: false },
-        people: { label: "People/Performer", filter: "person", hidden: false },
+        people: { label: "Performers", filter: "person", hidden: false },
         band: { label: "Bands", filter: "band", hidden: false },
         show: { label: "Shows", filter: "show", hidden: false },
         venue: { label: "Venues", filter: "venue", hidden: false }
       },
       music: {
         all: { label: "All", filter: "all", hidden: false },
-        people: { label: "People", filter: "person", hidden: false },
+        people: { label: "Performers", filter: "person", hidden: false },
         band: { label: "Bands", filter: "band", hidden: false },
         show: { label: "Shows", filter: "show", hidden: false },
         venue: { label: "Venues", filter: "venue", hidden: false }
