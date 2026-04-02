@@ -441,12 +441,14 @@
     }
 
     .subFilterBar {
-      width: min(1280px, 100%);
+      width: 100%;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 16px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       align-items: center;
-      padding: 14px 16px;
+      justify-items: center;
+      text-align: center;
+      padding: 12px 16px;
       border: 1px solid rgba(255, 167, 205, 0.16);
       border-radius: 18px;
       background:
@@ -474,10 +476,12 @@
       gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
+      max-width: 100%;
     }
 
     .subHint {
-      padding: 7px 10px;
+      min-width: 30px;
+      padding: 6px 9px;
       border-radius: var(--radius-sm);
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.03);
@@ -503,6 +507,10 @@
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         0 0 14px rgba(255, 79, 154, 0.16);
+    }
+
+    .subHint[hidden] {
+      display: none;
     }
 
     .subFilterMeta {
@@ -1192,16 +1200,6 @@
         justify-self: start;
       }
 
-      .subFilterBar {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        text-align: center;
-      }
-
-      .subFilterMeta {
-        text-align: center;
-      }
-
       .statGrid {
         grid-template-columns: 1fr;
       }
@@ -1289,17 +1287,40 @@
     </section>
 
     <section class="content">
-      <div class="subFilterBar" id="peopleBrowser" hidden>
-        <div class="subFilterLabel">Performers Browser</div>
-        <div class="subFilterControls">
-          <button class="subHint active" type="button" data-subfilter="all" aria-pressed="true">All</button>
-        </div>
-        <div class="subFilterMeta" id="peopleBrowserMeta">558 indexed</div>
-      </div>
-
       <section class="resultsPanel">
         <div class="panelHeader">
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
+        </div>
+        <div class="subFilterBar" id="peopleBrowser" hidden>
+          <div class="subFilterControls">
+            <button class="subHint active groupHint" type="button" data-subfilter="all" aria-pressed="true">All</button>
+            <button class="subHint" type="button" data-subfilter="A" aria-pressed="false">A</button>
+            <button class="subHint" type="button" data-subfilter="B" aria-pressed="false">B</button>
+            <button class="subHint" type="button" data-subfilter="C" aria-pressed="false">C</button>
+            <button class="subHint" type="button" data-subfilter="D" aria-pressed="false">D</button>
+            <button class="subHint" type="button" data-subfilter="E" aria-pressed="false">E</button>
+            <button class="subHint" type="button" data-subfilter="F" aria-pressed="false">F</button>
+            <button class="subHint" type="button" data-subfilter="G" aria-pressed="false">G</button>
+            <button class="subHint" type="button" data-subfilter="H" aria-pressed="false">H</button>
+            <button class="subHint" type="button" data-subfilter="I" aria-pressed="false">I</button>
+            <button class="subHint" type="button" data-subfilter="J" aria-pressed="false">J</button>
+            <button class="subHint" type="button" data-subfilter="K" aria-pressed="false">K</button>
+            <button class="subHint" type="button" data-subfilter="L" aria-pressed="false">L</button>
+            <button class="subHint" type="button" data-subfilter="M" aria-pressed="false">M</button>
+            <button class="subHint" type="button" data-subfilter="N" aria-pressed="false">N</button>
+            <button class="subHint" type="button" data-subfilter="O" aria-pressed="false">O</button>
+            <button class="subHint" type="button" data-subfilter="P" aria-pressed="false">P</button>
+            <button class="subHint" type="button" data-subfilter="Q" aria-pressed="false">Q</button>
+            <button class="subHint" type="button" data-subfilter="R" aria-pressed="false">R</button>
+            <button class="subHint" type="button" data-subfilter="S" aria-pressed="false">S</button>
+            <button class="subHint" type="button" data-subfilter="T" aria-pressed="false">T</button>
+            <button class="subHint" type="button" data-subfilter="U" aria-pressed="false">U</button>
+            <button class="subHint" type="button" data-subfilter="V" aria-pressed="false">V</button>
+            <button class="subHint" type="button" data-subfilter="W" aria-pressed="false">W</button>
+            <button class="subHint" type="button" data-subfilter="X" aria-pressed="false">X</button>
+            <button class="subHint" type="button" data-subfilter="Y" aria-pressed="false">Y</button>
+            <button class="subHint" type="button" data-subfilter="Z" aria-pressed="false">Z</button>
+          </div>
         </div>
 
         <div class="resultsList">
@@ -1443,7 +1464,7 @@
           const bands = String(person && person.bands || '').trim();
           const instrument = String(person && person.instrument || '').trim();
           return `
-            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
+            <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
                 <div class="metaRow">
@@ -1470,22 +1491,20 @@
       if (!resultsList || !people.length) return;
 
       const visiblePeople = people.filter((person) => Number(person.photoCount || 0) > 0 || Number(person.albumCount || 0) > 0);
-      const indexedCountsByCategory = visiblePeople.reduce((groups, person) => {
-        const category = String(person.category || 'People').trim() || 'People';
-        groups.set(category, (groups.get(category) || 0) + 1);
-        return groups;
-      }, new Map());
 
       const groupedPeople = visiblePeople.reduce((groups, person) => {
         const category = String(person.category || 'People').trim() || 'People';
-        if (!groups.has(category)) {
-          groups.set(category, []);
+        const subject = String(person.subject || 'music').trim().toLowerCase() || 'music';
+        const groupKey = `${subject}::${category}`;
+        if (!groups.has(groupKey)) {
+          groups.set(groupKey, { subject, category, people: [] });
         }
-        groups.get(category).push(person);
+        groups.get(groupKey).people.push(person);
         return groups;
       }, new Map());
 
-      const cardsMarkup = Array.from(groupedPeople.entries()).map(([category, groupPeople]) => {
+      const cardsMarkup = Array.from(groupedPeople.values()).map((groupData) => {
+        const { subject, category, people: groupPeople } = groupData;
         const groupCards = groupPeople.map((person) => {
           const bands = String(person && person.bands || '').trim();
           const instrument = String(person && person.instrument || '').trim();
@@ -1506,10 +1525,10 @@
         }).join('');
 
         return `
-          <section class="resultGroupSection" data-type="person" data-subject="music" data-category="${escapeHtml(category)}">
-            <button class="resultGroup" type="button" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" aria-expanded="false">
+          <section class="resultGroupSection" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}">
+            <button class="resultGroup" type="button" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" aria-expanded="false">
               <span class="resultGroupMarker">▶</span>
-              <span class="resultGroupLabel">${escapeHtml(category)} (${Number(indexedCountsByCategory.get(category) || 0).toLocaleString()})</span>
+              <span class="resultGroupLabel" data-group-label>${escapeHtml(category)} (${groupPeople.length.toLocaleString()})</span>
             </button>
             <div class="resultGroupBody" hidden>
               ${groupCards}
@@ -1555,6 +1574,7 @@
     let activeSubject = "all";
     let activeFilter = "all";
     let activeSort = "az";
+    let activeSubFilter = "all";
 
     const filterLabels = {
       all: "all categories",
@@ -1584,6 +1604,12 @@
       "albums-desc": "Albums - Most to Least",
       "albums-asc": "Albums - Least to Most"
     };
+
+    function toTitleCase(value) {
+      return String(value || '')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, (match) => match.toUpperCase());
+    }
 
     function setSubjectMenuOpen(isOpen) {
       if (!subjectSelect || !subjectSelectTrigger || !subjectMenu) return;
@@ -1631,6 +1657,7 @@
     };
 
     function setSubFilter(filter) {
+      activeSubFilter = filter;
       subFilterButtons.forEach((button) => {
         const isActive = button.dataset.subfilter === filter;
         button.classList.toggle("active", isActive);
@@ -1641,7 +1668,28 @@
         return;
       }
 
-      peopleBrowserMeta.textContent = "558 indexed";
+      peopleBrowserMeta.textContent = filter === "all" ? "All names" : `Names starting with ${filter}`;
+    }
+
+    function syncSubFilterButtons() {
+      const availableLetters = new Set(
+        resultCards
+          .filter((card) => card.dataset.type === "person" && (activeSubject === "all" || card.dataset.subject === activeSubject))
+          .map((card) => String(card.dataset.name || '').trim().charAt(0).toUpperCase())
+          .filter((letter) => /^[A-Z]$/.test(letter))
+      );
+
+      subFilterButtons.forEach((button) => {
+        const key = button.dataset.subfilter;
+        button.hidden = key !== "all" && !availableLetters.has(key);
+      });
+
+      if (activeSubFilter !== "all") {
+        const activeButton = subFilterButtons.find((button) => button.dataset.subfilter === activeSubFilter);
+        if (!activeButton || activeButton.hidden) {
+          setSubFilter("all");
+        }
+      }
     }
 
     function syncFilterRowForSubject(subject) {
@@ -1715,12 +1763,16 @@
 
     function updateResultsVisibility() {
       sortPeopleGroupBodies();
+      syncSubFilterButtons();
       const showCardType = activeFilter === "all";
 
       const visibleCount = resultCards.reduce((count, card) => {
         const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
         const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
-        const shouldShow = matchesSubject && matchesType;
+        const matchesLetter = activeFilter !== "person" || activeSubFilter === "all"
+          ? true
+          : String(card.dataset.name || '').trim().toUpperCase().startsWith(activeSubFilter);
+        const shouldShow = matchesSubject && matchesType && matchesLetter;
         card.hidden = !shouldShow;
         card.classList.toggle("show-card-type", showCardType && card.dataset.type !== "person");
         return count + (shouldShow ? 1 : 0);
@@ -1728,8 +1780,10 @@
 
       resultGroupSections.forEach((section) => {
         const category = section.dataset.category;
+        const subject = section.dataset.subject;
         const group = section.querySelector(".resultGroup");
         const body = section.querySelector(".resultGroupBody");
+        const label = section.querySelector("[data-group-label]");
         const hasVisibleCards = resultCards.some((card) =>
           !card.hidden &&
           card.dataset.type === section.dataset.type &&
@@ -1740,6 +1794,19 @@
         if (group && body) {
           const isExpanded = group.getAttribute("aria-expanded") === "true";
           body.hidden = !hasVisibleCards || !isExpanded;
+        }
+        if (label) {
+          const visibleInSection = resultCards.filter((card) =>
+            !card.hidden &&
+            card.dataset.type === section.dataset.type &&
+            card.dataset.subject === section.dataset.subject &&
+            card.dataset.category === category
+          ).length;
+          const shouldPrefixSubject = activeSubject === "all" && activeFilter === "person";
+          const baseLabel = shouldPrefixSubject
+            ? `${toTitleCase(subject)} ${category}`
+            : category;
+          label.textContent = `${baseLabel} (${visibleInSection.toLocaleString()})`;
         }
       });
 
@@ -1810,7 +1877,10 @@
     }
 
     subFilterButtons.forEach((button) => {
-      button.addEventListener("click", () => setSubFilter(button.dataset.subfilter));
+      button.addEventListener("click", () => {
+        setSubFilter(button.dataset.subfilter);
+        updateResultsVisibility();
+      });
     });
 
     resultGroups.forEach((group) => {
