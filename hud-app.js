@@ -9,7 +9,7 @@
 (function(){
   "use strict";
 
-  const TEMP_ALWAYS_SHOW_TESTING = true;
+const TEMP_ALWAYS_SHOW_TESTING = false;
 
   // =============================
   // GLOBAL "DING" (tiny audible cue)
