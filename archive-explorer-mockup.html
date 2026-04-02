@@ -1346,12 +1346,11 @@
             <div class="subjectSelect" id="subjectSelect">
               <button class="subjectSelectTrigger" id="subjectSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="subjectSelectTriggerLabel">Archive Scope</span>
-                <span class="subjectSelectTriggerValue" id="subjectSelectValue">All</span>
+                <span class="subjectSelectTriggerValue" id="subjectSelectValue">Music</span>
                 <span class="subjectSelectChevron">▼</span>
               </button>
               <div class="subjectMenu" id="subjectMenu" hidden>
-                <button class="hint modeHint subjectHint active" type="button" data-subject="all" aria-pressed="true">All</button>
-                <button class="hint modeHint subjectHint" type="button" data-subject="music" aria-pressed="false">Music</button>
+                <button class="hint modeHint subjectHint active" type="button" data-subject="music" aria-pressed="true">Music</button>
                 <button class="hint modeHint subjectHint" type="button" data-subject="wrestling" aria-pressed="false">Wrestling</button>
               </div>
             </div>
@@ -1359,11 +1358,10 @@
               <div class="subjectSelect" id="filterSelect">
                 <button class="subjectSelectTrigger" id="filterSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                   <span class="subjectSelectTriggerLabel">Filter</span>
-                  <span class="subjectSelectTriggerValue" id="filterSelectValue">All</span>
+                  <span class="subjectSelectTriggerValue" id="filterSelectValue">Select</span>
                   <span class="subjectSelectChevron">▼</span>
                 </button>
                 <div class="subjectMenu" id="filterMenu" hidden>
-                  <button class="hint modeHint active" type="button" data-filter="all" data-filter-role="all" aria-pressed="true">All</button>
                   <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">Performers</button>
                   <button class="hint modeHint" type="button" data-filter="band" data-filter-role="band" aria-pressed="false">Bands</button>
                   <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
@@ -1569,8 +1567,7 @@
       ];
       const rows = (Array.isArray(shows) && shows.length ? shows : fallbackShows)
         .slice()
-        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
-        .slice(0, 24);
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 
       mount.innerHTML = rows.map((show) => {
         const title = String(show && (show.title || show.show_name || show.event || show.name) || 'Untitled Show').trim();
@@ -1840,8 +1837,8 @@
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
-    let activeSubject = "all";
-    let activeFilter = "all";
+    let activeSubject = "music";
+    let activeFilter = "";
     let activeSort = "az";
     let activeSubFilter = "all";
     let subFilterMode = "letters";
@@ -2055,14 +2052,9 @@
         button.dataset.filter = rule.filter;
       });
 
-      const activeButton = filterButtons.find((button) => !button.hidden && button.dataset.filter === activeFilter);
-      if (!activeButton) {
-        activeFilter = "all";
-      }
-
-      const activeRule = Object.values(config).find((rule) => !rule.hidden && rule.filter === activeFilter) || config.all;
+      const activeRule = Object.values(config).find((rule) => !rule.hidden && rule.filter === activeFilter) || null;
       if (filterSelectValue) {
-        filterSelectValue.textContent = activeRule ? activeRule.label : "All";
+        filterSelectValue.textContent = activeRule ? activeRule.label : "Select";
       }
     }
 
@@ -2115,11 +2107,11 @@
     function updateResultsVisibility() {
       sortPeopleGroupBodies();
       syncSubFilterButtons();
-      const showCardType = activeFilter === "all";
+      const showCardType = false;
 
       const visibleCount = resultCards.reduce((count, card) => {
         const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
-        const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
+        const matchesType = !!activeFilter && card.dataset.type === activeFilter;
         const matchesLetter = !["person", "band"].includes(activeFilter) || activeSubFilter === "all"
           ? true
           : activeSubFilter === "#"
@@ -2161,11 +2153,13 @@
         }
       });
 
-      const label = activeFilter === "all"
+      const label = !activeFilter
+        ? "nothing yet"
+        : activeFilter === "all"
         ? subjectLabels[activeSubject]
         : filterLabels[activeFilter];
 
-      resultsMeta.textContent = `${visibleCount} results across ${label}`;
+      resultsMeta.textContent = !activeFilter ? "Choose a filter to start the archive" : `${visibleCount} results across ${label}`;
     }
 
     function applySubjectFilter(subject) {
@@ -2196,7 +2190,7 @@
 
       if (filterSelectValue) {
         const activeButton = filterButtons.find((button) => !button.hidden && button.dataset.filter === filter);
-        filterSelectValue.textContent = activeButton ? activeButton.textContent : "All";
+        filterSelectValue.textContent = activeButton ? activeButton.textContent : "Select";
       }
 
       if (peopleBrowser) {
@@ -2307,8 +2301,8 @@
     });
 
     refreshResultCollections();
-    applyFilter("all");
-    applySubjectFilter("all");
+    updateResultsVisibility();
+    applySubjectFilter("music");
     applySort(activeSort);
 
     renderMusicShowCards().then(() => {
