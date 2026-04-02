@@ -531,10 +531,12 @@
 
     .resultsList {
       display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
     }
 
     .resultCard {
+      grid-column: 1 / -1;
       padding: 16px;
       border-radius: 18px;
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -554,6 +556,16 @@
     }
 
     .resultCard[hidden] {
+      display: none;
+    }
+
+    .resultCard[data-type="person"] {
+      grid-column: auto;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .resultCard[data-type="person"] .cardBadge {
       display: none;
     }
 
@@ -590,6 +602,15 @@
       font-size: 18px;
       line-height: 1.3;
       color: #fff7fb;
+      letter-spacing: 0.03em;
+    }
+
+    .cardLinkText {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+      text-transform: none;
+      letter-spacing: 0.05em;
     }
 
     .cardSub {
@@ -613,6 +634,39 @@
       font-size: 10px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    .iconMetaPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      background: rgba(18, 20, 32, 0.88);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #d7e7f4;
+      letter-spacing: 0.02em;
+    }
+
+    .iconMetaPill::before {
+      content: "";
+      width: 12px;
+      height: 10px;
+      display: inline-block;
+      border: 1px solid rgba(215, 231, 244, 0.72);
+      border-radius: 3px;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .iconMetaPill.photoPill::before {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(215, 231, 244, 0.82) 0 1px, transparent 2px);
+    }
+
+    .iconMetaPill.showPill::before {
+      border-radius: 2px;
+      background:
+        linear-gradient(180deg, transparent 0 74%, rgba(215, 231, 244, 0.72) 74% 76%, transparent 76%);
     }
 
     .cardAction {
@@ -766,6 +820,14 @@
         grid-template-columns: 60px minmax(0, 1fr);
       }
 
+      .resultsList {
+        grid-template-columns: 1fr;
+      }
+
+      .resultCard[data-type="person"] {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       .cardAction {
         grid-column: 1 / -1;
         justify-self: start;
@@ -843,14 +905,12 @@
             <div class="cardMain">
               <div class="eyebrow">Person</div>
               <div class="cardTitle">Aaron Castaldi</div>
-              <div class="cardSub">Guitar and vocals across Iron Dynamite sets, with linked tags from regional flyers, live photos, and Hudson Valley venue appearances.</div>
+              <div class="cardLinkText">Iron Dynamite</div>
               <div class="metaRow">
-                <div class="metaPill">61 photos</div>
-                <div class="metaPill">14 shows</div>
-                <div class="metaPill">Iron Dynamite</div>
+                <div class="metaPill iconMetaPill photoPill">61</div>
+                <div class="metaPill iconMetaPill showPill">14</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="person">
@@ -858,14 +918,12 @@
             <div class="cardMain">
               <div class="eyebrow">Person</div>
               <div class="cardTitle">Aaron Lewis</div>
-              <div class="cardSub">Connected to Dive performances, guitar and vocal credits, and a smaller cluster of tagged photos from mixed-bill shows.</div>
+              <div class="cardLinkText">Ouvre</div>
               <div class="metaRow">
-                <div class="metaPill">20 photos</div>
-                <div class="metaPill">6 shows</div>
-                <div class="metaPill">Dive</div>
+                <div class="metaPill iconMetaPill photoPill">20</div>
+                <div class="metaPill iconMetaPill showPill">6</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="person">
@@ -873,29 +931,25 @@
             <div class="cardMain">
               <div class="eyebrow">Person</div>
               <div class="cardTitle">Aaron Nadeau</div>
-              <div class="cardSub">Mapped from Shy Green records with recurring guitar and vocal tags, plus multiple related people and venue cross-links.</div>
+              <div class="cardLinkText">Shy Green</div>
               <div class="metaRow">
-                <div class="metaPill">41 photos</div>
-                <div class="metaPill">11 shows</div>
-                <div class="metaPill">Shy Green</div>
+                <div class="metaPill iconMetaPill photoPill">41</div>
+                <div class="metaPill iconMetaPill showPill">11</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="person">
             <div class="cardBadge">PPL</div>
             <div class="cardMain">
               <div class="eyebrow">Person</div>
-              <div class="cardTitle">Adam Begn</div>
-              <div class="cardSub">Vocals for Cutting The Herd, grouped from live sets, promo images, and repeat appearances with nearby scene-related bands.</div>
+              <div class="cardTitle">Adam Begin</div>
+              <div class="cardLinkText">Cutting The Herd</div>
               <div class="metaRow">
-                <div class="metaPill">262 photos</div>
-                <div class="metaPill">18 shows</div>
-                <div class="metaPill">Cutting The Herd</div>
+                <div class="metaPill iconMetaPill photoPill">262</div>
+                <div class="metaPill iconMetaPill showPill">18</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="person">
@@ -903,14 +957,12 @@
             <div class="cardMain">
               <div class="eyebrow">Person</div>
               <div class="cardTitle">Adam Cutler</div>
-              <div class="cardSub">Guitar and vocals linked to Widow Sunday, with multiple photo clusters and route-friendly connections to show and band records.</div>
+              <div class="cardLinkText">Widow Sunday</div>
               <div class="metaRow">
-                <div class="metaPill">55 photos</div>
-                <div class="metaPill">12 shows</div>
-                <div class="metaPill">Widow Sunday</div>
+                <div class="metaPill iconMetaPill photoPill">55</div>
+                <div class="metaPill iconMetaPill showPill">12</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="person">
@@ -918,14 +970,12 @@
             <div class="cardMain">
               <div class="eyebrow">Person</div>
               <div class="cardTitle">Adam Fithian</div>
-              <div class="cardSub">Prospect Hill vocalist with a broader spread of linked content, making this a good test case for dense people-mode browsing.</div>
+              <div class="cardLinkText">Prospect Hill</div>
               <div class="metaRow">
-                <div class="metaPill">51 photos</div>
-                <div class="metaPill">9 shows</div>
-                <div class="metaPill">Prospect Hill</div>
+                <div class="metaPill iconMetaPill photoPill">51</div>
+                <div class="metaPill iconMetaPill showPill">9</div>
               </div>
             </div>
-            <div class="cardAction">Open Profile</div>
           </article>
 
           <article class="resultCard" data-type="band">
