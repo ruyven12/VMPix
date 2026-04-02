@@ -1655,6 +1655,63 @@ function ensurePeopleStyles() {
       line-height: 1.18;
     }
 
+    .peopleSectionIntro{
+      width: min(920px, 100%);
+      margin: 28px auto 0;
+      text-align: center;
+      display: grid;
+      justify-items: center;
+    }
+
+    .peopleSectionIntroTitle{
+      margin: 0 0 14px;
+      text-align: center;
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(236,241,250,0.94);
+    }
+
+    .peopleSectionIntroDivider{
+      position: relative;
+      width: min(920px, calc(100% - 28px));
+      height: 18px;
+      margin: -2px auto 0;
+      filter: drop-shadow(0 0 10px rgba(255,70,110,0.16));
+    }
+
+    .peopleSectionIntroDivider::before{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      top: 7px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255,70,110,0) 0%, rgba(255,82,128,0.9) 14%, rgba(255,120,162,0.98) 50%, rgba(255,82,128,0.9) 86%, rgba(255,70,110,0) 100%);
+      box-shadow: 0 0 12px rgba(255,72,128,0.24), 0 0 24px rgba(255,72,128,0.1);
+    }
+
+    .peopleSectionIntroDivider::after{
+      content:"";
+      position:absolute;
+      left: 12px;
+      right: 12px;
+      top: 1px;
+      bottom: 7px;
+      border-top: 2px solid rgba(255,82,128,0.92);
+      border-left: 2px solid rgba(255,82,128,0.72);
+      border-right: 2px solid rgba(255,82,128,0.72);
+      border-radius: 999px 999px 18px 18px;
+      opacity: .92;
+    }
+
+    .peopleUnknownAnchor{
+      width: min(920px, 100%);
+      margin: 28px auto 0;
+    }
+
     @media (max-width: 720px){
       .peopleArchiveIntro{
         padding: 4px 8px 8px;
@@ -1672,6 +1729,18 @@ function ensurePeopleStyles() {
       .peopleArchiveIntroBody{
         font-size: 11px;
         line-height: 1.16;
+      }
+      .peopleSectionIntro{
+        margin-top: 24px;
+      }
+      .peopleSectionIntroTitle{
+        margin: 0 0 10px;
+        font-size: 16px;
+        letter-spacing: .1em;
+      }
+      .peopleSectionIntroDivider{
+        width: calc(100% - 20px);
+        height: 16px;
       }
     }
 
@@ -3194,6 +3263,9 @@ function ensurePeopleStyles() {
       `;
     };
 
+    const unknownPhotoCount = Number(_unknownPeopleData && _unknownPeopleData.photoCount || 0);
+    const showUnknownHeader = unknownPhotoCount > 0;
+
     listEl.innerHTML = `<div class="peopleGrouped">${CATEGORY_ORDER.map((cat) => {
       const list = grouped[cat] || [];
       if (!list.length) return '';
@@ -3211,7 +3283,14 @@ function ensurePeopleStyles() {
           </div>
         </section>
       `;
-    }).join('')}</div>`;
+    }).join('')}</div>${showUnknownHeader ? `
+      <div class="peopleUnknownAnchor">
+        <div class="peopleSectionIntro" aria-label="Unknown People Section">
+          <div class="peopleSectionIntroTitle">The Unknown</div>
+          <div class="peopleSectionIntroDivider" aria-hidden="true"></div>
+        </div>
+      </div>
+    ` : ''}`;
     Array.from(listEl.querySelectorAll('.peopleGroupSection[data-category]')).forEach((sectionEl) => {
       const cat = _safeTrim(sectionEl.getAttribute('data-category'));
       sectionEl.classList.toggle('is-collapsed', _peopleCollapsedCategories.has(cat));
