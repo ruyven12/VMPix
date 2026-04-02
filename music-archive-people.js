@@ -190,6 +190,36 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     };
   }
 
+  function _unknownFromAlbumState(albumStateByKey) {
+    const state = albumStateByKey && typeof albumStateByKey === 'object' ? albumStateByKey : {};
+    const albums = [];
+    let photoCount = 0;
+    for (const [albumKey, value] of Object.entries(state)) {
+      const entry = value && typeof value === 'object' ? value : {};
+      const stats = entry.stats && typeof entry.stats === 'object' ? entry.stats : {};
+      const untagged = Number(stats.shotsUntagged);
+      if (!Number.isFinite(untagged) || untagged <= 0) continue;
+      photoCount += untagged;
+      const normalized = _normalizeUnknownAlbumEntry({
+        albumKey,
+        title: entry.title,
+        url: entry.url
+      });
+      if (normalized) albums.push(normalized);
+    }
+    return {
+      photoCount,
+      albums,
+      images: []
+    };
+  }
+
+  function getUnknownPeoplePayload(data) {
+    const explicit = normalizeUnknownPeoplePayload(data?.unknown);
+    if (explicit.photoCount || explicit.albums.length || explicit.images.length) return explicit;
+    return _unknownFromAlbumState(data?._albumStateByKey);
+  }
+
   function parseCsvLine(line) {
     const out = [];
     let cur = '';
@@ -4250,7 +4280,7 @@ const pollDelayMs = 2000;
       await ensurePeopleRosterLookup().catch(() => new Map());
 
       const peopleArr = Array.isArray(data?.people) ? data.people : [];
-      _unknownPeopleData = normalizeUnknownPeoplePayload(data?.unknown);
+      _unknownPeopleData = getUnknownPeoplePayload(data);
 
       const idx = new Map();
       _albumMetaByKey = new Map();

@@ -857,6 +857,36 @@ function formatMusicGeneratedAt(value) {
   }
 }
 
+function getMusicUnknownPayload(peopleJson) {
+  const explicit = (peopleJson && typeof peopleJson.unknown === 'object') ? peopleJson.unknown : {};
+  const explicitPhotoCount = Number(explicit.photoCount);
+  const explicitAlbums = Array.isArray(explicit.albums) ? explicit.albums : [];
+  if ((Number.isFinite(explicitPhotoCount) && explicitPhotoCount > 0) || explicitAlbums.length) {
+    return {
+      photoCount: Number.isFinite(explicitPhotoCount) ? explicitPhotoCount : 0,
+      albums: explicitAlbums
+    };
+  }
+
+  const albumState = (peopleJson && peopleJson._albumStateByKey && typeof peopleJson._albumStateByKey === 'object')
+    ? peopleJson._albumStateByKey
+    : {};
+  let photoCount = 0;
+  let albumCount = 0;
+  for (const value of Object.values(albumState)) {
+    const entry = value && typeof value === 'object' ? value : {};
+    const stats = entry.stats && typeof entry.stats === 'object' ? entry.stats : {};
+    const untagged = Number(stats.shotsUntagged);
+    if (!Number.isFinite(untagged) || untagged <= 0) continue;
+    photoCount += untagged;
+    albumCount += 1;
+  }
+  return {
+    photoCount,
+    albums: new Array(albumCount)
+  };
+}
+
 async function fetchMusicStatsData(forceFresh) {
   if (_musicStatsPromise && !forceFresh) return _musicStatsPromise;
 
@@ -910,7 +940,7 @@ async function fetchMusicStatsData(forceFresh) {
 
     const peopleJson = peopleRes.status === 'fulfilled' ? (peopleRes.value || {}) : {};
     const peopleList = Array.isArray(peopleJson.people) ? peopleJson.people : [];
-    const unknownPeople = (peopleJson && typeof peopleJson.unknown === 'object') ? peopleJson.unknown : {};
+    const unknownPeople = getMusicUnknownPayload(peopleJson);
     const peopleCount = peopleList.length;
     const photosIndexed = peopleList.reduce((sum, person) => {
       const n = Number(person && person.photoCount);
