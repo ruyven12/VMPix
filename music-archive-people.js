@@ -1704,6 +1704,17 @@ function ensurePeopleStyles() {
       margin: 28px auto 0;
     }
 
+    .peopleSectionIntroBody{
+      margin: 12px 0 0;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: rgba(212,223,242,0.74);
+      text-transform: none;
+      line-height: 1.18;
+    }
+
     @media (max-width: 720px){
       .peopleArchiveIntro{
         padding: 4px 8px 8px;
@@ -1733,6 +1744,10 @@ function ensurePeopleStyles() {
       .peopleSectionIntroDivider{
         width: calc(100% - 20px);
         height: 2px;
+      }
+      .peopleSectionIntroBody{
+        font-size: 11px;
+        line-height: 1.16;
       }
     }
 
@@ -3280,6 +3295,7 @@ function ensurePeopleStyles() {
         <div class="peopleSectionIntro" aria-label="Unknown People Section">
           <div class="peopleSectionIntroTitle">The Unknown</div>
           <div class="peopleSectionIntroDivider" aria-hidden="true"></div>
+          <div class="peopleSectionIntroBody">Coming Soon</div>
         </div>
       </div>
     ` : ''}`;
