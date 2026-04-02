@@ -1677,34 +1677,26 @@ function ensurePeopleStyles() {
     .peopleSectionIntroDivider{
       position: relative;
       width: min(920px, calc(100% - 28px));
-      height: 18px;
-      margin: -2px auto 0;
-      filter: drop-shadow(0 0 10px rgba(255,70,110,0.16));
+      height: 3px;
+      margin: 0 auto 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,82,128,0.2) 14%, rgba(255,82,128,0.62) 50%, rgba(255,82,128,0.2) 86%, rgba(255,255,255,0) 100%);
+      box-shadow: 0 0 10px rgba(255,72,128,0.2), 0 0 22px rgba(255,72,128,0.08);
+      overflow: hidden;
     }
 
     .peopleSectionIntroDivider::before{
       content:"";
       position:absolute;
-      left:0;
-      right:0;
-      top: 7px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(255,70,110,0) 0%, rgba(255,82,128,0.9) 14%, rgba(255,120,162,0.98) 50%, rgba(255,82,128,0.9) 86%, rgba(255,70,110,0) 100%);
-      box-shadow: 0 0 12px rgba(255,72,128,0.24), 0 0 24px rgba(255,72,128,0.1);
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
+      opacity: .72;
+      filter: blur(.2px);
     }
 
     .peopleSectionIntroDivider::after{
-      content:"";
-      position:absolute;
-      left: 12px;
-      right: 12px;
-      top: 1px;
-      bottom: 7px;
-      border-top: 2px solid rgba(255,82,128,0.92);
-      border-left: 2px solid rgba(255,82,128,0.72);
-      border-right: 2px solid rgba(255,82,128,0.72);
-      border-radius: 999px 999px 18px 18px;
-      opacity: .92;
+      content:none;
     }
 
     .peopleUnknownAnchor{
@@ -1740,7 +1732,7 @@ function ensurePeopleStyles() {
       }
       .peopleSectionIntroDivider{
         width: calc(100% - 20px);
-        height: 16px;
+        height: 2px;
       }
     }
 
