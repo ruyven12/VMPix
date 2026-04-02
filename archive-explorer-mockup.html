@@ -652,6 +652,10 @@
       text-transform: uppercase;
     }
 
+    .resultCard:not(.show-card-type) .eyebrow {
+      display: none;
+    }
+
     .cardTitle {
       font-size: 18px;
       line-height: 1.3;
@@ -1093,6 +1097,7 @@
           <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(person.category)}">
             <div class="cardBadge">PPL</div>
             <div class="cardMain">
+              <div class="eyebrow">Person</div>
               <div class="cardTitle">${escapeHtml(person.name)}</div>
               ${subline ? `<div class="cardLinkText">${escapeHtml(subline)}</div>` : ''}
               <div class="metaRow">
@@ -1197,11 +1202,14 @@
     }
 
     function updateResultsVisibility() {
+      const showCardType = activeSubject === "all" && activeFilter === "all";
+
       const visibleCount = resultCards.reduce((count, card) => {
         const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
         const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
         const shouldShow = matchesSubject && matchesType;
         card.hidden = !shouldShow;
+        card.classList.toggle("show-card-type", showCardType);
         return count + (shouldShow ? 1 : 0);
       }, 0);
 
