@@ -763,6 +763,16 @@
         inset 0 -12px 20px rgba(0, 0, 0, 0.12);
     }
 
+    .resultCard[data-type="band"] {
+      grid-column: auto;
+      grid-template-columns: 56px minmax(0, 1fr);
+      align-items: center;
+      min-height: 86px;
+      padding: 14px;
+      border-radius: 16px;
+      clip-path: none;
+    }
+
     .resultCard[data-type="person"] .cardBadge {
       display: none;
     }
@@ -781,6 +791,16 @@
       text-transform: uppercase;
       font-size: 13px;
       letter-spacing: 0.14em;
+      overflow: hidden;
+    }
+
+    .cardBadgeImage {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      padding: 8px;
+      filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.08));
     }
 
     .cardMain {
@@ -1324,20 +1344,63 @@
         </div>
 
         <div class="resultsList">
-          <article class="resultCard" data-type="band" data-subject="music">
-            <div class="cardBadge">BND</div>
-            <div class="cardMain">
-              <div class="eyebrow">Band</div>
-              <div class="cardTitle">Hope Before The Fall</div>
-              <div class="cardSub">Cross-linked from people mode because this band appears with the selected performer on multiple 2012-2015 shows.</div>
-              <div class="metaRow">
-                <div class="metaPill">24 albums</div>
-                <div class="metaPill">8 members</div>
-                <div class="metaPill">Related artist</div>
-              </div>
+          <section class="resultGroupSection" data-type="band" data-subject="music" data-category="Local">
+            <button class="resultGroup" type="button" data-type="band" data-subject="music" data-category="Local" aria-expanded="true">
+              <span class="resultGroupMarker">▶</span>
+              <span class="resultGroupLabel" data-group-label>Local Bands (5)</span>
+            </button>
+            <div class="resultGroupBody">
+              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
+                <div class="cardBadge">
+                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-GM3r7V7/0/LSG3GbZK8Jn8HL2RVk2xB2mnM85TMwm3BXg93NScd/Th/13%20High-Th.jpg" alt="13 High logo" />
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">13 High</div>
+                </div>
+              </article>
+
+              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
+                <div class="cardBadge">
+                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-XcmVMQF/0/KVkbqX7GW9dhpdLSSz8vxR99fNtxXTWkXhdJXTZDJ/X2/3FD-X2.jpg" alt="3FD logo" />
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">3FD</div>
+                </div>
+              </article>
+
+              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
+                <div class="cardBadge">
+                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-HbvKFrV/0/MQRGgZNRm3nKkx4xCNv7s5KqXxwPMTj6thZdTgHZZ/X2/A%20River%20of%20Trees-X2.jpg" alt="A River of Trees logo" />
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">A River of Trees</div>
+                </div>
+              </article>
+
+              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
+                <div class="cardBadge">
+                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-j39NTr3/0/MV7cxTwRtrTBbjTsJ4XvfWsWL3kwqVNRLCjsjdrvL/S/Absence%20of%20the%20Sun-S.jpg" alt="Absence of the Sun logo" />
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">Absence of the Sun</div>
+                </div>
+              </article>
+
+              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
+                <div class="cardBadge">
+                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-fHWLWgV/0/LkcxQ3ZtCX7GcRXwgKs3FFhxkbK7q7mB43Wr3BZBC/XL/Alions-XL.jpg" alt="Alions logo" />
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">Alions</div>
+                </div>
+              </article>
             </div>
-            <div class="cardAction">Open Band</div>
-          </article>
+          </section>
 
           <article class="resultCard" data-type="show" data-subject="music">
             <div class="cardBadge">SHW</div>
@@ -1611,6 +1674,24 @@
         .replace(/\b\w/g, (match) => match.toUpperCase());
     }
 
+    function getGroupDisplayLabel(type, category, subject) {
+      if (type === "band") {
+        const normalizedCategory = String(category || "").trim().toLowerCase();
+        const bandRegionLabels = {
+          local: "Local Bands",
+          regional: "Regional Bands",
+          national: "National Bands",
+          international: "International Bands"
+        };
+        return bandRegionLabels[normalizedCategory] || `${toTitleCase(category)} Bands`;
+      }
+
+      const shouldPrefixSubject = activeSubject === "all" && activeFilter === "person";
+      return shouldPrefixSubject
+        ? `${toTitleCase(subject)} ${category}`
+        : category;
+    }
+
     function setSubjectMenuOpen(isOpen) {
       if (!subjectSelect || !subjectSelectTrigger || !subjectMenu) return;
       subjectSelect.classList.toggle("is-open", isOpen);
@@ -1751,7 +1832,7 @@
     }
 
     function sortPeopleGroupBodies() {
-      const groupBodies = Array.from(document.querySelectorAll(".resultGroupBody"));
+      const groupBodies = Array.from(document.querySelectorAll('.resultGroupSection[data-type="person"] .resultGroupBody'));
       groupBodies.forEach((body) => {
         const cards = Array.from(body.children).filter((node) =>
           node.classList && node.classList.contains("resultCard") && node.dataset.type === "person"
@@ -1792,7 +1873,12 @@
         );
         section.hidden = !hasVisibleCards;
         if (group && body) {
-          const isExpanded = group.getAttribute("aria-expanded") === "true";
+          const isExpanded = group.dataset.type === "band"
+            ? true
+            : group.getAttribute("aria-expanded") === "true";
+          if (group.dataset.type === "band") {
+            group.setAttribute("aria-expanded", "true");
+          }
           body.hidden = !hasVisibleCards || !isExpanded;
         }
         if (label) {
@@ -1802,10 +1888,7 @@
             card.dataset.subject === section.dataset.subject &&
             card.dataset.category === category
           ).length;
-          const shouldPrefixSubject = activeSubject === "all" && activeFilter === "person";
-          const baseLabel = shouldPrefixSubject
-            ? `${toTitleCase(subject)} ${category}`
-            : category;
+          const baseLabel = getGroupDisplayLabel(section.dataset.type, category, subject);
           label.textContent = `${baseLabel} (${visibleInSection.toLocaleString()})`;
         }
       });
