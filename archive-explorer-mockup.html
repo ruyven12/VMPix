@@ -529,6 +529,29 @@
       text-transform: uppercase;
     }
 
+    .resultsPanel .panelHeader {
+      display: grid;
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+
+    .resultsPanel .panelMeta {
+      color: var(--cyan);
+      font-size: 17px;
+      text-transform: none;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      margin-top: 0;
+    }
+
+    .resultsPanel .panelHeader > div {
+      display: grid;
+      gap: 4px;
+      justify-items: center;
+    }
+
     .resultsList {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -892,92 +915,10 @@
 
       <section class="resultsPanel">
         <div class="panelHeader">
-          <div>
-            <div class="sectionLabel">Results</div>
-            <div class="panelTitle">Shared Explorer Cards</div>
-          </div>
-          <div class="panelMeta" id="resultsMeta">4 visible in all categories</div>
+          <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
 
         <div class="resultsList">
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Aaron Castaldi</div>
-              <div class="cardLinkText">Iron Dynamite</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">61</div>
-                <div class="metaPill iconMetaPill showPill">14</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Aaron Lewis</div>
-              <div class="cardLinkText">Ouvre</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">20</div>
-                <div class="metaPill iconMetaPill showPill">6</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Aaron Nadeau</div>
-              <div class="cardLinkText">Shy Green</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">41</div>
-                <div class="metaPill iconMetaPill showPill">11</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Adam Begin</div>
-              <div class="cardLinkText">Cutting The Herd</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">262</div>
-                <div class="metaPill iconMetaPill showPill">18</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Adam Cutler</div>
-              <div class="cardLinkText">Widow Sunday</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">55</div>
-                <div class="metaPill iconMetaPill showPill">12</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="resultCard" data-type="person">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">Adam Fithian</div>
-              <div class="cardLinkText">Prospect Hill</div>
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">51</div>
-                <div class="metaPill iconMetaPill showPill">9</div>
-              </div>
-            </div>
-          </article>
-
           <article class="resultCard" data-type="band">
             <div class="cardBadge">BND</div>
             <div class="cardMain">
@@ -1074,7 +1015,53 @@
       </aside>
     </section>
   </main>
+  <script src="./archive-explorer-people-data.js"></script>
   <script>
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatPersonSubline(person) {
+      const bands = String(person && person.bands || '').trim();
+      const instrument = String(person && person.instrument || '').trim();
+      if (bands && instrument) return `${bands} * ${instrument}`;
+      return bands || instrument || '';
+    }
+
+    function renderPeopleCards() {
+      const resultsList = document.querySelector('.resultsList');
+      const people = Array.isArray(window.ARCHIVE_MOCKUP_PEOPLE) ? window.ARCHIVE_MOCKUP_PEOPLE : [];
+      if (!resultsList || !people.length) return;
+
+      const visiblePeople = people.filter((person) => Number(person.photoCount || 0) > 0 || Number(person.albumCount || 0) > 0);
+
+      const cardsMarkup = visiblePeople.map((person) => {
+        const subline = formatPersonSubline(person);
+        return `
+          <article class="resultCard" data-type="person" data-category="${escapeHtml(person.category)}">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="cardTitle">${escapeHtml(person.name)}</div>
+              ${subline ? `<div class="cardLinkText">${escapeHtml(subline)}</div>` : ''}
+              <div class="metaRow">
+                <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
+                <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
+    }
+
+    renderPeopleCards();
+
     const filterButtons = Array.from(document.querySelectorAll(".modeHint"));
     const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
     const resultCards = Array.from(document.querySelectorAll(".resultCard"));
@@ -1125,8 +1112,8 @@
         return count + (shouldShow ? 1 : 0);
       }, 0);
 
-      const noun = visibleCount === 1 ? "result" : "results";
-      resultsMeta.textContent = `${visibleCount} visible ${noun} in ${filterLabels[filter]}`;
+      const label = filter === "all" ? "all categories" : filterLabels[filter];
+      resultsMeta.textContent = `${visibleCount} results across ${label}`;
     }
 
     subFilterButtons.forEach((button) => {
@@ -1136,6 +1123,8 @@
     filterButtons.forEach((button) => {
       button.addEventListener("click", () => applyFilter(button.dataset.filter));
     });
+
+    applyFilter("all");
   </script>
 </body>
 </html>
