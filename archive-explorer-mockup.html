@@ -9,18 +9,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05060a;
-      --panel: rgba(18, 10, 18, 0.78);
-      --panel-strong: rgba(24, 12, 24, 0.92);
-      --panel-soft: rgba(12, 9, 18, 0.72);
-      --line: rgba(255, 74, 133, 0.30);
-      --line-strong: rgba(255, 74, 133, 0.52);
-      --text: rgba(248, 232, 243, 0.92);
-      --muted: rgba(231, 199, 218, 0.66);
-      --cyan: #56d7ff;
-      --magenta: #ff4f9a;
-      --gold: #ffcc70;
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      --bg: #040308;
+      --panel: rgba(20, 10, 18, 0.76);
+      --panel-strong: rgba(29, 15, 27, 0.9);
+      --panel-soft: rgba(14, 10, 20, 0.66);
+      --line: rgba(255, 128, 176, 0.18);
+      --line-strong: rgba(255, 167, 205, 0.36);
+      --text: rgba(247, 236, 244, 0.94);
+      --muted: rgba(220, 196, 211, 0.68);
+      --cyan: #69deff;
+      --magenta: #ff72b5;
+      --gold: #efd39b;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
       --radius-lg: 22px;
       --radius-md: 16px;
@@ -33,9 +33,10 @@
       margin: 0;
       min-height: 100%;
       background:
-        radial-gradient(circle at top, rgba(255, 82, 145, 0.18), transparent 34%),
-        radial-gradient(circle at 20% 80%, rgba(46, 181, 255, 0.16), transparent 28%),
-        linear-gradient(180deg, #05060a 0%, #080a12 48%, #05060a 100%);
+        radial-gradient(circle at 50% -10%, rgba(255, 170, 212, 0.16), transparent 28%),
+        radial-gradient(circle at 18% 84%, rgba(96, 218, 255, 0.1), transparent 24%),
+        radial-gradient(circle at 82% 18%, rgba(239, 211, 155, 0.08), transparent 26%),
+        linear-gradient(180deg, #040308 0%, #090611 42%, #05060c 100%);
       color: var(--text);
       font-family: "Orbitron", system-ui, sans-serif;
     }
@@ -50,25 +51,25 @@
 
     body::before {
       background:
-        linear-gradient(90deg, transparent 0%, rgba(86, 215, 255, 0.04) 50%, transparent 100%),
+        linear-gradient(90deg, transparent 0%, rgba(105, 222, 255, 0.03) 50%, transparent 100%),
         repeating-linear-gradient(
           to bottom,
-          rgba(255, 255, 255, 0.025) 0px,
-          rgba(255, 255, 255, 0.025) 1px,
-          transparent 4px,
-          transparent 8px
+          rgba(255, 255, 255, 0.016) 0px,
+          rgba(255, 255, 255, 0.016) 1px,
+          transparent 5px,
+          transparent 10px
         );
       mix-blend-mode: screen;
-      opacity: 0.5;
+      opacity: 0.42;
     }
 
     body::after {
       background:
-        radial-gradient(circle at 12% 18%, rgba(255, 79, 154, 0.12) 0 1px, transparent 2px),
-        radial-gradient(circle at 78% 26%, rgba(86, 215, 255, 0.10) 0 1px, transparent 2px),
-        radial-gradient(circle at 64% 72%, rgba(255, 204, 112, 0.10) 0 1px, transparent 2px);
-      background-size: 220px 220px, 280px 280px, 320px 320px;
-      opacity: 0.7;
+        radial-gradient(circle at 12% 18%, rgba(255, 114, 181, 0.1) 0 1px, transparent 2px),
+        radial-gradient(circle at 78% 26%, rgba(105, 222, 255, 0.08) 0 1px, transparent 2px),
+        radial-gradient(circle at 64% 72%, rgba(239, 211, 155, 0.08) 0 1px, transparent 2px);
+      background-size: 240px 240px, 300px 300px, 340px 340px;
+      opacity: 0.58;
     }
 
     .shell {
@@ -77,7 +78,8 @@
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       background:
-        linear-gradient(180deg, rgba(18, 9, 16, 0.86), rgba(8, 9, 18, 0.88)),
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), transparent 30%),
+        linear-gradient(180deg, rgba(24, 11, 21, 0.9), rgba(8, 9, 18, 0.92)),
         var(--panel);
       box-shadow: var(--shadow);
       overflow: hidden;
@@ -89,8 +91,8 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 0%, rgba(255, 79, 154, 0.12), transparent 34%),
-        linear-gradient(180deg, rgba(255, 79, 154, 0.05), transparent 24%);
+        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.08), transparent 32%),
+        linear-gradient(180deg, rgba(255, 114, 181, 0.04), transparent 20%);
       pointer-events: none;
     }
 
@@ -99,7 +101,9 @@
       gap: 18px;
       padding: 24px 24px 18px;
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(22, 10, 20, 0.96), rgba(16, 9, 18, 0.8));
+      background:
+        linear-gradient(180deg, rgba(28, 13, 24, 0.96), rgba(16, 10, 18, 0.84)),
+        radial-gradient(circle at top, rgba(239, 211, 155, 0.06), transparent 34%);
     }
 
     .titleRow {
@@ -256,8 +260,14 @@
       position: relative;
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
-      background: linear-gradient(180deg, rgba(21, 12, 22, 0.88), rgba(10, 10, 18, 0.82));
+      background:
+        linear-gradient(180deg, rgba(26, 14, 25, 0.9), rgba(11, 11, 20, 0.86)),
+        rgba(20, 12, 20, 0.78);
       overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 -18px 40px rgba(0, 0, 0, 0.16),
+        0 18px 44px rgba(0, 0, 0, 0.22);
     }
 
     .searchCard::before,
@@ -268,16 +278,20 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255, 79, 154, 0.08), transparent 38%, rgba(86, 215, 255, 0.05));
+      background:
+        linear-gradient(135deg, rgba(255, 114, 181, 0.08), transparent 28%, rgba(105, 222, 255, 0.04) 72%, transparent 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%);
       pointer-events: none;
     }
 
     .searchCard {
       width: min(1280px, 100%);
-      padding: 18px;
+      padding: 20px 20px 18px;
       display: grid;
-      gap: 14px;
+      gap: 16px;
       justify-items: center;
+      overflow: visible;
+      z-index: 3;
     }
 
     .searchLabel,
@@ -294,10 +308,15 @@
       grid-template-columns: auto 1fr auto;
       gap: 12px;
       align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 20px;
       padding: 14px 16px;
-      background: rgba(10, 11, 18, 0.8);
+      background:
+        linear-gradient(180deg, rgba(10, 12, 22, 0.96), rgba(11, 14, 24, 0.82)),
+        rgba(10, 11, 18, 0.82);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 1px rgba(105, 222, 255, 0.04);
       width: 100%;
     }
 
@@ -335,9 +354,86 @@
       width: min(1280px, 100%);
       margin: 0 auto;
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
       justify-content: center;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+    }
+
+    .subjectSelect {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .subjectSelectTrigger {
+      min-width: 240px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(239, 211, 155, 0.28);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 54%),
+        linear-gradient(180deg, rgba(28, 18, 30, 0.96), rgba(13, 15, 24, 0.92));
+      color: #fff7fb;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 10px 22px rgba(0, 0, 0, 0.16);
+    }
+
+    .subjectSelectTriggerLabel {
+      color: var(--muted);
+    }
+
+    .subjectSelectTriggerValue {
+      color: #fff8fc;
+    }
+
+    .subjectSelectChevron {
+      color: var(--cyan);
+      font-size: 10px;
+      transition: transform 180ms ease;
+    }
+
+    .subjectSelect.is-open .subjectSelectChevron {
+      transform: rotate(180deg);
+    }
+
+    .subjectMenu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 220px;
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 167, 205, 0.18);
+      background:
+        linear-gradient(180deg, rgba(26, 15, 27, 0.96), rgba(10, 12, 20, 0.94)),
+        rgba(16, 12, 20, 0.92);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 20px 36px rgba(0, 0, 0, 0.28);
+      z-index: 6;
+    }
+
+    .subjectMenu[hidden] {
+      display: none;
+    }
+
+    .filterHints {
+      display: contents;
     }
 
     .subFilterBar {
@@ -347,14 +443,14 @@
       gap: 16px;
       align-items: center;
       padding: 14px 16px;
-      border: 1px solid rgba(255, 74, 133, 0.22);
+      border: 1px solid rgba(255, 167, 205, 0.16);
       border-radius: 18px;
       background:
-        linear-gradient(180deg, rgba(17, 12, 24, 0.88), rgba(9, 11, 18, 0.84)),
+        linear-gradient(180deg, rgba(24, 14, 24, 0.9), rgba(9, 11, 18, 0.84)),
         rgba(15, 12, 20, 0.8);
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.03),
-        0 0 22px rgba(255, 79, 154, 0.08);
+        0 14px 32px rgba(0, 0, 0, 0.12);
     }
 
     .subFilterBar[hidden] {
@@ -415,13 +511,15 @@
     }
 
     .hint {
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01)),
+        rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       color: var(--muted);
       font-size: 11px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
     }
 
     .hint.modeHint {
@@ -433,13 +531,13 @@
 
     .hint.modeHint.active {
       color: #fff8fc;
-      border-color: rgba(255, 120, 170, 0.66);
+      border-color: rgba(239, 211, 155, 0.34);
       background:
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 52%),
-        linear-gradient(180deg, rgba(255, 82, 145, 0.28), rgba(255, 54, 128, 0.14));
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.14), transparent 50%),
+        linear-gradient(180deg, rgba(255, 114, 181, 0.18), rgba(239, 211, 155, 0.08));
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 0 16px rgba(255, 79, 154, 0.22);
+        0 0 18px rgba(239, 211, 155, 0.08);
     }
 
     .insightCard {
@@ -550,9 +648,10 @@
       color: var(--cyan);
       font-size: 17px;
       text-transform: none;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
       line-height: 1.2;
       margin-top: 0;
+      text-shadow: 0 0 18px rgba(105, 222, 255, 0.18);
     }
 
     .resultsPanel .panelHeader > div {
@@ -572,6 +671,23 @@
       overflow: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 79, 154, 0.55) rgba(255, 255, 255, 0.06);
+      background:
+        linear-gradient(180deg, rgba(28, 13, 24, 0.88), rgba(11, 10, 20, 0.88)),
+        radial-gradient(circle at top, rgba(239, 211, 155, 0.04), transparent 26%);
+    }
+
+    .resultsPanel::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 18px;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.3), transparent 100%);
+      opacity: 0.18;
     }
 
     .resultsPanel::-webkit-scrollbar {
@@ -591,22 +707,29 @@
 
     .resultCard {
       grid-column: 1 / -1;
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
       background:
-        linear-gradient(180deg, rgba(18, 14, 28, 0.9), rgba(11, 13, 24, 0.9));
+        radial-gradient(circle at top right, rgba(239, 211, 155, 0.07), transparent 24%),
+        linear-gradient(180deg, rgba(25, 18, 35, 0.94), rgba(11, 13, 24, 0.92));
       display: grid;
       grid-template-columns: 76px minmax(0, 1fr) auto;
       gap: 14px;
       align-items: center;
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+      clip-path: polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -18px 28px rgba(0, 0, 0, 0.14);
     }
 
     .resultCard:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255, 79, 154, 0.36);
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+      transform: translateY(-3px);
+      border-color: rgba(239, 211, 155, 0.24);
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(105, 222, 255, 0.05);
     }
 
     .resultCard[hidden] {
@@ -617,6 +740,7 @@
       grid-column: auto;
       grid-template-columns: minmax(0, 1fr);
       align-items: start;
+      min-height: 154px;
     }
 
     .resultCard[data-type="person"] .cardBadge {
@@ -645,6 +769,17 @@
       gap: 8px;
     }
 
+    .resultCard[data-type="person"] .cardMain {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "eyebrow"
+        "title"
+        "subline"
+        "meta";
+      align-items: start;
+      row-gap: 6px;
+    }
+
     .eyebrow {
       color: var(--cyan);
       font-size: 10px;
@@ -652,23 +787,36 @@
       text-transform: uppercase;
     }
 
+    .resultCard[data-type="person"] .eyebrow {
+      grid-area: eyebrow;
+    }
+
     .resultCard:not(.show-card-type) .eyebrow {
       display: none;
     }
 
     .cardTitle {
-      font-size: 18px;
-      line-height: 1.3;
+      font-size: 22px;
+      line-height: 1.12;
       color: #fff7fb;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.045em;
+      text-shadow: 0 0 16px rgba(255, 255, 255, 0.03);
+    }
+
+    .resultCard[data-type="person"] .cardTitle {
+      grid-area: title;
     }
 
     .cardLinkText {
       color: var(--muted);
-      font-size: 11px;
-      line-height: 1.3;
+      font-size: 10px;
+      line-height: 1.2;
       text-transform: none;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+    }
+
+    .resultCard[data-type="person"] .cardLinkText {
+      grid-area: subline;
     }
 
     .cardSub {
@@ -679,15 +827,22 @@
 
     .metaRow {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
+    }
+
+    .resultCard[data-type="person"] .metaRow {
+      grid-area: meta;
+      justify-content: flex-start;
+      align-self: start;
+      flex-wrap: nowrap;
     }
 
     .metaPill {
       padding: 6px 10px;
       border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--muted);
       font-size: 10px;
       letter-spacing: 0.06em;
@@ -697,12 +852,14 @@
     .iconMetaPill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 9px;
-      background: rgba(18, 20, 32, 0.88);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: #d7e7f4;
-      letter-spacing: 0.02em;
+      gap: 5px;
+      padding: 4px 8px;
+      background:
+        linear-gradient(180deg, rgba(16, 22, 35, 0.94), rgba(13, 18, 28, 0.9));
+      border-color: rgba(105, 222, 255, 0.14);
+      color: #d9ebf8;
+      letter-spacing: 0.01em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .iconMetaPill::before {
@@ -886,6 +1043,20 @@
         grid-template-columns: minmax(0, 1fr);
       }
 
+      .resultCard[data-type="person"] .cardMain {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "eyebrow"
+          "title"
+          "subline"
+          "meta";
+      }
+
+      .resultCard[data-type="person"] .metaRow {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
       .resultsPanel {
         max-height: min(68vh, 980px);
       }
@@ -935,12 +1106,37 @@
           <div class="searchLabel">Search Across The Archive</div>
           <div class="searchInputWrap">
             <div class="searchIcon">⌕</div>
-            <input class="searchInput" value="widow sunday poughkeepsie 2012" aria-label="Search archive" />
+            <input class="searchInput" value="Type your search here" aria-label="Search archive" />
           </div>
           <div class="subjectHints">
-            <button class="hint modeHint subjectHint active" type="button" data-subject="all" aria-pressed="true">All</button>
-            <button class="hint modeHint subjectHint" type="button" data-subject="music" aria-pressed="false">Music</button>
-            <button class="hint modeHint subjectHint" type="button" data-subject="wrestling" aria-pressed="false">Wrestling</button>
+            <div class="subjectSelect" id="subjectSelect">
+              <button class="subjectSelectTrigger" id="subjectSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
+                <span class="subjectSelectTriggerLabel">Archive Scope</span>
+                <span class="subjectSelectTriggerValue" id="subjectSelectValue">All</span>
+                <span class="subjectSelectChevron">▼</span>
+              </button>
+              <div class="subjectMenu" id="subjectMenu" hidden>
+                <button class="hint modeHint subjectHint active" type="button" data-subject="all" aria-pressed="true">All</button>
+                <button class="hint modeHint subjectHint" type="button" data-subject="music" aria-pressed="false">Music</button>
+                <button class="hint modeHint subjectHint" type="button" data-subject="wrestling" aria-pressed="false">Wrestling</button>
+              </div>
+            </div>
+            <div class="filterHints">
+              <div class="subjectSelect" id="filterSelect">
+                <button class="subjectSelectTrigger" id="filterSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="subjectSelectTriggerLabel">Filter</span>
+                  <span class="subjectSelectTriggerValue" id="filterSelectValue">All</span>
+                  <span class="subjectSelectChevron">▼</span>
+                </button>
+                <div class="subjectMenu" id="filterMenu" hidden>
+                  <button class="hint modeHint active" type="button" data-filter="all" data-filter-role="all" aria-pressed="true">All</button>
+                  <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">People/Performer</button>
+                  <button class="hint modeHint" type="button" data-filter="band" data-filter-role="band" aria-pressed="false">Bands</button>
+                  <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
+                  <button class="hint modeHint" type="button" data-filter="venue" data-filter-role="venue" aria-pressed="false">Venues</button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -948,14 +1144,6 @@
     </section>
 
     <section class="content">
-      <div class="searchHints">
-        <button class="hint modeHint active" type="button" data-filter="all" data-filter-role="all" aria-pressed="true">All</button>
-        <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">People/Performer</button>
-        <button class="hint modeHint" type="button" data-filter="band" data-filter-role="band" aria-pressed="false">Bands</button>
-        <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
-        <button class="hint modeHint" type="button" data-filter="venue" data-filter-role="venue" aria-pressed="false">Venues</button>
-      </div>
-
       <div class="subFilterBar" id="peopleBrowser" hidden>
         <div class="subFilterLabel">People Browser</div>
         <div class="subFilterControls">
@@ -1114,8 +1302,16 @@
 
     renderPeopleCards();
 
+    const subjectSelect = document.getElementById("subjectSelect");
+    const subjectSelectTrigger = document.getElementById("subjectSelectTrigger");
+    const subjectSelectValue = document.getElementById("subjectSelectValue");
+    const subjectMenu = document.getElementById("subjectMenu");
+    const filterSelect = document.getElementById("filterSelect");
+    const filterSelectTrigger = document.getElementById("filterSelectTrigger");
+    const filterSelectValue = document.getElementById("filterSelectValue");
+    const filterMenu = document.getElementById("filterMenu");
     const subjectButtons = Array.from(document.querySelectorAll(".subjectHint"));
-    const filterButtons = Array.from(document.querySelectorAll(".searchHints .modeHint"));
+    const filterButtons = Array.from(document.querySelectorAll(".filterHints .modeHint"));
     const filterButtonsByRole = {
       all: document.querySelector('[data-filter-role="all"]'),
       people: document.querySelector('[data-filter-role="people"]'),
@@ -1144,6 +1340,26 @@
       music: "music",
       wrestling: "wrestling"
     };
+
+    const subjectDisplayLabels = {
+      all: "All",
+      music: "Music",
+      wrestling: "Wrestling"
+    };
+
+    function setSubjectMenuOpen(isOpen) {
+      if (!subjectSelect || !subjectSelectTrigger || !subjectMenu) return;
+      subjectSelect.classList.toggle("is-open", isOpen);
+      subjectSelectTrigger.setAttribute("aria-expanded", String(isOpen));
+      subjectMenu.hidden = !isOpen;
+    }
+
+    function setFilterMenuOpen(isOpen) {
+      if (!filterSelect || !filterSelectTrigger || !filterMenu) return;
+      filterSelect.classList.toggle("is-open", isOpen);
+      filterSelectTrigger.setAttribute("aria-expanded", String(isOpen));
+      filterMenu.hidden = !isOpen;
+    }
 
     const filterRowBySubject = {
       all: {
@@ -1199,10 +1415,15 @@
       if (!activeButton) {
         activeFilter = "all";
       }
+
+      const activeRule = Object.values(config).find((rule) => !rule.hidden && rule.filter === activeFilter) || config.all;
+      if (filterSelectValue) {
+        filterSelectValue.textContent = activeRule ? activeRule.label : "All";
+      }
     }
 
     function updateResultsVisibility() {
-      const showCardType = activeSubject === "all" && activeFilter === "all";
+      const showCardType = activeFilter === "all";
 
       const visibleCount = resultCards.reduce((count, card) => {
         const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
@@ -1228,9 +1449,14 @@
         button.setAttribute("aria-pressed", String(isActive));
       });
 
+      if (subjectSelectValue) {
+        subjectSelectValue.textContent = subjectDisplayLabels[subject] || "All";
+      }
+
       syncFilterRowForSubject(subject);
       applyFilter(activeFilter);
       updateResultsVisibility();
+      setSubjectMenuOpen(false);
     }
 
     function applyFilter(filter) {
@@ -1241,6 +1467,11 @@
         button.setAttribute("aria-pressed", String(isActive));
       });
 
+      if (filterSelectValue) {
+        const activeButton = filterButtons.find((button) => !button.hidden && button.dataset.filter === filter);
+        filterSelectValue.textContent = activeButton ? activeButton.textContent : "All";
+      }
+
       if (peopleBrowser) {
         peopleBrowser.hidden = filter !== "person";
       }
@@ -1250,6 +1481,7 @@
       }
 
       updateResultsVisibility();
+      setFilterMenuOpen(false);
     }
 
     subFilterButtons.forEach((button) => {
@@ -1258,6 +1490,31 @@
 
     subjectButtons.forEach((button) => {
       button.addEventListener("click", () => applySubjectFilter(button.dataset.subject));
+    });
+
+    if (subjectSelectTrigger) {
+      subjectSelectTrigger.addEventListener("click", () => {
+        const nextOpen = !subjectSelect || !subjectSelect.classList.contains("is-open");
+        setSubjectMenuOpen(nextOpen);
+        setFilterMenuOpen(false);
+      });
+    }
+
+    if (filterSelectTrigger) {
+      filterSelectTrigger.addEventListener("click", () => {
+        const nextOpen = !filterSelect || !filterSelect.classList.contains("is-open");
+        setFilterMenuOpen(nextOpen);
+        setSubjectMenuOpen(false);
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!subjectSelect || !subjectSelect.contains(event.target)) {
+        setSubjectMenuOpen(false);
+      }
+      if (!filterSelect || !filterSelect.contains(event.target)) {
+        setFilterMenuOpen(false);
+      }
     });
 
     filterButtons.forEach((button) => {
