@@ -367,6 +367,10 @@
       gap: 10px;
     }
 
+    .sortSelect .subjectSelectTrigger {
+      min-width: 286px;
+    }
+
     .subjectSelectTrigger {
       min-width: 240px;
       display: inline-flex;
@@ -799,18 +803,61 @@
       display: none;
     }
 
-    .resultGroup {
+    .resultGroupSection {
       grid-column: 1 / -1;
+      display: grid;
+      gap: 10px;
+    }
+
+    .resultGroupSection[hidden] {
+      display: none;
+    }
+
+    .resultGroup {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 4px 2px 0;
+      width: 100%;
+      padding: 10px 14px;
       color: #fff5fb;
-      min-height: 24px;
+      min-height: 42px;
+      border: 1px solid rgba(255, 128, 176, 0.22);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(25, 13, 24, 0.92), rgba(12, 11, 20, 0.9)),
+        rgba(15, 12, 20, 0.84);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -10px 18px rgba(0, 0, 0, 0.12);
+      position: relative;
+      overflow: hidden;
+      font: inherit;
+      cursor: pointer;
     }
 
     .resultGroup[hidden] {
       display: none;
+    }
+
+    .resultGroup::before,
+    .resultGroup::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: 1px;
+      background:
+        linear-gradient(90deg, rgba(255, 128, 176, 0.42), rgba(105, 222, 255, 0.28));
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .resultGroup::before {
+      top: 5px;
+    }
+
+    .resultGroup::after {
+      bottom: 5px;
     }
 
     .resultGroupMarker {
@@ -818,14 +865,32 @@
       font-size: 10px;
       line-height: 1;
       text-shadow: 0 0 10px rgba(255, 114, 181, 0.28);
+      transition: transform 180ms ease;
+    }
+
+    .resultGroup[aria-expanded="true"] .resultGroupMarker {
+      transform: rotate(90deg);
     }
 
     .resultGroupLabel {
       font-size: 14px;
-      line-height: 1;
-      letter-spacing: 0.08em;
+      line-height: 1.5;
+      letter-spacing: 0.18em;
       text-transform: none;
-      color: rgba(255, 245, 251, 0.92);
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin: 5px auto;
+      text-shadow: 0 0 14px rgba(105, 222, 255, 0.18);
+    }
+
+    .resultGroupBody {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .resultGroupBody[hidden] {
+      display: none;
     }
 
     .cardTitle {
@@ -1105,6 +1170,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .resultGroupBody {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .resultCard[data-type="person"] {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -1140,6 +1209,10 @@
 
     @media (max-width: 560px) {
       .resultsList {
+        grid-template-columns: 1fr;
+      }
+
+      .resultGroupBody {
         grid-template-columns: 1fr;
       }
     }
@@ -1192,6 +1265,21 @@
                   <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
                   <button class="hint modeHint" type="button" data-filter="venue" data-filter-role="venue" aria-pressed="false">Venues</button>
                 </div>
+              </div>
+            </div>
+            <div class="subjectSelect sortSelect" id="sortSelect">
+              <button class="subjectSelectTrigger" id="sortSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
+                <span class="subjectSelectTriggerLabel">Sort</span>
+                <span class="subjectSelectTriggerValue" id="sortSelectValue">A-Z</span>
+                <span class="subjectSelectChevron">▼</span>
+              </button>
+              <div class="subjectMenu" id="sortMenu" hidden>
+                <button class="hint modeHint sortHint active" type="button" data-sort="az" aria-pressed="true">A-Z</button>
+                <button class="hint modeHint sortHint" type="button" data-sort="za" aria-pressed="false">Z-A</button>
+                <button class="hint modeHint sortHint" type="button" data-sort="photos-desc" aria-pressed="false">Photos - Most to Least</button>
+                <button class="hint modeHint sortHint" type="button" data-sort="photos-asc" aria-pressed="false">Photos - Least to Most</button>
+                <button class="hint modeHint sortHint" type="button" data-sort="albums-desc" aria-pressed="false">Albums - Most to Least</button>
+                <button class="hint modeHint sortHint" type="button" data-sort="albums-asc" aria-pressed="false">Albums - Least to Most</button>
               </div>
             </div>
           </div>
@@ -1328,6 +1416,12 @@
       if (!resultsList || !people.length) return;
 
       const visiblePeople = people.filter((person) => Number(person.photoCount || 0) > 0 || Number(person.albumCount || 0) > 0);
+      const indexedCountsByCategory = visiblePeople.reduce((groups, person) => {
+        const category = String(person.category || 'People').trim() || 'People';
+        groups.set(category, (groups.get(category) || 0) + 1);
+        return groups;
+      }, new Map());
+
       const groupedPeople = visiblePeople.reduce((groups, person) => {
         const category = String(person.category || 'People').trim() || 'People';
         if (!groups.has(category)) {
@@ -1349,7 +1443,7 @@
           const bands = String(person && person.bands || '').trim();
           const instrument = String(person && person.instrument || '').trim();
           return `
-            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}">
+            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
                 <div class="metaRow">
@@ -1370,6 +1464,63 @@
       resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
     }
 
+    function renderPeopleCards() {
+      const resultsList = document.querySelector('.resultsList');
+      const people = Array.isArray(window.ARCHIVE_MOCKUP_PEOPLE) ? window.ARCHIVE_MOCKUP_PEOPLE : [];
+      if (!resultsList || !people.length) return;
+
+      const visiblePeople = people.filter((person) => Number(person.photoCount || 0) > 0 || Number(person.albumCount || 0) > 0);
+      const indexedCountsByCategory = visiblePeople.reduce((groups, person) => {
+        const category = String(person.category || 'People').trim() || 'People';
+        groups.set(category, (groups.get(category) || 0) + 1);
+        return groups;
+      }, new Map());
+
+      const groupedPeople = visiblePeople.reduce((groups, person) => {
+        const category = String(person.category || 'People').trim() || 'People';
+        if (!groups.has(category)) {
+          groups.set(category, []);
+        }
+        groups.get(category).push(person);
+        return groups;
+      }, new Map());
+
+      const cardsMarkup = Array.from(groupedPeople.entries()).map(([category, groupPeople]) => {
+        const groupCards = groupPeople.map((person) => {
+          const bands = String(person && person.bands || '').trim();
+          const instrument = String(person && person.instrument || '').trim();
+          return `
+            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
+              <div class="cardBadge">PPL</div>
+              <div class="cardMain">
+                <div class="metaRow">
+                  <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
+                  <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
+                </div>
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                ${instrument ? `<div class="cardLinkText">${escapeHtml(instrument)}</div>` : ''}
+                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        return `
+          <section class="resultGroupSection" data-type="person" data-subject="music" data-category="${escapeHtml(category)}">
+            <button class="resultGroup" type="button" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" aria-expanded="false">
+              <span class="resultGroupMarker">▶</span>
+              <span class="resultGroupLabel">${escapeHtml(category)} (${Number(indexedCountsByCategory.get(category) || 0).toLocaleString()})</span>
+            </button>
+            <div class="resultGroupBody" hidden>
+              ${groupCards}
+            </div>
+          </section>
+        `;
+      }).join('');
+
+      resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
+    }
+
     renderPeopleCards();
 
     const subjectSelect = document.getElementById("subjectSelect");
@@ -1380,8 +1531,13 @@
     const filterSelectTrigger = document.getElementById("filterSelectTrigger");
     const filterSelectValue = document.getElementById("filterSelectValue");
     const filterMenu = document.getElementById("filterMenu");
+    const sortSelect = document.getElementById("sortSelect");
+    const sortSelectTrigger = document.getElementById("sortSelectTrigger");
+    const sortSelectValue = document.getElementById("sortSelectValue");
+    const sortMenu = document.getElementById("sortMenu");
     const subjectButtons = Array.from(document.querySelectorAll(".subjectHint"));
     const filterButtons = Array.from(document.querySelectorAll(".filterHints .modeHint"));
+    const sortButtons = Array.from(document.querySelectorAll(".sortHint"));
     const filterButtonsByRole = {
       all: document.querySelector('[data-filter-role="all"]'),
       people: document.querySelector('[data-filter-role="people"]'),
@@ -1391,12 +1547,14 @@
     };
     const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
     const resultCards = Array.from(document.querySelectorAll(".resultCard"));
+    const resultGroupSections = Array.from(document.querySelectorAll(".resultGroupSection"));
     const resultGroups = Array.from(document.querySelectorAll(".resultGroup"));
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
     let activeSubject = "all";
     let activeFilter = "all";
+    let activeSort = "az";
 
     const filterLabels = {
       all: "all categories",
@@ -1418,6 +1576,15 @@
       wrestling: "Wrestling"
     };
 
+    const sortLabels = {
+      az: "A-Z",
+      za: "Z-A",
+      "photos-desc": "Photos - Most to Least",
+      "photos-asc": "Photos - Least to Most",
+      "albums-desc": "Albums - Most to Least",
+      "albums-asc": "Albums - Least to Most"
+    };
+
     function setSubjectMenuOpen(isOpen) {
       if (!subjectSelect || !subjectSelectTrigger || !subjectMenu) return;
       subjectSelect.classList.toggle("is-open", isOpen);
@@ -1430,6 +1597,13 @@
       filterSelect.classList.toggle("is-open", isOpen);
       filterSelectTrigger.setAttribute("aria-expanded", String(isOpen));
       filterMenu.hidden = !isOpen;
+    }
+
+    function setSortMenuOpen(isOpen) {
+      if (!sortSelect || !sortSelectTrigger || !sortMenu) return;
+      sortSelect.classList.toggle("is-open", isOpen);
+      sortSelectTrigger.setAttribute("aria-expanded", String(isOpen));
+      sortMenu.hidden = !isOpen;
     }
 
     const filterRowBySubject = {
@@ -1493,7 +1667,54 @@
       }
     }
 
+    function setGroupExpanded(groupButton, isExpanded) {
+      if (!groupButton) return;
+      const section = groupButton.closest(".resultGroupSection");
+      const body = section ? section.querySelector(".resultGroupBody") : null;
+      groupButton.setAttribute("aria-expanded", String(isExpanded));
+      if (body && !section.hidden) {
+        body.hidden = !isExpanded;
+      }
+    }
+
+    function comparePeopleCards(cardA, cardB) {
+      const nameA = String(cardA.dataset.name || '').toLowerCase();
+      const nameB = String(cardB.dataset.name || '').toLowerCase();
+      const photosA = Number(cardA.dataset.photoCount || 0);
+      const photosB = Number(cardB.dataset.photoCount || 0);
+      const albumsA = Number(cardA.dataset.albumCount || 0);
+      const albumsB = Number(cardB.dataset.albumCount || 0);
+
+      switch (activeSort) {
+        case "za":
+          return nameB.localeCompare(nameA);
+        case "photos-desc":
+          return photosB - photosA || nameA.localeCompare(nameB);
+        case "photos-asc":
+          return photosA - photosB || nameA.localeCompare(nameB);
+        case "albums-desc":
+          return albumsB - albumsA || nameA.localeCompare(nameB);
+        case "albums-asc":
+          return albumsA - albumsB || nameA.localeCompare(nameB);
+        case "az":
+        default:
+          return nameA.localeCompare(nameB);
+      }
+    }
+
+    function sortPeopleGroupBodies() {
+      const groupBodies = Array.from(document.querySelectorAll(".resultGroupBody"));
+      groupBodies.forEach((body) => {
+        const cards = Array.from(body.children).filter((node) =>
+          node.classList && node.classList.contains("resultCard") && node.dataset.type === "person"
+        );
+        cards.sort(comparePeopleCards);
+        body.replaceChildren(...cards);
+      });
+    }
+
     function updateResultsVisibility() {
+      sortPeopleGroupBodies();
       const showCardType = activeFilter === "all";
 
       const visibleCount = resultCards.reduce((count, card) => {
@@ -1505,15 +1726,21 @@
         return count + (shouldShow ? 1 : 0);
       }, 0);
 
-      resultGroups.forEach((group) => {
-        const category = group.dataset.category;
+      resultGroupSections.forEach((section) => {
+        const category = section.dataset.category;
+        const group = section.querySelector(".resultGroup");
+        const body = section.querySelector(".resultGroupBody");
         const hasVisibleCards = resultCards.some((card) =>
           !card.hidden &&
-          card.dataset.type === group.dataset.type &&
-          card.dataset.subject === group.dataset.subject &&
+          card.dataset.type === section.dataset.type &&
+          card.dataset.subject === section.dataset.subject &&
           card.dataset.category === category
         );
-        group.hidden = !hasVisibleCards;
+        section.hidden = !hasVisibleCards;
+        if (group && body) {
+          const isExpanded = group.getAttribute("aria-expanded") === "true";
+          body.hidden = !hasVisibleCards || !isExpanded;
+        }
       });
 
       const label = activeFilter === "all"
@@ -1566,8 +1793,35 @@
       setFilterMenuOpen(false);
     }
 
+    function applySort(sortKey) {
+      activeSort = sortKey;
+      sortButtons.forEach((button) => {
+        const isActive = button.dataset.sort === sortKey;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+
+      if (sortSelectValue) {
+        sortSelectValue.textContent = sortLabels[sortKey] || "A-Z";
+      }
+
+      updateResultsVisibility();
+      setSortMenuOpen(false);
+    }
+
     subFilterButtons.forEach((button) => {
       button.addEventListener("click", () => setSubFilter(button.dataset.subfilter));
+    });
+
+    resultGroups.forEach((group) => {
+      group.addEventListener("click", () => {
+        const isExpanded = group.getAttribute("aria-expanded") === "true";
+        setGroupExpanded(group, !isExpanded);
+      });
+    });
+
+    sortButtons.forEach((button) => {
+      button.addEventListener("click", () => applySort(button.dataset.sort));
     });
 
     subjectButtons.forEach((button) => {
@@ -1587,6 +1841,16 @@
         const nextOpen = !filterSelect || !filterSelect.classList.contains("is-open");
         setFilterMenuOpen(nextOpen);
         setSubjectMenuOpen(false);
+        setSortMenuOpen(false);
+      });
+    }
+
+    if (sortSelectTrigger) {
+      sortSelectTrigger.addEventListener("click", () => {
+        const nextOpen = !sortSelect || !sortSelect.classList.contains("is-open");
+        setSortMenuOpen(nextOpen);
+        setSubjectMenuOpen(false);
+        setFilterMenuOpen(false);
       });
     }
 
@@ -1597,6 +1861,9 @@
       if (!filterSelect || !filterSelect.contains(event.target)) {
         setFilterMenuOpen(false);
       }
+      if (!sortSelect || !sortSelect.contains(event.target)) {
+        setSortMenuOpen(false);
+      }
     });
 
     filterButtons.forEach((button) => {
@@ -1605,6 +1872,7 @@
 
     applyFilter("all");
     applySubjectFilter("all");
+    applySort(activeSort);
   </script>
 </body>
 </html>
