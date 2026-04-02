@@ -334,6 +334,24 @@
       letter-spacing: 0.04em;
     }
 
+    .hint.modeHint {
+      text-transform: uppercase;
+      font-family: inherit;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .hint.modeHint.active {
+      color: #fff8fc;
+      border-color: rgba(255, 120, 170, 0.66);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 52%),
+        linear-gradient(180deg, rgba(255, 82, 145, 0.28), rgba(255, 54, 128, 0.14));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 0 16px rgba(255, 79, 154, 0.22);
+    }
+
     .insightCard {
       padding: 18px;
       display: grid;
@@ -694,20 +712,13 @@
             <div class="searchMeta">Type, place, year</div>
           </div>
           <div class="searchHints">
-            <div class="hint">Alias aware</div>
-            <div class="hint">Venue aware</div>
-            <div class="hint">Geo enhanced</div>
-            <div class="hint">Recent activity sort</div>
+            <button class="hint modeHint active">People</button>
+            <button class="hint modeHint">Bands</button>
+            <button class="hint modeHint">Shows</button>
+            <button class="hint modeHint">Venues</button>
           </div>
         </section>
 
-      </div>
-
-      <div class="modeRail">
-        <button class="modePill active">People</button>
-        <button class="modePill">Bands</button>
-        <button class="modePill">Shows</button>
-        <button class="modePill">Venues</button>
       </div>
     </section>
 
