@@ -513,6 +513,34 @@
       display: none;
     }
 
+    .subFilterMore {
+      position: relative;
+    }
+
+    .subFilterMoreMenu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 120px;
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 167, 205, 0.18);
+      background:
+        linear-gradient(180deg, rgba(26, 15, 27, 0.96), rgba(10, 12, 20, 0.94)),
+        rgba(16, 12, 20, 0.92);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 20px 36px rgba(0, 0, 0, 0.28);
+      z-index: 6;
+    }
+
+    .subFilterMoreMenu[hidden] {
+      display: none;
+    }
+
     .subFilterMeta {
       color: var(--muted);
       font-size: 11px;
@@ -678,6 +706,10 @@
       gap: 14px;
     }
 
+    #showCardsMount {
+      display: contents;
+    }
+
     .resultsPanel {
       max-height: min(72vh, 980px);
       overflow: auto;
@@ -773,6 +805,17 @@
       clip-path: none;
     }
 
+    .resultCard[data-type="show"] {
+      grid-template-columns: 116px minmax(0, 1fr) auto;
+      align-items: center;
+      padding: 14px;
+      border-radius: 16px;
+      clip-path: none;
+      background:
+        radial-gradient(circle at 16% 50%, rgba(105, 222, 255, 0.08), transparent 22%),
+        linear-gradient(180deg, rgba(21, 17, 27, 0.94), rgba(12, 13, 20, 0.92));
+    }
+
     .resultCard[data-type="person"] .cardBadge {
       display: none;
     }
@@ -792,6 +835,17 @@
       font-size: 13px;
       letter-spacing: 0.14em;
       overflow: hidden;
+    }
+
+    .resultCard[data-type="show"] .cardBadge {
+      width: 100px;
+      height: 138px;
+      border-radius: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255, 79, 154, 0.24), transparent 42%),
+        linear-gradient(180deg, rgba(22, 24, 34, 0.98), rgba(10, 12, 18, 0.96));
     }
 
     .cardBadgeImage {
@@ -978,6 +1032,29 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.6;
+    }
+
+    .showDateLine,
+    .showVenueLine,
+    .showCameraLine {
+      font-size: 12px;
+      line-height: 1.45;
+      letter-spacing: 0.05em;
+      text-transform: none;
+    }
+
+    .showDateLine {
+      color: rgba(255, 244, 250, 0.92);
+      font-weight: 600;
+    }
+
+    .showVenueLine {
+      color: rgba(220, 196, 211, 0.84);
+    }
+
+    .showCameraLine {
+      color: rgba(220, 196, 211, 0.7);
+      font-style: italic;
     }
 
     .metaRow {
@@ -1194,6 +1271,15 @@
         grid-template-columns: 60px minmax(0, 1fr);
       }
 
+      .resultCard[data-type="show"] {
+        grid-template-columns: 92px minmax(0, 1fr);
+      }
+
+      .resultCard[data-type="show"] .cardBadge {
+        width: 92px;
+        height: 126px;
+      }
+
       .resultsList {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -1312,7 +1398,7 @@
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
         <div class="subFilterBar" id="peopleBrowser" hidden>
-          <div class="subFilterControls">
+          <div class="subFilterControls" id="subFilterControls">
             <button class="subHint active groupHint" type="button" data-subfilter="all" aria-pressed="true">All</button>
             <button class="subHint" type="button" data-subfilter="#" aria-pressed="false">#</button>
             <button class="subHint" type="button" data-subfilter="A" aria-pressed="false">A</button>
@@ -1346,21 +1432,7 @@
 
         <div class="resultsList">
           <div id="bandGroupsMount"></div>
-
-          <article class="resultCard" data-type="show" data-subject="music">
-            <div class="cardBadge">SHW</div>
-            <div class="cardMain">
-              <div class="eyebrow">Show</div>
-              <div class="cardTitle">Widow Sunday w/ Guests 2012 - Round 2</div>
-              <div class="cardSub">June 8th, 2012 at The Chance, Poughkeepsie, NY. Geo-tagged and linked to multiple people and band records.</div>
-              <div class="metaRow">
-                <div class="metaPill">7 bands</div>
-                <div class="metaPill">Geo present</div>
-                <div class="metaPill">Venue match</div>
-              </div>
-            </div>
-            <div class="cardAction">Open Show</div>
-          </article>
+          <div id="showCardsMount"></div>
 
           <article class="resultCard" data-type="venue" data-subject="music">
             <div class="cardBadge">VEN</div>
@@ -1431,6 +1503,8 @@
   <script src="./archive-explorer-band-data.js"></script>
   <script src="./archive-explorer-people-data.js"></script>
   <script>
+    const MUSIC_SHOW_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/show-index.json';
+
     function escapeHtml(value) {
       return String(value || '')
         .replace(/&/g, '&amp;')
@@ -1438,6 +1512,116 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function formatShowDateLabel(rawValue) {
+      const raw = String(rawValue || '').trim();
+      const parts = raw.split('/');
+      if (parts.length !== 3) return raw;
+      const monthIndex = Number(parts[0]) - 1;
+      const day = Number(parts[1]);
+      let year = Number(parts[2]);
+      if (!Number.isFinite(monthIndex) || !Number.isFinite(day) || !Number.isFinite(year)) return raw;
+      if (year < 100) year += 2000;
+      const dt = new Date(year, monthIndex, day);
+      if (Number.isNaN(dt.getTime())) return raw;
+      const suffix = day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+      return `${dt.toLocaleString('en-US', { month: 'long' })} ${day}${suffix}, ${dt.getFullYear()}`;
+    }
+
+    function buildShowVenueLine(show) {
+      const venue = String(show && show.venue || '').trim();
+      const city = String(show && show.city || '').trim();
+      const state = String(show && show.state || '').trim();
+      const place = [city, state].filter(Boolean).join(', ');
+      return [venue, place].filter(Boolean).join(' - ');
+    }
+
+    function getShowCameraLabel(show) {
+      const direct = String(show && show.camera || '').trim();
+      if (direct) return `Camera Used: ${direct}`;
+      const cameras = [String(show && show.camera_used_1 || '').trim(), String(show && show.camera_used_2 || '').trim()].filter(Boolean);
+      return cameras.length ? `Camera Used: ${cameras.join(' / ')}` : '';
+    }
+
+    function getBandCount(show) {
+      const row = (show && typeof show === 'object') ? show : {};
+      let count = 0;
+      for (let i = 1; i <= 20; i += 1) {
+        if (String(row[`band_${i}`] || row[`band${i}`] || '').trim()) count += 1;
+      }
+      return count;
+    }
+
+    function renderShowCardsFromData(shows) {
+      const mount = document.getElementById('showCardsMount');
+      if (!mount) return;
+      const fallbackShows = [
+        {
+          title: 'Burning Time w/ Loki',
+          date: '03/14/26',
+          venue: 'Colisee Club',
+          city: 'Lewiston',
+          state: 'Maine',
+          camera: 'Canon EOS R6 Mark II',
+          poster_url: ''
+        }
+      ];
+      const rows = (Array.isArray(shows) && shows.length ? shows : fallbackShows)
+        .slice()
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+        .slice(0, 24);
+
+      mount.innerHTML = rows.map((show) => {
+        const title = String(show && (show.title || show.show_name || show.event || show.name) || 'Untitled Show').trim();
+        const posterUrl = String(show && show.poster_url || '').trim();
+        const rawDate = String(show && show.date || '').trim();
+        const dateText = formatShowDateLabel(rawDate);
+        const venueText = buildShowVenueLine(show);
+        const cameraText = getShowCameraLabel(show);
+        const bandCount = getBandCount(show);
+        const yearValue = rawDate.split('/').pop() || '';
+        const normalizedYear = /^\d{2}$/.test(yearValue) ? `20${yearValue}` : yearValue;
+        return `
+          <article class="resultCard" data-type="show" data-subject="music" data-name="${escapeHtml(title)}" data-show-year="${escapeHtml(normalizedYear)}">
+            <div class="cardBadge">
+              ${posterUrl
+                ? `<img class="cardBadgeImage" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" />`
+                : 'SHW'}
+            </div>
+            <div class="cardMain">
+              <div class="eyebrow">Show</div>
+              <div class="cardTitle">${escapeHtml(title)}</div>
+              ${dateText ? `<div class="showDateLine">${escapeHtml(dateText)}</div>` : ''}
+              ${venueText ? `<div class="showVenueLine">${escapeHtml(venueText)}</div>` : ''}
+              ${cameraText ? `<div class="showCameraLine">${escapeHtml(cameraText)}</div>` : ''}
+              <div class="metaRow">
+                <div class="metaPill">${bandCount.toLocaleString()} band${bandCount === 1 ? '' : 's'}</div>
+                <div class="metaPill">Music-Shows</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Show</div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function renderMusicShowCards() {
+      try {
+        const response = await fetch(MUSIC_SHOW_INDEX_ENDPOINT, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const shows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload && payload.shows)
+            ? payload.shows
+            : Array.isArray(payload && payload.rows)
+              ? payload.rows
+              : [];
+        renderShowCardsFromData(shows);
+      } catch (_) {
+        renderShowCardsFromData([]);
+      }
     }
 
     function renderBandCards() {
@@ -1623,6 +1807,7 @@
     }
 
     renderBandCards();
+    renderShowCardsFromData([]);
     renderPeopleCards();
 
     const subjectSelect = document.getElementById("subjectSelect");
@@ -1647,10 +1832,11 @@
       show: document.querySelector('[data-filter-role="show"]'),
       venue: document.querySelector('[data-filter-role="venue"]')
     };
-    const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
-    const resultCards = Array.from(document.querySelectorAll(".resultCard"));
-    const resultGroupSections = Array.from(document.querySelectorAll(".resultGroupSection"));
-    const resultGroups = Array.from(document.querySelectorAll(".resultGroup"));
+    const subFilterControls = document.getElementById("subFilterControls");
+    let subFilterButtons = [];
+    let resultCards = [];
+    let resultGroupSections = [];
+    let resultGroups = [];
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
@@ -1658,6 +1844,14 @@
     let activeFilter = "all";
     let activeSort = "az";
     let activeSubFilter = "all";
+    let subFilterMode = "letters";
+
+    function refreshResultCollections() {
+      resultCards = Array.from(document.querySelectorAll(".resultCard"));
+      resultGroupSections = Array.from(document.querySelectorAll(".resultGroupSection"));
+      resultGroups = Array.from(document.querySelectorAll(".resultGroup"));
+      subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
+    }
 
     const filterLabels = {
       all: "all categories",
@@ -1769,19 +1963,49 @@
         return;
       }
 
-      peopleBrowserMeta.textContent = filter === "all" ? "All names" : `Names starting with ${filter}`;
+      if (subFilterMode === "years") {
+        peopleBrowserMeta.textContent = filter === "all" ? "All years" : `Shows from ${filter}`;
+      } else {
+        peopleBrowserMeta.textContent = filter === "all" ? "All names" : `Names starting with ${filter}`;
+      }
     }
 
-    function syncSubFilterButtons() {
-      const subFilterType = activeFilter === "person" || activeFilter === "band" ? activeFilter : null;
-      if (!subFilterType) {
-        subFilterButtons.forEach((button) => {
-          button.hidden = button.dataset.subfilter !== "all";
-        });
-        setSubFilter("all");
-        return;
-      }
+    function renderShowYearFilters() {
+      if (!subFilterControls) return;
+      subFilterMode = "years";
+      const years = Array.from(new Set(
+        resultCards
+          .filter((card) => card.dataset.type === "show" && (activeSubject === "all" || card.dataset.subject === activeSubject))
+          .map((card) => String(card.dataset.showYear || "").trim())
+          .filter((year) => /^\d{4}$/.test(year))
+      )).sort((a, b) => Number(b) - Number(a));
+      const visibleYears = years.slice(0, 6);
+      const overflowYears = years.slice(6);
+      const activeYear = activeSubFilter !== "all" && years.includes(activeSubFilter) ? activeSubFilter : "all";
+      activeSubFilter = activeYear;
+      subFilterControls.innerHTML = `
+        <button class="subHint groupHint${activeYear === "all" ? " active" : ""}" type="button" data-subfilter="all" aria-pressed="${activeYear === "all"}">All</button>
+        ${visibleYears.map((year) => `
+          <button class="subHint${activeYear === year ? " active" : ""}" type="button" data-subfilter="${escapeHtml(year)}" aria-pressed="${activeYear === year}">${escapeHtml(year)}</button>
+        `).join("")}
+        ${overflowYears.length ? `
+          <div class="subFilterMore">
+            <button class="subHint groupHint" type="button" data-show-years-more="1" aria-expanded="false" aria-haspopup="true">More â–¾</button>
+            <div class="subFilterMoreMenu" hidden>
+              ${overflowYears.map((year) => `
+                <button class="subHint${activeYear === year ? " active" : ""}" type="button" data-subfilter="${escapeHtml(year)}" aria-pressed="${activeYear === year}">${escapeHtml(year)}</button>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+      `;
+      refreshResultCollections();
+      setSubFilter(activeYear);
+    }
 
+    function renderLetterFilters(subFilterType) {
+      if (!subFilterControls) return;
+      subFilterMode = "letters";
       const availableLetters = new Set(
         resultCards
           .filter((card) => card.dataset.type === subFilterType && (activeSubject === "all" || card.dataset.subject === activeSubject))
@@ -1792,18 +2016,31 @@
           })
           .filter((letter) => letter === "#" || /^[A-Z]$/.test(letter))
       );
+      const letters = ["#", ...Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index))];
+      const activeLetter = activeSubFilter !== "all" && availableLetters.has(activeSubFilter) ? activeSubFilter : "all";
+      activeSubFilter = activeLetter;
+      subFilterControls.innerHTML = `
+        <button class="subHint groupHint${activeLetter === "all" ? " active" : ""}" type="button" data-subfilter="all" aria-pressed="${activeLetter === "all"}">All</button>
+        ${letters.map((letter) => `
+          <button class="subHint${activeLetter === letter ? " active" : ""}" type="button" data-subfilter="${escapeHtml(letter)}" aria-pressed="${activeLetter === letter}" ${availableLetters.has(letter) ? "" : "hidden"}>${escapeHtml(letter)}</button>
+        `).join("")}
+      `;
+      refreshResultCollections();
+      setSubFilter(activeLetter);
+    }
 
-      subFilterButtons.forEach((button) => {
-        const key = button.dataset.subfilter;
-        button.hidden = key !== "all" && !availableLetters.has(key);
-      });
-
-      if (activeSubFilter !== "all") {
-        const activeButton = subFilterButtons.find((button) => button.dataset.subfilter === activeSubFilter);
-        if (!activeButton || activeButton.hidden) {
-          setSubFilter("all");
+    function syncSubFilterButtons() {
+      const subFilterType = ["person", "band", "show"].includes(activeFilter) ? activeFilter : null;
+      if (!subFilterType) {
+        if (subFilterControls) {
+          subFilterControls.innerHTML = '<button class="subHint active groupHint" type="button" data-subfilter="all" aria-pressed="true">All</button>';
         }
+        refreshResultCollections();
+        setSubFilter("all");
+        return;
       }
+      if (subFilterType === "show") renderShowYearFilters();
+      else renderLetterFilters(subFilterType);
     }
 
     function syncFilterRowForSubject(subject) {
@@ -1888,7 +2125,8 @@
           : activeSubFilter === "#"
             ? /^\d/.test(String(card.dataset.name || '').trim())
             : String(card.dataset.name || '').trim().toUpperCase().startsWith(activeSubFilter);
-        const shouldShow = matchesSubject && matchesType && matchesLetter;
+        const matchesYear = activeFilter !== "show" || activeSubFilter === "all" || String(card.dataset.showYear || "") === activeSubFilter;
+        const shouldShow = matchesSubject && matchesType && matchesLetter && matchesYear;
         card.hidden = !shouldShow;
         card.classList.toggle("show-card-type", showCardType && card.dataset.type !== "person");
         return count + (shouldShow ? 1 : 0);
@@ -1962,10 +2200,10 @@
       }
 
       if (peopleBrowser) {
-        peopleBrowser.hidden = !["person", "band"].includes(filter);
+        peopleBrowser.hidden = !["person", "band", "show"].includes(filter);
       }
 
-      if (!["person", "band"].includes(filter)) {
+      if (!["person", "band", "show"].includes(filter)) {
         setSubFilter("all");
       }
 
@@ -1989,18 +2227,33 @@
       setSortMenuOpen(false);
     }
 
-    subFilterButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        setSubFilter(button.dataset.subfilter);
-        updateResultsVisibility();
-      });
+    document.addEventListener("click", (event) => {
+      const moreButton = event.target && event.target.closest ? event.target.closest("[data-show-years-more='1']") : null;
+      if (moreButton) {
+        const wrap = moreButton.closest(".subFilterMore");
+        const menu = wrap ? wrap.querySelector(".subFilterMoreMenu") : null;
+        const nextOpen = !!(menu && menu.hidden);
+        if (menu) menu.hidden = !nextOpen;
+        moreButton.setAttribute("aria-expanded", String(nextOpen));
+        return;
+      }
+
+      const subFilterButton = event.target && event.target.closest ? event.target.closest(".subHint[data-subfilter]") : null;
+      if (!subFilterButton) return;
+      const moreWrap = subFilterButton.closest(".subFilterMore");
+      const moreMenu = moreWrap ? moreWrap.querySelector(".subFilterMoreMenu") : null;
+      const moreTrigger = moreWrap ? moreWrap.querySelector("[data-show-years-more='1']") : null;
+      if (moreMenu) moreMenu.hidden = true;
+      if (moreTrigger) moreTrigger.setAttribute("aria-expanded", "false");
+      setSubFilter(subFilterButton.dataset.subfilter);
+      updateResultsVisibility();
     });
 
-    resultGroups.forEach((group) => {
-      group.addEventListener("click", () => {
-        const isExpanded = group.getAttribute("aria-expanded") === "true";
-        setGroupExpanded(group, !isExpanded);
-      });
+    document.addEventListener("click", (event) => {
+      const group = event.target && event.target.closest ? event.target.closest(".resultGroup") : null;
+      if (!group) return;
+      const isExpanded = group.getAttribute("aria-expanded") === "true";
+      setGroupExpanded(group, !isExpanded);
     });
 
     sortButtons.forEach((button) => {
@@ -2053,9 +2306,15 @@
       button.addEventListener("click", () => applyFilter(button.dataset.filter));
     });
 
+    refreshResultCollections();
     applyFilter("all");
     applySubjectFilter("all");
     applySort(activeSort);
+
+    renderMusicShowCards().then(() => {
+      refreshResultCollections();
+      updateResultsVisibility();
+    });
   </script>
 </body>
 </html>
