@@ -154,7 +154,9 @@
       gap: 0;
       flex-wrap: nowrap;
       align-items: center;
-      padding: 10px 18px;
+      justify-content: center;
+      margin: 0 auto;
+      padding: 6px 14px;
       border: 1px solid rgba(255, 89, 146, 0.4);
       border-radius: 999px;
       background:
@@ -196,7 +198,7 @@
 
     .modePill {
       position: relative;
-      padding: 16px 36px;
+      padding: 8px 28px;
       font-size: 15px;
       font-weight: 600;
       letter-spacing: 0.12em;
@@ -210,7 +212,7 @@
       right: -1px;
       top: 50%;
       width: 1px;
-      height: 26px;
+      height: 18px;
       transform: translateY(-50%);
       background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.22), transparent);
       pointer-events: none;
@@ -231,7 +233,7 @@
     .modePill.active::before {
       content: "";
       position: absolute;
-      inset: 3px;
+      inset: 2px;
       border-radius: inherit;
       pointer-events: none;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), transparent 56%);
