@@ -739,8 +739,16 @@
     .resultCard[data-type="person"] {
       grid-column: auto;
       grid-template-columns: minmax(0, 1fr);
-      align-items: start;
-      min-height: 154px;
+      align-items: center;
+      min-height: 124px;
+      padding: 14px 14px 12px;
+      border-radius: 14px;
+      clip-path: none;
+      background:
+        linear-gradient(180deg, rgba(20, 15, 29, 0.94), rgba(10, 12, 22, 0.94));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.02),
+        inset 0 -12px 20px rgba(0, 0, 0, 0.12);
     }
 
     .resultCard[data-type="person"] .cardBadge {
@@ -770,14 +778,14 @@
     }
 
     .resultCard[data-type="person"] .cardMain {
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "eyebrow"
-        "title"
-        "subline"
-        "meta";
-      align-items: start;
-      row-gap: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      text-align: center;
+      min-height: 96px;
+      width: 100%;
     }
 
     .eyebrow {
@@ -787,12 +795,37 @@
       text-transform: uppercase;
     }
 
-    .resultCard[data-type="person"] .eyebrow {
-      grid-area: eyebrow;
-    }
-
     .resultCard:not(.show-card-type) .eyebrow {
       display: none;
+    }
+
+    .resultGroup {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 2px 0;
+      color: #fff5fb;
+      min-height: 24px;
+    }
+
+    .resultGroup[hidden] {
+      display: none;
+    }
+
+    .resultGroupMarker {
+      color: var(--magenta);
+      font-size: 10px;
+      line-height: 1;
+      text-shadow: 0 0 10px rgba(255, 114, 181, 0.28);
+    }
+
+    .resultGroupLabel {
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      text-transform: none;
+      color: rgba(255, 245, 251, 0.92);
     }
 
     .cardTitle {
@@ -804,7 +837,14 @@
     }
 
     .resultCard[data-type="person"] .cardTitle {
-      grid-area: title;
+      color: #ff6fae;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 0.03em;
+      text-shadow: none;
+      width: 100%;
+      text-align: center;
+      margin: 0;
     }
 
     .cardLinkText {
@@ -816,7 +856,25 @@
     }
 
     .resultCard[data-type="person"] .cardLinkText {
-      grid-area: subline;
+      color: rgba(226, 219, 229, 0.88);
+      font-size: 10px;
+      letter-spacing: 0.035em;
+      width: 100%;
+      text-align: center;
+      transform: none;
+      margin: 0;
+    }
+
+    .personInstrumentLine {
+      color: rgba(176, 161, 180, 0.72);
+      font-size: 9px;
+      line-height: 1.2;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      width: 100%;
+      text-align: center;
+      transform: none;
+      margin: 0;
     }
 
     .cardSub {
@@ -832,10 +890,12 @@
     }
 
     .resultCard[data-type="person"] .metaRow {
-      grid-area: meta;
-      justify-content: flex-start;
-      align-self: start;
+      justify-content: center;
+      align-self: center;
       flex-wrap: nowrap;
+      margin-top: 10px;
+      padding-top: 0;
+      width: 100%;
     }
 
     .metaPill {
@@ -853,13 +913,14 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 8px;
+      padding: 3px 7px;
       background:
         linear-gradient(180deg, rgba(16, 22, 35, 0.94), rgba(13, 18, 28, 0.9));
       border-color: rgba(105, 222, 255, 0.14);
       color: #d9ebf8;
       letter-spacing: 0.01em;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      font-size: 9px;
     }
 
     .iconMetaPill::before {
@@ -1041,15 +1102,6 @@
 
       .resultCard[data-type="person"] {
         grid-template-columns: minmax(0, 1fr);
-      }
-
-      .resultCard[data-type="person"] .cardMain {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "eyebrow"
-          "title"
-          "subline"
-          "meta";
       }
 
       .resultCard[data-type="person"] .metaRow {
@@ -1265,36 +1317,49 @@
         .replace(/'/g, '&#39;');
     }
 
-    function formatPersonSubline(person) {
-      const bands = String(person && person.bands || '').trim();
-      const instrument = String(person && person.instrument || '').trim();
-      if (bands && instrument) return `${bands} * ${instrument}`;
-      return bands || instrument || '';
-    }
-
     function renderPeopleCards() {
       const resultsList = document.querySelector('.resultsList');
       const people = Array.isArray(window.ARCHIVE_MOCKUP_PEOPLE) ? window.ARCHIVE_MOCKUP_PEOPLE : [];
       if (!resultsList || !people.length) return;
 
       const visiblePeople = people.filter((person) => Number(person.photoCount || 0) > 0 || Number(person.albumCount || 0) > 0);
+      const groupedPeople = visiblePeople.reduce((groups, person) => {
+        const category = String(person.category || 'People').trim() || 'People';
+        if (!groups.has(category)) {
+          groups.set(category, []);
+        }
+        groups.get(category).push(person);
+        return groups;
+      }, new Map());
 
-      const cardsMarkup = visiblePeople.map((person) => {
-        const subline = formatPersonSubline(person);
-        return `
-          <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(person.category)}">
-            <div class="cardBadge">PPL</div>
-            <div class="cardMain">
-              <div class="eyebrow">Person</div>
-              <div class="cardTitle">${escapeHtml(person.name)}</div>
-              ${subline ? `<div class="cardLinkText">${escapeHtml(subline)}</div>` : ''}
-              <div class="metaRow">
-                <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
-                <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
-              </div>
-            </div>
-          </article>
+      const cardsMarkup = Array.from(groupedPeople.entries()).map(([category, groupPeople]) => {
+        const groupHeader = `
+          <div class="resultGroup" data-type="person" data-subject="music" data-category="${escapeHtml(category)}">
+            <span class="resultGroupMarker">▼</span>
+            <span class="resultGroupLabel">${escapeHtml(category)}</span>
+          </div>
         `;
+
+        const groupCards = groupPeople.map((person) => {
+          const bands = String(person && person.bands || '').trim();
+          const instrument = String(person && person.instrument || '').trim();
+          return `
+            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}">
+              <div class="cardBadge">PPL</div>
+              <div class="cardMain">
+                <div class="metaRow">
+                  <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
+                  <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
+                </div>
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                ${instrument ? `<div class="cardLinkText">${escapeHtml(instrument)}</div>` : ''}
+                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        return `${groupHeader}${groupCards}`;
       }).join('');
 
       resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
@@ -1321,6 +1386,7 @@
     };
     const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
     const resultCards = Array.from(document.querySelectorAll(".resultCard"));
+    const resultGroups = Array.from(document.querySelectorAll(".resultGroup"));
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
@@ -1430,9 +1496,20 @@
         const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
         const shouldShow = matchesSubject && matchesType;
         card.hidden = !shouldShow;
-        card.classList.toggle("show-card-type", showCardType);
+        card.classList.toggle("show-card-type", showCardType && card.dataset.type !== "person");
         return count + (shouldShow ? 1 : 0);
       }, 0);
+
+      resultGroups.forEach((group) => {
+        const category = group.dataset.category;
+        const hasVisibleCards = resultCards.some((card) =>
+          !card.hidden &&
+          card.dataset.type === group.dataset.type &&
+          card.dataset.subject === group.dataset.subject &&
+          card.dataset.category === category
+        );
+        group.hidden = !hasVisibleCards;
+      });
 
       const label = activeFilter === "all"
         ? subjectLabels[activeSubject]
