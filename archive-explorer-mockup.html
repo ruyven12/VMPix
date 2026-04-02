@@ -242,9 +242,10 @@
 
     .controls {
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.72fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 16px;
       align-items: stretch;
+      justify-items: center;
     }
 
     .searchCard,
@@ -272,9 +273,11 @@
     }
 
     .searchCard {
+      width: min(1280px, 100%);
       padding: 18px;
       display: grid;
       gap: 14px;
+      justify-items: center;
     }
 
     .searchLabel,
@@ -283,6 +286,7 @@
       font-size: 11px;
       letter-spacing: 0.24em;
       text-transform: uppercase;
+      text-align: center;
     }
 
     .searchInputWrap {
@@ -294,6 +298,7 @@
       border-radius: 18px;
       padding: 14px 16px;
       background: rgba(10, 11, 18, 0.8);
+      width: 100%;
     }
 
     .searchIcon {
@@ -322,6 +327,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .hint {
