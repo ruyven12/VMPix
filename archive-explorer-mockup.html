@@ -332,7 +332,7 @@
     }
 
     .subFilterBar {
-      width: 100%;
+      width: min(1280px, 100%);
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       gap: 16px;
@@ -494,13 +494,15 @@
 
     .content {
       display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
       padding: 18px 24px 24px;
+      justify-items: center;
     }
 
     .resultsPanel,
     .previewPanel {
+      width: min(1280px, 100%);
       padding: 18px;
       min-height: 620px;
     }
@@ -812,27 +814,20 @@
             <button class="hint modeHint" type="button" data-filter="show" aria-pressed="false">Shows</button>
             <button class="hint modeHint" type="button" data-filter="venue" aria-pressed="false">Venues</button>
           </div>
-          <div class="subFilterBar" id="peopleBrowser" hidden>
-            <div class="subFilterLabel">People Browser</div>
-            <div class="subFilterControls">
-              <button class="subHint active" type="button" data-subfilter="all" aria-pressed="true">All</button>
-              <button class="subHint groupHint" type="button" data-subfilter="performer" aria-pressed="false">Performer</button>
-              <button class="subHint" type="button" data-subfilter="a" aria-pressed="false">A</button>
-              <button class="subHint" type="button" data-subfilter="b" aria-pressed="false">B</button>
-              <button class="subHint" type="button" data-subfilter="c" aria-pressed="false">C</button>
-              <button class="subHint" type="button" data-subfilter="d" aria-pressed="false">D</button>
-              <button class="subHint" type="button" data-subfilter="e" aria-pressed="false">E</button>
-              <button class="subHint" type="button" data-subfilter="f" aria-pressed="false">F</button>
-              <button class="subHint" type="button" data-subfilter="g" aria-pressed="false">G</button>
-            </div>
-            <div class="subFilterMeta" id="peopleBrowserMeta">558 indexed</div>
-          </div>
         </section>
 
       </div>
     </section>
 
     <section class="content">
+      <div class="subFilterBar" id="peopleBrowser" hidden>
+        <div class="subFilterLabel">People Browser</div>
+        <div class="subFilterControls">
+          <button class="subHint active" type="button" data-subfilter="all" aria-pressed="true">All</button>
+        </div>
+        <div class="subFilterMeta" id="peopleBrowserMeta">558 indexed</div>
+      </div>
+
       <section class="resultsPanel">
         <div class="panelHeader">
           <div>
@@ -847,12 +842,87 @@
             <div class="cardBadge">PPL</div>
             <div class="cardMain">
               <div class="eyebrow">Person</div>
-              <div class="cardTitle">Widow Sunday</div>
-              <div class="cardSub">Linked to 12 show appearances, 3 related bands, and repeat venue history in Poughkeepsie and Newburgh.</div>
+              <div class="cardTitle">Aaron Castaldi</div>
+              <div class="cardSub">Guitar and vocals across Iron Dynamite sets, with linked tags from regional flyers, live photos, and Hudson Valley venue appearances.</div>
               <div class="metaRow">
+                <div class="metaPill">61 photos</div>
+                <div class="metaPill">14 shows</div>
+                <div class="metaPill">Iron Dynamite</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard" data-type="person">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Aaron Lewis</div>
+              <div class="cardSub">Connected to Dive performances, guitar and vocal credits, and a smaller cluster of tagged photos from mixed-bill shows.</div>
+              <div class="metaRow">
+                <div class="metaPill">20 photos</div>
+                <div class="metaPill">6 shows</div>
+                <div class="metaPill">Dive</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard" data-type="person">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Aaron Nadeau</div>
+              <div class="cardSub">Mapped from Shy Green records with recurring guitar and vocal tags, plus multiple related people and venue cross-links.</div>
+              <div class="metaRow">
+                <div class="metaPill">41 photos</div>
+                <div class="metaPill">11 shows</div>
+                <div class="metaPill">Shy Green</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard" data-type="person">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Adam Begn</div>
+              <div class="cardSub">Vocals for Cutting The Herd, grouped from live sets, promo images, and repeat appearances with nearby scene-related bands.</div>
+              <div class="metaRow">
+                <div class="metaPill">262 photos</div>
+                <div class="metaPill">18 shows</div>
+                <div class="metaPill">Cutting The Herd</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard" data-type="person">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Adam Cutler</div>
+              <div class="cardSub">Guitar and vocals linked to Widow Sunday, with multiple photo clusters and route-friendly connections to show and band records.</div>
+              <div class="metaRow">
+                <div class="metaPill">55 photos</div>
                 <div class="metaPill">12 shows</div>
-                <div class="metaPill">3 bands</div>
-                <div class="metaPill">Last update 9h ago</div>
+                <div class="metaPill">Widow Sunday</div>
+              </div>
+            </div>
+            <div class="cardAction">Open Profile</div>
+          </article>
+
+          <article class="resultCard" data-type="person">
+            <div class="cardBadge">PPL</div>
+            <div class="cardMain">
+              <div class="eyebrow">Person</div>
+              <div class="cardTitle">Adam Fithian</div>
+              <div class="cardSub">Prospect Hill vocalist with a broader spread of linked content, making this a good test case for dense people-mode browsing.</div>
+              <div class="metaRow">
+                <div class="metaPill">51 photos</div>
+                <div class="metaPill">9 shows</div>
+                <div class="metaPill">Prospect Hill</div>
               </div>
             </div>
             <div class="cardAction">Open Profile</div>
@@ -981,11 +1051,7 @@
         return;
       }
 
-      peopleBrowserMeta.textContent = filter === "all"
-        ? "558 indexed"
-        : filter === "performer"
-          ? "558 indexed performers"
-          : `People indexed under ${filter.toUpperCase()}`;
+      peopleBrowserMeta.textContent = "558 indexed";
     }
 
     function applyFilter(filter) {
