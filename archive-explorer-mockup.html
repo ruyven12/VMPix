@@ -331,6 +331,80 @@
       justify-content: center;
     }
 
+    .subFilterBar {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 74, 133, 0.22);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(17, 12, 24, 0.88), rgba(9, 11, 18, 0.84)),
+        rgba(15, 12, 20, 0.8);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 0 22px rgba(255, 79, 154, 0.08);
+    }
+
+    .subFilterBar[hidden] {
+      display: none;
+    }
+
+    .subFilterLabel {
+      color: #fff5fb;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .subFilterControls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .subHint {
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .subHint.groupHint {
+      padding-inline: 14px;
+    }
+
+    .subHint.active {
+      color: #fff8fc;
+      border-color: rgba(255, 120, 170, 0.66);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.14), transparent 54%),
+        linear-gradient(180deg, rgba(255, 82, 145, 0.24), rgba(255, 54, 128, 0.12));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 14px rgba(255, 79, 154, 0.16);
+    }
+
+    .subFilterMeta {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-align: right;
+    }
+
     .hint {
       padding: 8px 10px;
       border-radius: var(--radius-sm);
@@ -475,6 +549,10 @@
       transform: translateY(-2px);
       border-color: rgba(255, 79, 154, 0.36);
       box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+    }
+
+    .resultCard[hidden] {
+      display: none;
     }
 
     .cardBadge {
@@ -691,6 +769,16 @@
         justify-self: start;
       }
 
+      .subFilterBar {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .subFilterMeta {
+        text-align: center;
+      }
+
       .statGrid {
         grid-template-columns: 1fr;
       }
@@ -718,11 +806,26 @@
             <input class="searchInput" value="widow sunday poughkeepsie 2012" aria-label="Search archive" />
           </div>
           <div class="searchHints">
-            <button class="hint modeHint active">All</button>
-            <button class="hint modeHint">People</button>
-            <button class="hint modeHint">Bands</button>
-            <button class="hint modeHint">Shows</button>
-            <button class="hint modeHint">Venues</button>
+            <button class="hint modeHint active" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="hint modeHint" type="button" data-filter="person" aria-pressed="false">People</button>
+            <button class="hint modeHint" type="button" data-filter="band" aria-pressed="false">Bands</button>
+            <button class="hint modeHint" type="button" data-filter="show" aria-pressed="false">Shows</button>
+            <button class="hint modeHint" type="button" data-filter="venue" aria-pressed="false">Venues</button>
+          </div>
+          <div class="subFilterBar" id="peopleBrowser" hidden>
+            <div class="subFilterLabel">People Browser</div>
+            <div class="subFilterControls">
+              <button class="subHint active" type="button" data-subfilter="all" aria-pressed="true">All</button>
+              <button class="subHint groupHint" type="button" data-subfilter="performer" aria-pressed="false">Performer</button>
+              <button class="subHint" type="button" data-subfilter="a" aria-pressed="false">A</button>
+              <button class="subHint" type="button" data-subfilter="b" aria-pressed="false">B</button>
+              <button class="subHint" type="button" data-subfilter="c" aria-pressed="false">C</button>
+              <button class="subHint" type="button" data-subfilter="d" aria-pressed="false">D</button>
+              <button class="subHint" type="button" data-subfilter="e" aria-pressed="false">E</button>
+              <button class="subHint" type="button" data-subfilter="f" aria-pressed="false">F</button>
+              <button class="subHint" type="button" data-subfilter="g" aria-pressed="false">G</button>
+            </div>
+            <div class="subFilterMeta" id="peopleBrowserMeta">558 indexed</div>
           </div>
         </section>
 
@@ -736,11 +839,11 @@
             <div class="sectionLabel">Results</div>
             <div class="panelTitle">Shared Explorer Cards</div>
           </div>
-          <div class="panelMeta">126 matches from people, bands, shows, venues</div>
+          <div class="panelMeta" id="resultsMeta">4 visible in all categories</div>
         </div>
 
         <div class="resultsList">
-          <article class="resultCard">
+          <article class="resultCard" data-type="person">
             <div class="cardBadge">PPL</div>
             <div class="cardMain">
               <div class="eyebrow">Person</div>
@@ -755,7 +858,7 @@
             <div class="cardAction">Open Profile</div>
           </article>
 
-          <article class="resultCard">
+          <article class="resultCard" data-type="band">
             <div class="cardBadge">BND</div>
             <div class="cardMain">
               <div class="eyebrow">Band</div>
@@ -770,7 +873,7 @@
             <div class="cardAction">Open Band</div>
           </article>
 
-          <article class="resultCard">
+          <article class="resultCard" data-type="show">
             <div class="cardBadge">SHW</div>
             <div class="cardMain">
               <div class="eyebrow">Show</div>
@@ -785,7 +888,7 @@
             <div class="cardAction">Open Show</div>
           </article>
 
-          <article class="resultCard">
+          <article class="resultCard" data-type="venue">
             <div class="cardBadge">VEN</div>
             <div class="cardMain">
               <div class="eyebrow">Venue</div>
@@ -851,5 +954,72 @@
       </aside>
     </section>
   </main>
+  <script>
+    const filterButtons = Array.from(document.querySelectorAll(".modeHint"));
+    const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
+    const resultCards = Array.from(document.querySelectorAll(".resultCard"));
+    const resultsMeta = document.getElementById("resultsMeta");
+    const peopleBrowser = document.getElementById("peopleBrowser");
+    const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
+
+    const filterLabels = {
+      all: "all categories",
+      person: "people",
+      band: "bands",
+      show: "shows",
+      venue: "venues"
+    };
+
+    function setSubFilter(filter) {
+      subFilterButtons.forEach((button) => {
+        const isActive = button.dataset.subfilter === filter;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+
+      if (!peopleBrowserMeta) {
+        return;
+      }
+
+      peopleBrowserMeta.textContent = filter === "all"
+        ? "558 indexed"
+        : filter === "performer"
+          ? "558 indexed performers"
+          : `People indexed under ${filter.toUpperCase()}`;
+    }
+
+    function applyFilter(filter) {
+      filterButtons.forEach((button) => {
+        const isActive = button.dataset.filter === filter;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+
+      if (peopleBrowser) {
+        peopleBrowser.hidden = filter !== "person";
+      }
+
+      if (filter !== "person") {
+        setSubFilter("all");
+      }
+
+      const visibleCount = resultCards.reduce((count, card) => {
+        const shouldShow = filter === "all" || card.dataset.type === filter;
+        card.hidden = !shouldShow;
+        return count + (shouldShow ? 1 : 0);
+      }, 0);
+
+      const noun = visibleCount === 1 ? "result" : "results";
+      resultsMeta.textContent = `${visibleCount} visible ${noun} in ${filterLabels[filter]}`;
+    }
+
+    subFilterButtons.forEach((button) => {
+      button.addEventListener("click", () => setSubFilter(button.dataset.subfilter));
+    });
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => applyFilter(button.dataset.filter));
+    });
+  </script>
 </body>
 </html>
