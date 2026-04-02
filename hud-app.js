@@ -4563,12 +4563,12 @@ music: {
                       <div style="color:rgba(255,130,164,.88); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase;">Current Prototype</div>
                       <div style="margin-top:8px; color:rgba(245,236,242,.96); font-family:'Orbitron',system-ui,sans-serif; font-size:20px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">Archive Explorer Mockup</div>
                     </div>
-                    <a href="/archive-explorer-mockup.html" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; min-width:186px; padding:11px 16px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); text-decoration:none; font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Open Standalone Mockup</a>
+                    <a href="/archive-explorer-mockup.html?v=20260401-testing-ui-r1" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; min-width:186px; padding:11px 16px; border-radius:999px; border:1px solid rgba(255,95,135,.34); background:linear-gradient(180deg,rgba(48,20,34,.92),rgba(27,11,20,.92)); color:rgba(247,237,242,.96); text-decoration:none; font-family:'Orbitron',system-ui,sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">Open Standalone Mockup</a>
                   </div>
                   <div style="margin-top:14px; color:rgba(214,198,210,.74); font-family:'Orbitron',system-ui,sans-serif; font-size:11px; line-height:1.65;">Tonight this gives you a safe, token-gated place in the main nav. Tomorrow we can start dropping real explorer work here without exposing it publicly in the normal site flow.</div>
                 </div>
                 <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:760px;">
-                  <iframe src="/archive-explorer-mockup.html" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:760px; border:0; background:#05060a;"></iframe>
+                  <iframe src="/archive-explorer-mockup.html?v=20260401-testing-ui-r1" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:760px; border:0; background:#05060a;"></iframe>
                 </div>
               </div>
             </div>
