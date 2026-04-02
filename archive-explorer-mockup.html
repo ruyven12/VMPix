@@ -797,9 +797,9 @@
     .cardBadgeImage {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       display: block;
-      padding: 8px;
+      padding: 0;
       filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.08));
     }
 
@@ -1314,6 +1314,7 @@
         <div class="subFilterBar" id="peopleBrowser" hidden>
           <div class="subFilterControls">
             <button class="subHint active groupHint" type="button" data-subfilter="all" aria-pressed="true">All</button>
+            <button class="subHint" type="button" data-subfilter="#" aria-pressed="false">#</button>
             <button class="subHint" type="button" data-subfilter="A" aria-pressed="false">A</button>
             <button class="subHint" type="button" data-subfilter="B" aria-pressed="false">B</button>
             <button class="subHint" type="button" data-subfilter="C" aria-pressed="false">C</button>
@@ -1344,63 +1345,7 @@
         </div>
 
         <div class="resultsList">
-          <section class="resultGroupSection" data-type="band" data-subject="music" data-category="Local">
-            <button class="resultGroup" type="button" data-type="band" data-subject="music" data-category="Local" aria-expanded="true">
-              <span class="resultGroupMarker">▶</span>
-              <span class="resultGroupLabel" data-group-label>Local Bands (5)</span>
-            </button>
-            <div class="resultGroupBody">
-              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
-                <div class="cardBadge">
-                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-GM3r7V7/0/LSG3GbZK8Jn8HL2RVk2xB2mnM85TMwm3BXg93NScd/Th/13%20High-Th.jpg" alt="13 High logo" />
-                </div>
-                <div class="cardMain">
-                  <div class="eyebrow">Band</div>
-                  <div class="cardTitle">13 High</div>
-                </div>
-              </article>
-
-              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
-                <div class="cardBadge">
-                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-XcmVMQF/0/KVkbqX7GW9dhpdLSSz8vxR99fNtxXTWkXhdJXTZDJ/X2/3FD-X2.jpg" alt="3FD logo" />
-                </div>
-                <div class="cardMain">
-                  <div class="eyebrow">Band</div>
-                  <div class="cardTitle">3FD</div>
-                </div>
-              </article>
-
-              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
-                <div class="cardBadge">
-                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-HbvKFrV/0/MQRGgZNRm3nKkx4xCNv7s5KqXxwPMTj6thZdTgHZZ/X2/A%20River%20of%20Trees-X2.jpg" alt="A River of Trees logo" />
-                </div>
-                <div class="cardMain">
-                  <div class="eyebrow">Band</div>
-                  <div class="cardTitle">A River of Trees</div>
-                </div>
-              </article>
-
-              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
-                <div class="cardBadge">
-                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-j39NTr3/0/MV7cxTwRtrTBbjTsJ4XvfWsWL3kwqVNRLCjsjdrvL/S/Absence%20of%20the%20Sun-S.jpg" alt="Absence of the Sun logo" />
-                </div>
-                <div class="cardMain">
-                  <div class="eyebrow">Band</div>
-                  <div class="cardTitle">Absence of the Sun</div>
-                </div>
-              </article>
-
-              <article class="resultCard" data-type="band" data-subject="music" data-category="Local">
-                <div class="cardBadge">
-                  <img class="cardBadgeImage" src="https://photos.smugmug.com/Music/Band-Logos/i-fHWLWgV/0/LkcxQ3ZtCX7GcRXwgKs3FFhxkbK7q7mB43Wr3BZBC/XL/Alions-XL.jpg" alt="Alions logo" />
-                </div>
-                <div class="cardMain">
-                  <div class="eyebrow">Band</div>
-                  <div class="cardTitle">Alions</div>
-                </div>
-              </article>
-            </div>
-          </section>
+          <div id="bandGroupsMount"></div>
 
           <article class="resultCard" data-type="show" data-subject="music">
             <div class="cardBadge">SHW</div>
@@ -1483,6 +1428,7 @@
       </aside>
     </section>
   </main>
+  <script src="./archive-explorer-band-data.js"></script>
   <script src="./archive-explorer-people-data.js"></script>
   <script>
     function escapeHtml(value) {
@@ -1492,6 +1438,79 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function renderBandCards() {
+      const mount = document.getElementById('bandGroupsMount');
+      const bands = Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : [];
+      if (!mount || !bands.length) return;
+
+      const regionOrder = ["Local", "Regional", "National", "International"];
+      const regionLabels = {
+        Local: "Local Bands",
+        Regional: "Regional Bands",
+        National: "National Bands",
+        International: "International Bands"
+      };
+
+      const groupedBands = bands.reduce((groups, band) => {
+        const region = String(band.region || '').trim();
+        const name = String(band.name || '').trim();
+        if (!name || !regionOrder.includes(region)) return groups;
+        if (!groups.has(region)) {
+          groups.set(region, []);
+        }
+        groups.get(region).push(band);
+        return groups;
+      }, new Map());
+
+      const markup = regionOrder
+        .filter((region) => groupedBands.has(region))
+        .map((region) => {
+          const groupBands = groupedBands.get(region)
+            .slice()
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+          const cards = groupBands.map((band) => {
+            const name = String(band.name || '').trim();
+            const logoUrl = String(band.logoUrl || '').trim();
+            const initials = name
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part.charAt(0).toUpperCase())
+              .join('') || 'BND';
+
+            return `
+              <article class="resultCard" data-type="band" data-subject="music" data-category="${escapeHtml(region)}" data-name="${escapeHtml(name)}">
+                <div class="cardBadge">
+                  ${logoUrl
+                    ? `<img class="cardBadgeImage" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(name)} logo" />`
+                    : escapeHtml(initials)}
+                </div>
+                <div class="cardMain">
+                  <div class="eyebrow">Band</div>
+                  <div class="cardTitle">${escapeHtml(name)}</div>
+                </div>
+              </article>
+            `;
+          }).join('');
+
+          return `
+            <section class="resultGroupSection" data-type="band" data-subject="music" data-category="${escapeHtml(region)}">
+              <button class="resultGroup" type="button" data-type="band" data-subject="music" data-category="${escapeHtml(region)}" aria-expanded="false">
+                <span class="resultGroupMarker">▶</span>
+                <span class="resultGroupLabel" data-group-label>${escapeHtml(regionLabels[region])} (${groupBands.length.toLocaleString()})</span>
+              </button>
+              <div class="resultGroupBody" hidden>
+                ${cards}
+              </div>
+            </section>
+          `;
+        })
+        .join('');
+
+      mount.outerHTML = markup;
     }
 
     function renderPeopleCards() {
@@ -1603,6 +1622,7 @@
       resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
     }
 
+    renderBandCards();
     renderPeopleCards();
 
     const subjectSelect = document.getElementById("subjectSelect");
@@ -1753,11 +1773,24 @@
     }
 
     function syncSubFilterButtons() {
+      const subFilterType = activeFilter === "person" || activeFilter === "band" ? activeFilter : null;
+      if (!subFilterType) {
+        subFilterButtons.forEach((button) => {
+          button.hidden = button.dataset.subfilter !== "all";
+        });
+        setSubFilter("all");
+        return;
+      }
+
       const availableLetters = new Set(
         resultCards
-          .filter((card) => card.dataset.type === "person" && (activeSubject === "all" || card.dataset.subject === activeSubject))
-          .map((card) => String(card.dataset.name || '').trim().charAt(0).toUpperCase())
-          .filter((letter) => /^[A-Z]$/.test(letter))
+          .filter((card) => card.dataset.type === subFilterType && (activeSubject === "all" || card.dataset.subject === activeSubject))
+          .map((card) => {
+            const firstChar = String(card.dataset.name || '').trim().charAt(0).toUpperCase();
+            if (/^\d$/.test(firstChar)) return "#";
+            return firstChar;
+          })
+          .filter((letter) => letter === "#" || /^[A-Z]$/.test(letter))
       );
 
       subFilterButtons.forEach((button) => {
@@ -1850,9 +1883,11 @@
       const visibleCount = resultCards.reduce((count, card) => {
         const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
         const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
-        const matchesLetter = activeFilter !== "person" || activeSubFilter === "all"
+        const matchesLetter = !["person", "band"].includes(activeFilter) || activeSubFilter === "all"
           ? true
-          : String(card.dataset.name || '').trim().toUpperCase().startsWith(activeSubFilter);
+          : activeSubFilter === "#"
+            ? /^\d/.test(String(card.dataset.name || '').trim())
+            : String(card.dataset.name || '').trim().toUpperCase().startsWith(activeSubFilter);
         const shouldShow = matchesSubject && matchesType && matchesLetter;
         card.hidden = !shouldShow;
         card.classList.toggle("show-card-type", showCardType && card.dataset.type !== "person");
@@ -1873,12 +1908,7 @@
         );
         section.hidden = !hasVisibleCards;
         if (group && body) {
-          const isExpanded = group.dataset.type === "band"
-            ? true
-            : group.getAttribute("aria-expanded") === "true";
-          if (group.dataset.type === "band") {
-            group.setAttribute("aria-expanded", "true");
-          }
+          const isExpanded = group.getAttribute("aria-expanded") === "true";
           body.hidden = !hasVisibleCards || !isExpanded;
         }
         if (label) {
@@ -1932,10 +1962,10 @@
       }
 
       if (peopleBrowser) {
-        peopleBrowser.hidden = filter !== "person";
+        peopleBrowser.hidden = !["person", "band"].includes(filter);
       }
 
-      if (filter !== "person") {
+      if (!["person", "band"].includes(filter)) {
         setSubFilter("all");
       }
 
