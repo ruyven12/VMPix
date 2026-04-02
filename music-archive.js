@@ -910,11 +910,14 @@ async function fetchMusicStatsData(forceFresh) {
 
     const peopleJson = peopleRes.status === 'fulfilled' ? (peopleRes.value || {}) : {};
     const peopleList = Array.isArray(peopleJson.people) ? peopleJson.people : [];
+    const unknownPeople = (peopleJson && typeof peopleJson.unknown === 'object') ? peopleJson.unknown : {};
     const peopleCount = peopleList.length;
     const photosIndexed = peopleList.reduce((sum, person) => {
       const n = Number(person && person.photoCount);
       return sum + (Number.isFinite(n) ? n : 0);
     }, 0);
+    const unknownPhotoCount = Number(unknownPeople.photoCount);
+    const unknownAlbumCount = Array.isArray(unknownPeople.albums) ? unknownPeople.albums.length : 0;
     const peopleStats = (peopleJson && typeof peopleJson.stats === 'object') ? peopleJson.stats : peopleJson;
     const albumCount = Number(peopleStats.albumsScanned || 0) || 0;
     const generatedAt = String(peopleJson.generatedAt || '').trim();
@@ -937,6 +940,8 @@ async function fetchMusicStatsData(forceFresh) {
       albumCount,
       peopleCount,
       photosIndexed,
+      unknownPhotoCount: Number.isFinite(unknownPhotoCount) ? unknownPhotoCount : 0,
+      unknownAlbumCount,
       fullyUpgraded,
       inProgress,
       notWorkedYet,
@@ -957,6 +962,8 @@ async function fetchMusicStatsData(forceFresh) {
       albumCount: 0,
       peopleCount: 0,
       photosIndexed: 0,
+      unknownPhotoCount: 0,
+      unknownAlbumCount: 0,
       fullyUpgraded: 0,
       inProgress: 0,
       notWorkedYet: 0,

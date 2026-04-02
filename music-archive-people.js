@@ -81,6 +81,7 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
 
   // Photo count cache: Map(personName -> Number)
   let _photoCountByPerson = new Map();
+  let _unknownPeopleData = { photoCount: 0, albums: [], images: [] };
 
   // Header totals (computed client-side)
   let _peopleTotals = { people: 0, photos: 0, albums: 0 };
@@ -119,6 +120,74 @@ const _peopleFullUrlByImageKey = new Map(); // imageKey -> full-res URL
     } catch (_) {}
     // Minimal fallback: escape quotes and backslashes.
     return v.replace(/\\/g, '\\\\').replace(/\"/g, '\\"');
+  }
+
+  function _cloneUnknownPeopleData(data) {
+    const src = data && typeof data === 'object' ? data : {};
+    return {
+      photoCount: Number.isFinite(Number(src.photoCount)) ? Number(src.photoCount) : 0,
+      albums: Array.isArray(src.albums) ? src.albums.map((album) => ({ ...(album || {}) })) : [],
+      images: Array.isArray(src.images) ? src.images.map((image) => ({ ...(image || {}) })) : []
+    };
+  }
+
+  function _normalizeUnknownAlbumEntry(album, fallback) {
+    const fb = fallback && typeof fallback === 'object' ? fallback : {};
+    const albumKey = _safeTrim(album?.albumKey || fb.albumKey);
+    if (!albumKey) return null;
+    return {
+      albumKey,
+      title: _safeTrim(album?.title || fb.title),
+      url: _safeTrim(album?.url || fb.url)
+    };
+  }
+
+  function _normalizeUnknownImageEntry(image, fallback) {
+    const fb = fallback && typeof fallback === 'object' ? fallback : {};
+    const album = _normalizeUnknownAlbumEntry(image, fb);
+    const imageKey = _safeTrim(image?.imageKey || fb.imageKey);
+    const thumbUrl = _safeTrim(image?.thumbUrl || image?.thumbnailUrl || fb.thumbUrl || fb.thumbnailUrl);
+    const imageUrl = _safeTrim(image?.imageUrl || image?.largestUrl || image?.url || fb.imageUrl || fb.largestUrl || fb.url);
+    if (!imageKey && !thumbUrl && !imageUrl && !album) return null;
+    return {
+      imageKey,
+      caption: String(image?.caption || fb.caption || ''),
+      reason: _safeTrim(image?.reason || fb.reason),
+      thumbUrl,
+      imageUrl,
+      albumKey: album ? album.albumKey : '',
+      albumTitle: album ? album.title : '',
+      albumUrl: album ? album.url : ''
+    };
+  }
+
+  function normalizeUnknownPeoplePayload(payload) {
+    const src = payload && typeof payload === 'object' ? payload : {};
+    const albumMap = new Map();
+    const images = [];
+    const rawAlbums = Array.isArray(src.albums) ? src.albums : [];
+    const rawImages = Array.isArray(src.images) ? src.images : [];
+
+    for (const album of rawAlbums) {
+      const normalized = _normalizeUnknownAlbumEntry(album);
+      if (!normalized) continue;
+      albumMap.set(normalized.albumKey, normalized);
+    }
+
+    for (const image of rawImages) {
+      const normalized = _normalizeUnknownImageEntry(image);
+      if (!normalized) continue;
+      images.push(normalized);
+      const album = _normalizeUnknownAlbumEntry(normalized, normalized);
+      if (album && !albumMap.has(album.albumKey)) albumMap.set(album.albumKey, album);
+    }
+
+    const explicitPhotoCount = Number(src.photoCount);
+    return {
+      photoCount: Number.isFinite(explicitPhotoCount) ? explicitPhotoCount : images.length,
+      albums: Array.from(albumMap.values()),
+      images
+    };
   }
 
   function parseCsvLine(line) {
@@ -656,6 +725,7 @@ function _formatLongDateFromShort(dateText) {
       } catch (_) {}
 
       try { _peopleIndexGeneratedAt = (obj && obj.g) ? String(obj.g) : ''; } catch (_) {}
+      try { _unknownPeopleData = normalizeUnknownPeoplePayload(obj && obj.u ? obj.u : null); } catch (_) { _unknownPeopleData = { photoCount: 0, albums: [], images: [] }; }
 
       return map.size ? map : null;
     } catch (_) {
@@ -688,7 +758,13 @@ function _formatLongDateFromShort(dateText) {
         }
       } catch (_) {}
 
-      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({ t: Date.now(), v, p, g: _peopleIndexGeneratedAt || '' }));
+      sessionStorage.setItem(PEOPLE_INDEX_CACHE_KEY, JSON.stringify({
+        t: Date.now(),
+        v,
+        p,
+        g: _peopleIndexGeneratedAt || '',
+        u: _unknownPeopleData || { photoCount: 0, albums: [], images: [] }
+      }));
     } catch (_) {}
   }
 
@@ -701,6 +777,7 @@ function _formatLongDateFromShort(dateText) {
     _peopleIndexGeneratedAt = '';
     _peopleQuietRefreshDone = false;
     _albumMetaByKey = new Map();
+    _unknownPeopleData = { photoCount: 0, albums: [], images: [] };
     try { sessionStorage.removeItem(PEOPLE_INDEX_CACHE_KEY); } catch (_) {}
   }
 
@@ -925,12 +1002,18 @@ function _formatLongDateFromShort(dateText) {
   }
 
   async function fetchPeopleFromAlbumByCaptions(albumKey, opts) {
+    const result = await scanAlbumPeopleCaptions(albumKey, opts);
+    return Array.isArray(result?.people) ? result.people : [];
+  }
+
+  async function scanAlbumPeopleCaptions(albumKey, opts) {
     const o = opts || {};
     const maxPages = Math.max(1, Number(o.maxPages || 2));                 // safety cap
     const maxDetailFetches = Math.max(0, Number(o.maxDetailFetches || 40)); // safety cap
     const count = Math.max(50, Math.min(200, Number(o.pageSize || 200)));
 
     const people = new Set();
+    const unknown = [];
     let start = 1;
     let page = 0;
     let detailUsed = 0;
@@ -959,6 +1042,19 @@ function _formatLongDateFromShort(dateText) {
 
         const names = parsePeopleCaption(caption);
         for (const n of names) people.add(n);
+        if (!names.length) {
+          unknown.push({
+            imageKey: extractImageKeyFromAlbumImage(it),
+            caption: String(caption || ''),
+            reason: caption ? 'unmatched_caption' : 'missing_caption',
+            thumbUrl: _extractThumbUrlFromAlbumImage(it),
+            imageUrl:
+              _pickFirst(it, ['LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'Url', 'URL']) ||
+              _pickFirst(it && it.Image, ['LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'Url', 'URL']) ||
+              _extractThumbUrlFromAlbumImage(it),
+            albumKey: _safeTrim(albumKey)
+          });
+        }
       }
 
       // Pagination: stop if fewer than requested (last page)
@@ -966,7 +1062,10 @@ function _formatLongDateFromShort(dateText) {
       start += count;
     }
 
-    return Array.from(people.values());
+    return {
+      people: Array.from(people.values()),
+      unknown
+    };
   }
 
 
@@ -3782,6 +3881,8 @@ function openPeopleLightbox(list, index){
       : Object.keys(REGION_FOLDER_BASE).map((r) => ({ folder: REGION_FOLDER_BASE[r], region: r }));
 
     const people = new Map();
+    const unknownImages = [];
+    const unknownAlbums = new Map();
 
     let folderDone = 0;
     let albumDone = 0;
@@ -3809,18 +3910,34 @@ function openPeopleLightbox(list, index){
         albumDone += 1;
 
         // Phase 1 (debug): read semicolon-delimited people names from photo captions in the album.
-        const names = await fetchPeopleFromAlbumByCaptions(albumKey, {
+        const scan = await scanAlbumPeopleCaptions(albumKey, {
           maxPages: 10,         // Phase 2: scan deeper per album (still bounded)
           pageSize: 200,
           maxDetailFetches: 200 // Phase 2: higher cap for fallback detail lookups
-        }).catch(() => []);
+        }).catch(() => ({ people: [], unknown: [] }));
 
-        const clean = _coerceArray(names).map((x) => String(x || '').trim()).filter(Boolean);
+        const clean = _coerceArray(scan?.people).map((x) => String(x || '').trim()).filter(Boolean);
         if (clean.length) {
           albumsWithPeople += 1;
           for (const nm of clean) {
             if (!people.has(nm)) people.set(nm, new Set());
             people.get(nm).add(albumKey);
+          }
+        }
+
+        const stub = _albumStubByKey.get(albumKey) || {};
+        const unknownForAlbum = _coerceArray(scan?.unknown);
+        if (unknownForAlbum.length) {
+          const albumEntry = _normalizeUnknownAlbumEntry({
+            albumKey,
+            title: stub.title || '',
+            url: stub.url || ''
+          });
+          if (albumEntry && !unknownAlbums.has(albumKey)) unknownAlbums.set(albumKey, albumEntry);
+          for (const item of unknownForAlbum) {
+            const normalized = _normalizeUnknownImageEntry(item, albumEntry || { albumKey });
+            if (!normalized) continue;
+            unknownImages.push(normalized);
           }
         }
 
@@ -3833,6 +3950,12 @@ function openPeopleLightbox(list, index){
     if (typeof onProgress === 'function') {
       onProgress({ phase: 'done', folderDone, folderTotal: folderList.length, albumDone, albumsWithPeople });
     }
+
+    _unknownPeopleData = normalizeUnknownPeoplePayload({
+      photoCount: unknownImages.length,
+      albums: Array.from(unknownAlbums.values()),
+      images: unknownImages
+    });
 
     return people;
   }
@@ -4127,6 +4250,7 @@ const pollDelayMs = 2000;
       await ensurePeopleRosterLookup().catch(() => new Map());
 
       const peopleArr = Array.isArray(data?.people) ? data.people : [];
+      _unknownPeopleData = normalizeUnknownPeoplePayload(data?.unknown);
 
       const idx = new Map();
       _albumMetaByKey = new Map();
@@ -4361,7 +4485,13 @@ const pollDelayMs = 2000;
     _lastRenderToken += 1;
   }
 
-  window.MusicArchivePeople = { render, onMount, destroy, openPerson };
+  window.MusicArchivePeople = {
+    render,
+    onMount,
+    destroy,
+    openPerson,
+    getUnknownData: () => _cloneUnknownPeopleData(_unknownPeopleData)
+  };
 })();
 
 
