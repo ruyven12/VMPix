@@ -331,6 +331,15 @@
       justify-content: center;
     }
 
+    .subjectHints {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
     .subFilterBar {
       width: min(1280px, 100%);
       display: grid;
@@ -554,8 +563,30 @@
 
     .resultsList {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
+    }
+
+    .resultsPanel {
+      max-height: min(72vh, 980px);
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 79, 154, 0.55) rgba(255, 255, 255, 0.06);
+    }
+
+    .resultsPanel::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .resultsPanel::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+    }
+
+    .resultsPanel::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(255, 79, 154, 0.75), rgba(86, 215, 255, 0.45));
+      border-radius: 999px;
+      border: 2px solid rgba(10, 10, 18, 0.6);
     }
 
     .resultCard {
@@ -844,11 +875,15 @@
       }
 
       .resultsList {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .resultCard[data-type="person"] {
         grid-template-columns: minmax(0, 1fr);
+      }
+
+      .resultsPanel {
+        max-height: min(68vh, 980px);
       }
 
       .cardAction {
@@ -867,6 +902,12 @@
       }
 
       .statGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .resultsList {
         grid-template-columns: 1fr;
       }
     }
@@ -892,12 +933,10 @@
             <div class="searchIcon">⌕</div>
             <input class="searchInput" value="widow sunday poughkeepsie 2012" aria-label="Search archive" />
           </div>
-          <div class="searchHints">
-            <button class="hint modeHint active" type="button" data-filter="all" aria-pressed="true">All</button>
-            <button class="hint modeHint" type="button" data-filter="person" aria-pressed="false">People</button>
-            <button class="hint modeHint" type="button" data-filter="band" aria-pressed="false">Bands</button>
-            <button class="hint modeHint" type="button" data-filter="show" aria-pressed="false">Shows</button>
-            <button class="hint modeHint" type="button" data-filter="venue" aria-pressed="false">Venues</button>
+          <div class="subjectHints">
+            <button class="hint modeHint subjectHint active" type="button" data-subject="all" aria-pressed="true">All</button>
+            <button class="hint modeHint subjectHint" type="button" data-subject="music" aria-pressed="false">Music</button>
+            <button class="hint modeHint subjectHint" type="button" data-subject="wrestling" aria-pressed="false">Wrestling</button>
           </div>
         </section>
 
@@ -905,6 +944,14 @@
     </section>
 
     <section class="content">
+      <div class="searchHints">
+        <button class="hint modeHint active" type="button" data-filter="all" data-filter-role="all" aria-pressed="true">All</button>
+        <button class="hint modeHint" type="button" data-filter="person" data-filter-role="people" aria-pressed="false">People/Performer</button>
+        <button class="hint modeHint" type="button" data-filter="band" data-filter-role="band" aria-pressed="false">Bands</button>
+        <button class="hint modeHint" type="button" data-filter="show" data-filter-role="show" aria-pressed="false">Shows</button>
+        <button class="hint modeHint" type="button" data-filter="venue" data-filter-role="venue" aria-pressed="false">Venues</button>
+      </div>
+
       <div class="subFilterBar" id="peopleBrowser" hidden>
         <div class="subFilterLabel">People Browser</div>
         <div class="subFilterControls">
@@ -919,7 +966,7 @@
         </div>
 
         <div class="resultsList">
-          <article class="resultCard" data-type="band">
+          <article class="resultCard" data-type="band" data-subject="music">
             <div class="cardBadge">BND</div>
             <div class="cardMain">
               <div class="eyebrow">Band</div>
@@ -934,7 +981,7 @@
             <div class="cardAction">Open Band</div>
           </article>
 
-          <article class="resultCard" data-type="show">
+          <article class="resultCard" data-type="show" data-subject="music">
             <div class="cardBadge">SHW</div>
             <div class="cardMain">
               <div class="eyebrow">Show</div>
@@ -949,7 +996,7 @@
             <div class="cardAction">Open Show</div>
           </article>
 
-          <article class="resultCard" data-type="venue">
+          <article class="resultCard" data-type="venue" data-subject="music">
             <div class="cardBadge">VEN</div>
             <div class="cardMain">
               <div class="eyebrow">Venue</div>
@@ -1043,7 +1090,7 @@
       const cardsMarkup = visiblePeople.map((person) => {
         const subline = formatPersonSubline(person);
         return `
-          <article class="resultCard" data-type="person" data-category="${escapeHtml(person.category)}">
+          <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(person.category)}">
             <div class="cardBadge">PPL</div>
             <div class="cardMain">
               <div class="cardTitle">${escapeHtml(person.name)}</div>
@@ -1062,12 +1109,22 @@
 
     renderPeopleCards();
 
-    const filterButtons = Array.from(document.querySelectorAll(".modeHint"));
+    const subjectButtons = Array.from(document.querySelectorAll(".subjectHint"));
+    const filterButtons = Array.from(document.querySelectorAll(".searchHints .modeHint"));
+    const filterButtonsByRole = {
+      all: document.querySelector('[data-filter-role="all"]'),
+      people: document.querySelector('[data-filter-role="people"]'),
+      band: document.querySelector('[data-filter-role="band"]'),
+      show: document.querySelector('[data-filter-role="show"]'),
+      venue: document.querySelector('[data-filter-role="venue"]')
+    };
     const subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
     const resultCards = Array.from(document.querySelectorAll(".resultCard"));
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
+    let activeSubject = "all";
+    let activeFilter = "all";
 
     const filterLabels = {
       all: "all categories",
@@ -1075,6 +1132,36 @@
       band: "bands",
       show: "shows",
       venue: "venues"
+    };
+
+    const subjectLabels = {
+      all: "all categories",
+      music: "music",
+      wrestling: "wrestling"
+    };
+
+    const filterRowBySubject = {
+      all: {
+        all: { label: "All", filter: "all", hidden: false },
+        people: { label: "People/Performer", filter: "person", hidden: false },
+        band: { label: "Bands", filter: "band", hidden: false },
+        show: { label: "Shows", filter: "show", hidden: false },
+        venue: { label: "Venues", filter: "venue", hidden: false }
+      },
+      music: {
+        all: { label: "All", filter: "all", hidden: false },
+        people: { label: "People", filter: "person", hidden: false },
+        band: { label: "Bands", filter: "band", hidden: false },
+        show: { label: "Shows", filter: "show", hidden: false },
+        venue: { label: "Venues", filter: "venue", hidden: false }
+      },
+      wrestling: {
+        all: { label: "All", filter: "all", hidden: false },
+        people: { label: "Performers", filter: "person", hidden: false },
+        band: { label: "Bands", filter: "band", hidden: true },
+        show: { label: "Shows", filter: "show", hidden: false },
+        venue: { label: "Venues", filter: "venue", hidden: false }
+      }
     };
 
     function setSubFilter(filter) {
@@ -1091,7 +1178,55 @@
       peopleBrowserMeta.textContent = "558 indexed";
     }
 
+    function syncFilterRowForSubject(subject) {
+      const config = filterRowBySubject[subject] || filterRowBySubject.all;
+
+      Object.entries(filterButtonsByRole).forEach(([role, button]) => {
+        if (!button) return;
+        const rule = config[role];
+        if (!rule) return;
+        button.hidden = !!rule.hidden;
+        button.textContent = rule.label;
+        button.dataset.filter = rule.filter;
+      });
+
+      const activeButton = filterButtons.find((button) => !button.hidden && button.dataset.filter === activeFilter);
+      if (!activeButton) {
+        activeFilter = "all";
+      }
+    }
+
+    function updateResultsVisibility() {
+      const visibleCount = resultCards.reduce((count, card) => {
+        const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
+        const matchesType = activeFilter === "all" || card.dataset.type === activeFilter;
+        const shouldShow = matchesSubject && matchesType;
+        card.hidden = !shouldShow;
+        return count + (shouldShow ? 1 : 0);
+      }, 0);
+
+      const label = activeFilter === "all"
+        ? subjectLabels[activeSubject]
+        : filterLabels[activeFilter];
+
+      resultsMeta.textContent = `${visibleCount} results across ${label}`;
+    }
+
+    function applySubjectFilter(subject) {
+      activeSubject = subject;
+      subjectButtons.forEach((button) => {
+        const isActive = button.dataset.subject === subject;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+
+      syncFilterRowForSubject(subject);
+      applyFilter(activeFilter);
+      updateResultsVisibility();
+    }
+
     function applyFilter(filter) {
+      activeFilter = filter;
       filterButtons.forEach((button) => {
         const isActive = button.dataset.filter === filter;
         button.classList.toggle("active", isActive);
@@ -1106,18 +1241,15 @@
         setSubFilter("all");
       }
 
-      const visibleCount = resultCards.reduce((count, card) => {
-        const shouldShow = filter === "all" || card.dataset.type === filter;
-        card.hidden = !shouldShow;
-        return count + (shouldShow ? 1 : 0);
-      }, 0);
-
-      const label = filter === "all" ? "all categories" : filterLabels[filter];
-      resultsMeta.textContent = `${visibleCount} results across ${label}`;
+      updateResultsVisibility();
     }
 
     subFilterButtons.forEach((button) => {
       button.addEventListener("click", () => setSubFilter(button.dataset.subfilter));
+    });
+
+    subjectButtons.forEach((button) => {
+      button.addEventListener("click", () => applySubjectFilter(button.dataset.subject));
     });
 
     filterButtons.forEach((button) => {
@@ -1125,6 +1257,7 @@
     });
 
     applyFilter("all");
+    applySubjectFilter("all");
   </script>
 </body>
 </html>
