@@ -98,22 +98,10 @@
     if (bodyEl) bodyEl.style.overflowX = 'hidden';
 
     if (isMusicMobileViewport()) {
-      try {
-        const panelRectMobile = _contentPanelEl.getBoundingClientRect();
-        const viewportHeight =
-          Math.max(
-            Number(window.innerHeight) || 0,
-            Number(document.documentElement && document.documentElement.clientHeight) || 0
-          ) || 0;
-        const bottomGap = 12;
-        if (panelRectMobile && Number.isFinite(panelRectMobile.top) && viewportHeight > 0) {
-          const availMobile = Math.max(220, Math.floor(viewportHeight - panelRectMobile.top - bottomGap));
-          _contentPanelEl.style.height = `${availMobile}px`;
-          _contentPanelEl.style.maxHeight = `${availMobile}px`;
-          _contentPanelEl.style.minHeight = '0px';
-          return;
-        }
-      } catch (_) {}
+      _contentPanelEl.style.height = '';
+      _contentPanelEl.style.maxHeight = '';
+      _contentPanelEl.style.minHeight = '0px';
+      return;
     }
 
     const hudH = hudMain.clientHeight || 0;
@@ -172,6 +160,36 @@
   function setArchiveViewportExpanded(isExpanded) {
     if (!_contentPanelEl) return;
     const isMobile = isMusicMobileViewport();
+    if (isMobile) {
+      _contentPanelEl.style.marginTop = '8px';
+      _contentPanelEl.style.overflowY = 'visible';
+      _contentPanelEl.style.overflowX = 'hidden';
+      _contentPanelEl.style.webkitOverflowScrolling = '';
+      _contentPanelEl.style.overscrollBehavior = '';
+      _contentPanelEl.style.display = 'block';
+      _contentPanelEl.style.alignItems = '';
+      _contentPanelEl.style.justifyContent = '';
+      _contentPanelEl.style.textAlign = '';
+      _contentPanelEl.style.flex = '';
+      _contentPanelEl.style.minHeight = '0px';
+      _contentPanelEl.style.height = '';
+      _contentPanelEl.style.maxHeight = '';
+
+      const hudMainMobile = document.querySelector('.hudStub.hudMain');
+      if (hudMainMobile) {
+        if (_prevHudMainDisplay !== null) hudMainMobile.style.display = _prevHudMainDisplay || '';
+        if (_prevHudMainFlexDirection !== null) hudMainMobile.style.flexDirection = _prevHudMainFlexDirection || '';
+        if (_prevHudMainAlignItems !== null) hudMainMobile.style.alignItems = _prevHudMainAlignItems || '';
+        if (_prevHudMainJustifyContent !== null) hudMainMobile.style.justifyContent = _prevHudMainJustifyContent || '';
+      }
+
+      if (_onResize) {
+        window.removeEventListener('resize', _onResize);
+        _onResize = null;
+      }
+      return;
+    }
+
     const ensureViewportSizing = () => {
       if (_onResize) {
         window.removeEventListener('resize', _onResize);
@@ -223,24 +241,6 @@
       _contentPanelEl.style.maxHeight = '';
       ensureViewportSizing();
     } else {
-      if (isMobile) {
-        _contentPanelEl.style.marginTop = '8px';
-        _contentPanelEl.style.overflowY = 'visible';
-        _contentPanelEl.style.overflowX = 'hidden';
-        _contentPanelEl.style.webkitOverflowScrolling = '';
-        _contentPanelEl.style.overscrollBehavior = '';
-        _contentPanelEl.style.display = 'block';
-        _contentPanelEl.style.alignItems = '';
-        _contentPanelEl.style.justifyContent = '';
-        _contentPanelEl.style.textAlign = '';
-
-        _contentPanelEl.style.flex = '';
-        _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
-        _contentPanelEl.style.height = '';
-        _contentPanelEl.style.maxHeight = '';
-        return;
-      }
-
       // revert to original behavior
       _contentPanelEl.style.marginTop = '';
       _contentPanelEl.style.height = '';
@@ -1404,7 +1404,7 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
           _contentPanelEl.style.alignItems = GREEN_BOX_MOBILE_ALIGN_ITEMS;
           _contentPanelEl.style.justifyContent = GREEN_BOX_MOBILE_JUSTIFY_CONTENT;
           _contentPanelEl.style.textAlign = GREEN_BOX_MOBILE_TEXT_ALIGN;
-          _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
+          _contentPanelEl.style.minHeight = '0px';
         }
 
         _contentPanelEl.innerHTML = renderMusicLandingPanel();
