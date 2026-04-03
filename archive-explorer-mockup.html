@@ -392,6 +392,48 @@
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.04),
         0 10px 22px rgba(0, 0, 0, 0.16);
+      transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease,
+        background 180ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subjectSelectTrigger::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(105, 222, 255, 0.10) 50%, transparent 100%),
+        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.14), transparent 56%);
+      opacity: 0;
+      transition: opacity 180ms ease;
+      pointer-events: none;
+    }
+
+    .subjectSelectTrigger:hover,
+    .subjectSelectTrigger:focus-visible,
+    .subjectSelect.is-open .subjectSelectTrigger {
+      transform: translateY(-1px);
+      border-color: rgba(105, 222, 255, 0.42);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 0 0 1px rgba(105, 222, 255, 0.08),
+        0 0 22px rgba(105, 222, 255, 0.10),
+        0 14px 26px rgba(0, 0, 0, 0.24);
+    }
+
+    .subjectSelectTrigger:hover::before,
+    .subjectSelectTrigger:focus-visible::before,
+    .subjectSelect.is-open .subjectSelectTrigger::before {
+      opacity: 1;
+    }
+
+    .subjectSelectTrigger:focus-visible {
+      outline: none;
     }
 
     .subjectSelectTriggerLabel {
@@ -405,16 +447,18 @@
     .subjectSelectChevron {
       color: var(--cyan);
       font-size: 10px;
-      transition: transform 180ms ease;
+      transition: transform 180ms ease, filter 180ms ease;
+      filter: drop-shadow(0 0 0 rgba(105, 222, 255, 0));
     }
 
     .subjectSelect.is-open .subjectSelectChevron {
       transform: rotate(180deg);
+      filter: drop-shadow(0 0 6px rgba(105, 222, 255, 0.45));
     }
 
     .subjectMenu {
       position: absolute;
-      top: calc(100% + 8px);
+      top: calc(100% + 2px);
       left: 50%;
       transform: translateX(-50%);
       min-width: 220px;
@@ -535,6 +579,19 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.04),
         0 20px 36px rgba(0, 0, 0, 0.28);
       z-index: 6;
+      transform-origin: top center;
+      animation: subjectMenuDrop 500ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    @keyframes subjectMenuDrop {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-14px) scaleY(0.7);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scaleY(1);
+      }
     }
 
     .subFilterMoreMenu[hidden] {
@@ -566,7 +623,27 @@
       text-transform: uppercase;
       font-family: inherit;
       cursor: pointer;
-      transition: 160ms ease;
+      transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        background 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    .hint.modeHint:hover,
+    .hint.modeHint:focus-visible {
+      color: #fff8fc;
+      border-color: rgba(105, 222, 255, 0.24);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(105, 222, 255, 0.10), transparent 50%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        rgba(255, 255, 255, 0.03);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 16px rgba(105, 222, 255, 0.08);
+      transform: translateY(-1px);
+      outline: none;
     }
 
     .hint.modeHint.active {
@@ -706,6 +783,25 @@
       gap: 14px;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      .subjectSelectTrigger,
+      .subjectSelectTrigger::before,
+      .subjectSelectChevron,
+      .subjectMenu,
+      .hint.modeHint {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .subjectSelectTrigger:hover,
+      .subjectSelectTrigger:focus-visible,
+      .subjectSelect.is-open .subjectSelectTrigger,
+      .hint.modeHint:hover,
+      .hint.modeHint:focus-visible {
+        transform: none;
+      }
+    }
+
     #showCardsMount {
       display: contents;
     }
@@ -718,6 +814,36 @@
       background:
         linear-gradient(180deg, rgba(28, 13, 24, 0.88), rgba(11, 10, 20, 0.88)),
         radial-gradient(circle at top, rgba(239, 211, 155, 0.04), transparent 26%);
+    }
+
+    .resultsDoorOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .resultsDoorPanel {
+      width: 50%;
+      height: 100%;
+      background:
+        linear-gradient(180deg, rgba(26, 12, 24, 0.98), rgba(8, 10, 17, 0.99)),
+        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.18), transparent 34%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 128, 176, 0.12),
+        0 20px 44px rgba(0, 0, 0, 0.38);
+    }
+
+    .resultsDoorPanel.is-left {
+      transform: translateX(-100%);
+      border-right: 1px solid rgba(105, 222, 255, 0.24);
+    }
+
+    .resultsDoorPanel.is-right {
+      transform: translateX(100%);
+      border-left: 1px solid rgba(105, 222, 255, 0.24);
     }
 
     .resultsPanel::after {
@@ -947,11 +1073,12 @@
       font-size: 10px;
       line-height: 1;
       text-shadow: 0 0 10px rgba(255, 114, 181, 0.28);
-      transition: transform 180ms ease;
+      transition: transform 360ms cubic-bezier(0.2, 0.9, 0.2, 1), filter 360ms ease;
     }
 
     .resultGroup[aria-expanded="true"] .resultGroupMarker {
       transform: rotate(90deg);
+      filter: drop-shadow(0 0 6px rgba(255, 114, 181, 0.4));
     }
 
     .resultGroupLabel {
@@ -969,6 +1096,7 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
+      overflow: hidden;
     }
 
     .resultGroupBody[hidden] {
@@ -1340,17 +1468,17 @@
           <div class="searchLabel">Search Across The Archive</div>
           <div class="searchInputWrap">
             <div class="searchIcon">⌕</div>
-            <input class="searchInput" value="Type your search here" aria-label="Search archive" />
+            <input class="searchInput" type="search" value="" placeholder="Type your search here" aria-label="Search archive" />
           </div>
           <div class="subjectHints">
             <div class="subjectSelect" id="subjectSelect">
               <button class="subjectSelectTrigger" id="subjectSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="subjectSelectTriggerLabel">Archive Scope</span>
-                <span class="subjectSelectTriggerValue" id="subjectSelectValue">Music</span>
+                <span class="subjectSelectTriggerValue" id="subjectSelectValue">Select</span>
                 <span class="subjectSelectChevron">▼</span>
               </button>
               <div class="subjectMenu" id="subjectMenu" hidden>
-                <button class="hint modeHint subjectHint active" type="button" data-subject="music" aria-pressed="true">Music</button>
+                <button class="hint modeHint subjectHint" type="button" data-subject="music" aria-pressed="false">Music</button>
                 <button class="hint modeHint subjectHint" type="button" data-subject="wrestling" aria-pressed="false">Wrestling</button>
               </div>
             </div>
@@ -1392,6 +1520,10 @@
 
     <section class="content">
       <section class="resultsPanel">
+        <div class="resultsDoorOverlay" id="resultsDoorOverlay" aria-hidden="true">
+          <div class="resultsDoorPanel is-left" id="resultsDoorLeft"></div>
+          <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
+        </div>
         <div class="panelHeader">
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
@@ -1527,6 +1659,18 @@
       return `${dt.toLocaleString('en-US', { month: 'long' })} ${day}${suffix}, ${dt.getFullYear()}`;
     }
 
+    function getShowDateSortValue(rawValue) {
+      const raw = String(rawValue || '').trim();
+      const parts = raw.split('/');
+      if (parts.length !== 3) return 0;
+      const month = Number(parts[0]);
+      const day = Number(parts[1]);
+      let year = Number(parts[2]);
+      if (!Number.isFinite(month) || !Number.isFinite(day) || !Number.isFinite(year)) return 0;
+      if (year < 100) year += 2000;
+      return (year * 10000) + (month * 100) + day;
+    }
+
     function buildShowVenueLine(show) {
       const venue = String(show && show.venue || '').trim();
       const city = String(show && show.city || '').trim();
@@ -1567,7 +1711,7 @@
       ];
       const rows = (Array.isArray(shows) && shows.length ? shows : fallbackShows)
         .slice()
-        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        .sort((a, b) => getShowDateSortValue(b && b.date) - getShowDateSortValue(a && a.date));
 
       mount.innerHTML = rows.map((show) => {
         const title = String(show && (show.title || show.show_name || show.event || show.name) || 'Untitled Show').trim();
@@ -1594,7 +1738,6 @@
               ${cameraText ? `<div class="showCameraLine">${escapeHtml(cameraText)}</div>` : ''}
               <div class="metaRow">
                 <div class="metaPill">${bandCount.toLocaleString()} band${bandCount === 1 ? '' : 's'}</div>
-                <div class="metaPill">Music-Shows</div>
               </div>
             </div>
             <div class="cardAction">Open Show</div>
@@ -1837,11 +1980,15 @@
     const resultsMeta = document.getElementById("resultsMeta");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
-    let activeSubject = "music";
+    const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
+    const resultsDoorLeft = document.getElementById("resultsDoorLeft");
+    const resultsDoorRight = document.getElementById("resultsDoorRight");
+    let activeSubject = "";
     let activeFilter = "";
     let activeSort = "az";
     let activeSubFilter = "all";
     let subFilterMode = "letters";
+    let resultsDoorBusy = false;
 
     function refreshResultCollections() {
       resultCards = Array.from(document.querySelectorAll(".resultCard"));
@@ -1907,21 +2054,58 @@
       if (!subjectSelect || !subjectSelectTrigger || !subjectMenu) return;
       subjectSelect.classList.toggle("is-open", isOpen);
       subjectSelectTrigger.setAttribute("aria-expanded", String(isOpen));
-      subjectMenu.hidden = !isOpen;
+      animateSelectMenu(subjectMenu, isOpen);
     }
 
     function setFilterMenuOpen(isOpen) {
       if (!filterSelect || !filterSelectTrigger || !filterMenu) return;
       filterSelect.classList.toggle("is-open", isOpen);
       filterSelectTrigger.setAttribute("aria-expanded", String(isOpen));
-      filterMenu.hidden = !isOpen;
+      animateSelectMenu(filterMenu, isOpen);
     }
 
     function setSortMenuOpen(isOpen) {
       if (!sortSelect || !sortSelectTrigger || !sortMenu) return;
       sortSelect.classList.toggle("is-open", isOpen);
       sortSelectTrigger.setAttribute("aria-expanded", String(isOpen));
-      sortMenu.hidden = !isOpen;
+      animateSelectMenu(sortMenu, isOpen);
+    }
+
+    function animateSelectMenu(menuEl, isOpen) {
+      if (!menuEl) return;
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        menuEl.hidden = !isOpen;
+        return;
+      }
+      if (isOpen) menuEl.hidden = false;
+      if (typeof menuEl.animate !== "function") {
+        menuEl.hidden = !isOpen;
+        return;
+      }
+      try {
+        menuEl.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+      const animation = menuEl.animate(
+        isOpen
+          ? [
+              { opacity: 0, transform: "translateX(-50%) translateY(-14px) scaleY(0.7)" },
+              { opacity: 1, transform: "translateX(-50%) translateY(0) scaleY(1)" }
+            ]
+          : [
+              { opacity: 1, transform: "translateX(-50%) translateY(0) scaleY(1)" },
+              { opacity: 0, transform: "translateX(-50%) translateY(-14px) scaleY(0.7)" }
+            ],
+        {
+          duration: 500,
+          easing: isOpen ? "cubic-bezier(0.2, 0.9, 0.2, 1)" : "cubic-bezier(0.4, 0, 0.2, 1)",
+          fill: "forwards"
+        }
+      );
+      if (!isOpen && animation) {
+        animation.addEventListener("finish", () => {
+          menuEl.hidden = true;
+        }, { once: true });
+      }
     }
 
     const filterRowBySubject = {
@@ -1987,7 +2171,7 @@
         `).join("")}
         ${overflowYears.length ? `
           <div class="subFilterMore">
-            <button class="subHint groupHint" type="button" data-show-years-more="1" aria-expanded="false" aria-haspopup="true">More â–¾</button>
+            <button class="subHint groupHint" type="button" data-show-years-more="1" aria-expanded="false" aria-haspopup="true">More ▾</button>
             <div class="subFilterMoreMenu" hidden>
               ${overflowYears.map((year) => `
                 <button class="subHint${activeYear === year ? " active" : ""}" type="button" data-subfilter="${escapeHtml(year)}" aria-pressed="${activeYear === year}">${escapeHtml(year)}</button>
@@ -2063,9 +2247,75 @@
       const section = groupButton.closest(".resultGroupSection");
       const body = section ? section.querySelector(".resultGroupBody") : null;
       groupButton.setAttribute("aria-expanded", String(isExpanded));
-      if (body && !section.hidden) {
+      if (!body || section.hidden) return;
+      animateGroupBody(body, isExpanded);
+    }
+
+    function animateGroupBody(body, isExpanded) {
+      if (!body) return;
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         body.hidden = !isExpanded;
+        body.style.height = "";
+        body.style.opacity = "";
+        return;
       }
+
+      if (typeof body.animate !== "function") {
+        body.hidden = !isExpanded;
+        return;
+      }
+
+      try {
+        body.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      if (isExpanded) {
+        body.hidden = false;
+      }
+
+      const cards = Array.from(body.querySelectorAll(".resultCard:not([hidden])"));
+      const startHeight = isExpanded ? 0 : body.scrollHeight;
+      const endHeight = isExpanded ? body.scrollHeight : 0;
+
+      body.style.overflow = "hidden";
+      body.style.height = `${startHeight}px`;
+      body.style.opacity = isExpanded ? "0" : "1";
+
+      const bodyAnimation = body.animate(
+        [
+          { height: `${startHeight}px`, opacity: isExpanded ? 0 : 1 },
+          { height: `${endHeight}px`, opacity: isExpanded ? 1 : 0 }
+        ],
+        {
+          duration: 380,
+          easing: isExpanded ? "cubic-bezier(0.2, 0.9, 0.2, 1)" : "cubic-bezier(0.4, 0, 0.2, 1)",
+          fill: "forwards"
+        }
+      );
+
+      if (isExpanded) {
+        cards.forEach((card, index) => {
+          card.animate(
+            [
+              { opacity: 0, transform: "translateY(-8px)" },
+              { opacity: 1, transform: "translateY(0)" }
+            ],
+            {
+              duration: 320,
+              delay: Math.min(index * 18, 120),
+              easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+              fill: "both"
+            }
+          );
+        });
+      }
+
+      bodyAnimation.addEventListener("finish", () => {
+        body.hidden = !isExpanded;
+        body.style.height = "";
+        body.style.opacity = "";
+        body.style.overflow = "hidden";
+      }, { once: true });
     }
 
     function comparePeopleCards(cardA, cardB) {
@@ -2110,7 +2360,7 @@
       const showCardType = false;
 
       const visibleCount = resultCards.reduce((count, card) => {
-        const matchesSubject = activeSubject === "all" || card.dataset.subject === activeSubject;
+        const matchesSubject = !!activeSubject && card.dataset.subject === activeSubject;
         const matchesType = !!activeFilter && card.dataset.type === activeFilter;
         const matchesLetter = !["person", "band"].includes(activeFilter) || activeSubFilter === "all"
           ? true
@@ -2153,13 +2403,120 @@
         }
       });
 
-      const label = !activeFilter
+      const label = !activeSubject || !activeFilter
         ? "nothing yet"
         : activeFilter === "all"
         ? subjectLabels[activeSubject]
         : filterLabels[activeFilter];
 
-      resultsMeta.textContent = !activeFilter ? "Choose a filter to start the archive" : `${visibleCount} results across ${label}`;
+      resultsMeta.textContent = !activeSubject || !activeFilter ? "Choose archive scope and filter to start the archive" : `${visibleCount} results across ${label}`;
+    }
+
+    function animateResultsRefresh() {
+      const panel = document.querySelector(".resultsPanel");
+      const list = document.querySelector(".resultsList");
+      if (!panel || !list || typeof list.animate !== "function") return;
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      try {
+        list.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+      list.animate(
+        [
+          { opacity: 0, transform: "translateY(14px)" },
+          { opacity: 1, transform: "translateY(0)" }
+        ],
+        {
+          duration: 320,
+          easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+          fill: "both"
+        }
+      );
+    }
+
+    async function runResultsDoorTransition(updateFn) {
+      if (resultsDoorBusy) {
+        if (typeof updateFn === "function") updateFn();
+        animateResultsRefresh();
+        return;
+      }
+
+      if (
+        !resultsDoorOverlay ||
+        !resultsDoorLeft ||
+        !resultsDoorRight ||
+        typeof resultsDoorLeft.animate !== "function" ||
+        typeof resultsDoorRight.animate !== "function" ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        if (typeof updateFn === "function") updateFn();
+        animateResultsRefresh();
+        return;
+      }
+
+      resultsDoorBusy = true;
+      try {
+        try {
+          resultsDoorLeft.getAnimations().forEach((animation) => animation.cancel());
+          resultsDoorRight.getAnimations().forEach((animation) => animation.cancel());
+        } catch (_) {}
+
+        await Promise.all([
+          resultsDoorLeft.animate(
+            [
+              { transform: "translateX(-100%)" },
+              { transform: "translateX(0)" }
+            ],
+            {
+              duration: 260,
+              easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+              fill: "forwards"
+            }
+          ).finished,
+          resultsDoorRight.animate(
+            [
+              { transform: "translateX(100%)" },
+              { transform: "translateX(0)" }
+            ],
+            {
+              duration: 260,
+              easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+              fill: "forwards"
+            }
+          ).finished
+        ]);
+
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        if (typeof updateFn === "function") updateFn();
+
+        await Promise.all([
+          resultsDoorLeft.animate(
+            [
+              { transform: "translateX(0)" },
+              { transform: "translateX(-100%)" }
+            ],
+            {
+              duration: 300,
+              easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+              fill: "forwards"
+            }
+          ).finished,
+          resultsDoorRight.animate(
+            [
+              { transform: "translateX(0)" },
+              { transform: "translateX(100%)" }
+            ],
+            {
+              duration: 300,
+              easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+              fill: "forwards"
+            }
+          ).finished
+        ]);
+
+        animateResultsRefresh();
+      } finally {
+        resultsDoorBusy = false;
+      }
     }
 
     function applySubjectFilter(subject) {
@@ -2176,7 +2533,6 @@
 
       syncFilterRowForSubject(subject);
       applyFilter(activeFilter);
-      updateResultsVisibility();
       setSubjectMenuOpen(false);
     }
 
@@ -2201,7 +2557,7 @@
         setSubFilter("all");
       }
 
-      updateResultsVisibility();
+      runResultsDoorTransition(() => updateResultsVisibility());
       setFilterMenuOpen(false);
     }
 
@@ -2217,7 +2573,7 @@
         sortSelectValue.textContent = sortLabels[sortKey] || "A-Z";
       }
 
-      updateResultsVisibility();
+      runResultsDoorTransition(() => updateResultsVisibility());
       setSortMenuOpen(false);
     }
 
@@ -2240,7 +2596,7 @@
       if (moreMenu) moreMenu.hidden = true;
       if (moreTrigger) moreTrigger.setAttribute("aria-expanded", "false");
       setSubFilter(subFilterButton.dataset.subfilter);
-      updateResultsVisibility();
+      runResultsDoorTransition(() => updateResultsVisibility());
     });
 
     document.addEventListener("click", (event) => {
@@ -2302,8 +2658,6 @@
 
     refreshResultCollections();
     updateResultsVisibility();
-    applySubjectFilter("music");
-    applySort(activeSort);
 
     renderMusicShowCards().then(() => {
       refreshResultCollections();
