@@ -4388,6 +4388,25 @@ function pulseFrame(){
   // Optional: Home module (home.js)
   const HomeArchive = window.HomeArchive;
 
+  function ensureRouteContentVisible(route){
+    const key = sanitizeRouteKey(route) || 'home';
+    const m = mount();
+    if (!m) return;
+
+    const hasVisibleContent = !!(m.children.length || String(m.textContent || '').trim());
+    if (hasVisibleContent) return;
+
+    if (key === 'home') {
+      m.innerHTML = ROUTE_COPY.home;
+      return;
+    }
+
+    renderTypedShell(m);
+    try {
+      modules[key] && modules[key].onEnter && modules[key].onEnter();
+    } catch (_) {}
+  }
+
   // Route modules: keep behavior identical, but allow upgrades via external JS later
 
   // =============================
@@ -5781,6 +5800,7 @@ async function transitionTo(route){
 
   // Fire onEnter under black so first paints happen hidden
   try { modules[next].onEnter && modules[next].onEnter(); } catch(_){}
+  ensureRouteContentVisible(next);
   trackShellPageview(next);
 
   // One more settle frame
@@ -5795,6 +5815,7 @@ async function transitionTo(route){
   pulseFrame();
   triggerRouteSheen();
   runEnterSettle(DIM_IN_MS + 160);
+  ensureRouteContentVisible(next);
   if (!reduce){
     await fadeDim(0, DIM_IN_MS);
   }
