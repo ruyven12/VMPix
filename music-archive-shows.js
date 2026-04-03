@@ -2679,7 +2679,11 @@ const contentEl = panelEl.querySelector("#showsYearContent");
 if (!contentEl) return;
 
 function syncAvailableYears(allShows) {
-  const numericYears = BASE_YEARS.filter((year) => getShowsForYear(year, allShows).length > 0);
+  const numericYears = Array.from(new Set(
+    (Array.isArray(allShows) ? allShows : [])
+      .map((show) => yearFromShowDate(show && show.date))
+      .filter((year) => Number.isFinite(year))
+  )).sort((a, b) => b - a);
   const nextYears = getUpcomingShows(allShows).length
     ? ['Upcoming', ...numericYears]
     : numericYears;
