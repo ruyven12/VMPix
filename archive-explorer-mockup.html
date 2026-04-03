@@ -782,6 +782,7 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
+      align-content: start;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1089,6 +1090,7 @@
       grid-column: 1 / -1;
       display: grid;
       gap: 10px;
+      align-content: start;
     }
 
     .resultGroupSection[hidden] {
@@ -1171,6 +1173,8 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
       overflow: hidden;
+      align-content: start;
+      align-items: start;
     }
 
     .resultGroupBody[hidden] {
@@ -1364,6 +1368,117 @@
     }
 
     .personAlbumOverlay[hidden] {
+      display: none;
+    }
+
+    .personShotLightboxOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      padding: 18px;
+      display: grid;
+      align-content: start;
+      gap: 16px;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255, 95, 135, 0.1), transparent 28%),
+        linear-gradient(180deg, rgba(3, 5, 10, 0.985), rgba(6, 7, 13, 0.975));
+      overflow: auto;
+    }
+
+    .personShotLightboxOverlay[hidden] {
+      display: none;
+    }
+
+    .personShotLightboxTopRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .personShotLightboxMeta {
+      color: rgba(241, 245, 255, 0.78);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .personShotLightboxActions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .personShotLightboxStage {
+      position: relative;
+      min-height: min(72vh, 760px);
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background:
+        linear-gradient(180deg, rgba(5, 8, 14, 0.96), rgba(4, 5, 10, 0.98));
+      display: grid;
+      place-items: center;
+      padding: 18px 68px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 0 0 1px rgba(86, 215, 255, 0.04);
+    }
+
+    .personShotLightboxFrame {
+      width: min(100%, 980px);
+      max-height: calc(72vh - 60px);
+      display: grid;
+      place-items: center;
+    }
+
+    .personShotLightboxFrame img {
+      max-width: 100%;
+      max-height: calc(72vh - 60px);
+      display: block;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow:
+        0 22px 48px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(86, 215, 255, 0.04);
+      object-fit: contain;
+      background: rgba(0, 0, 0, 0.32);
+    }
+
+    .personShotLightboxNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(86, 215, 255, 0.18);
+      background: rgba(6, 11, 18, 0.76);
+      color: #f3f7ff;
+      font: inherit;
+      font-size: 18px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 1px rgba(86, 215, 255, 0.04);
+    }
+
+    .personShotLightboxNav:hover,
+    .personShotLightboxNav:focus-visible {
+      border-color: rgba(105, 222, 255, 0.34);
+      outline: none;
+    }
+
+    .personShotLightboxNav[data-direction="prev"] {
+      left: 18px;
+    }
+
+    .personShotLightboxNav[data-direction="next"] {
+      right: 18px;
+    }
+
+    .personShotLightboxNav[hidden] {
       display: none;
     }
 
@@ -1989,6 +2104,7 @@
         </div>
         <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personAlbumOverlay" id="personAlbumOverlay" hidden aria-hidden="true"></div>
+        <div class="personShotLightboxOverlay" id="personShotLightboxOverlay" hidden aria-hidden="true"></div>
         <div class="panelHeader">
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
@@ -2318,6 +2434,19 @@
       return '';
     }
 
+    function pickAlbumImageFull(albumImage) {
+      const image = (albumImage && typeof albumImage === 'object') ? albumImage : {};
+      const nested = (image.Image && typeof image.Image === 'object') ? image.Image : {};
+      const keys = ['OriginalUrl', 'ArchivedUri', 'LargestUrl', 'X5LargeUrl', 'X4LargeUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'WebUri', 'Url', 'URL', 'Uri'];
+      for (const key of keys) {
+        const direct = String(image[key] || '').trim();
+        if (direct) return direct;
+        const deep = String(nested[key] || '').trim();
+        if (deep) return deep;
+      }
+      return pickAlbumImageThumb(albumImage);
+    }
+
     async function loadPersonAlbumThumb(albumKey) {
       const key = String(albumKey || '').trim();
       if (!key) return '';
@@ -2390,16 +2519,18 @@
         const payload = await response.json();
         const shots = extractAlbumImagesFromPage(payload).map((albumImage, index) => {
           const thumbUrl = pickAlbumImageThumb(albumImage);
+          const fullUrl = pickAlbumImageFull(albumImage);
           const caption = String(
             albumImage && (albumImage.Caption || albumImage.caption || albumImage.Title || albumImage.title || albumImage.FileName || albumImage.fileName) || ''
           ).trim();
           return {
             id: String(albumImage && (albumImage.ImageKey || albumImage.id || index + 1) || index + 1),
             thumbUrl,
+            fullUrl,
             caption: caption || `#${index + 1}`,
             index: index + 1
           };
-        }).filter((image) => image.thumbUrl && captionMatchesPerson(image.caption, personName));
+        }).filter((image) => image.thumbUrl && image.fullUrl && captionMatchesPerson(image.caption, personName));
 
         return shots.slice(0, Math.max(1, Number(count) || 8));
       } catch (_) {
@@ -2730,6 +2861,7 @@
     const resultsDoorRight = document.getElementById("resultsDoorRight");
     const personDetailOverlay = document.getElementById("personDetailOverlay");
     const personAlbumOverlay = document.getElementById("personAlbumOverlay");
+    const personShotLightboxOverlay = document.getElementById("personShotLightboxOverlay");
     const MOCKUP_SESSION_KEY = "archiveExplorerMockupSessionState";
     let activeSubject = "";
     let activeFilter = "";
@@ -2739,6 +2871,7 @@
     let resultsDoorBusy = false;
     let activePersonDetail = null;
     let activeAlbumDetail = null;
+    let activeShotDetail = null;
 
     function refreshResultCollections() {
       resultCards = Array.from(document.querySelectorAll(".resultCard"));
@@ -2774,6 +2907,7 @@
           activePersonName: activePersonDetail && activePersonDetail.name ? String(activePersonDetail.name) : "",
           activeAlbumKey: activeAlbumDetail && activeAlbumDetail.albumKey ? String(activeAlbumDetail.albumKey) : "",
           activeAlbumExpanded: !!(activeAlbumDetail && activeAlbumDetail.expanded),
+          activeShotId: activeShotDetail && activeShotDetail.id ? String(activeShotDetail.id) : "",
           resultsScrollTop: resultsPanel ? resultsPanel.scrollTop : 0
         };
 
@@ -3416,6 +3550,7 @@
     function closePersonDetailOverlay() {
       if (!personDetailOverlay) return;
       closePersonAlbumOverlay();
+      closePersonShotLightboxOverlay();
       const finishClose = () => {
         personDetailOverlay.hidden = true;
         personDetailOverlay.setAttribute("aria-hidden", "true");
@@ -3449,10 +3584,77 @@
 
     function closePersonAlbumOverlay() {
       if (!personAlbumOverlay) return;
+      closePersonShotLightboxOverlay();
       personAlbumOverlay.hidden = true;
       personAlbumOverlay.setAttribute("aria-hidden", "true");
       personAlbumOverlay.innerHTML = "";
       activeAlbumDetail = null;
+      saveMockupSessionState();
+    }
+
+    function renderPersonShotLightbox() {
+      if (!personShotLightboxOverlay || !activeShotDetail || !activeAlbumDetail) return;
+      const shots = Array.isArray(activeAlbumDetail.shots) ? activeAlbumDetail.shots : [];
+      const shotCount = shots.length;
+      const currentIndex = Math.max(0, shots.findIndex((shot) => String(shot && shot.id || '') === String(activeShotDetail.id || '')));
+      const currentShot = shots[currentIndex] || shots[0];
+      if (!currentShot) return;
+
+      activeShotDetail = {
+        id: String(currentShot.id || ''),
+        index: currentIndex
+      };
+
+      personShotLightboxOverlay.innerHTML = `
+        <div class="personShotLightboxTopRow">
+          <div class="personShotLightboxMeta">${currentIndex + 1} / ${shotCount}</div>
+          <div class="personShotLightboxActions">
+            <button class="personAlbumButton" type="button" data-person-shot-close="1">Close</button>
+          </div>
+        </div>
+        <div class="personShotLightboxStage">
+          <button class="personShotLightboxNav" type="button" data-person-shot-nav="prev" data-direction="prev"${shotCount <= 1 ? ' hidden' : ''}>←</button>
+          <div class="personShotLightboxFrame">
+            <img src="${escapeHtml(currentShot.fullUrl || currentShot.thumbUrl)}" alt="${escapeHtml((activeAlbumDetail.albumTitle || 'Archive shot') + ' full view')}" loading="eager" decoding="async" />
+          </div>
+          <button class="personShotLightboxNav" type="button" data-person-shot-nav="next" data-direction="next"${shotCount <= 1 ? ' hidden' : ''}>→</button>
+        </div>
+      `;
+      personShotLightboxOverlay.hidden = false;
+      personShotLightboxOverlay.setAttribute("aria-hidden", "false");
+      saveMockupSessionState();
+    }
+
+    function openPersonShotLightboxById(shotId) {
+      if (!activeAlbumDetail || !Array.isArray(activeAlbumDetail.shots)) return;
+      const shotIndex = activeAlbumDetail.shots.findIndex((shot) => String(shot && shot.id || '') === String(shotId || ''));
+      if (shotIndex < 0) return;
+      activeShotDetail = {
+        id: String(activeAlbumDetail.shots[shotIndex].id || ''),
+        index: shotIndex
+      };
+      renderPersonShotLightbox();
+    }
+
+    function movePersonShotLightbox(direction) {
+      if (!activeAlbumDetail || !Array.isArray(activeAlbumDetail.shots) || !activeAlbumDetail.shots.length || !activeShotDetail) return;
+      const shots = activeAlbumDetail.shots;
+      const currentIndex = Math.max(0, shots.findIndex((shot) => String(shot && shot.id || '') === String(activeShotDetail.id || '')));
+      const delta = direction === 'prev' ? -1 : 1;
+      const nextIndex = (currentIndex + delta + shots.length) % shots.length;
+      activeShotDetail = {
+        id: String(shots[nextIndex].id || ''),
+        index: nextIndex
+      };
+      renderPersonShotLightbox();
+    }
+
+    function closePersonShotLightboxOverlay() {
+      if (!personShotLightboxOverlay) return;
+      personShotLightboxOverlay.hidden = true;
+      personShotLightboxOverlay.setAttribute("aria-hidden", "true");
+      personShotLightboxOverlay.innerHTML = "";
+      activeShotDetail = null;
       saveMockupSessionState();
     }
 
@@ -3512,7 +3714,7 @@
         const visibleShots = activeAlbumDetail.expanded ? shots : shots.slice(0, 8);
         gridEl.innerHTML = visibleShots.length
           ? visibleShots.map((shot) => `
-              <article class="personAlbumShotCard">
+              <article class="personAlbumShotCard" data-shot-id="${escapeHtml(shot.id)}" tabindex="0" role="button" aria-label="Open full photo ${shot.index}">
                 <div class="personAlbumShotThumb">
                   <img src="${escapeHtml(shot.thumbUrl)}" alt="${escapeHtml(albumTitle)} shot ${shot.index}" loading="lazy" decoding="async" />
                 </div>
@@ -3793,6 +3995,20 @@
     }
 
     document.addEventListener("click", (event) => {
+      const closePersonShotButton = event.target && event.target.closest ? event.target.closest("[data-person-shot-close='1']") : null;
+      if (closePersonShotButton) {
+        event.preventDefault();
+        closePersonShotLightboxOverlay();
+        return;
+      }
+
+      const personShotNav = event.target && event.target.closest ? event.target.closest("[data-person-shot-nav]") : null;
+      if (personShotNav) {
+        event.preventDefault();
+        movePersonShotLightbox(String(personShotNav.dataset.personShotNav || personShotNav.dataset.direction || 'next'));
+        return;
+      }
+
       const closePersonAlbumButton = event.target && event.target.closest ? event.target.closest("[data-person-album-close='1']") : null;
       if (closePersonAlbumButton) {
         event.preventDefault();
@@ -3831,6 +4047,13 @@
         return;
       }
 
+      const shotCard = event.target && event.target.closest ? event.target.closest(".personAlbumShotCard") : null;
+      if (shotCard && !shotCard.hidden) {
+        event.preventDefault();
+        openPersonShotLightboxById(String(shotCard.dataset.shotId || '').trim());
+        return;
+      }
+
       const moreButton = event.target && event.target.closest ? event.target.closest("[data-show-years-more='1']") : null;
       if (moreButton) {
         const wrap = moreButton.closest(".subFilterMore");
@@ -3860,6 +4083,18 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && personShotLightboxOverlay && !personShotLightboxOverlay.hidden) {
+        event.preventDefault();
+        closePersonShotLightboxOverlay();
+        return;
+      }
+
+      if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && personShotLightboxOverlay && !personShotLightboxOverlay.hidden) {
+        event.preventDefault();
+        movePersonShotLightbox(event.key === "ArrowLeft" ? "prev" : "next");
+        return;
+      }
+
       if (event.key === "Escape" && personAlbumOverlay && !personAlbumOverlay.hidden) {
         event.preventDefault();
         closePersonAlbumOverlay();
@@ -3982,6 +4217,10 @@
                 if (toggleButton && !toggleButton.hidden) {
                   toggleButton.click();
                 }
+              }
+              const activeShotId = String(savedState.activeShotId || "").trim();
+              if (activeShotId && activeAlbumDetail && Array.isArray(activeAlbumDetail.shots)) {
+                openPersonShotLightboxById(activeShotId);
               }
             }
           }
