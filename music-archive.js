@@ -160,7 +160,7 @@
   function setArchiveViewportExpanded(isExpanded) {
     if (!_contentPanelEl) return;
     const isMobile = isMusicMobileViewport();
-    if (isMobile) {
+    if (isMobile || isExpanded) {
       _contentPanelEl.style.marginTop = '8px';
       _contentPanelEl.style.overflowY = 'visible';
       _contentPanelEl.style.overflowX = 'hidden';
@@ -190,92 +190,40 @@
       return;
     }
 
-    const ensureViewportSizing = () => {
-      if (_onResize) {
-        window.removeEventListener('resize', _onResize);
-        _onResize = null;
-      }
-      _onResize = function musicArchiveViewportResize() {
-        sizeContentPanelToHud();
-      };
-      window.addEventListener('resize', _onResize, { passive: true });
-      try {
-        window.requestAnimationFrame(() => sizeContentPanelToHud());
-      } catch (_) {
-        sizeContentPanelToHud();
-      }
-    };
+    // revert to original behavior
+    _contentPanelEl.style.marginTop = '';
+    _contentPanelEl.style.height = '';
+    _contentPanelEl.style.maxHeight = '';
+    _contentPanelEl.style.overflowY = '';
+    _contentPanelEl.style.overflowX = '';
+    _contentPanelEl.style.webkitOverflowScrolling = '';
+    _contentPanelEl.style.overscrollBehavior = '';
+    // Restore original (non-archives) layout
+    _contentPanelEl.style.display = 'flex';
+    _contentPanelEl.style.alignItems = 'center';
+    _contentPanelEl.style.justifyContent = 'center';
+    _contentPanelEl.style.textAlign = 'center';
 
-    if (isExpanded) {
-      // Archives-only vertical positioning
-      _contentPanelEl.style.marginTop = '40px';
-      _contentPanelEl.style.overflowY = 'auto';
-      _contentPanelEl.style.overflowX = 'hidden';
-      _contentPanelEl.style.webkitOverflowScrolling = 'touch';
-      _contentPanelEl.style.overscrollBehavior = 'contain';
-      // IMPORTANT: avoid flex vertical centering in scrollable archives viewport
-      // (prevents top rows from being clipped / unreachable)
-      _contentPanelEl.style.display = 'block';
-      _contentPanelEl.style.alignItems = '';
-      _contentPanelEl.style.justifyContent = '';
-      _contentPanelEl.style.textAlign = '';
+    // Revert flex auto-height behavior
+    _contentPanelEl.style.flex = '';
+    _contentPanelEl.style.minHeight = '';
 
-      // Prefer true auto-height via flex (Music route only) so the panel naturally
-      // fills the remaining HUD height without fragile pixel math.
-      const hudMain = document.querySelector('.hudStub.hudMain');
-      if (hudMain) {
-        if (_prevHudMainDisplay === null) _prevHudMainDisplay = hudMain.style.display || '';
-        if (_prevHudMainFlexDirection === null) _prevHudMainFlexDirection = hudMain.style.flexDirection || '';
-        if (_prevHudMainAlignItems === null) _prevHudMainAlignItems = hudMain.style.alignItems || '';
-        if (_prevHudMainJustifyContent === null) _prevHudMainJustifyContent = hudMain.style.justifyContent || '';
+    const hudMain = document.querySelector('.hudStub.hudMain');
+    if (hudMain) {
+      if (_prevHudMainDisplay !== null) hudMain.style.display = _prevHudMainDisplay || '';
+      if (_prevHudMainFlexDirection !== null) hudMain.style.flexDirection = _prevHudMainFlexDirection || '';
+      if (_prevHudMainAlignItems !== null) hudMain.style.alignItems = _prevHudMainAlignItems || '';
+      if (_prevHudMainJustifyContent !== null) hudMain.style.justifyContent = _prevHudMainJustifyContent || '';
+    }
 
-        hudMain.style.display = 'flex';
-        hudMain.style.flexDirection = 'column';
-        hudMain.style.alignItems = 'center';
-        hudMain.style.justifyContent = 'flex-start';
-      }
+    _prevHudMainDisplay = null;
+    _prevHudMainFlexDirection = null;
+    _prevHudMainAlignItems = null;
+    _prevHudMainJustifyContent = null;
 
-      _contentPanelEl.style.flex = '1 1 auto';
-      _contentPanelEl.style.minHeight = '0px';
-      _contentPanelEl.style.height = '';
-      _contentPanelEl.style.maxHeight = '';
-      ensureViewportSizing();
-    } else {
-      // revert to original behavior
-      _contentPanelEl.style.marginTop = '';
-      _contentPanelEl.style.height = '';
-      _contentPanelEl.style.maxHeight = '';
-      _contentPanelEl.style.overflowY = '';
-      _contentPanelEl.style.overflowX = '';
-      _contentPanelEl.style.webkitOverflowScrolling = '';
-      _contentPanelEl.style.overscrollBehavior = '';
-      // Restore original (non-archives) layout
-      _contentPanelEl.style.display = 'flex';
-      _contentPanelEl.style.alignItems = 'center';
-      _contentPanelEl.style.justifyContent = 'center';
-      _contentPanelEl.style.textAlign = 'center';
-
-      // Revert flex auto-height behavior
-      _contentPanelEl.style.flex = '';
-      _contentPanelEl.style.minHeight = '';
-
-      const hudMain = document.querySelector('.hudStub.hudMain');
-      if (hudMain) {
-        if (_prevHudMainDisplay !== null) hudMain.style.display = _prevHudMainDisplay || '';
-        if (_prevHudMainFlexDirection !== null) hudMain.style.flexDirection = _prevHudMainFlexDirection || '';
-        if (_prevHudMainAlignItems !== null) hudMain.style.alignItems = _prevHudMainAlignItems || '';
-        if (_prevHudMainJustifyContent !== null) hudMain.style.justifyContent = _prevHudMainJustifyContent || '';
-      }
-
-      _prevHudMainDisplay = null;
-      _prevHudMainFlexDirection = null;
-      _prevHudMainAlignItems = null;
-      _prevHudMainJustifyContent = null;
-
-      if (_onResize) {
-        window.removeEventListener('resize', _onResize);
-        _onResize = null;
-      }
+    if (_onResize) {
+      window.removeEventListener('resize', _onResize);
+      _onResize = null;
     }
   }
 
