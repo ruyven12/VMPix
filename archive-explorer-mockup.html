@@ -1062,11 +1062,11 @@
     }
 
     .resultCard[data-type="person"] .cardMain {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
+      display: grid;
+      grid-template-rows: auto minmax(22px, auto) auto;
+      align-content: start;
+      justify-items: center;
+      gap: 2px;
       text-align: center;
       min-height: 96px;
       width: 100%;
@@ -1216,7 +1216,7 @@
     }
 
     .personInstrumentLine {
-      order: 3;
+      order: 2;
       color: rgba(176, 161, 180, 0.72);
       font-size: 14px;
       line-height: 1.5;
@@ -1226,6 +1226,7 @@
       text-align: center;
       transform: none;
       margin: 0;
+      min-height: 22px;
     }
 
     .cardSub {
@@ -1264,11 +1265,11 @@
     }
 
     .resultCard[data-type="person"] .metaRow {
-      order: 4;
+      order: 3;
       justify-content: center;
       align-self: center;
       flex-wrap: nowrap;
-      margin-top: 10px;
+      margin-top: 8px;
       padding-top: 0;
       width: 100%;
     }
