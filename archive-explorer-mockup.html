@@ -1277,9 +1277,8 @@
     }
 
     .personDetailTopRow {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: grid;
+      justify-items: center;
       gap: 14px;
       margin-bottom: 26px;
     }
@@ -1298,39 +1297,41 @@
     }
 
     .personDetailSummary {
-      flex: 1;
+      width: 100%;
       display: grid;
       gap: 14px;
     }
 
     .personDetailHeroCard {
-      border: 1px solid rgba(255, 95, 135, 0.22);
-      border-radius: 16px;
-      padding: 14px 18px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 18px;
       text-align: center;
-      background: rgba(10, 11, 18, 0.6);
+      background:
+        radial-gradient(circle at top right, rgba(255, 204, 112, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(20, 15, 18, 0.9), rgba(11, 13, 24, 0.88));
     }
 
     .personDetailHeroLabel,
     .personDetailStatLabel {
-      color: rgba(255, 130, 164, 0.9);
+      color: #6cddff;
       font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
+      font-weight: 400;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
     }
 
     .personDetailName {
-      margin-top: 8px;
-      color: #fff8fc;
-      font-size: 28px;
-      line-height: 1;
+      margin-top: 10px;
+      color: #fff6fb;
+      font-size: 24px;
+      line-height: 1.25;
       letter-spacing: 0.04em;
     }
 
     .personDetailStatsGrid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
@@ -1338,13 +1339,13 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0;
-      margin-top: 8px;
     }
 
     .personDetailCountCol {
       display: grid;
-      gap: 8px;
+      gap: 0;
       padding: 0 14px;
+      text-align: center;
     }
 
     .personDetailCountCol + .personDetailCountCol {
@@ -1352,47 +1353,46 @@
     }
 
     .personDetailStatCard {
-      border: 1px solid rgba(255, 95, 135, 0.2);
-      border-radius: 16px;
-      padding: 12px 16px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px;
       text-align: center;
-      background: linear-gradient(180deg, rgba(17, 13, 23, 0.76), rgba(9, 11, 18, 0.84));
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .personDetailMeta {
       margin-top: 8px;
-      color: rgba(220, 196, 211, 0.68);
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.45;
+      color: #fff7fb;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.2;
       letter-spacing: 0.04em;
       text-transform: none;
     }
 
+    .personDetailMetaText {
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
     .personDetailList {
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
       position: relative;
     }
 
     .personDetailList::before {
-      content: "";
-      position: absolute;
-      left: 15px;
-      top: 24px;
-      bottom: 24px;
-      width: 1px;
-      background: linear-gradient(180deg, rgba(255, 95, 135, 0.7), rgba(255, 95, 135, 0.08));
-      box-shadow: 0 0 12px rgba(255, 95, 135, 0.24);
+      content: none;
     }
 
     .personDetailAlbumCard {
       display: grid;
-      grid-template-columns: 78px minmax(0, 1fr);
-      align-items: center;
-      gap: 14px;
-      margin-left: 20px;
-      padding: 12px 14px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      margin-left: 0;
+      padding: 14px;
       border-radius: 16px;
       border: 1px solid rgba(255, 95, 135, 0.18);
       background: linear-gradient(180deg, rgba(17, 13, 23, 0.76), rgba(9, 11, 18, 0.84));
@@ -1400,23 +1400,13 @@
     }
 
     .personDetailAlbumCard::before {
-      content: "";
-      position: absolute;
-      left: -16px;
-      top: 50%;
-      width: 10px;
-      height: 10px;
-      transform: translateY(-50%);
-      border-radius: 50%;
-      border: 2px solid rgba(255, 95, 135, 0.8);
-      background: rgba(12, 10, 18, 0.95);
-      box-shadow: 0 0 10px rgba(255, 95, 135, 0.35);
+      content: none;
     }
 
     .personDetailThumb {
-      width: 78px;
-      height: 78px;
-      border-radius: 10px;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: 12px;
       display: grid;
       place-items: center;
       overflow: hidden;
@@ -1438,8 +1428,8 @@
 
     .personDetailAlbumTitle {
       color: #fff8fc;
-      font-size: 20px;
-      line-height: 1.12;
+      font-size: 16px;
+      line-height: 1.3;
       letter-spacing: 0.04em;
       margin-bottom: 6px;
     }
@@ -1453,6 +1443,12 @@
       color: rgba(220, 196, 211, 0.72);
       font-size: 12px;
       letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 1100px) {
+      .personDetailList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     .previewGrid {
@@ -1831,8 +1827,9 @@
   <script src="./archive-explorer-people-data.js"></script>
   <script>
     const MUSIC_SHOW_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/show-index.json';
-    const MUSIC_PEOPLE_INDEX_ENDPOINT = './_people_index_live.json';
+    const MUSIC_PEOPLE_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/people-index.json';
     const MUSIC_API_BASE = 'https://music-archive-3lfa.onrender.com';
+    let musicShowPosterIndexPromise = null;
     let musicPeopleDetailIndexPromise = null;
     const personAlbumThumbCache = new Map();
 
@@ -1875,12 +1872,59 @@
     function splitDateFromAlbumTitle(rawTitle) {
       const title = String(rawTitle || '').trim();
       const match = title.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(.+)$/);
-      if (!match) return { dateText: '', titleText: title };
+      if (!match) return { dateText: '', rawDate: '', titleText: title, sortValue: 0 };
       return {
         dateText: formatShowDateLabel(match[1]),
+        rawDate: String(match[1] || '').trim(),
         titleText: String(match[2] || title).trim() || title,
         sortValue: getShowDateSortValue(match[1])
       };
+    }
+
+    function normalizePosterLookupValue(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/['"]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function getShowPosterLookupKey(title, dateSortValue) {
+      return `${normalizePosterLookupValue(title)}|${Number(dateSortValue || 0)}`;
+    }
+
+    async function loadMusicShowPosterIndex() {
+      if (!musicShowPosterIndexPromise) {
+        musicShowPosterIndexPromise = fetch(MUSIC_SHOW_INDEX_ENDPOINT, { cache: 'no-store' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            const shows = Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload && payload.shows)
+                ? payload.shows
+                : Array.isArray(payload && payload.rows)
+                  ? payload.rows
+                  : [];
+            const map = new Map();
+            shows.forEach((show) => {
+              const title = String(show && (show.title || show.show_name || show.event || show.name) || '').trim();
+              const posterUrl = String(show && (show.poster_url || show.show_url) || '').trim();
+              const dateSortValue = getShowDateSortValue(String(show && show.date || '').trim());
+              if (!title || !posterUrl) return;
+              map.set(getShowPosterLookupKey(title, dateSortValue), posterUrl);
+              const titleOnlyKey = getShowPosterLookupKey(title, 0);
+              if (!map.has(titleOnlyKey)) map.set(titleOnlyKey, posterUrl);
+            });
+            return map;
+          })
+          .catch(() => new Map());
+      }
+      return musicShowPosterIndexPromise;
     }
 
     function normalizePersonLookupName(name) {
@@ -1889,12 +1933,14 @@
 
     async function loadMusicPeopleDetailIndex() {
       if (!musicPeopleDetailIndexPromise) {
-        musicPeopleDetailIndexPromise = fetch(MUSIC_PEOPLE_INDEX_ENDPOINT, { cache: 'no-store' })
-          .then((response) => {
+        musicPeopleDetailIndexPromise = Promise.all([
+          fetch(MUSIC_PEOPLE_INDEX_ENDPOINT, { cache: 'no-store' }).then((response) => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json();
-          })
-          .then((payload) => {
+          }),
+          loadMusicShowPosterIndex()
+        ])
+          .then(([payload, posterIndex]) => {
             const map = new Map();
             const rows = Array.isArray(payload && payload.people) ? payload.people : [];
             rows.forEach((person) => {
@@ -1910,7 +1956,10 @@
                     date: split.dateText,
                     sortValue: Number(split.sortValue || 0),
                     url: String(album && album.url || '').trim(),
-                    initials: getPersonInitials(split.titleText || title || name)
+                    initials: getPersonInitials(split.titleText || title || name),
+                    posterUrl: posterIndex.get(getShowPosterLookupKey(split.titleText || title, split.sortValue))
+                      || posterIndex.get(getShowPosterLookupKey(split.titleText || title, 0))
+                      || ''
                   };
                 }).sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0) || String(a.title).localeCompare(String(b.title)))
                 : [];
@@ -2164,7 +2213,6 @@
 
         const groupCards = groupPeople.map((person) => {
           const bands = String(person && person.bands || '').trim();
-          const instrument = String(person && person.instrument || '').trim();
           return `
             <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
@@ -2174,7 +2222,6 @@
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
                 <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${instrument ? `<div class="cardLinkText">${escapeHtml(instrument)}</div>` : ''}
                 ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
@@ -2209,7 +2256,6 @@
         const { subject, category, people: groupPeople } = groupData;
         const groupCards = groupPeople.map((person) => {
           const bands = String(person && person.bands || '').trim();
-          const instrument = String(person && person.instrument || '').trim();
           return `
             <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
@@ -2219,7 +2265,6 @@
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
                 <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${instrument ? `<div class="cardLinkText">${escapeHtml(instrument)}</div>` : ''}
                 ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
@@ -2833,8 +2878,9 @@
       for (const album of list) {
         if (activePersonDetail !== personToken) return;
         const albumKey = String(album && album.albumKey || "").trim();
+        const posterUrl = String(album && album.posterUrl || "").trim();
         if (!albumKey || !personDetailOverlay || personDetailOverlay.hidden) continue;
-        const thumbUrl = await loadPersonAlbumThumb(albumKey);
+        const thumbUrl = posterUrl;
         if (activePersonDetail !== personToken || !thumbUrl || !personDetailOverlay || personDetailOverlay.hidden) continue;
         const thumbEl = personDetailOverlay.querySelector(`.personDetailThumb[data-albumkey="${window.CSS && window.CSS.escape ? window.CSS.escape(albumKey) : albumKey.replace(/"/g, '\\"')}"]`);
         if (thumbEl) {
@@ -2858,38 +2904,36 @@
         <div class="personDetailTopRow">
           <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
           <div class="personDetailSummary">
-            <div class="personDetailStatsGrid">
-              <div class="personDetailHeroCard">
-                <div class="personDetailHeroLabel">Performer</div>
-                <div class="personDetailName">${escapeHtml(name)}</div>
-              </div>
-              <div class="personDetailStatCard">
-                <div class="personDetailCountSplit">
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Photo Count</div>
-                    <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
-                  </div>
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Album Count</div>
-                    <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
-                  </div>
-                </div>
-              </div>
+            <div class="personDetailHeroCard">
+              <div class="personDetailHeroLabel">Performer</div>
+              <div class="personDetailName">${escapeHtml(name)}</div>
             </div>
             <div class="personDetailStatsGrid">
               <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Bands</div>
-                <div class="personDetailMeta">${escapeHtml(bands || "N/A")}</div>
+                <div class="personDetailCountSplit">
+                  <div class="personDetailCountCol">
+                    <div class="personDetailStatLabel">Total Albums</div>
+                    <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
+                  </div>
+                  <div class="personDetailCountCol">
+                    <div class="personDetailStatLabel">Photos</div>
+                    <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+                  </div>
+                </div>
               </div>
               <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Instruments</div>
-                <div class="personDetailMeta">${escapeHtml(instrument || "N/A")}</div>
+                <div class="personDetailStatLabel">Band(s)</div>
+                <div class="personDetailMeta personDetailMetaText">${escapeHtml(bands || "N/A")}</div>
+              </div>
+              <div class="personDetailStatCard">
+                <div class="personDetailStatLabel">Instrument(s)</div>
+                <div class="personDetailMeta personDetailMetaText">${escapeHtml(instrument || "N/A")}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="personDetailList" data-person-detail-list>
-          <div class="personDetailAlbumSub" style="margin-left:20px; padding:12px 0;">Loading albums...</div>
+          <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
         </div>
       `;
       personDetailOverlay.hidden = false;
@@ -2933,22 +2977,27 @@
         listEl.innerHTML = albums.length ? albums.map((album) => {
           const albumKey = String(album && album.albumKey || "").trim();
           const albumUrl = String(album && album.url || "").trim();
+          const posterUrl = String(album && album.posterUrl || "").trim();
           const albumTitle = String(album && album.title || "Untitled Album").trim();
           const albumDate = String(album && album.date || "").trim();
           return `
             <article class="personDetailAlbumCard" data-albumkey="${escapeHtml(albumKey)}">
-              <div class="personDetailThumb" data-albumkey="${escapeHtml(albumKey)}">${escapeHtml(album && album.initials || "ALB")}</div>
+              <div class="personDetailThumb" data-albumkey="${escapeHtml(albumKey)}">
+                ${posterUrl
+                  ? `<img class="personDetailThumbImage" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(albumTitle)} poster" loading="lazy" decoding="async" />`
+                  : escapeHtml(album && album.initials || "ALB")}
+              </div>
               <div>
                 <div class="personDetailAlbumTitle">
                   ${albumUrl
-                    ? `<a href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer">"${escapeHtml(albumTitle)}"</a>`
-                    : `"${escapeHtml(albumTitle)}"`}
+                    ? `<a href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer">${escapeHtml(albumTitle)}</a>`
+                    : `${escapeHtml(albumTitle)}`}
                 </div>
                 ${albumDate ? `<div class="personDetailAlbumSub">${escapeHtml(albumDate)}</div>` : ""}
               </div>
             </article>
           `;
-        }).join("") : `<div class="personDetailAlbumSub" style="margin-left:20px; padding:12px 0;">No albums found for this person.</div>`;
+        }).join("") : `<div class="personDetailAlbumSub" style="padding:12px 0;">No albums found for this person.</div>`;
       }
 
       hydratePersonDetailThumbs(albums, personToken);
