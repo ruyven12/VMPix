@@ -911,8 +911,9 @@
       grid-column: auto;
       grid-template-columns: minmax(0, 1fr);
       align-items: center;
-      min-height: 124px;
-      padding: 14px 14px 12px;
+      min-height: 108px;
+      height: 108px;
+      padding: 12px 14px 10px;
       border-radius: 14px;
       clip-path: none;
       background:
@@ -1062,13 +1063,14 @@
     }
 
     .resultCard[data-type="person"] .cardMain {
-      display: grid;
-      grid-template-rows: auto minmax(22px, auto) auto;
-      align-content: start;
-      justify-items: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       gap: 2px;
       text-align: center;
-      min-height: 96px;
+      min-height: 0;
+      height: 100%;
       width: 100%;
     }
 
@@ -1226,7 +1228,6 @@
       text-align: center;
       transform: none;
       margin: 0;
-      min-height: 22px;
     }
 
     .cardSub {
@@ -1269,7 +1270,7 @@
       justify-content: center;
       align-self: center;
       flex-wrap: nowrap;
-      margin-top: 8px;
+      margin-top: 6px;
       padding-top: 0;
       width: 100%;
     }
