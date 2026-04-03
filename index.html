@@ -881,6 +881,45 @@
     filter: none;
   }
 
+  .hudMenuOverlay .hudMenuItem.is-disabled{
+    color: rgba(248,236,240,.46);
+    cursor: default;
+  }
+
+  .hudMenuOverlay .hudMenuItem.is-disabled:hover{
+    background: #000000;
+    border-color: rgba(255,255,255,.07);
+  }
+
+  .hudMenuOverlay .hudMenuDivider{
+    width: calc(100% - 40px);
+    height: 1px;
+    margin: 4px 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.16), rgba(255,255,255,0));
+  }
+
+  .hudMenuOverlay .hudMenuSubItem{
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 42px;
+    font-size: 13px;
+    text-align: left;
+    justify-items: start;
+  }
+
+  .hudMenuOverlay .hudMenuSubItem .hudIntroType{
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .hudMenuOverlay .hudMenuSubItem .hudIntroType::before{
+    content: '-';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: rgba(248,236,240,.72);
+  }
+
   .hudMenuOverlay .hudMenuItem:last-child{
     border-bottom: 0;
   }
@@ -2086,9 +2125,25 @@
 </div>
 </div>
         <div class="hudMenuOverlay is-collapsed" id="hudPrimaryNav" data-hud-menu-panel="1" hidden aria-hidden="true">
-			<a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
-  <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><svg class="nav-icon nav-icon-wave" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 6 12 9 6 12 18 15 9 18 12 21 12"></polyline></svg><span class="hudIntroType">Music</span></a>
-  <a class="hudIntroText hudMenuItem" href="/wrestling" data-nav="wrestling"><svg class="nav-icon nav-icon-lucha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4 Q12 2 18 4 Q20 8 20 12 Q20 18 12 22 Q4 18 4 12 Q4 8 6 4 Z"></path><path d="M8 10 Q10 8 12 10"></path><path d="M12 10 Q14 8 16 10"></path><line x1="12" y1="10" x2="12" y2="14"></line></svg><span class="hudIntroType">Wrestling</span></a>
+          <a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
+          <a class="hudIntroText hudMenuItem is-disabled" href="#" data-disabled="1" aria-disabled="true"><span class="hudIntroType">Interactive Portfolio (Coming Soon)</span></a>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><span class="hudIntroType">Music</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/project" data-route-path="/music/project" data-parent-nav="music"><span class="hudIntroType">The Reimaging Project</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/origins" data-route-path="/music/origins" data-parent-nav="music"><span class="hudIntroType">Origins of Music</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/wrestling" data-nav="wrestling"><span class="hudIntroType">Wrestling Info</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling/origins" data-route-path="/wrestling/origins" data-parent-nav="wrestling"><span class="hudIntroType">Origins of Wrestling</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuSubItem is-disabled" href="#" data-disabled="1" aria-disabled="true" data-parent-nav="wrestling"><span class="hudIntroType">Stats (Coming Soon)</span></a>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/calendar" data-nav="calendar"><span class="hudIntroType">Calendar</span></a>
+          <a class="hudIntroText hudMenuItem" href="/pricing" data-nav="pricing"><span class="hudIntroType">Pricing Info</span></a>
+          <a class="hudIntroText hudMenuItem" href="/contact" data-nav="contact"><span class="hudIntroType">Contact Info</span></a>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/about" data-nav="about"><span class="hudIntroType">About</span></a>
+          <a class="hudIntroText hudMenuItem" href="/testing" data-nav="testing" data-admin-gated="1" hidden aria-hidden="true"><span class="hudIntroType">Testing</span></a>
+          <a class="hudIntroText hudMenuItem" href="/admin" data-nav="admin" data-admin-trigger="1" aria-expanded="false"><span class="hudIntroType">Admin</span></a>
         </div>
         </div>
       </div>

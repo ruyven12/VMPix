@@ -473,6 +473,11 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (typeof e.button === 'number' && e.button !== 0) return;
 
+        if (pill.hasAttribute('data-disabled')) {
+          e.preventDefault();
+          return;
+        }
+
         if (pill.hasAttribute('data-admin-trigger')) {
           e.preventDefault();
           closeMenu();
@@ -493,9 +498,14 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           return;
         }
 
-        const route = pill.getAttribute('data-nav') || 'home';
         e.preventDefault();
         closeMenu();
+        const routePath = String(pill.getAttribute('data-route-path') || '').trim();
+        if (routePath) {
+          navigateToPath(routePath);
+          return;
+        }
+        const route = pill.getAttribute('data-nav') || 'home';
         navigateToRoute(route);
       });
     });
@@ -503,14 +513,14 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
     // Expose a tiny hook for the router to reposition underline on route change
     window.__hudMoveNavUnderline = function(){
       if (!ENABLE_NAV_UNDERLINE) return;
-      const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+      const active = document.querySelector('[data-nav].is-active, [data-parent-nav].is-active') || null;
       if (active) moveUnderlineTo(active);
     };
 
     // Initial underline placement (after first layout)
     window.requestAnimationFrame(() => {
       if (!ENABLE_NAV_UNDERLINE) return;
-      const active = document.querySelector('.hudStub [data-nav].is-active') || null;
+      const active = document.querySelector('[data-nav].is-active, [data-parent-nav].is-active') || null;
       if (active) moveUnderlineTo(active);
     });
 
@@ -597,8 +607,10 @@ function pulseFrame(){
   }
 
   function setActiveTopNav(route){
-    document.querySelectorAll('.hudStub [data-nav]').forEach(a => {
-      a.classList.toggle('is-active', a.getAttribute('data-nav') === route);
+    document.querySelectorAll('[data-nav], [data-parent-nav]').forEach(a => {
+      const direct = String(a.getAttribute('data-nav') || '').trim();
+      const parent = String(a.getAttribute('data-parent-nav') || '').trim();
+      a.classList.toggle('is-active', direct === route || parent === route);
     });
 
     // Cinematic nav underline: keep it pinned to the active pill
@@ -675,6 +687,25 @@ function pulseFrame(){
   function navigateToRoute(route, opts){
     const key = routeKeyFromAny(route);
     syncUrlToRoute(key, opts);
+    navigate(key);
+  }
+
+  function navigateToPath(path, opts){
+    const target = String(path || '').trim();
+    if (!target) {
+      navigateToRoute('home', opts);
+      return;
+    }
+    const key = routeKeyFromAny(target);
+    const replace = !!(opts && opts.replace);
+    try {
+      if (replace) history.replaceState(__VM_BACK_GUARD_STATE, document.title, target);
+      else history.pushState(__VM_BACK_GUARD_STATE, document.title, target);
+    } catch (_) {
+      navigateToRoute(key, opts);
+      return;
+    }
+    try { setLastHash('#/' + key); } catch (_) {}
     navigate(key);
   }
 
