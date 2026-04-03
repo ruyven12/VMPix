@@ -378,6 +378,10 @@
       gap: 10px;
     }
 
+    .subjectSelect[hidden] {
+      display: none;
+    }
+
     .sortSelect .subjectSelectTrigger {
       min-width: 286px;
     }
@@ -1364,8 +1368,88 @@
       overflow: auto;
     }
 
+    .personDetailOverlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        repeating-radial-gradient(circle at 18% 32%, rgba(186, 24, 94, 0.95) 0 1px, transparent 1px 4px),
+        repeating-radial-gradient(circle at 78% 24%, rgba(126, 10, 66, 0.82) 0 1px, transparent 1px 5px),
+        repeating-radial-gradient(circle at 46% 74%, rgba(224, 62, 126, 0.58) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(180deg, rgba(148, 18, 80, 0.18) 0 1px, transparent 1px 4px),
+        linear-gradient(180deg, rgba(84, 8, 40, 0.16), rgba(58, 6, 28, 0.06));
+      background-size: 11px 11px, 17px 17px, 13px 13px, 100% 6px, auto;
+      mix-blend-mode: screen;
+    }
+
+    .personDetailOverlay > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .personDetailOverlay.is-grain-transition {
+      animation: personDetailToneIn 760ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    .personDetailOverlay.is-grain-transition::before {
+      animation: personDetailGrainIn 860ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    .personDetailOverlay.is-grain-transition > * {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .personDetailOverlay.is-detail-ready > * {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
     .personDetailOverlay[hidden] {
       display: none;
+    }
+
+    @keyframes personDetailGrainIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(-18px, 10px, 0) scale(1.2);
+        filter: contrast(2.2) brightness(0.0010);
+      }
+
+      16% {
+        opacity: 0.88;
+      }
+
+      42% {
+        opacity: 0.64;
+        transform: translate3d(14px, -8px, 0) scale(1.1);
+      }
+
+      72% {
+        opacity: 0.28;
+        transform: translate3d(-6px, 8px, 0) scale(1.04);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: contrast(1) brightness(1);
+      }
+    }
+
+    @keyframes personDetailToneIn {
+      0% {
+        filter: saturate(1.24) contrast(1.16) brightness(1.08);
+      }
+
+      100% {
+        filter: saturate(1) contrast(1) brightness(1);
+      }
     }
 
     .bandDetailOverlay {
@@ -2370,7 +2454,7 @@
               </div>
             </div>
             <div class="filterHints">
-              <div class="subjectSelect" id="filterSelect">
+              <div class="subjectSelect" id="filterSelect" hidden>
                 <button class="subjectSelectTrigger" id="filterSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                   <span class="subjectSelectTriggerLabel">Filter</span>
                   <span class="subjectSelectTriggerValue" id="filterSelectValue">Select</span>
@@ -2384,7 +2468,7 @@
                 </div>
               </div>
             </div>
-            <div class="subjectSelect sortSelect" id="sortSelect">
+            <div class="subjectSelect sortSelect" id="sortSelect" hidden>
               <button class="subjectSelectTrigger" id="sortSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="subjectSelectTriggerLabel">Sort</span>
                 <span class="subjectSelectTriggerValue" id="sortSelectValue">A-Z</span>
@@ -3460,6 +3544,21 @@
       animateSelectMenu(sortMenu, isOpen);
     }
 
+    function syncProgressiveControlVisibility() {
+      const shouldShowFilter = !!activeSubject;
+      const shouldShowSort = !!activeSubject && !!activeFilter;
+
+      if (filterSelect) {
+        filterSelect.hidden = !shouldShowFilter;
+        if (!shouldShowFilter) setFilterMenuOpen(false);
+      }
+
+      if (sortSelect) {
+        sortSelect.hidden = !shouldShowSort;
+        if (!shouldShowSort) setSortMenuOpen(false);
+      }
+    }
+
     function animateSelectMenu(menuEl, isOpen) {
       if (!menuEl) return;
       if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -3628,9 +3727,13 @@
       });
 
       const activeRule = Object.values(config).find((rule) => !rule.hidden && rule.filter === activeFilter) || null;
+      if (!activeRule) {
+        activeFilter = "";
+      }
       if (filterSelectValue) {
         filterSelectValue.textContent = activeRule ? activeRule.label : "Select";
       }
+      syncProgressiveControlVisibility();
     }
 
     function setGroupExpanded(groupButton, isExpanded) {
@@ -4427,6 +4530,28 @@
       }
     }
 
+    function playPersonDetailGrainTransition() {
+      if (
+        !personDetailOverlay ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        return;
+      }
+
+      personDetailOverlay.classList.remove("is-grain-transition");
+      if (personDetailOverlay.__grainTransitionTimer) {
+        window.clearTimeout(personDetailOverlay.__grainTransitionTimer);
+      }
+      void personDetailOverlay.offsetWidth;
+      personDetailOverlay.classList.add("is-grain-transition");
+      personDetailOverlay.__grainTransitionTimer = window.setTimeout(() => {
+        if (personDetailOverlay) {
+          personDetailOverlay.classList.remove("is-grain-transition");
+          personDetailOverlay.classList.add("is-detail-ready");
+        }
+      }, 620);
+    }
+
     async function openPersonDetailOverlay(card) {
       if (!personDetailOverlay || !card) return;
       const person = findPersonRecordFromCard(card);
@@ -4474,8 +4599,10 @@
           <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
         </div>
       `;
+      personDetailOverlay.classList.remove("is-detail-ready");
       personDetailOverlay.hidden = false;
       personDetailOverlay.setAttribute("aria-hidden", "false");
+      playPersonDetailGrainTransition();
       const panel = document.querySelector(".resultsPanel");
       if (panel) {
         panel.style.overflow = "hidden";
@@ -4494,7 +4621,7 @@
             { opacity: 1, transform: "translateY(0) scale(1)" }
           ],
           {
-            duration: 340,
+            duration: 760,
             easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
             fill: "both"
           }
@@ -4620,6 +4747,7 @@
 
       syncFilterRowForSubject(subject);
       applyFilter(activeFilter);
+      syncProgressiveControlVisibility();
       setSubjectMenuOpen(false);
       saveMockupSessionState();
     }
@@ -4646,6 +4774,7 @@
       }
 
       runResultsDoorTransition(() => updateResultsVisibility());
+      syncProgressiveControlVisibility();
       setFilterMenuOpen(false);
       saveMockupSessionState();
     }
@@ -4849,6 +4978,8 @@
     filterButtons.forEach((button) => {
       button.addEventListener("click", () => applyFilter(button.dataset.filter));
     });
+
+    syncProgressiveControlVisibility();
 
     async function restoreMockupSessionState() {
       const savedState = readMockupSessionState();
