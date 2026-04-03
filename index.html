@@ -814,7 +814,7 @@
    NAV STUB (TOP MENU): wrap + content-sized pills
 
   /* Nav stub should not clip wrapped pills (icons/glow/rounded corners) */
-  .hudContent > .hudStub:not(.hudMain){
+  .hudContent > .hudStub.hudMenuPanel{
     overflow: visible;
   }
 
@@ -822,7 +822,7 @@
      rely on max-width breakpoints to prevent pill pinch/cutoff.
    - Keep HUD MAIN panel styling untouched (.hudStub.hudMain)
    ============================= */
-  .hudContent > .hudStub:not(.hudMain){
+  .hudContent > .hudStub.hudMenuPanel{
     display: grid;
     justify-items: center;
     justify-content: start;
@@ -855,7 +855,7 @@
       border-color 120ms ease;
   }
 
-  .hudContent > .hudStub:not(.hudMain).is-collapsed{
+  .hudContent > .hudStub.hudMenuPanel.is-collapsed{
     display: none;
     opacity: 0;
     visibility: hidden;
@@ -873,7 +873,7 @@
   }
 
   /* Make pills size to their text (no forced widths) */
-  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
+  .hudContent > .hudStub.hudMenuPanel .hudMenuItem{
     display: grid;
     width: 100%;
     padding: 16px 20px;
@@ -891,17 +891,17 @@
     filter: none;
   }
 
-  .hudContent > .hudStub:not(.hudMain) .hudIntroText:last-child{
+  .hudContent > .hudStub.hudMenuPanel .hudMenuItem:last-child{
     border-bottom: 0;
   }
 
-  .hudContent > .hudStub:not(.hudMain) .hudIntroText:hover{
+  .hudContent > .hudStub.hudMenuPanel .hudMenuItem:hover{
     background: rgba(24,24,24,.98);
     box-shadow: none;
     border-color: rgba(255,255,255,.06);
   }
 
-  .hudContent > .hudStub:not(.hudMain) .hudIntroType{
+  .hudContent > .hudStub.hudMenuPanel .hudMenuItem .hudIntroType{
     width: auto !important;
     overflow: visible !important;
     animation: none !important;
@@ -2084,10 +2084,10 @@
                 <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
               </div>
             </div>
-            <div class="hudStub is-collapsed" id="hudPrimaryNav" data-hud-menu-panel="1">
-			<a class="hudIntroText" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
-  <a class="hudIntroText" href="/music" data-nav="music"><svg class="nav-icon nav-icon-wave" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 6 12 9 6 12 18 15 9 18 12 21 12"></polyline></svg><span class="hudIntroType">Music</span></a>
-  <a class="hudIntroText" href="/wrestling" data-nav="wrestling"><svg class="nav-icon nav-icon-lucha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4 Q12 2 18 4 Q20 8 20 12 Q20 18 12 22 Q4 18 4 12 Q4 8 6 4 Z"></path><path d="M8 10 Q10 8 12 10"></path><path d="M12 10 Q14 8 16 10"></path><line x1="12" y1="10" x2="12" y2="14"></line></svg><span class="hudIntroType">Wrestling</span></a>
+            <div class="hudStub hudMenuPanel is-collapsed" id="hudPrimaryNav" data-hud-menu-panel="1">
+			<a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
+  <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><svg class="nav-icon nav-icon-wave" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 6 12 9 6 12 18 15 9 18 12 21 12"></polyline></svg><span class="hudIntroType">Music</span></a>
+  <a class="hudIntroText hudMenuItem" href="/wrestling" data-nav="wrestling"><svg class="nav-icon nav-icon-lucha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4 Q12 2 18 4 Q20 8 20 12 Q20 18 12 22 Q4 18 4 12 Q4 8 6 4 Z"></path><path d="M8 10 Q10 8 12 10"></path><path d="M12 10 Q14 8 16 10"></path><line x1="12" y1="10" x2="12" y2="14"></line></svg><span class="hudIntroType">Wrestling</span></a>
 </div>
 
             <div class="hudStub hudMain">
