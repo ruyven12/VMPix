@@ -976,6 +976,33 @@
       text-shadow: 0 0 12px rgba(255, 255, 255, 0.03);
     }
 
+    .resultCard[data-type="band"] .cardMain {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .bandTitleRow {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .bandTitleRow .cardTitle {
+      min-width: 0;
+      margin: 0;
+    }
+
+    .bandSetStat {
+      flex: 0 0 auto;
+      color: rgba(245, 239, 248, 0.72);
+      font-size: 13px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
     .resultCard[data-type="show"] {
       grid-template-columns: 116px minmax(0, 1fr) auto;
       align-items: center;
@@ -2512,6 +2539,15 @@
             const name = String(band.name || '').trim();
             const logoUrl = String(band.logoUrl || '').trim();
             const tone = getBandTone(band.totalSets, band.archivedSets);
+            const totalSetsValue = String(band.totalSets || '').trim();
+            const archivedSetsValue = String(band.archivedSets || '').trim();
+            const totalSets = Number(totalSetsValue);
+            const archivedSets = Number(archivedSetsValue);
+            const hasTotalSets = totalSetsValue !== '' && Number.isFinite(totalSets);
+            const hasArchivedSets = archivedSetsValue !== '' && Number.isFinite(archivedSets);
+            const setsText = tone === 'gold' && (hasArchivedSets || hasTotalSets)
+              ? `${hasArchivedSets ? archivedSets.toLocaleString() : 0}/${hasTotalSets ? totalSets.toLocaleString() : 0}`
+              : '';
             const initials = name
               .split(/\s+/)
               .filter(Boolean)
@@ -2528,7 +2564,10 @@
                 </div>
                 <div class="cardMain">
                   <div class="eyebrow">Band</div>
-                  <div class="cardTitle">${escapeHtml(name)}</div>
+                  <div class="bandTitleRow">
+                    <div class="cardTitle">${escapeHtml(name)}</div>
+                    ${setsText ? `<div class="bandSetStat">${escapeHtml(setsText)}</div>` : ''}
+                  </div>
                 </div>
               </article>
             `;
