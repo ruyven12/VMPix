@@ -177,7 +177,8 @@ body{
   padding-bottom: calc(14px + env(safe-area-inset-bottom) + var(--vv-bottom, 0px)) !important;
 }
 .hudStub.hudMain{
-  min-height: 0 !important;
+  height: 100% !important;
+  min-height: 100% !important;
   overflow: auto !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
