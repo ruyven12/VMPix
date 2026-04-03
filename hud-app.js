@@ -85,7 +85,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           letter-spacing: .14em !important;
         }
 
-        .hudContent > .hudStub.hudMenuPanel{
+        .hudMenuOverlay{
           display: grid !important;
           justify-items: center !important;
           gap: 0 !important;
@@ -99,7 +99,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           transform: translateX(-50%) !important;
         }
 
-        .hudContent > .hudStub.hudMenuPanel.is-collapsed{
+        .hudMenuOverlay.is-collapsed{
           padding-top: 0 !important;
           padding-bottom: 0 !important;
           overflow: hidden !important;
@@ -128,7 +128,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
       }
 
       @media (max-width: 520px){
-        .hudContent > .hudStub.hudMenuPanel{
+        .hudMenuOverlay{
           width: calc(100vw - 20px) !important;
           max-width: calc(100vw - 20px) !important;
           top: 70px !important;

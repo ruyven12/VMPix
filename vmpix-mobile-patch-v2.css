@@ -101,7 +101,7 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
     max-width: 100% !important;
   }
 
-  .hudContent > .hudStub.hudMenuPanel{
+  .hudMenuOverlay{
     position: fixed !important;
     left: 50% !important;
     right: auto !important;
@@ -115,7 +115,7 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
     padding: 8px 0 !important;
   }
 
-  .hudContent > .hudStub.hudMenuPanel .hudMenuItem{
+  .hudMenuOverlay .hudMenuItem{
     width: 100% !important;
     max-width: none !important;
     display: grid !important;
@@ -129,11 +129,11 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
   }
 }
 
-.hudContent > .hudStub.hudMenuPanel{
+.hudMenuOverlay{
   background: #000 !important;
 }
 
-.hudContent > .hudStub.hudMenuPanel .hudMenuItem{
+.hudMenuOverlay .hudMenuItem{
   background: #000 !important;
 }
 
