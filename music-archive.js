@@ -224,34 +224,20 @@
       ensureViewportSizing();
     } else {
       if (isMobile) {
-        _contentPanelEl.style.marginTop = '14px';
-        _contentPanelEl.style.overflowY = 'auto';
+        _contentPanelEl.style.marginTop = '8px';
+        _contentPanelEl.style.overflowY = 'visible';
         _contentPanelEl.style.overflowX = 'hidden';
-        _contentPanelEl.style.webkitOverflowScrolling = 'touch';
-        _contentPanelEl.style.overscrollBehavior = 'contain';
+        _contentPanelEl.style.webkitOverflowScrolling = '';
+        _contentPanelEl.style.overscrollBehavior = '';
         _contentPanelEl.style.display = 'block';
         _contentPanelEl.style.alignItems = '';
         _contentPanelEl.style.justifyContent = '';
         _contentPanelEl.style.textAlign = '';
 
-        const hudMainMobile = document.querySelector('.hudStub.hudMain');
-        if (hudMainMobile) {
-          if (_prevHudMainDisplay === null) _prevHudMainDisplay = hudMainMobile.style.display || '';
-          if (_prevHudMainFlexDirection === null) _prevHudMainFlexDirection = hudMainMobile.style.flexDirection || '';
-          if (_prevHudMainAlignItems === null) _prevHudMainAlignItems = hudMainMobile.style.alignItems || '';
-          if (_prevHudMainJustifyContent === null) _prevHudMainJustifyContent = hudMainMobile.style.justifyContent || '';
-
-          hudMainMobile.style.display = 'flex';
-          hudMainMobile.style.flexDirection = 'column';
-          hudMainMobile.style.alignItems = 'center';
-          hudMainMobile.style.justifyContent = 'flex-start';
-        }
-
-        _contentPanelEl.style.flex = '1 1 auto';
-        _contentPanelEl.style.minHeight = '0px';
+        _contentPanelEl.style.flex = '';
+        _contentPanelEl.style.minHeight = GREEN_BOX_MOBILE_MIN_HEIGHT;
         _contentPanelEl.style.height = '';
         _contentPanelEl.style.maxHeight = '';
-        ensureViewportSizing();
         return;
       }
 
