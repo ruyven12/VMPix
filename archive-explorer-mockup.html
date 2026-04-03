@@ -919,6 +919,7 @@
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.02),
         inset 0 -12px 20px rgba(0, 0, 0, 0.12);
+      cursor: pointer;
     }
 
     .resultCard[data-type="band"] {
@@ -1259,6 +1260,171 @@
       letter-spacing: 0.08em;
     }
 
+    .personDetailOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      padding: 16px;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(105, 222, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, rgba(10, 10, 16, 0.98), rgba(8, 9, 16, 0.96));
+      overflow: auto;
+    }
+
+    .personDetailOverlay[hidden] {
+      display: none;
+    }
+
+    .personDetailTopRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .personDetailBack {
+      border: 1px solid rgba(255, 95, 135, 0.34);
+      border-radius: 10px;
+      background: rgba(12, 10, 18, 0.9);
+      color: #fff7fb;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .personDetailSummary {
+      flex: 1;
+      display: grid;
+      gap: 14px;
+    }
+
+    .personDetailHeroCard {
+      border: 1px solid rgba(255, 95, 135, 0.22);
+      border-radius: 16px;
+      padding: 14px 18px 18px;
+      text-align: center;
+      background: rgba(10, 11, 18, 0.6);
+    }
+
+    .personDetailHeroLabel,
+    .personDetailStatLabel {
+      color: rgba(255, 130, 164, 0.9);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .personDetailName {
+      margin-top: 8px;
+      color: #fff8fc;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+
+    .personDetailStatsGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .personDetailStatCard {
+      border: 1px solid rgba(255, 95, 135, 0.2);
+      border-radius: 16px;
+      padding: 12px 16px 14px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(17, 13, 23, 0.76), rgba(9, 11, 18, 0.84));
+    }
+
+    .personDetailMeta {
+      margin-top: 8px;
+      color: rgba(220, 196, 211, 0.68);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+
+    .personDetailList {
+      display: grid;
+      gap: 12px;
+      position: relative;
+    }
+
+    .personDetailList::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 24px;
+      bottom: 24px;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(255, 95, 135, 0.7), rgba(255, 95, 135, 0.08));
+      box-shadow: 0 0 12px rgba(255, 95, 135, 0.24);
+    }
+
+    .personDetailAlbumCard {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+      margin-left: 20px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 95, 135, 0.18);
+      background: linear-gradient(180deg, rgba(17, 13, 23, 0.76), rgba(9, 11, 18, 0.84));
+      position: relative;
+    }
+
+    .personDetailAlbumCard::before {
+      content: "";
+      position: absolute;
+      left: -16px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      border: 2px solid rgba(255, 95, 135, 0.8);
+      background: rgba(12, 10, 18, 0.95);
+      box-shadow: 0 0 10px rgba(255, 95, 135, 0.35);
+    }
+
+    .personDetailThumb {
+      width: 78px;
+      height: 78px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at 50% 30%, rgba(105, 222, 255, 0.18), transparent 50%),
+        linear-gradient(135deg, rgba(255, 95, 135, 0.28), rgba(10, 14, 25, 0.96));
+      color: rgba(255, 248, 252, 0.96);
+      font-size: 16px;
+      letter-spacing: 0.08em;
+    }
+
+    .personDetailAlbumTitle {
+      color: #fff8fc;
+      font-size: 20px;
+      line-height: 1.12;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .personDetailAlbumSub {
+      color: rgba(220, 196, 211, 0.72);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
     .previewGrid {
       display: grid;
       gap: 16px;
@@ -1456,7 +1622,7 @@
       <div class="titleRow heroCentered">
         <div>
           <div class="kicker">Unified Screen</div>
-          <h1>The Music Archives</h1>
+          <h1>The Interactive Portfolio</h1>
           <div class="subtitle">
             Welcome to the unified screen for the Music Archives, which will serve as the centralized hub for every bit of content that there is on the Music side.
           </div>
@@ -1524,6 +1690,7 @@
           <div class="resultsDoorPanel is-left" id="resultsDoorLeft"></div>
           <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
         </div>
+        <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
         <div class="panelHeader">
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
@@ -1983,12 +2150,14 @@
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
     const resultsDoorLeft = document.getElementById("resultsDoorLeft");
     const resultsDoorRight = document.getElementById("resultsDoorRight");
+    const personDetailOverlay = document.getElementById("personDetailOverlay");
     let activeSubject = "";
     let activeFilter = "";
     let activeSort = "az";
     let activeSubFilter = "all";
     let subFilterMode = "letters";
     let resultsDoorBusy = false;
+    let activePersonDetail = null;
 
     function refreshResultCollections() {
       resultCards = Array.from(document.querySelectorAll(".resultCard"));
@@ -2433,6 +2602,161 @@
       );
     }
 
+    function getPersonInitials(name) {
+      return String(name || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join("") || "PPL";
+    }
+
+    function getPersonDetailAlbums(person) {
+      const entry = (person && typeof person === "object") ? person : {};
+      const total = Math.max(1, Math.min(Number(entry.albumCount || 0) || 1, 12));
+      const baseName = String(entry.bands || entry.name || "Archive").split(",")[0].trim() || "Archive";
+      const currentYear = 2026;
+      return Array.from({ length: total }, (_, index) => {
+        const year = currentYear - Math.floor(index / 2);
+        const month = ((index * 3) % 12) + 1;
+        const day = Math.min(28, 10 + index);
+        return {
+          title: `${baseName} Archive Set ${index + 1}`,
+          date: formatShowDateLabel(`${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}/${String(year).slice(-2)}`),
+          initials: getPersonInitials(baseName)
+        };
+      });
+    }
+
+    function findPersonRecordFromCard(card) {
+      const name = String(card && card.dataset.name || "").trim();
+      const category = String(card && card.dataset.category || "").trim();
+      const people = Array.isArray(window.ARCHIVE_MOCKUP_PEOPLE) ? window.ARCHIVE_MOCKUP_PEOPLE : [];
+      return people.find((person) =>
+        String(person && person.name || "").trim() === name &&
+        String(person && person.category || "").trim() === category
+      ) || {
+        name,
+        category,
+        bands: "",
+        instrument: "",
+        photoCount: Number(card && card.dataset.photoCount || 0),
+        albumCount: Number(card && card.dataset.albumCount || 0)
+      };
+    }
+
+    function closePersonDetailOverlay() {
+      if (!personDetailOverlay) return;
+      const finishClose = () => {
+        personDetailOverlay.hidden = true;
+        personDetailOverlay.setAttribute("aria-hidden", "true");
+        personDetailOverlay.innerHTML = "";
+        activePersonDetail = null;
+        const panel = document.querySelector(".resultsPanel");
+        if (panel) panel.style.overflow = "auto";
+      };
+
+      if (
+        typeof personDetailOverlay.animate !== "function" ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        finishClose();
+        return;
+      }
+
+      personDetailOverlay.animate(
+        [
+          { opacity: 1, transform: "translateY(0) scale(1)" },
+          { opacity: 0, transform: "translateY(18px) scale(0.985)" }
+        ],
+        {
+          duration: 260,
+          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          fill: "forwards"
+        }
+      ).addEventListener("finish", finishClose, { once: true });
+    }
+
+    function openPersonDetailOverlay(card) {
+      if (!personDetailOverlay || !card) return;
+      const person = findPersonRecordFromCard(card);
+      activePersonDetail = person;
+      const albums = getPersonDetailAlbums(person);
+      const name = String(person.name || "Unknown Person").trim();
+      const instrument = String(person.instrument || "").trim();
+      const bands = String(person.bands || "").trim();
+      const category = String(person.category || "Person").trim();
+      const photoCount = Number(person.photoCount || 0);
+      const albumCount = Number(person.albumCount || albums.length || 0);
+
+      personDetailOverlay.innerHTML = `
+        <div class="personDetailTopRow">
+          <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
+          <div class="personDetailSummary">
+            <div class="personDetailHeroCard">
+              <div class="personDetailHeroLabel">Performer</div>
+              <div class="personDetailName">${escapeHtml(name)}</div>
+            </div>
+            <div class="personDetailStatsGrid">
+              <div class="personDetailStatCard">
+                <div class="personDetailStatLabel">Photo Count</div>
+                <div class="personDetailMeta">${photoCount.toLocaleString()}</div>
+              </div>
+              <div class="personDetailStatCard">
+                <div class="personDetailStatLabel">Album Count</div>
+                <div class="personDetailMeta">${albumCount.toLocaleString()}</div>
+              </div>
+            </div>
+            <div class="personDetailStatsGrid">
+              <div class="personDetailStatCard">
+                <div class="personDetailStatLabel">Bands</div>
+                <div class="personDetailMeta">${escapeHtml(bands || "N/A")}</div>
+              </div>
+              <div class="personDetailStatCard">
+                <div class="personDetailStatLabel">Instruments</div>
+                <div class="personDetailMeta">${escapeHtml(instrument || "N/A")}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="personDetailList">
+          ${albums.map((album) => `
+            <article class="personDetailAlbumCard">
+              <div class="personDetailThumb">${escapeHtml(album.initials)}</div>
+              <div>
+                <div class="personDetailAlbumTitle">"${escapeHtml(album.title)}"</div>
+                <div class="personDetailAlbumSub">${escapeHtml(album.date)}</div>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      `;
+      personDetailOverlay.hidden = false;
+      personDetailOverlay.setAttribute("aria-hidden", "false");
+      const panel = document.querySelector(".resultsPanel");
+      if (panel) {
+        panel.style.overflow = "hidden";
+        panel.scrollTop = 0;
+      }
+
+      if (
+        typeof personDetailOverlay.animate === "function" &&
+        !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        personDetailOverlay.animate(
+          [
+            { opacity: 0, transform: "translateY(22px) scale(0.985)" },
+            { opacity: 1, transform: "translateY(0) scale(1)" }
+          ],
+          {
+            duration: 340,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "both"
+          }
+        );
+      }
+    }
+
     async function runResultsDoorTransition(updateFn) {
       if (resultsDoorBusy) {
         if (typeof updateFn === "function") updateFn();
@@ -2578,6 +2902,20 @@
     }
 
     document.addEventListener("click", (event) => {
+      const closePersonDetailButton = event.target && event.target.closest ? event.target.closest("[data-person-detail-close='1']") : null;
+      if (closePersonDetailButton) {
+        event.preventDefault();
+        closePersonDetailOverlay();
+        return;
+      }
+
+      const personCard = event.target && event.target.closest ? event.target.closest(".resultCard[data-type='person']") : null;
+      if (personCard && !personCard.hidden) {
+        event.preventDefault();
+        openPersonDetailOverlay(personCard);
+        return;
+      }
+
       const moreButton = event.target && event.target.closest ? event.target.closest("[data-show-years-more='1']") : null;
       if (moreButton) {
         const wrap = moreButton.closest(".subFilterMore");
@@ -2604,6 +2942,13 @@
       if (!group) return;
       const isExpanded = group.getAttribute("aria-expanded") === "true";
       setGroupExpanded(group, !isExpanded);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && personDetailOverlay && !personDetailOverlay.hidden) {
+        event.preventDefault();
+        closePersonDetailOverlay();
+      }
     });
 
     sortButtons.forEach((button) => {
