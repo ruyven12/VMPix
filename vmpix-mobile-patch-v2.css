@@ -91,7 +91,7 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
   /* Fix mobile overlap: base grid row is shorter than the logo image.
      Let rows size naturally and scale logo down on small screens. */
   .hudContent{
-    grid-template-rows: auto auto 1fr !important;
+    grid-template-rows: auto 0 1fr !important;
   }
   .hudTopbar{
     padding: 10px 12px !important;
