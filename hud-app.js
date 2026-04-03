@@ -90,6 +90,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           justify-items: stretch !important;
           gap: 0 !important;
           width: min(260px, calc(100vw - 24px)) !important;
+          top: 84px !important;
+          left: 50% !important;
           padding: 6px 0 !important;
           overflow: auto !important;
         }
