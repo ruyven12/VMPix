@@ -1433,8 +1433,8 @@
 
     .personAlbumShotCard {
       display: grid;
-      gap: 8px;
-      padding: 8px;
+      gap: 10px;
+      padding: 8px 8px 10px;
       border-radius: 16px;
       border: 1px solid rgba(86, 215, 255, 0.16);
       background:
@@ -1447,7 +1447,7 @@
 
     .personAlbumShotThumb {
       width: 100%;
-      height: 186px;
+      height: 146px;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid rgba(86, 215, 255, 0.18);
@@ -1468,13 +1468,11 @@
       object-fit: cover;
     }
 
-    .personAlbumShotFooter {
-      min-height: 16px;
-      border-radius: 10px;
-      border: 1px solid rgba(86, 215, 255, 0.12);
-      background:
-        linear-gradient(180deg, rgba(14, 18, 30, 0.92), rgba(10, 12, 22, 0.96));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    .personAlbumShotIndex {
+      color: #f1f5ff;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-align: center;
     }
 
     .personDetailTopRow {
@@ -3525,7 +3523,7 @@
                 <div class="personAlbumShotThumb">
                   <img src="${escapeHtml(shot.thumbUrl)}" alt="${escapeHtml(albumTitle)} shot ${shot.index}" loading="lazy" decoding="async" />
                 </div>
-                <div class="personAlbumShotFooter" aria-hidden="true"></div>
+                <div class="personAlbumShotIndex">#${shot.index}</div>
               </article>
             `).join("")
           : `<div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">No tagged shots found for this album yet.</div>`;
