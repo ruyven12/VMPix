@@ -64,7 +64,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
       @media (max-width: 760px){
         .hudContent{
-          grid-template-rows: auto auto minmax(0, 1fr) !important;
+          grid-template-rows: auto 0 minmax(0, 1fr) !important;
           padding-left: 12px !important;
           padding-right: 12px !important;
         }
