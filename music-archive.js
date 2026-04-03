@@ -1366,6 +1366,14 @@ if (bodyEl) bodyEl.style.overflowX = 'hidden';
       hudMain.style.boxSizing = 'border-box';
       hudMain.style.overflow = 'visible';
       hudMain.style.overflowX = 'hidden';
+      if (_prevHudMainDisplay === null) _prevHudMainDisplay = hudMain.style.display || '';
+      if (_prevHudMainFlexDirection === null) _prevHudMainFlexDirection = hudMain.style.flexDirection || '';
+      if (_prevHudMainAlignItems === null) _prevHudMainAlignItems = hudMain.style.alignItems || '';
+      if (_prevHudMainJustifyContent === null) _prevHudMainJustifyContent = hudMain.style.justifyContent || '';
+      hudMain.style.display = 'flex';
+      hudMain.style.flexDirection = 'column';
+      hudMain.style.alignItems = 'center';
+      hudMain.style.justifyContent = 'flex-start';
 
       if (!_contentPanelEl) {
         _contentPanelEl = document.createElement('div');
