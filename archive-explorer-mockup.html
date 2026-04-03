@@ -1938,6 +1938,14 @@
         height: calc(100dvh - 12px);
       }
 
+      .shell.is-mobile-results-focus .topbar {
+        display: none;
+      }
+
+      .shell.is-mobile-results-focus .content {
+        padding-top: 14px;
+      }
+
       .topbar,
       .filters,
       .content {
@@ -2824,6 +2832,7 @@
     let resultGroups = [];
     const resultsMeta = document.getElementById("resultsMeta");
     const resultsPanel = document.querySelector(".resultsPanel");
+    const shell = document.querySelector(".shell");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
@@ -3327,6 +3336,28 @@
         : filterLabels[activeFilter];
 
       resultsMeta.textContent = !activeSubject || !activeFilter ? "Choose archive scope and filter to start the archive" : `${visibleCount} results across ${label}`;
+      syncMobileResultsFocusState();
+    }
+
+    function shouldUseMobileResultsFocus() {
+      return !!(
+        shell &&
+        resultsPanel &&
+        window.matchMedia &&
+        window.matchMedia("(max-width: 760px)").matches &&
+        activeSubject === "music" &&
+        activeFilter === "band" &&
+        activeSubFilter === "all" &&
+        personDetailOverlay.hidden &&
+        personAlbumOverlay.hidden &&
+        personShotLightboxOverlay.hidden
+      );
+    }
+
+    function syncMobileResultsFocusState() {
+      if (!shell || !resultsPanel) return;
+      const shouldFocus = shouldUseMobileResultsFocus() && resultsPanel.scrollTop > 8;
+      shell.classList.toggle("is-mobile-results-focus", shouldFocus);
     }
 
     function animateResultsRefresh() {
@@ -3530,6 +3561,7 @@
         activePersonDetail = null;
         const panel = document.querySelector(".resultsPanel");
         if (panel) panel.style.overflow = "auto";
+        syncMobileResultsFocusState();
         saveMockupSessionState();
       };
 
@@ -3781,6 +3813,7 @@
         panel.style.overflow = "hidden";
         panel.scrollTop = 0;
       }
+      syncMobileResultsFocusState();
       saveMockupSessionState();
 
       if (
@@ -4168,6 +4201,7 @@
       if (resultsPanel && Number.isFinite(Number(savedState.resultsScrollTop))) {
         resultsPanel.scrollTop = Number(savedState.resultsScrollTop);
       }
+      syncMobileResultsFocusState();
 
       const activePersonName = String(savedState.activePersonName || "").trim();
       if (activePersonName) {
@@ -4202,9 +4236,12 @@
 
     if (resultsPanel) {
       resultsPanel.addEventListener("scroll", () => {
+        syncMobileResultsFocusState();
         saveMockupSessionState();
       }, { passive: true });
     }
+
+    window.addEventListener("resize", syncMobileResultsFocusState, { passive: true });
 
     window.addEventListener("beforeunload", () => {
       saveMockupSessionState();
