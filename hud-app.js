@@ -89,9 +89,10 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           display: grid !important;
           justify-items: stretch !important;
           gap: 0 !important;
-          width: min(260px, calc(100vw - 24px)) !important;
+          left: 12px !important;
+          right: 12px !important;
+          width: auto !important;
           top: 84px !important;
-          left: 50% !important;
           padding: 6px 0 !important;
           overflow: auto !important;
         }
@@ -104,7 +105,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
         .hudIntroText{
           font-size: 12px !important;
-          padding: 13px 14px !important;
+          padding: 14px 16px !important;
           max-width: none !important;
           transform: none !important;
         }
