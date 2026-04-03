@@ -352,8 +352,7 @@
    HUD CONTENT (reveal + sweep)
    ============================= */
   .hudTopbar,
-  .hudContent > :nth-child(2),
-  .hudContent > :nth-child(3){
+  .hudStub.hudMain{
     opacity: 0;
     will-change: transform, opacity, filter;
   }
@@ -391,19 +390,13 @@
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
-  .hudContent > :nth-child(2){
+  .hudStub.hudMain{
     transform: translateY(10px);
     animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
   }
 
-  .hudContent > :nth-child(3){
-    transform: translateY(8px);
-    animation: hudFooterIn 540ms ease-out 940ms forwards;
-  }
-
   .hudTopbar::after{ animation: hudScanSweep 1100ms ease-in-out 760ms 1; }
-  .hudContent > :nth-child(2)::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
-  .hudContent > :nth-child(3)::after{ animation: hudScanSweep 1200ms ease-in-out 980ms 1; }
+  .hudStub.hudMain::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
 
   /* =============================
    HUD INTRO PILLS (tabs)
@@ -661,16 +654,8 @@
     animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
   }
 
-  .hudContent > :nth-child(2){
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: transparent;
-    border: none;
-  }
-
-  .hudContent > :nth-child(2),
-  .hudContent > :nth-child(3){
+  .hudTopbar,
+  .hudStub.hudMain{
     font-family: 'Orbitron', system-ui, sans-serif;
   }
 
@@ -1532,7 +1517,7 @@
     #hudEmbers{ display:none !important; }
     .hudAtmos{ animation: none !important; }
     .hud, .hudSweep, .hudNoise,
-    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
+    .hudTopbar, .hudStub.hudMain{
       animation: none !important, plasmaPulse 2s ease-in-out infinite;
     }
 
