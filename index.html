@@ -277,6 +277,7 @@
     gap: 12px;
     cursor: pointer;
     transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 160ms ease;
+    position: relative;
   }
 
   .hudTopbar:hover{
@@ -315,6 +316,41 @@
       inset 0 0 18px rgba(255,60,60,.08);
   }
 
+  .hudMenuCopy{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255, 236, 240, .94);
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 80, 110, .14);
+  }
+
+  .hudMenuLabel{
+    color: rgba(255, 222, 228, .96);
+  }
+
+  .hudMenuChevron{
+    color: rgba(126, 228, 255, .88);
+    font-size: 11px;
+    letter-spacing: 0;
+    line-height: 1;
+    transition: transform 180ms ease, filter 180ms ease;
+    filter: drop-shadow(0 0 0 rgba(126, 228, 255, 0));
+  }
+
+  .hudTopbar[aria-expanded="true"] .hudMenuChevron{
+    transform: rotate(180deg);
+    filter: drop-shadow(0 0 6px rgba(126, 228, 255, 0.42));
+  }
+
   .hudMenuToggleLine{
     width: 18px;
     height: 2px;
@@ -341,10 +377,11 @@
     align-items: center;
     justify-content: center;
     margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .hudBrandImg{
-    height: 86px;
+    height: 68px;
     width: auto;
     display: block;
     filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
@@ -2047,6 +2084,10 @@
                 <span class="hudMenuToggleLine" aria-hidden="true"></span>
                 <span class="hudMenuToggleLine" aria-hidden="true"></span>
                 <span class="hudMenuToggleLine" aria-hidden="true"></span>
+              </div>
+              <div class="hudMenuCopy" aria-hidden="true">
+                <span class="hudMenuLabel">Menu</span>
+                <span class="hudMenuChevron">▼</span>
               </div>
               <div class="hudBrandLink" aria-hidden="true">
                 <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />

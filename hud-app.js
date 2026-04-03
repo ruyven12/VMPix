@@ -85,6 +85,12 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           object-fit: contain;
         }
 
+        .hudMenuCopy{
+          gap: 8px !important;
+          font-size: 10px !important;
+          letter-spacing: .14em !important;
+        }
+
         .hudContent > .hudStub:not(.hudMain){
           display: flex !important;
           flex-wrap: wrap;
