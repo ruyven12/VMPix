@@ -1320,6 +1320,132 @@
       display: none;
     }
 
+    .personAlbumOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      padding: 18px;
+      display: grid;
+      align-content: start;
+      gap: 18px;
+      background:
+        linear-gradient(180deg, rgba(15, 12, 21, 0.96), rgba(7, 9, 16, 0.98)),
+        rgba(10, 11, 18, 0.96);
+      overflow: auto;
+    }
+
+    .personAlbumOverlay[hidden] {
+      display: none;
+    }
+
+    .personAlbumTopRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .personAlbumSummary {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .personAlbumKicker {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: none;
+    }
+
+    .personAlbumTitle {
+      color: #fff8fc;
+      font-size: 24px;
+      line-height: 1.18;
+      letter-spacing: 0.03em;
+      text-transform: none;
+    }
+
+    .personAlbumActions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .personAlbumButton {
+      min-width: 86px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background:
+        linear-gradient(180deg, rgba(32, 19, 33, 0.96), rgba(12, 14, 22, 0.92));
+      color: #fff7fb;
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .personAlbumButton:hover,
+    .personAlbumButton:focus-visible {
+      border-color: rgba(105, 222, 255, 0.34);
+      outline: none;
+    }
+
+    .personAlbumGrid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .personAlbumShotCard {
+      display: grid;
+      gap: 10px;
+      padding: 8px 8px 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(86, 215, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(15, 21, 31, 0.96), rgba(10, 12, 20, 0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -10px 18px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(86, 215, 255, 0.04);
+    }
+
+    .personAlbumShotThumb {
+      width: 100%;
+      height: 146px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(86, 215, 255, 0.18);
+      background:
+        radial-gradient(circle at 50% 30%, rgba(105, 222, 255, 0.18), transparent 50%),
+        linear-gradient(135deg, rgba(255, 95, 135, 0.28), rgba(10, 14, 25, 0.96));
+      display: grid;
+      place-items: center;
+      color: rgba(255, 248, 252, 0.92);
+      font-size: 16px;
+      letter-spacing: 0.08em;
+    }
+
+    .personAlbumShotThumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .personAlbumShotIndex {
+      color: #f1f5ff;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
     .personDetailTopRow {
       display: grid;
       justify-items: center;
@@ -1422,13 +1548,42 @@
 
     .personDetailList {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
       position: relative;
     }
 
     .personDetailList::before {
       content: none;
+    }
+
+    .personDetailBandSection {
+      display: grid;
+      gap: 14px;
+    }
+
+    .personDetailBandHeader {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 14px 18px;
+      text-align: center;
+      background:
+        radial-gradient(circle at top right, rgba(255, 204, 112, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(20, 15, 18, 0.9), rgba(11, 13, 24, 0.88));
+    }
+
+    .personDetailBandTitle {
+      margin-top: 8px;
+      color: #fff6fb;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+
+    .personDetailBandAlbums {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
     }
 
     .personDetailAlbumCard {
@@ -1476,6 +1631,7 @@
       line-height: 1.3;
       letter-spacing: 0.04em;
       margin-bottom: 6px;
+      text-align: center;
     }
 
     .personDetailAlbumTitle a {
@@ -1487,10 +1643,15 @@
       color: rgba(220, 196, 211, 0.72);
       font-size: 12px;
       letter-spacing: 0.04em;
+      text-align: center;
     }
 
     @media (max-width: 1100px) {
-      .personDetailList {
+      .personDetailBandAlbums {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .personAlbumGrid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
@@ -1715,6 +1876,11 @@
         gap: 8px;
       }
 
+      .personDetailBandAlbums,
+      .personAlbumGrid {
+        grid-template-columns: 1fr;
+      }
+
       .resultsList {
         grid-template-columns: 1fr;
       }
@@ -1800,6 +1966,7 @@
           <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
         </div>
         <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
+        <div class="personAlbumOverlay" id="personAlbumOverlay" hidden aria-hidden="true"></div>
         <div class="panelHeader">
           <div class="panelMeta" id="resultsMeta">4 results across all categories</div>
         </div>
@@ -1913,6 +2080,7 @@
     const MUSIC_PEOPLE_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/people-index.json';
     const MUSIC_API_BASE = 'https://music-archive-3lfa.onrender.com';
     let musicShowPosterIndexPromise = null;
+    let musicShowBandIndexPromise = null;
     let musicPeopleDetailIndexPromise = null;
     const personAlbumThumbCache = new Map();
 
@@ -2017,6 +2185,41 @@
       return musicShowPosterIndexPromise;
     }
 
+    async function loadMusicShowBandIndex() {
+      if (!musicShowBandIndexPromise) {
+        musicShowBandIndexPromise = fetch(MUSIC_SHOW_INDEX_ENDPOINT, { cache: 'no-store' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            const shows = Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload && payload.shows)
+                ? payload.shows
+                : Array.isArray(payload && payload.rows)
+                  ? payload.rows
+                  : [];
+            const map = new Map();
+            shows.forEach((show) => {
+              const title = String(show && (show.title || show.show_name || show.event || show.name) || '').trim();
+              const dateSortValue = getShowDateSortValue(String(show && (show.date || show.show_date) || '').trim());
+              const bands = extractShowBands(show);
+              if (!title || !bands.length) return;
+              map.set(getShowBandLookupKey(title, dateSortValue), bands);
+              const titleOnlyKey = getShowBandLookupKey(title, 0);
+              if (!map.has(titleOnlyKey)) map.set(titleOnlyKey, bands);
+              if (dateSortValue && !map.has(getShowBandDateLookupKey(dateSortValue))) {
+                map.set(getShowBandDateLookupKey(dateSortValue), bands);
+              }
+            });
+            return map;
+          })
+          .catch(() => new Map());
+      }
+      return musicShowBandIndexPromise;
+    }
+
     function normalizePersonLookupName(name) {
       return String(name || '').trim().toLowerCase();
     }
@@ -2028,9 +2231,10 @@
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json();
           }),
-          loadMusicShowPosterIndex()
+          loadMusicShowPosterIndex(),
+          loadMusicShowBandIndex()
         ])
-          .then(([payload, posterIndex]) => {
+          .then(([payload, posterIndex, showBandIndex]) => {
             const map = new Map();
             const rows = Array.isArray(payload && payload.people) ? payload.people : [];
             rows.forEach((person) => {
@@ -2047,6 +2251,10 @@
                     sortValue: Number(split.sortValue || 0),
                     url: String(album && album.url || '').trim(),
                     initials: getPersonInitials(split.titleText || title || name),
+                    matchedBands: showBandIndex.get(getShowBandLookupKey(split.titleText || title, split.sortValue))
+                      || showBandIndex.get(getShowBandLookupKey(split.titleText || title, 0))
+                      || showBandIndex.get(getShowBandDateLookupKey(split.sortValue))
+                      || [],
                     posterUrl: posterIndex.get(getShowPosterLookupKey(split.titleText || title, split.sortValue))
                       || posterIndex.get(getShowPosterLookupKey(split.titleText || title, 0))
                       || posterIndex.get(getShowPosterDateLookupKey(split.sortValue))
@@ -2104,6 +2312,76 @@
       } catch (_) {
         personAlbumThumbCache.set(key, '');
         return '';
+      }
+    }
+
+    function normalizeCaptionMatchValue(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function normalizeBandLookupValue(value) {
+      return normalizePosterLookupValue(value);
+    }
+
+    function getShowBandLookupKey(title, dateSortValue) {
+      return `${normalizePosterLookupValue(title)}|${Number(dateSortValue || 0)}`;
+    }
+
+    function getShowBandDateLookupKey(dateSortValue) {
+      return `date|${Number(dateSortValue || 0)}`;
+    }
+
+    function extractShowBands(show) {
+      const row = (show && typeof show === 'object') ? show : {};
+      const seen = new Set();
+      const bands = [];
+      for (let index = 1; index <= 20; index += 1) {
+        const rawValue = String(row[`band_${index}`] || row[`band${index}`] || '').trim();
+        if (!rawValue) continue;
+        const normalized = normalizeBandLookupValue(rawValue);
+        if (!normalized || seen.has(normalized)) continue;
+        seen.add(normalized);
+        bands.push(rawValue);
+      }
+      return bands;
+    }
+
+    function captionMatchesPerson(caption, personName) {
+      const normalizedCaption = normalizeCaptionMatchValue(caption);
+      const normalizedPersonName = normalizeCaptionMatchValue(personName);
+      if (!normalizedCaption || !normalizedPersonName) return false;
+      return normalizedCaption.includes(normalizedPersonName);
+    }
+
+    async function loadPersonAlbumShots(albumKey, personName, count = 8) {
+      const key = String(albumKey || '').trim();
+      if (!key) return [];
+
+      try {
+        const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(key)}?count=120&start=1`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const shots = extractAlbumImagesFromPage(payload).map((albumImage, index) => {
+          const thumbUrl = pickAlbumImageThumb(albumImage);
+          const caption = String(
+            albumImage && (albumImage.Caption || albumImage.caption || albumImage.Title || albumImage.title || albumImage.FileName || albumImage.fileName) || ''
+          ).trim();
+          return {
+            id: String(albumImage && (albumImage.ImageKey || albumImage.id || index + 1) || index + 1),
+            thumbUrl,
+            caption: caption || `#${index + 1}`,
+            index: index + 1
+          };
+        }).filter((image) => image.thumbUrl && captionMatchesPerson(image.caption, personName));
+
+        return shots.slice(0, Math.max(1, Number(count) || 8));
+      } catch (_) {
+        return [];
       }
     }
 
@@ -2410,12 +2688,15 @@
     let resultGroupSections = [];
     let resultGroups = [];
     const resultsMeta = document.getElementById("resultsMeta");
+    const resultsPanel = document.querySelector(".resultsPanel");
     const peopleBrowser = document.getElementById("peopleBrowser");
     const peopleBrowserMeta = document.getElementById("peopleBrowserMeta");
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
     const resultsDoorLeft = document.getElementById("resultsDoorLeft");
     const resultsDoorRight = document.getElementById("resultsDoorRight");
     const personDetailOverlay = document.getElementById("personDetailOverlay");
+    const personAlbumOverlay = document.getElementById("personAlbumOverlay");
+    const MOCKUP_SESSION_KEY = "archiveExplorerMockupSessionState";
     let activeSubject = "";
     let activeFilter = "";
     let activeSort = "az";
@@ -2423,12 +2704,57 @@
     let subFilterMode = "letters";
     let resultsDoorBusy = false;
     let activePersonDetail = null;
+    let activeAlbumDetail = null;
 
     function refreshResultCollections() {
       resultCards = Array.from(document.querySelectorAll(".resultCard"));
       resultGroupSections = Array.from(document.querySelectorAll(".resultGroupSection"));
       resultGroups = Array.from(document.querySelectorAll(".resultGroup"));
       subFilterButtons = Array.from(document.querySelectorAll(".subHint"));
+    }
+
+    function getGroupStorageKey(section) {
+      if (!section) return "";
+      return [
+        section.dataset.type || "",
+        section.dataset.subject || "",
+        section.dataset.category || ""
+      ].join("|");
+    }
+
+    function saveMockupSessionState() {
+      try {
+        const expandedGroups = {};
+        resultGroupSections.forEach((section) => {
+          const group = section.querySelector(".resultGroup");
+          if (!group) return;
+          expandedGroups[getGroupStorageKey(section)] = group.getAttribute("aria-expanded") === "true";
+        });
+
+        const state = {
+          activeSubject,
+          activeFilter,
+          activeSort,
+          activeSubFilter,
+          expandedGroups,
+          activePersonName: activePersonDetail && activePersonDetail.name ? String(activePersonDetail.name) : "",
+          activeAlbumKey: activeAlbumDetail && activeAlbumDetail.albumKey ? String(activeAlbumDetail.albumKey) : "",
+          activeAlbumExpanded: !!(activeAlbumDetail && activeAlbumDetail.expanded),
+          resultsScrollTop: resultsPanel ? resultsPanel.scrollTop : 0
+        };
+
+        window.sessionStorage.setItem(MOCKUP_SESSION_KEY, JSON.stringify(state));
+      } catch (_) {}
+    }
+
+    function readMockupSessionState() {
+      try {
+        const raw = window.sessionStorage.getItem(MOCKUP_SESSION_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) {
+        return null;
+      }
     }
 
     const filterLabels = {
@@ -2589,6 +2915,7 @@
       });
 
       if (!peopleBrowserMeta) {
+        saveMockupSessionState();
         return;
       }
 
@@ -2597,6 +2924,7 @@
       } else {
         peopleBrowserMeta.textContent = filter === "all" ? "All names" : `Names starting with ${filter}`;
       }
+      saveMockupSessionState();
     }
 
     function renderShowYearFilters() {
@@ -2695,6 +3023,7 @@
       const section = groupButton.closest(".resultGroupSection");
       const body = section ? section.querySelector(".resultGroupBody") : null;
       groupButton.setAttribute("aria-expanded", String(isExpanded));
+      saveMockupSessionState();
       if (!body || section.hidden) return;
       animateGroupBody(body, isExpanded);
     }
@@ -2902,9 +3231,113 @@
         return {
           title: `${baseName} Archive Set ${index + 1}`,
           date: formatShowDateLabel(`${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}/${String(year).slice(-2)}`),
-          initials: getPersonInitials(baseName)
+          initials: getPersonInitials(baseName),
+          matchedBands: baseName ? [baseName] : []
         };
       });
+    }
+
+    function getPersonBandList(person) {
+      return String(person && person.bands || '')
+        .split(',')
+        .map((value) => String(value || '').trim())
+        .filter(Boolean);
+    }
+
+    function albumMatchesBand(album, bandName) {
+      const normalizedBand = normalizeBandLookupValue(bandName);
+      if (!normalizedBand) return false;
+      const matchedBands = Array.isArray(album && album.matchedBands) ? album.matchedBands : [];
+      if (matchedBands.some((value) => normalizeBandLookupValue(value) === normalizedBand)) {
+        return true;
+      }
+      const albumTitle = normalizeBandLookupValue(album && album.title || '');
+      return !!albumTitle && albumTitle.includes(normalizedBand);
+    }
+
+    function groupPersonAlbumsByBand(person, albums) {
+      const personBands = getPersonBandList(person);
+      const multiBandPerformer = personBands.length > 1;
+      if (!multiBandPerformer) {
+        return [];
+      }
+
+      const groupMap = new Map(personBands.map((bandName) => [bandName, []]));
+      const unmatchedAlbums = [];
+
+      albums.forEach((album) => {
+        const matchedBand = personBands.find((bandName) => albumMatchesBand(album, bandName));
+        if (matchedBand) {
+          groupMap.get(matchedBand).push(album);
+        } else {
+          unmatchedAlbums.push(album);
+        }
+      });
+
+      const groups = personBands
+        .map((bandName) => ({ bandName, albums: groupMap.get(bandName) || [] }))
+        .filter((group) => group.albums.length);
+
+      if (unmatchedAlbums.length) {
+        groups.push({
+          bandName: 'Other Appearances',
+          albums: unmatchedAlbums
+        });
+      }
+
+      return groups;
+    }
+
+    function renderPersonDetailAlbumCards(albums) {
+      const list = Array.isArray(albums) ? albums : [];
+      return list.map((album) => {
+        const albumKey = String(album && album.albumKey || "").trim();
+        const albumUrl = String(album && album.url || "").trim();
+        const posterUrl = String(album && album.posterUrl || "").trim();
+        const albumTitle = String(album && album.title || "Untitled Album").trim();
+        const albumDate = String(album && album.date || "").trim();
+        return `
+          <article class="personDetailAlbumCard" data-albumkey="${escapeHtml(albumKey)}">
+            <div class="personDetailThumb" data-albumkey="${escapeHtml(albumKey)}">
+              ${posterUrl
+                ? `<img class="personDetailThumbImage" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(albumTitle)} poster" loading="lazy" decoding="async" />`
+                : escapeHtml(album && album.initials || "ALB")}
+            </div>
+            <div>
+              <div class="personDetailAlbumTitle">
+                ${albumUrl
+                  ? `<a href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer">${escapeHtml(albumTitle)}</a>`
+                  : `${escapeHtml(albumTitle)}`}
+              </div>
+              ${albumDate ? `<div class="personDetailAlbumSub">${escapeHtml(albumDate)}</div>` : ""}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderPersonDetailAlbumsMarkup(person, albums) {
+      const list = Array.isArray(albums) ? albums : [];
+      if (!list.length) {
+        return `<div class="personDetailAlbumSub" style="padding:12px 0;">No albums found for this person.</div>`;
+      }
+
+      const bandGroups = groupPersonAlbumsByBand(person, list);
+      if (!bandGroups.length) {
+        return `<div class="personDetailBandAlbums">${renderPersonDetailAlbumCards(list)}</div>`;
+      }
+
+      return bandGroups.map((group) => `
+        <section class="personDetailBandSection">
+          <div class="personDetailBandHeader">
+            <div class="personDetailHeroLabel">Band</div>
+            <div class="personDetailBandTitle">${escapeHtml(group.bandName)}</div>
+          </div>
+          <div class="personDetailBandAlbums">
+            ${renderPersonDetailAlbumCards(group.albums)}
+          </div>
+        </section>
+      `).join("");
     }
 
     async function getPersonDetailAlbums(person) {
@@ -2948,6 +3381,7 @@
 
     function closePersonDetailOverlay() {
       if (!personDetailOverlay) return;
+      closePersonAlbumOverlay();
       const finishClose = () => {
         personDetailOverlay.hidden = true;
         personDetailOverlay.setAttribute("aria-hidden", "true");
@@ -2955,6 +3389,7 @@
         activePersonDetail = null;
         const panel = document.querySelector(".resultsPanel");
         if (panel) panel.style.overflow = "auto";
+        saveMockupSessionState();
       };
 
       if (
@@ -2976,6 +3411,97 @@
           fill: "forwards"
         }
       ).addEventListener("finish", finishClose, { once: true });
+    }
+
+    function closePersonAlbumOverlay() {
+      if (!personAlbumOverlay) return;
+      personAlbumOverlay.hidden = true;
+      personAlbumOverlay.setAttribute("aria-hidden", "true");
+      personAlbumOverlay.innerHTML = "";
+      activeAlbumDetail = null;
+      saveMockupSessionState();
+    }
+
+    async function openPersonAlbumOverlay(album) {
+      if (!personAlbumOverlay || !album) return;
+
+      const albumKey = String(album.albumKey || "").trim();
+      const albumTitle = String(album.title || "Untitled Album").trim();
+      const albumDate = String(album.date || "").trim();
+      const albumUrl = String(album.url || "").trim();
+      const personName = String(activePersonDetail && activePersonDetail.name || "").trim();
+
+      activeAlbumDetail = {
+        albumKey,
+        albumTitle,
+        expanded: false
+      };
+
+      personAlbumOverlay.innerHTML = `
+        <div class="personAlbumTopRow">
+          <div class="personAlbumSummary">
+            <div class="personAlbumKicker">Loading tagged shots...</div>
+            <div class="personAlbumTitle">${escapeHtml(albumTitle)}</div>
+          </div>
+          <div class="personAlbumActions">
+            <button class="personAlbumButton" type="button" data-person-album-toggle="1">Show all</button>
+            <button class="personAlbumButton" type="button" data-person-album-close="1">Back</button>
+          </div>
+        </div>
+        <div class="personAlbumGrid">
+          <div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">Loading shots...</div>
+        </div>
+      `;
+      personAlbumOverlay.hidden = false;
+      personAlbumOverlay.setAttribute("aria-hidden", "false");
+      saveMockupSessionState();
+
+      const shots = await loadPersonAlbumShots(albumKey, personName, 120);
+      if (!personAlbumOverlay || personAlbumOverlay.hidden || !activeAlbumDetail || activeAlbumDetail.albumKey !== albumKey) {
+        return;
+      }
+
+      activeAlbumDetail.shots = shots;
+
+      const summaryEl = personAlbumOverlay.querySelector(".personAlbumSummary");
+      const gridEl = personAlbumOverlay.querySelector(".personAlbumGrid");
+      const toggleEl = personAlbumOverlay.querySelector("[data-person-album-toggle='1']");
+      if (summaryEl) {
+        summaryEl.innerHTML = `
+          <div class="personAlbumKicker">${shots.length.toLocaleString()} tagged shots</div>
+          <div class="personAlbumTitle">${escapeHtml(albumTitle)}</div>
+        `;
+      }
+
+      const renderVisibleAlbumShots = () => {
+        if (!gridEl || !activeAlbumDetail || activeAlbumDetail.albumKey !== albumKey) return;
+        const visibleShots = activeAlbumDetail.expanded ? shots : shots.slice(0, 8);
+        gridEl.innerHTML = visibleShots.length
+          ? visibleShots.map((shot) => `
+              <article class="personAlbumShotCard">
+                <div class="personAlbumShotThumb">
+                  <img src="${escapeHtml(shot.thumbUrl)}" alt="${escapeHtml(albumTitle)} shot ${shot.index}" loading="lazy" decoding="async" />
+                </div>
+                <div class="personAlbumShotIndex">#${shot.index}</div>
+              </article>
+            `).join("")
+          : `<div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">No tagged shots found for this album yet.</div>`;
+        if (toggleEl) {
+          toggleEl.hidden = shots.length <= 8;
+          toggleEl.textContent = activeAlbumDetail.expanded ? "Show less" : "Show all";
+        }
+      };
+
+      if (toggleEl) {
+        toggleEl.addEventListener("click", () => {
+          if (!activeAlbumDetail || activeAlbumDetail.albumKey !== albumKey) return;
+          activeAlbumDetail.expanded = !activeAlbumDetail.expanded;
+          renderVisibleAlbumShots();
+          saveMockupSessionState();
+        });
+      }
+
+      renderVisibleAlbumShots();
     }
 
     async function hydratePersonDetailThumbs(albums, personToken) {
@@ -3048,6 +3574,7 @@
         panel.style.overflow = "hidden";
         panel.scrollTop = 0;
       }
+      saveMockupSessionState();
 
       if (
         typeof personDetailOverlay.animate === "function" &&
@@ -3079,30 +3606,7 @@
       if (photoCountEl) photoCountEl.textContent = photoCount.toLocaleString();
       if (albumCountEl) albumCountEl.textContent = albumCount.toLocaleString();
       if (listEl) {
-        listEl.innerHTML = albums.length ? albums.map((album) => {
-          const albumKey = String(album && album.albumKey || "").trim();
-          const albumUrl = String(album && album.url || "").trim();
-          const posterUrl = String(album && album.posterUrl || "").trim();
-          const albumTitle = String(album && album.title || "Untitled Album").trim();
-          const albumDate = String(album && album.date || "").trim();
-          return `
-            <article class="personDetailAlbumCard" data-albumkey="${escapeHtml(albumKey)}">
-              <div class="personDetailThumb" data-albumkey="${escapeHtml(albumKey)}">
-                ${posterUrl
-                  ? `<img class="personDetailThumbImage" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(albumTitle)} poster" loading="lazy" decoding="async" />`
-                  : escapeHtml(album && album.initials || "ALB")}
-              </div>
-              <div>
-                <div class="personDetailAlbumTitle">
-                  ${albumUrl
-                    ? `<a href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer">${escapeHtml(albumTitle)}</a>`
-                    : `${escapeHtml(albumTitle)}`}
-                </div>
-                ${albumDate ? `<div class="personDetailAlbumSub">${escapeHtml(albumDate)}</div>` : ""}
-              </div>
-            </article>
-          `;
-        }).join("") : `<div class="personDetailAlbumSub" style="padding:12px 0;">No albums found for this person.</div>`;
+        listEl.innerHTML = renderPersonDetailAlbumsMarkup(person, albums);
       }
 
       hydratePersonDetailThumbs(albums, personToken);
@@ -3209,6 +3713,7 @@
       syncFilterRowForSubject(subject);
       applyFilter(activeFilter);
       setSubjectMenuOpen(false);
+      saveMockupSessionState();
     }
 
     function applyFilter(filter) {
@@ -3234,6 +3739,7 @@
 
       runResultsDoorTransition(() => updateResultsVisibility());
       setFilterMenuOpen(false);
+      saveMockupSessionState();
     }
 
     function applySort(sortKey) {
@@ -3250,9 +3756,17 @@
 
       runResultsDoorTransition(() => updateResultsVisibility());
       setSortMenuOpen(false);
+      saveMockupSessionState();
     }
 
     document.addEventListener("click", (event) => {
+      const closePersonAlbumButton = event.target && event.target.closest ? event.target.closest("[data-person-album-close='1']") : null;
+      if (closePersonAlbumButton) {
+        event.preventDefault();
+        closePersonAlbumOverlay();
+        return;
+      }
+
       const closePersonDetailButton = event.target && event.target.closest ? event.target.closest("[data-person-detail-close='1']") : null;
       if (closePersonDetailButton) {
         event.preventDefault();
@@ -3264,6 +3778,23 @@
       if (personCard && !personCard.hidden) {
         event.preventDefault();
         openPersonDetailOverlay(personCard);
+        return;
+      }
+
+      const albumCard = event.target && event.target.closest ? event.target.closest(".personDetailAlbumCard") : null;
+      const albumOpenButton = event.target && event.target.closest ? event.target.closest("[data-open-person-album='1']") : null;
+      if (albumCard && !albumCard.hidden && (albumOpenButton || !event.target.closest("a"))) {
+        event.preventDefault();
+        const albumKey = String(albumCard.dataset.albumkey || "").trim();
+        if (!albumKey || !activePersonDetail) return;
+
+        getPersonDetailAlbums(activePersonDetail).then((detailPayload) => {
+          const albums = Array.isArray(detailPayload && detailPayload.albums) ? detailPayload.albums : [];
+          const album = albums.find((entry) => String(entry && entry.albumKey || "").trim() === albumKey);
+          if (album) {
+            openPersonAlbumOverlay(album);
+          }
+        });
         return;
       }
 
@@ -3296,6 +3827,12 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && personAlbumOverlay && !personAlbumOverlay.hidden) {
+        event.preventDefault();
+        closePersonAlbumOverlay();
+        return;
+      }
+
       if (event.key === "Escape" && personDetailOverlay && !personDetailOverlay.hidden) {
         event.preventDefault();
         closePersonDetailOverlay();
@@ -3352,12 +3889,90 @@
       button.addEventListener("click", () => applyFilter(button.dataset.filter));
     });
 
+    async function restoreMockupSessionState() {
+      const savedState = readMockupSessionState();
+      if (!savedState) return;
+
+      if (savedState.activeFilter) {
+        activeFilter = String(savedState.activeFilter);
+      }
+
+      if (savedState.activeSort) {
+        activeSort = String(savedState.activeSort);
+      }
+
+      if (savedState.activeSubject) {
+        applySubjectFilter(String(savedState.activeSubject));
+      }
+
+      if (savedState.activeSort) {
+        applySort(String(savedState.activeSort));
+      }
+
+      if (savedState.activeFilter && ["person", "band", "show"].includes(String(savedState.activeFilter))) {
+        setSubFilter(String(savedState.activeSubFilter || "all"));
+        updateResultsVisibility();
+      }
+
+      if (savedState.expandedGroups && typeof savedState.expandedGroups === "object") {
+        resultGroupSections.forEach((section) => {
+          const group = section.querySelector(".resultGroup");
+          const body = section.querySelector(".resultGroupBody");
+          if (!group || !body) return;
+          const isExpanded = !!savedState.expandedGroups[getGroupStorageKey(section)];
+          group.setAttribute("aria-expanded", String(isExpanded));
+          body.hidden = section.hidden || !isExpanded;
+        });
+      }
+
+      if (resultsPanel && Number.isFinite(Number(savedState.resultsScrollTop))) {
+        resultsPanel.scrollTop = Number(savedState.resultsScrollTop);
+      }
+
+      const activePersonName = String(savedState.activePersonName || "").trim();
+      if (activePersonName) {
+        const selectorValue = window.CSS && window.CSS.escape
+          ? window.CSS.escape(activePersonName)
+          : activePersonName.replace(/"/g, '\\"');
+        const personCard = document.querySelector(`.resultCard[data-type="person"][data-name="${selectorValue}"]`);
+        if (personCard && !personCard.hidden) {
+          await openPersonDetailOverlay(personCard);
+          const activeAlbumKey = String(savedState.activeAlbumKey || "").trim();
+          if (activeAlbumKey && activePersonDetail) {
+            const detailPayload = await getPersonDetailAlbums(activePersonDetail);
+            const albums = Array.isArray(detailPayload && detailPayload.albums) ? detailPayload.albums : [];
+            const album = albums.find((entry) => String(entry && entry.albumKey || "").trim() === activeAlbumKey);
+            if (album) {
+              await openPersonAlbumOverlay(album);
+              if (activeAlbumDetail && activeAlbumDetail.albumKey === activeAlbumKey && savedState.activeAlbumExpanded && personAlbumOverlay) {
+                const toggleButton = personAlbumOverlay.querySelector("[data-person-album-toggle='1']");
+                if (toggleButton && !toggleButton.hidden) {
+                  toggleButton.click();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (resultsPanel) {
+      resultsPanel.addEventListener("scroll", () => {
+        saveMockupSessionState();
+      }, { passive: true });
+    }
+
+    window.addEventListener("beforeunload", () => {
+      saveMockupSessionState();
+    });
+
     refreshResultCollections();
     updateResultsVisibility();
 
-    renderMusicShowCards().then(() => {
+    renderMusicShowCards().then(async () => {
       refreshResultCollections();
       updateResultsVisibility();
+      await restoreMockupSessionState();
     });
   </script>
 </body>
