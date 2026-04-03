@@ -308,6 +308,11 @@
       text-align: center;
     }
 
+    .searchCard.is-search-hidden .searchLabel,
+    .searchCard.is-search-hidden .searchInputWrap {
+      display: none;
+    }
+
     .searchInputWrap {
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -1182,7 +1187,7 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
-      overflow: hidden;
+      overflow: visible;
       align-content: start;
       align-items: start;
     }
@@ -2054,7 +2059,7 @@
       </div>
 
       <div class="controls">
-        <section class="searchCard">
+        <section class="searchCard is-search-hidden">
           <div class="searchLabel">Search Across The Archive</div>
           <div class="searchInputWrap">
             <div class="searchIcon">⌕</div>
@@ -3167,11 +3172,13 @@
         body.hidden = !isExpanded;
         body.style.height = "";
         body.style.opacity = "";
+        body.style.overflow = isExpanded ? "visible" : "hidden";
         return;
       }
 
       if (typeof body.animate !== "function") {
         body.hidden = !isExpanded;
+        body.style.overflow = isExpanded ? "visible" : "hidden";
         return;
       }
 
@@ -3224,7 +3231,7 @@
         body.hidden = !isExpanded;
         body.style.height = "";
         body.style.opacity = "";
-        body.style.overflow = "hidden";
+        body.style.overflow = isExpanded ? "visible" : "hidden";
       }, { once: true });
     }
 
