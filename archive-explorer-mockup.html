@@ -32,6 +32,7 @@
     html, body {
       margin: 0;
       min-height: 100%;
+      height: 100%;
       background:
         radial-gradient(circle at 50% -10%, rgba(255, 170, 212, 0.16), transparent 28%),
         radial-gradient(circle at 18% 84%, rgba(96, 218, 255, 0.1), transparent 24%),
@@ -75,6 +76,7 @@
     .shell {
       width: min(100%, calc(100% - 8px));
       margin: 4px auto;
+      min-height: calc(100dvh - 8px);
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       background:
@@ -84,6 +86,8 @@
       box-shadow: var(--shadow);
       overflow: hidden;
       position: relative;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
     }
 
     .shell::before {
@@ -723,6 +727,8 @@
       gap: 18px;
       padding: 18px 24px 24px;
       justify-items: center;
+      min-height: 0;
+      align-content: stretch;
     }
 
     .resultsPanel,
@@ -809,7 +815,8 @@
     }
 
     .resultsPanel {
-      max-height: min(72vh, 980px);
+      height: 100%;
+      min-height: 100%;
       overflow: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 79, 154, 0.55) rgba(255, 255, 255, 0.06);
@@ -1920,6 +1927,7 @@
       .shell {
         width: min(100%, calc(100% - 4px));
         margin: 2px auto 10px;
+        min-height: calc(100dvh - 12px);
       }
 
       .topbar,
@@ -1995,7 +2003,8 @@
       }
 
       .resultsPanel {
-        max-height: min(68vh, 980px);
+        height: 100%;
+        min-height: 100%;
       }
 
       .cardAction {
