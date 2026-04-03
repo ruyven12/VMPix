@@ -1447,7 +1447,7 @@
 
     .personAlbumShotThumb {
       width: 100%;
-      height: 146px;
+      height: 250px;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid rgba(86, 215, 255, 0.18);
@@ -1466,13 +1466,6 @@
       height: 100%;
       display: block;
       object-fit: cover;
-    }
-
-    .personAlbumShotIndex {
-      color: #f1f5ff;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      text-align: center;
     }
 
     .personDetailTopRow {
@@ -3523,7 +3516,6 @@
                 <div class="personAlbumShotThumb">
                   <img src="${escapeHtml(shot.thumbUrl)}" alt="${escapeHtml(albumTitle)} shot ${shot.index}" loading="lazy" decoding="async" />
                 </div>
-                <div class="personAlbumShotIndex">#${shot.index}</div>
               </article>
             `).join("")
           : `<div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">No tagged shots found for this album yet.</div>`;
