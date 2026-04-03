@@ -165,8 +165,34 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         : 'https://wrestling-archive.onrender.com';
     let adminModal = null;
     let adminVerifiedMemory = false;
+    const menuGroupToggles = Array.from(document.querySelectorAll('[data-menu-group-toggle]'));
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
     const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
+
+    function setMenuGroupExpanded(groupName, expanded){
+      const group = String(groupName || '').trim();
+      if (!group) return;
+      const toggle = document.querySelector(`[data-menu-group-toggle="${group}"]`);
+      const panel = document.querySelector(`[data-menu-group-panel="${group}"]`);
+      if (toggle) toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (panel) {
+        panel.hidden = !expanded;
+        panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+      }
+    }
+
+    function collapseAllMenuGroups(){
+      menuGroupToggles.forEach((toggle) => {
+        const group = String(toggle.getAttribute('data-menu-group-toggle') || '').trim();
+        if (group) setMenuGroupExpanded(group, false);
+      });
+    }
+
+    function syncMenuGroupsForRoute(){
+      collapseAllMenuGroups();
+      const current = currentRouteKey();
+      if (current === 'music') setMenuGroupExpanded('music', true);
+    }
 
     function syncMenuState(expanded){
       if (navToggle) navToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -175,6 +201,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         navPanel.hidden = !expanded;
         navPanel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
       }
+      if (expanded) syncMenuGroupsForRoute();
+      else collapseAllMenuGroups();
       try {
         document.body.classList.toggle('hud-menu-open', !!expanded);
       } catch (_) {}
@@ -472,6 +500,15 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         if (e.defaultPrevented) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (typeof e.button === 'number' && e.button !== 0) return;
+
+        if (pill.hasAttribute('data-menu-group-toggle')) {
+          e.preventDefault();
+          const group = String(pill.getAttribute('data-menu-group-toggle') || '').trim();
+          const expanded = pill.getAttribute('aria-expanded') === 'true';
+          collapseAllMenuGroups();
+          setMenuGroupExpanded(group, !expanded);
+          return;
+        }
 
         if (pill.hasAttribute('data-disabled')) {
           e.preventDefault();

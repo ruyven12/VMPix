@@ -908,6 +908,34 @@
     justify-items: center;
   }
 
+  .hudMenuOverlay .hudMenuGroupPanel{
+    display: grid;
+    width: 100%;
+  }
+
+  .hudMenuOverlay .hudMenuGroupPanel[hidden]{
+    display: none;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle .hudIntroType{
+    position: relative;
+    display: inline-block;
+    padding-right: 16px;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle .hudIntroType::after{
+    content: '▾';
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: rgba(248,236,240,.72);
+    transition: transform 100ms ease;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle[aria-expanded="true"] .hudIntroType::after{
+    transform: rotate(180deg);
+  }
+
   .hudMenuOverlay .hudMenuSubItem .hudIntroType{
     position: relative;
     display: inline-block;
@@ -2130,10 +2158,13 @@
           <a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
           <a class="hudIntroText hudMenuItem is-disabled" href="#" data-disabled="1" aria-disabled="true"><span class="hudIntroType">Interactive Portfolio (Coming Soon)</span></a>
           <div class="hudMenuDivider" aria-hidden="true"></div>
-          <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><span class="hudIntroType">Music</span></a>
-          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/project" data-route-path="/music/project" data-parent-nav="music"><span class="hudIntroType">The Reimaging Project</span></a>
-          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/origins" data-route-path="/music/origins" data-parent-nav="music"><span class="hudIntroType">Origins of Music</span></a>
-          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuGroupToggle" href="#" data-nav="music" data-menu-group-toggle="music" aria-expanded="false" aria-controls="hudMenuGroupMusic"><span class="hudIntroType">Music</span></a>
+          <div class="hudMenuGroupPanel" id="hudMenuGroupMusic" data-menu-group-panel="music" hidden aria-hidden="true">
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music" data-route-path="/music" data-parent-nav="music"><span class="hudIntroType">Overview</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/project" data-route-path="/music/project" data-parent-nav="music"><span class="hudIntroType">The Reimaging Project</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/origins" data-route-path="/music/origins" data-parent-nav="music"><span class="hudIntroType">Origins of Music</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
+          </div>
           <div class="hudMenuDivider" aria-hidden="true"></div>
           <a class="hudIntroText hudMenuItem" href="/wrestling" data-nav="wrestling"><span class="hudIntroType">Wrestling</span></a>
           <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling/origins" data-route-path="/wrestling/origins" data-parent-nav="wrestling"><span class="hudIntroType">Origins of Wrestling</span></a>
