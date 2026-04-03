@@ -894,21 +894,21 @@
   .hudMenuOverlay .hudMenuDivider{
     width: calc(100% - 40px);
     height: 1px;
-    margin: 4px 20px;
+    margin: 0 20px;
     background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.16), rgba(255,255,255,0));
   }
 
   .hudMenuOverlay .hudMenuSubItem{
     padding-top: 12px;
     padding-bottom: 12px;
-    padding-left: 42px;
     font-size: 13px;
-    text-align: left;
-    justify-items: start;
+    text-align: center;
+    justify-items: center;
   }
 
   .hudMenuOverlay .hudMenuSubItem .hudIntroType{
     position: relative;
+    display: inline-block;
     padding-left: 16px;
   }
 
@@ -2128,7 +2128,7 @@
           <a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
           <a class="hudIntroText hudMenuItem is-disabled" href="#" data-disabled="1" aria-disabled="true"><span class="hudIntroType">Interactive Portfolio (Coming Soon)</span></a>
           <div class="hudMenuDivider" aria-hidden="true"></div>
-          <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><span class="hudIntroType">Music</span></a>
+          <a class="hudIntroText hudMenuItem" href="/music" data-nav="music"><span class="hudIntroType">Music Info</span></a>
           <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/project" data-route-path="/music/project" data-parent-nav="music"><span class="hudIntroType">The Reimaging Project</span></a>
           <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/origins" data-route-path="/music/origins" data-parent-nav="music"><span class="hudIntroType">Origins of Music</span></a>
           <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
