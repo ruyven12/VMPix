@@ -73,8 +73,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           padding: 10px 12px !important;
         }
 
-        .hudMenuToggle,
-        .hudMenuSpacer{
+        .hudMenuToggle{
           width: 44px !important;
           height: 44px !important;
           flex-basis: 44px !important;

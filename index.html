@@ -268,12 +268,13 @@
   .hudTopbar{
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     border-radius: var(--hud-radius);
     border: 1px solid rgba(255,60,60,.22);
     background: linear-gradient(180deg, rgba(18,8,10,.72), rgba(10,6,7,.55));
     box-shadow: inset 0 0 0 1px rgba(255,60,60,.08);
     padding: 10px 16px;
+    gap: 12px;
   }
 
   .hudMenuToggle{
@@ -335,7 +336,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 1 1 auto;
+    margin-left: auto;
   }
 
   .hudBrandImg{
@@ -343,12 +344,6 @@
     width: auto;
     display: block;
     filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
-  }
-
-  .hudMenuSpacer{
-    width: 48px;
-    height: 48px;
-    flex: 0 0 48px;
   }
 
   /* =============================
@@ -2041,7 +2036,6 @@
               <a class="hudBrandLink" href="/" data-nav="home">
                 <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
               </a>
-              <span class="hudMenuSpacer" aria-hidden="true"></span>
             </div>
             <div class="hudStub is-collapsed" id="hudPrimaryNav" data-hud-menu-panel="1">
 			<a class="hudIntroText" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
