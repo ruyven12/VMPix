@@ -357,6 +357,7 @@
       justify-content: center;
       align-items: center;
       gap: 16px;
+      flex-wrap: wrap;
       position: relative;
     }
 
@@ -966,7 +967,7 @@
 
     .resultCard[data-type="show"] .cardBadge {
       width: 100px;
-      height: 138px;
+      height: 154px;
       border-radius: 12px;
       font-size: 12px;
       letter-spacing: 0.08em;
@@ -1405,7 +1406,7 @@
 
     .personDetailThumb {
       width: 100%;
-      aspect-ratio: 4 / 5;
+      height: 132px;
       border-radius: 12px;
       display: grid;
       place-items: center;
@@ -1587,6 +1588,41 @@
         padding-right: 14px;
       }
 
+      .searchCard {
+        width: 100%;
+        padding: 18px 14px 16px;
+      }
+
+      .searchInputWrap {
+        padding: 12px 14px;
+      }
+
+      .subjectHints {
+        width: 100%;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .subjectSelect {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .subjectSelectTrigger,
+      .sortSelect .subjectSelectTrigger {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .subjectMenu {
+        left: 0;
+        right: 0;
+        transform: none;
+        min-width: 0;
+        width: 100%;
+      }
+
       .resultCard {
         grid-template-columns: 60px minmax(0, 1fr);
       }
@@ -1597,7 +1633,7 @@
 
       .resultCard[data-type="show"] .cardBadge {
         width: 92px;
-        height: 126px;
+        height: 142px;
       }
 
       .resultsList {
@@ -1632,6 +1668,10 @@
     }
 
     @media (max-width: 560px) {
+      .subjectHints {
+        gap: 8px;
+      }
+
       .resultsList {
         grid-template-columns: 1fr;
       }
@@ -1895,6 +1935,10 @@
       return `${normalizePosterLookupValue(title)}|${Number(dateSortValue || 0)}`;
     }
 
+    function getShowPosterDateLookupKey(dateSortValue) {
+      return `date|${Number(dateSortValue || 0)}`;
+    }
+
     async function loadMusicShowPosterIndex() {
       if (!musicShowPosterIndexPromise) {
         musicShowPosterIndexPromise = fetch(MUSIC_SHOW_INDEX_ENDPOINT, { cache: 'no-store' })
@@ -1919,6 +1963,9 @@
               map.set(getShowPosterLookupKey(title, dateSortValue), posterUrl);
               const titleOnlyKey = getShowPosterLookupKey(title, 0);
               if (!map.has(titleOnlyKey)) map.set(titleOnlyKey, posterUrl);
+              if (dateSortValue && !map.has(getShowPosterDateLookupKey(dateSortValue))) {
+                map.set(getShowPosterDateLookupKey(dateSortValue), posterUrl);
+              }
             });
             return map;
           })
@@ -1959,6 +2006,7 @@
                     initials: getPersonInitials(split.titleText || title || name),
                     posterUrl: posterIndex.get(getShowPosterLookupKey(split.titleText || title, split.sortValue))
                       || posterIndex.get(getShowPosterLookupKey(split.titleText || title, 0))
+                      || posterIndex.get(getShowPosterDateLookupKey(split.sortValue))
                       || ''
                   };
                 }).sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0) || String(a.title).localeCompare(String(b.title)))
