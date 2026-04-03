@@ -192,6 +192,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
       collapseAllMenuGroups();
       const current = currentRouteKey();
       if (current === 'music') setMenuGroupExpanded('music', true);
+      if (current === 'wrestling') setMenuGroupExpanded('wrestling', true);
     }
 
     function syncMenuState(expanded){

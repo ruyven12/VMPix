@@ -937,17 +937,7 @@
   }
 
   .hudMenuOverlay .hudMenuSubItem .hudIntroType{
-    position: relative;
     display: inline-block;
-    padding-left: 16px;
-  }
-
-  .hudMenuOverlay .hudMenuSubItem .hudIntroType::before{
-    content: '-';
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: rgba(248,236,240,.72);
   }
 
   .hudMenuOverlay .hudMenuItem:last-child{
@@ -2166,9 +2156,12 @@
             <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
           </div>
           <div class="hudMenuDivider" aria-hidden="true"></div>
-          <a class="hudIntroText hudMenuItem" href="/wrestling" data-nav="wrestling"><span class="hudIntroType">Wrestling</span></a>
-          <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling/origins" data-route-path="/wrestling/origins" data-parent-nav="wrestling"><span class="hudIntroType">Origins of Wrestling</span></a>
-          <a class="hudIntroText hudMenuItem hudMenuSubItem is-disabled" href="#" data-disabled="1" aria-disabled="true" data-parent-nav="wrestling"><span class="hudIntroType">Stats (Coming Soon)</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuGroupToggle" href="#" data-nav="wrestling" data-menu-group-toggle="wrestling" aria-expanded="false" aria-controls="hudMenuGroupWrestling"><span class="hudIntroType">Wrestling</span></a>
+          <div class="hudMenuGroupPanel" id="hudMenuGroupWrestling" data-menu-group-panel="wrestling" hidden aria-hidden="true">
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling" data-route-path="/wrestling" data-parent-nav="wrestling"><span class="hudIntroType">Overview</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling/origins" data-route-path="/wrestling/origins" data-parent-nav="wrestling"><span class="hudIntroType">Origins of Wrestling</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem is-disabled" href="#" data-disabled="1" aria-disabled="true" data-parent-nav="wrestling"><span class="hudIntroType">Stats (Coming Soon)</span></a>
+          </div>
           <div class="hudMenuDivider" aria-hidden="true"></div>
           <a class="hudIntroText hudMenuItem" href="/calendar" data-nav="calendar"><span class="hudIntroType">Calendar</span></a>
           <a class="hudIntroText hudMenuItem" href="/pricing" data-nav="pricing"><span class="hudIntroType">Pricing Info</span></a>
