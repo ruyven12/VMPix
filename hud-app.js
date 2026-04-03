@@ -73,6 +73,13 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           padding: 10px 12px !important;
         }
 
+        .hudMenuToggle,
+        .hudMenuSpacer{
+          width: 44px !important;
+          height: 44px !important;
+          flex-basis: 44px !important;
+        }
+
         .hudBrandImg{
           height: 58px !important;
           max-width: min(72vw, 240px) !important;
@@ -85,8 +92,14 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           justify-content: center;
           align-items: center;
           gap: 8px 10px;
-          padding: 10px 6px 8px !important;
-          overflow: visible !important;
+          padding: 10px 8px 8px !important;
+          overflow: auto !important;
+        }
+
+        .hudContent > .hudStub:not(.hudMain).is-collapsed{
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          overflow: hidden !important;
         }
 
         .hudIntroText{
@@ -133,6 +146,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
   (function(){
     const pills = Array.from(document.querySelectorAll('.hudIntroText'));
     if (!pills.length) return;
+    const navPanel = document.querySelector('[data-hud-menu-panel]');
+    const navToggle = document.querySelector('[data-hud-menu-toggle]');
     const ADMIN_TOKEN_KEY = 'vm_admin_token_v1';
     let adminTokenMemory = '';
     const ADMIN_AUTH_API_BASE =
@@ -143,6 +158,36 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
     let adminVerifiedMemory = false;
     const adminPill = document.querySelector('.hudIntroText[data-admin-trigger]');
     const adminOnlyPills = Array.from(document.querySelectorAll('.hudIntroText[data-admin-gated]'));
+
+    function syncMenuState(expanded){
+      if (navToggle) navToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (navPanel) navPanel.classList.toggle('is-collapsed', !expanded);
+      try {
+        document.body.classList.toggle('hud-menu-open', !!expanded);
+      } catch (_) {}
+    }
+
+    function toggleMenu(forceExpanded){
+      if (!navPanel || !navToggle) return;
+      const nextExpanded = (typeof forceExpanded === 'boolean')
+        ? forceExpanded
+        : navToggle.getAttribute('aria-expanded') !== 'true';
+      syncMenuState(nextExpanded);
+    }
+
+    function closeMenu(){
+      toggleMenu(false);
+    }
+
+    if (navToggle && navPanel) {
+      syncMenuState(false);
+      navToggle.addEventListener('click', () => {
+        toggleMenu();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMenu();
+      });
+    }
 
     function setAdminUnlockedUI(unlocked){
       if (adminPill) {
@@ -410,6 +455,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
         if (pill.hasAttribute('data-admin-trigger')) {
           e.preventDefault();
+          closeMenu();
           if (isAdminUnlocked()) {
             verifyAdminAccess().then((ok) => {
               if (ok) {
@@ -429,6 +475,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
         const route = pill.getAttribute('data-nav') || 'home';
         e.preventDefault();
+        closeMenu();
         navigateToRoute(route);
       });
     });
@@ -439,6 +486,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         if (typeof e.button === 'number' && e.button !== 0) return;
         e.preventDefault();
+        closeMenu();
         navigateToRoute(link.getAttribute('data-nav') || 'home');
       });
     });
