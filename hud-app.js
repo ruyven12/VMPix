@@ -91,10 +91,12 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           gap: 0 !important;
           left: 50% !important;
           right: auto !important;
-          width: min(720px, calc(100vw - 20px)) !important;
+          width: min(720px, calc(100vw - 28px)) !important;
+          max-width: calc(100vw - 28px) !important;
           top: 74px !important;
           padding: 6px 0 !important;
           overflow: auto !important;
+          transform: translateX(-50%) !important;
         }
 
         .hudContent > .hudStub:not(.hudMain).is-collapsed{
@@ -126,6 +128,12 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
       }
 
       @media (max-width: 520px){
+        .hudContent > .hudStub:not(.hudMain){
+          width: calc(100vw - 20px) !important;
+          max-width: calc(100vw - 20px) !important;
+          top: 70px !important;
+        }
+
         .hudIntroText{
           font-size: 11px !important;
           padding: 12px 13px !important;

@@ -831,7 +831,7 @@
     top: 78px;
     left: 50%;
     z-index: 999;
-    width: min(720px, calc(100vw - 24px));
+    width: min(720px, calc(100vw - 32px));
     padding: 10px 0;
     text-align: left;
     max-height: min(60vh, 420px);
@@ -840,9 +840,9 @@
     transform: translateX(-50%);
     transform-origin: top center;
     border: 1px solid rgba(255,110,140,.22);
-    background: linear-gradient(180deg, rgba(10,9,14,.992), rgba(7,7,11,.988));
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: #000000;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     box-shadow:
       0 0 0 1px rgba(255,255,255,.03),
       0 24px 54px rgba(0,0,0,.62),
@@ -879,7 +879,7 @@
     padding: 16px 20px;
     border: 0;
     border-radius: 0;
-    background: rgba(8,8,12,.42);
+    background: #000000;
     box-shadow: none;
     font-size: 14px;
     line-height: 1.2;
@@ -896,7 +896,7 @@
   }
 
   .hudContent > .hudStub:not(.hudMain) .hudIntroText:hover{
-    background: rgba(255,255,255,.07);
+    background: rgba(24,24,24,.98);
     box-shadow: none;
     border-color: rgba(255,255,255,.06);
   }
