@@ -184,8 +184,15 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
     if (navToggle && navPanel) {
       syncMenuState(false);
-      navToggle.addEventListener('click', () => {
+      navToggle.addEventListener('click', (e) => {
+        e.preventDefault();
         toggleMenu();
+      });
+      navToggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleMenu();
+        }
       });
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeMenu();
@@ -480,17 +487,6 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         e.preventDefault();
         closeMenu();
         navigateToRoute(route);
-      });
-    });
-
-    Array.from(document.querySelectorAll('.hudBrandLink[data-nav]')).forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (e.defaultPrevented) return;
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        if (typeof e.button === 'number' && e.button !== 0) return;
-        e.preventDefault();
-        closeMenu();
-        navigateToRoute(link.getAttribute('data-nav') || 'home');
       });
     });
 
