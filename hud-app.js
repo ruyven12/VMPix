@@ -73,12 +73,6 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           padding: 10px 12px !important;
         }
 
-        .hudMenuToggle{
-          width: 44px !important;
-          height: 44px !important;
-          flex-basis: 44px !important;
-        }
-
         .hudBrandImg{
           height: 58px !important;
           max-width: min(72vw, 240px) !important;
@@ -92,12 +86,11 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         }
 
         .hudContent > .hudStub:not(.hudMain){
-          display: flex !important;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: center;
-          gap: 8px 10px;
-          padding: 10px 8px 8px !important;
+          display: grid !important;
+          justify-items: stretch !important;
+          gap: 0 !important;
+          width: min(260px, calc(100vw - 24px)) !important;
+          padding: 6px 0 !important;
           overflow: auto !important;
         }
 
@@ -108,9 +101,9 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         }
 
         .hudIntroText{
-          font-size: clamp(10px, 2.55vw, 12px) !important;
-          padding: 6px 9px !important;
-          max-width: calc(50vw - 22px);
+          font-size: 12px !important;
+          padding: 13px 14px !important;
+          max-width: none !important;
           transform: none !important;
         }
 
@@ -130,9 +123,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
       @media (max-width: 520px){
         .hudIntroText{
-          font-size: clamp(9px, 2.8vw, 10.5px) !important;
-          padding: 5px 8px !important;
-          max-width: calc(50vw - 18px);
+          font-size: 11px !important;
+          padding: 12px 13px !important;
         }
 
         .hudIntroType{

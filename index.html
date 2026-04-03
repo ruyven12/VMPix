@@ -298,29 +298,11 @@
       0 0 24px rgba(255,60,60,.12);
   }
 
-  .hudMenuToggle{
-    width: 48px;
-    height: 48px;
-    border: 1px solid rgba(255,60,60,.30);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(26,10,13,.92), rgba(10,6,7,.78));
-    color: rgba(255, 220, 224, .92);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    flex-direction: column;
-    box-shadow:
-      0 0 0 1px rgba(255,60,60,.10),
-      0 0 18px rgba(255,60,60,.10),
-      inset 0 0 18px rgba(255,60,60,.08);
-  }
-
   .hudMenuCopy{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     flex: 1 1 auto;
     min-width: 0;
     font-family: "Orbitron", system-ui, sans-serif;
@@ -349,27 +331,6 @@
   .hudTopbar[aria-expanded="true"] .hudMenuChevron{
     transform: rotate(180deg);
     filter: drop-shadow(0 0 6px rgba(126, 228, 255, 0.42));
-  }
-
-  .hudMenuToggleLine{
-    width: 18px;
-    height: 2px;
-    border-radius: 999px;
-    background: currentColor;
-    box-shadow: 0 0 8px rgba(255,90,120,.24);
-    transition: transform 180ms ease, opacity 180ms ease;
-  }
-
-  .hudTopbar[aria-expanded="true"] .hudMenuToggleLine:nth-child(1){
-    transform: translateY(6px) rotate(45deg);
-  }
-
-  .hudTopbar[aria-expanded="true"] .hudMenuToggleLine:nth-child(2){
-    opacity: 0;
-  }
-
-  .hudTopbar[aria-expanded="true"] .hudMenuToggleLine:nth-child(3){
-    transform: translateY(-6px) rotate(-45deg);
   }
 
   .hudBrandLink{
@@ -862,16 +823,22 @@
    - Keep HUD MAIN panel styling untouched (.hudStub.hudMain)
    ============================= */
   .hudContent > .hudStub:not(.hudMain){
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: clamp(8px, 2.2vw, 12px);
-    padding: 10px 12px;
-    text-align: center;
-    max-height: min(68vh, 540px);
+    display: grid;
+    justify-items: stretch;
+    justify-content: start;
+    gap: 0;
+    width: min(280px, calc(100vw - 32px));
+    padding: 8px 0;
+    text-align: left;
+    max-height: min(60vh, 420px);
     overflow: auto;
-    transform-origin: top center;
+    transform-origin: top left;
+    border: 1px solid rgba(255,110,140,.22);
+    background: linear-gradient(180deg, rgba(24,14,18,.97), rgba(12,10,14,.96));
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.03),
+      0 18px 38px rgba(0,0,0,.48),
+      0 0 28px rgba(255,60,60,.10);
     transition:
       opacity 220ms ease,
       transform 220ms ease,
@@ -902,10 +869,38 @@
 
   /* Make pills size to their text (no forced widths) */
   .hudContent > .hudStub:not(.hudMain) .hudIntroText{
-    flex: 0 0 auto;
-    padding: 6px 14px;
-    font-size: clamp(11px, 2.6vw, 13px);
-    line-height: 1.05;
+    display: grid;
+    width: 100%;
+    padding: 14px 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: left;
+    color: rgba(248,236,240,.96);
+    letter-spacing: .08em;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    transform: none !important;
+    filter: none;
+  }
+
+  .hudContent > .hudStub:not(.hudMain) .hudIntroText:last-child{
+    border-bottom: 0;
+  }
+
+  .hudContent > .hudStub:not(.hudMain) .hudIntroText:hover{
+    background: rgba(255,255,255,.05);
+    box-shadow: none;
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .hudContent > .hudStub:not(.hudMain) .hudIntroType{
+    width: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+    white-space: nowrap;
   }
 
   /* Disable ch-based typing width on touch + WebViews (prevents clipped labels) */
@@ -1030,8 +1025,7 @@
     .hudContent > .hudStub:not(.hudMain){
       transition: none !important;
     }
-    .hudMenuToggle,
-    .hudMenuToggleLine{
+    .hudMenuChevron{
       transition: none !important;
     }
   }
@@ -2077,14 +2071,6 @@
               aria-controls="hudPrimaryNav"
               data-hud-menu-toggle="1"
             >
-              <div
-                class="hudMenuToggle"
-                aria-hidden="true"
-              >
-                <span class="hudMenuToggleLine" aria-hidden="true"></span>
-                <span class="hudMenuToggleLine" aria-hidden="true"></span>
-                <span class="hudMenuToggleLine" aria-hidden="true"></span>
-              </div>
               <div class="hudMenuCopy" aria-hidden="true">
                 <span class="hudMenuLabel">Menu</span>
                 <span class="hudMenuChevron">▼</span>
