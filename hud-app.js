@@ -4539,7 +4539,13 @@ music: {
       render(){
         const m = mount();
         if (!m) return;
-        m.innerHTML = '';
+        m.innerHTML = `
+          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0 0 20px;">
+            <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:760px;">
+              <iframe src="/archive-explorer-mockup.html?v=20260401-testing-ui-r1" title="Archive Explorer Mockup" style="display:block; width:100%; min-height:760px; border:0; background:#05060a;"></iframe>
+            </div>
+          </div>
+        `;
       },
       onEnter(){
         setDocumentTitle('Testing');

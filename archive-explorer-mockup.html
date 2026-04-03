@@ -1334,6 +1334,23 @@
       gap: 12px;
     }
 
+    .personDetailCountSplit {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      margin-top: 8px;
+    }
+
+    .personDetailCountCol {
+      display: grid;
+      gap: 8px;
+      padding: 0 14px;
+    }
+
+    .personDetailCountCol + .personDetailCountCol {
+      border-left: 1px solid rgba(255, 95, 135, 0.18);
+    }
+
     .personDetailStatCard {
       border: 1px solid rgba(255, 95, 135, 0.2);
       border-radius: 16px;
@@ -1402,6 +1419,7 @@
       border-radius: 10px;
       display: grid;
       place-items: center;
+      overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background:
         radial-gradient(circle at 50% 30%, rgba(105, 222, 255, 0.18), transparent 50%),
@@ -1411,12 +1429,24 @@
       letter-spacing: 0.08em;
     }
 
+    .personDetailThumbImage {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
     .personDetailAlbumTitle {
       color: #fff8fc;
       font-size: 20px;
       line-height: 1.12;
       letter-spacing: 0.04em;
       margin-bottom: 6px;
+    }
+
+    .personDetailAlbumTitle a {
+      color: inherit;
+      text-decoration: none;
     }
 
     .personDetailAlbumSub {
@@ -1801,6 +1831,10 @@
   <script src="./archive-explorer-people-data.js"></script>
   <script>
     const MUSIC_SHOW_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/show-index.json';
+    const MUSIC_PEOPLE_INDEX_ENDPOINT = './_people_index_live.json';
+    const MUSIC_API_BASE = 'https://music-archive-3lfa.onrender.com';
+    let musicPeopleDetailIndexPromise = null;
+    const personAlbumThumbCache = new Map();
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1836,6 +1870,101 @@
       if (!Number.isFinite(month) || !Number.isFinite(day) || !Number.isFinite(year)) return 0;
       if (year < 100) year += 2000;
       return (year * 10000) + (month * 100) + day;
+    }
+
+    function splitDateFromAlbumTitle(rawTitle) {
+      const title = String(rawTitle || '').trim();
+      const match = title.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(.+)$/);
+      if (!match) return { dateText: '', titleText: title };
+      return {
+        dateText: formatShowDateLabel(match[1]),
+        titleText: String(match[2] || title).trim() || title,
+        sortValue: getShowDateSortValue(match[1])
+      };
+    }
+
+    function normalizePersonLookupName(name) {
+      return String(name || '').trim().toLowerCase();
+    }
+
+    async function loadMusicPeopleDetailIndex() {
+      if (!musicPeopleDetailIndexPromise) {
+        musicPeopleDetailIndexPromise = fetch(MUSIC_PEOPLE_INDEX_ENDPOINT, { cache: 'no-store' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            const map = new Map();
+            const rows = Array.isArray(payload && payload.people) ? payload.people : [];
+            rows.forEach((person) => {
+              const name = String(person && person.name || '').trim();
+              if (!name) return;
+              const albums = Array.isArray(person && person.albums)
+                ? person.albums.map((album) => {
+                  const title = String(album && album.title || '').trim();
+                  const split = splitDateFromAlbumTitle(title);
+                  return {
+                    albumKey: String(album && album.albumKey || '').trim(),
+                    title: split.titleText || title || 'Untitled Album',
+                    date: split.dateText,
+                    sortValue: Number(split.sortValue || 0),
+                    url: String(album && album.url || '').trim(),
+                    initials: getPersonInitials(split.titleText || title || name)
+                  };
+                }).sort((a, b) => (b.sortValue || 0) - (a.sortValue || 0) || String(a.title).localeCompare(String(b.title)))
+                : [];
+              map.set(normalizePersonLookupName(name), {
+                photoCount: Number(person && person.photoCount || 0),
+                albums
+              });
+            });
+            return map;
+          })
+          .catch(() => new Map());
+      }
+      return musicPeopleDetailIndexPromise;
+    }
+
+    function extractAlbumImagesFromPage(pageJson) {
+      const response = pageJson && pageJson.Response ? pageJson.Response : pageJson;
+      const raw = response && (response.AlbumImage || response.AlbumImages)
+        ? (response.AlbumImage || response.AlbumImages)
+        : [];
+      if (Array.isArray(raw)) return raw;
+      return raw ? [raw] : [];
+    }
+
+    function pickAlbumImageThumb(albumImage) {
+      const image = (albumImage && typeof albumImage === 'object') ? albumImage : {};
+      const nested = (image.Image && typeof image.Image === 'object') ? image.Image : {};
+      const keys = ['LargestUrl', 'X3LargeUrl', 'XLargeUrl', 'LargeUrl', 'MediumUrl', 'SmallUrl', 'ThumbnailUrl', 'ThumbUrl', 'WebUri', 'Url', 'URL', 'Uri'];
+      for (const key of keys) {
+        const direct = String(image[key] || '').trim();
+        if (direct) return direct;
+        const deep = String(nested[key] || '').trim();
+        if (deep) return deep;
+      }
+      return '';
+    }
+
+    async function loadPersonAlbumThumb(albumKey) {
+      const key = String(albumKey || '').trim();
+      if (!key) return '';
+      if (personAlbumThumbCache.has(key)) return personAlbumThumbCache.get(key) || '';
+
+      try {
+        const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(key)}?count=1&start=1`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const firstImage = extractAlbumImagesFromPage(payload)[0] || null;
+        const thumbUrl = pickAlbumImageThumb(firstImage);
+        personAlbumThumbCache.set(key, thumbUrl);
+        return thumbUrl;
+      } catch (_) {
+        personAlbumThumbCache.set(key, '');
+        return '';
+      }
     }
 
     function buildShowVenueLine(show) {
@@ -2611,7 +2740,7 @@
         .join("") || "PPL";
     }
 
-    function getPersonDetailAlbums(person) {
+    function getFallbackPersonDetailAlbums(person) {
       const entry = (person && typeof person === "object") ? person : {};
       const total = Math.max(1, Math.min(Number(entry.albumCount || 0) || 1, 12));
       const baseName = String(entry.bands || entry.name || "Archive").split(",")[0].trim() || "Archive";
@@ -2626,6 +2755,28 @@
           initials: getPersonInitials(baseName)
         };
       });
+    }
+
+    async function getPersonDetailAlbums(person) {
+      const entry = (person && typeof person === "object") ? person : {};
+      const name = String(entry.name || "").trim();
+      if (name) {
+        const detailIndex = await loadMusicPeopleDetailIndex();
+        const detail = detailIndex.get(normalizePersonLookupName(name));
+        if (detail && Array.isArray(detail.albums) && detail.albums.length) {
+          return {
+            albums: detail.albums,
+            photoCount: Number(detail.photoCount || entry.photoCount || 0),
+            albumCount: detail.albums.length
+          };
+        }
+      }
+      const fallbackAlbums = getFallbackPersonDetailAlbums(entry);
+      return {
+        albums: fallbackAlbums,
+        photoCount: Number(entry.photoCount || 0),
+        albumCount: Number(entry.albumCount || fallbackAlbums.length || 0)
+      };
     }
 
     function findPersonRecordFromCard(card) {
@@ -2677,34 +2828,52 @@
       ).addEventListener("finish", finishClose, { once: true });
     }
 
-    function openPersonDetailOverlay(card) {
+    async function hydratePersonDetailThumbs(albums, personToken) {
+      const list = Array.isArray(albums) ? albums.slice(0, 24) : [];
+      for (const album of list) {
+        if (activePersonDetail !== personToken) return;
+        const albumKey = String(album && album.albumKey || "").trim();
+        if (!albumKey || !personDetailOverlay || personDetailOverlay.hidden) continue;
+        const thumbUrl = await loadPersonAlbumThumb(albumKey);
+        if (activePersonDetail !== personToken || !thumbUrl || !personDetailOverlay || personDetailOverlay.hidden) continue;
+        const thumbEl = personDetailOverlay.querySelector(`.personDetailThumb[data-albumkey="${window.CSS && window.CSS.escape ? window.CSS.escape(albumKey) : albumKey.replace(/"/g, '\\"')}"]`);
+        if (thumbEl) {
+          thumbEl.innerHTML = `<img class="personDetailThumbImage" src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" decoding="async" />`;
+        }
+      }
+    }
+
+    async function openPersonDetailOverlay(card) {
       if (!personDetailOverlay || !card) return;
       const person = findPersonRecordFromCard(card);
-      activePersonDetail = person;
-      const albums = getPersonDetailAlbums(person);
+      const personToken = person;
+      activePersonDetail = personToken;
       const name = String(person.name || "Unknown Person").trim();
       const instrument = String(person.instrument || "").trim();
       const bands = String(person.bands || "").trim();
-      const category = String(person.category || "Person").trim();
-      const photoCount = Number(person.photoCount || 0);
-      const albumCount = Number(person.albumCount || albums.length || 0);
+      const placeholderPhotoCount = Number(person.photoCount || 0);
+      const placeholderAlbumCount = Number(person.albumCount || 0);
 
       personDetailOverlay.innerHTML = `
         <div class="personDetailTopRow">
           <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
           <div class="personDetailSummary">
-            <div class="personDetailHeroCard">
-              <div class="personDetailHeroLabel">Performer</div>
-              <div class="personDetailName">${escapeHtml(name)}</div>
-            </div>
             <div class="personDetailStatsGrid">
-              <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Photo Count</div>
-                <div class="personDetailMeta">${photoCount.toLocaleString()}</div>
+              <div class="personDetailHeroCard">
+                <div class="personDetailHeroLabel">Performer</div>
+                <div class="personDetailName">${escapeHtml(name)}</div>
               </div>
               <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Album Count</div>
-                <div class="personDetailMeta">${albumCount.toLocaleString()}</div>
+                <div class="personDetailCountSplit">
+                  <div class="personDetailCountCol">
+                    <div class="personDetailStatLabel">Photo Count</div>
+                    <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+                  </div>
+                  <div class="personDetailCountCol">
+                    <div class="personDetailStatLabel">Album Count</div>
+                    <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="personDetailStatsGrid">
@@ -2719,16 +2888,8 @@
             </div>
           </div>
         </div>
-        <div class="personDetailList">
-          ${albums.map((album) => `
-            <article class="personDetailAlbumCard">
-              <div class="personDetailThumb">${escapeHtml(album.initials)}</div>
-              <div>
-                <div class="personDetailAlbumTitle">"${escapeHtml(album.title)}"</div>
-                <div class="personDetailAlbumSub">${escapeHtml(album.date)}</div>
-              </div>
-            </article>
-          `).join("")}
+        <div class="personDetailList" data-person-detail-list>
+          <div class="personDetailAlbumSub" style="margin-left:20px; padding:12px 0;">Loading albums...</div>
         </div>
       `;
       personDetailOverlay.hidden = false;
@@ -2755,6 +2916,42 @@
           }
         );
       }
+
+      const detailPayload = await getPersonDetailAlbums(person);
+      if (activePersonDetail !== personToken || !personDetailOverlay || personDetailOverlay.hidden) return;
+
+      const albums = Array.isArray(detailPayload && detailPayload.albums) ? detailPayload.albums : [];
+      const photoCount = Number(detailPayload && detailPayload.photoCount || placeholderPhotoCount || 0);
+      const albumCount = Number(detailPayload && detailPayload.albumCount || albums.length || placeholderAlbumCount || 0);
+      const photoCountEl = personDetailOverlay.querySelector("[data-person-photo-count]");
+      const albumCountEl = personDetailOverlay.querySelector("[data-person-album-count]");
+      const listEl = personDetailOverlay.querySelector("[data-person-detail-list]");
+
+      if (photoCountEl) photoCountEl.textContent = photoCount.toLocaleString();
+      if (albumCountEl) albumCountEl.textContent = albumCount.toLocaleString();
+      if (listEl) {
+        listEl.innerHTML = albums.length ? albums.map((album) => {
+          const albumKey = String(album && album.albumKey || "").trim();
+          const albumUrl = String(album && album.url || "").trim();
+          const albumTitle = String(album && album.title || "Untitled Album").trim();
+          const albumDate = String(album && album.date || "").trim();
+          return `
+            <article class="personDetailAlbumCard" data-albumkey="${escapeHtml(albumKey)}">
+              <div class="personDetailThumb" data-albumkey="${escapeHtml(albumKey)}">${escapeHtml(album && album.initials || "ALB")}</div>
+              <div>
+                <div class="personDetailAlbumTitle">
+                  ${albumUrl
+                    ? `<a href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer">"${escapeHtml(albumTitle)}"</a>`
+                    : `"${escapeHtml(albumTitle)}"`}
+                </div>
+                ${albumDate ? `<div class="personDetailAlbumSub">${escapeHtml(albumDate)}</div>` : ""}
+              </div>
+            </article>
+          `;
+        }).join("") : `<div class="personDetailAlbumSub" style="margin-left:20px; padding:12px 0;">No albums found for this person.</div>`;
+      }
+
+      hydratePersonDetailThumbs(albums, personToken);
     }
 
     async function runResultsDoorTransition(updateFn) {
