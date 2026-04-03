@@ -160,7 +160,11 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
     function syncMenuState(expanded){
       if (navToggle) navToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      if (navPanel) navPanel.classList.toggle('is-collapsed', !expanded);
+      if (navPanel) {
+        navPanel.classList.toggle('is-collapsed', !expanded);
+        navPanel.hidden = !expanded;
+        navPanel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+      }
       try {
         document.body.classList.toggle('hud-menu-open', !!expanded);
       } catch (_) {}
