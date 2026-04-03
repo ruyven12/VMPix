@@ -1368,6 +1368,22 @@
       display: none;
     }
 
+    .bandDetailOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      padding: 16px;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(105, 222, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, rgba(10, 10, 16, 0.985), rgba(8, 9, 16, 0.965));
+      overflow: auto;
+    }
+
+    .bandDetailOverlay[hidden] {
+      display: none;
+    }
+
     .personAlbumOverlay {
       position: absolute;
       inset: 0;
@@ -1738,6 +1754,220 @@
       gap: 16px;
     }
 
+    .bandDetailTopRow {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .bandDetailSummary {
+      width: 100%;
+      display: grid;
+      gap: 16px;
+    }
+
+    .bandDetailHeader {
+      display: grid;
+      grid-template-columns: minmax(160px, 0.72fr) minmax(0, 1.28fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .bandDetailLogoPanel,
+    .bandDetailInfoPanel,
+    .bandDetailMembersPanel,
+    .bandDetailAlbumsPanel {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top right, rgba(255, 204, 112, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(20, 15, 18, 0.9), rgba(11, 13, 24, 0.88));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 1px rgba(86, 215, 255, 0.04);
+    }
+
+    .bandDetailLogoPanel {
+      padding: 18px;
+      display: grid;
+      place-items: center;
+      min-height: 240px;
+      overflow: hidden;
+    }
+
+    .bandDetailLogoPanel img {
+      width: 100%;
+      max-width: 320px;
+      max-height: 280px;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+      background: rgba(7, 11, 20, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(86, 215, 255, 0.08);
+    }
+
+    .bandDetailInfoPanel,
+    .bandDetailMembersPanel,
+    .bandDetailAlbumsPanel {
+      padding: 18px;
+    }
+
+    .bandDetailNameCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .bandDetailHeroLabel,
+    .bandDetailStatLabel,
+    .bandDetailMembersLabel,
+    .bandDetailAlbumsLabel {
+      color: #6cddff;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .bandDetailName {
+      margin-top: 10px;
+      color: #fff6fb;
+      font-size: 25px;
+      line-height: 1.2;
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+
+    .bandDetailStatsGrid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .bandDetailStatCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .bandDetailStatValue {
+      color: rgba(245, 242, 248, 0.94);
+      font-size: 20px;
+      line-height: 1.24;
+      letter-spacing: 0.03em;
+      text-transform: none;
+    }
+
+    .bandDetailMembersGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .bandDetailMemberCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-height: 148px;
+    }
+
+    .bandDetailMemberLines {
+      color: rgba(220, 232, 244, 0.9);
+      font-size: 14px;
+      line-height: 1.55;
+      letter-spacing: 0.02em;
+      text-transform: none;
+    }
+
+    .bandDetailAlbumsPanel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .bandDetailAlbumsGrid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .bandDetailAlbumsState {
+      color: rgba(220, 196, 211, 0.76);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .bandDetailAlbumCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 12px;
+      background:
+        linear-gradient(180deg, rgba(14, 17, 27, 0.96), rgba(10, 12, 20, 0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -10px 18px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(86, 215, 255, 0.04);
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .bandDetailAlbumThumb {
+      width: 118px;
+      height: 160px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(86, 215, 255, 0.18);
+      background:
+        radial-gradient(circle at 50% 30%, rgba(105, 222, 255, 0.18), transparent 50%),
+        linear-gradient(135deg, rgba(255, 95, 135, 0.22), rgba(10, 14, 25, 0.96));
+      display: grid;
+      place-items: center;
+    }
+
+    .bandDetailAlbumThumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .bandDetailAlbumMeta {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .bandDetailAlbumTitle {
+      color: #fff5fb;
+      font-size: 27px;
+      line-height: 1.18;
+      letter-spacing: 0.03em;
+      text-transform: none;
+    }
+
+    .bandDetailAlbumSub {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+      text-transform: none;
+      letter-spacing: 0.02em;
+    }
+
     .personDetailAlbumCard {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -1799,6 +2029,20 @@
     }
 
     @media (max-width: 1100px) {
+      .bandDetailHeader,
+      .bandDetailMembersGrid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .bandDetailAlbumCard {
+        grid-template-columns: 96px minmax(0, 1fr);
+      }
+
+      .bandDetailAlbumThumb {
+        width: 96px;
+        height: 134px;
+      }
+
       .personDetailBandAlbums {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -1988,6 +2232,38 @@
         width: min(100%, 320px);
       }
 
+      .bandDetailOverlay {
+        padding: 12px;
+      }
+
+      .bandDetailLogoPanel,
+      .bandDetailInfoPanel,
+      .bandDetailMembersPanel,
+      .bandDetailAlbumsPanel {
+        padding: 14px;
+      }
+
+      .bandDetailStatsGrid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .bandDetailName {
+        font-size: 22px;
+      }
+
+      .bandDetailStatValue {
+        font-size: 17px;
+      }
+
+      .bandDetailAlbumCard {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .bandDetailAlbumThumb {
+        width: 100%;
+        height: 170px;
+      }
+
       .resultCard {
         grid-template-columns: 60px minmax(0, 1fr);
       }
@@ -2036,6 +2312,14 @@
     @media (max-width: 560px) {
       .subjectHints {
         gap: 8px;
+      }
+
+      .bandDetailMemberCard {
+        min-height: 0;
+      }
+
+      .bandDetailAlbumTitle {
+        font-size: 20px;
       }
 
       .personDetailBandAlbums,
@@ -2127,6 +2411,7 @@
           <div class="resultsDoorPanel is-left" id="resultsDoorLeft"></div>
           <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
         </div>
+        <div class="bandDetailOverlay" id="bandDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personAlbumOverlay" id="personAlbumOverlay" hidden aria-hidden="true"></div>
         <div class="personShotLightboxOverlay" id="personShotLightboxOverlay" hidden aria-hidden="true"></div>
@@ -2516,6 +2801,185 @@
       }
     }
 
+    function cleanBandFolderPath(value) {
+      return String(value || '').replace(/[:]/g, '').trim();
+    }
+
+    function normalizeBandRouteSlug(value) {
+      return String(value || '')
+        .trim()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9\s-]+/gi, '')
+        .replace(/\s+/g, '-')
+        .toLowerCase();
+    }
+
+    function imageUrlCandidates(image) {
+      const source = (image && typeof image === 'object') ? image : {};
+      const highlight = (source.HighlightImage && typeof source.HighlightImage === 'object') ? source.HighlightImage : {};
+      return [
+        source.LargestUrl,
+        source.X3LargeUrl,
+        source.XLargeUrl,
+        source.LargeUrl,
+        source.MediumUrl,
+        source.SmallUrl,
+        source.ThumbnailUrl,
+        source.ThumbUrl,
+        source.Url,
+        source.URL,
+        source.Uri,
+        highlight.LargestUrl,
+        highlight.X3LargeUrl,
+        highlight.XLargeUrl,
+        highlight.LargeUrl,
+        highlight.MediumUrl,
+        highlight.SmallUrl,
+        highlight.ThumbnailUrl,
+        highlight.ThumbUrl,
+        highlight.Url,
+        highlight.URL,
+        highlight.Uri
+      ].map((entry) => String(entry || '').trim()).filter(Boolean);
+    }
+
+    function pickFirstImageUrl(image) {
+      const candidates = imageUrlCandidates(image);
+      return candidates[0] || '';
+    }
+
+    function applyImageFallback(imgEl, candidates, fallback) {
+      if (!imgEl) return;
+      const urls = Array.isArray(candidates) ? candidates.filter(Boolean) : [];
+      let index = 0;
+      const tryNext = () => {
+        const next = urls[index];
+        index += 1;
+        if (next) {
+          imgEl.src = next;
+        } else if (fallback) {
+          imgEl.src = fallback;
+        } else {
+          imgEl.removeAttribute('src');
+        }
+      };
+      imgEl.onerror = () => {
+        tryNext();
+      };
+      tryNext();
+    }
+
+    function parseAlbumNameToShowBits(name) {
+      const raw = String(name || '').trim();
+      const match = raw.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*[-–—]\s*(.+)$/);
+      if (match) {
+        return {
+          showDate: String(match[1] || '').trim(),
+          showName: String(match[2] || '').trim(),
+          mmddyy: toMMDDYY(match[1])
+        };
+      }
+      return {
+        showDate: '',
+        showName: raw,
+        mmddyy: ''
+      };
+    }
+
+    function toMMDDYY(raw) {
+      const value = String(raw || '').trim();
+      if (!value) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split('-');
+        return `${month}${day}${year.slice(2)}`;
+      }
+      const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (!match) return '';
+      const month = match[1].padStart(2, '0');
+      const day = match[2].padStart(2, '0');
+      const year = (match[3].length === 4 ? match[3].slice(2) : match[3]).padStart(2, '0');
+      return `${month}${day}${year}`;
+    }
+
+    function withBandRole(value, role) {
+      const text = String(value || '').trim();
+      if (!text) return '';
+      return /\([^)]*\)/.test(text) ? text : `${text} (${role})`;
+    }
+
+    function groupBandCoreMembers(lines) {
+      const raw = (Array.isArray(lines) ? lines : [])
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+      if (!raw.length) return [];
+
+      const order = [];
+      const members = new Map();
+
+      raw.forEach((line) => {
+        let name = line;
+        let roles = [];
+        const match = line.match(/^(.+?)\s*\((.+)\)\s*$/);
+        if (match) {
+          name = String(match[1] || '').trim();
+          roles = String(match[2] || '').split(',').map((role) => role.trim()).filter(Boolean);
+        }
+        const key = String(name || '').toLowerCase();
+        if (!members.has(key)) {
+          members.set(key, { name, roles: new Set() });
+          order.push(key);
+        }
+        roles.forEach((role) => members.get(key).roles.add(role));
+      });
+
+      return order.map((key) => {
+        const member = members.get(key);
+        const roles = Array.from(member.roles || []);
+        return roles.length ? `${member.name} (${roles.join(', ')})` : member.name;
+      });
+    }
+
+    function renderBandMemberLines(lines) {
+      const items = (Array.isArray(lines) ? lines : [])
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+      if (!items.length) return '—';
+      return items.map((entry) => escapeHtml(entry)).join('<br>');
+    }
+
+    const bandAlbumCache = new Map();
+
+    async function fetchBandAlbums(folderPath, region) {
+      const safeFolder = cleanBandFolderPath(folderPath);
+      if (!safeFolder) return [];
+
+      const cacheKey = `${String(region || '').trim()}||${safeFolder}`;
+      if (bandAlbumCache.has(cacheKey)) {
+        return bandAlbumCache.get(cacheKey) || [];
+      }
+
+      const slug = normalizeBandRouteSlug(safeFolder);
+      const url = `${MUSIC_API_BASE}/smug/${encodeURIComponent(slug)}?folder=${encodeURIComponent(safeFolder)}&region=${encodeURIComponent(String(region || '').trim())}&count=200&start=1`;
+
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const albums = Array.isArray(payload && payload.albums)
+          ? payload.albums
+          : Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload && payload.Response && payload.Response.Album)
+              ? payload.Response.Album
+              : [];
+        bandAlbumCache.set(cacheKey, albums);
+        return albums;
+      } catch (_) {
+        bandAlbumCache.set(cacheKey, []);
+        return [];
+      }
+    }
+
     function buildShowVenueLine(show) {
       const venue = String(show && show.venue || '').trim();
       const city = String(show && show.city || '').trim();
@@ -2838,6 +3302,7 @@
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
     const resultsDoorLeft = document.getElementById("resultsDoorLeft");
     const resultsDoorRight = document.getElementById("resultsDoorRight");
+    const bandDetailOverlay = document.getElementById("bandDetailOverlay");
     const personDetailOverlay = document.getElementById("personDetailOverlay");
     const personAlbumOverlay = document.getElementById("personAlbumOverlay");
     const personShotLightboxOverlay = document.getElementById("personShotLightboxOverlay");
@@ -2848,6 +3313,7 @@
     let activeSubFilter = "all";
     let subFilterMode = "letters";
     let resultsDoorBusy = false;
+    let activeBandDetail = null;
     let activePersonDetail = null;
     let activeAlbumDetail = null;
     let activeShotDetail = null;
@@ -2883,6 +3349,8 @@
           activeSort,
           activeSubFilter,
           expandedGroups,
+          activeBandName: activeBandDetail && activeBandDetail.name ? String(activeBandDetail.name) : "",
+          activeBandRegion: activeBandDetail && activeBandDetail.region ? String(activeBandDetail.region) : "",
           activePersonName: activePersonDetail && activePersonDetail.name ? String(activePersonDetail.name) : "",
           activeAlbumKey: activeAlbumDetail && activeAlbumDetail.albumKey ? String(activeAlbumDetail.albumKey) : "",
           activeAlbumExpanded: !!(activeAlbumDetail && activeAlbumDetail.expanded),
@@ -3347,6 +3815,7 @@
         window.matchMedia("(max-width: 760px)").matches &&
         activeSubject === "music" &&
         activeFilter === "band" &&
+        bandDetailOverlay.hidden &&
         personDetailOverlay.hidden &&
         personAlbumOverlay.hidden &&
         personShotLightboxOverlay.hidden
@@ -3547,6 +4016,206 @@
         photoCount: Number(card && card.dataset.photoCount || 0),
         albumCount: Number(card && card.dataset.albumCount || 0)
       };
+    }
+
+    function findBandRecordFromCard(card) {
+      const name = String(card && card.dataset.name || '').trim();
+      const region = String(card && card.dataset.category || '').trim();
+      const bands = Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : [];
+      return bands.find((band) =>
+        String(band && band.name || '').trim() === name &&
+        String(band && band.region || '').trim() === region
+      ) || {
+        name,
+        region,
+        logoUrl: '',
+        location: '',
+        state: '',
+        country: '',
+        status: '',
+        totalSets: '',
+        archivedSets: ''
+      };
+    }
+
+    function closeBandDetailOverlay() {
+      if (!bandDetailOverlay) return;
+      const finishClose = () => {
+        bandDetailOverlay.hidden = true;
+        bandDetailOverlay.setAttribute('aria-hidden', 'true');
+        bandDetailOverlay.innerHTML = '';
+        activeBandDetail = null;
+        const panel = document.querySelector('.resultsPanel');
+        if (panel) panel.style.overflow = 'auto';
+        syncMobileResultsFocusState();
+        saveMockupSessionState();
+      };
+
+      if (
+        typeof bandDetailOverlay.animate !== 'function' ||
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      ) {
+        finishClose();
+        return;
+      }
+
+      bandDetailOverlay.animate(
+        [
+          { opacity: 1, transform: 'translateY(0) scale(1)' },
+          { opacity: 0, transform: 'translateY(18px) scale(0.985)' }
+        ],
+        {
+          duration: 260,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards'
+        }
+      ).addEventListener('finish', finishClose, { once: true });
+    }
+
+    function renderBandDetailAlbumsMarkup(albums) {
+      const list = Array.isArray(albums) ? albums : [];
+      if (!list.length) {
+        return '<div class="bandDetailAlbumsState">No albums found in that band folder.</div>';
+      }
+
+      return list.map((album) => {
+        const rawName = String(album && (album.Name || album.Title || album.name || album.title) || 'Untitled Album').trim();
+        const bits = parseAlbumNameToShowBits(rawName);
+        const title = bits.showName || rawName || 'Untitled Album';
+        const dateText = bits.showDate ? formatShowDateLabel(bits.showDate) : '';
+        const thumbUrl = pickFirstImageUrl(album);
+        const thumbFallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="220"%3E%3Crect width="100%25" height="100%25" fill="rgba(255,255,255,0.06)" /%3E%3C/svg%3E';
+        return `
+          <article class="bandDetailAlbumCard">
+            <div class="bandDetailAlbumThumb">
+              ${thumbUrl
+                ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
+                : `<img src="${thumbFallback}" alt="" loading="lazy" decoding="async" />`}
+            </div>
+            <div class="bandDetailAlbumMeta">
+              <div class="bandDetailAlbumTitle">${escapeHtml(title)}</div>
+              ${dateText ? `<div class="bandDetailAlbumSub">${escapeHtml(dateText)}</div>` : ''}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function openBandDetailOverlay(card) {
+      if (!bandDetailOverlay || !card) return;
+      const band = findBandRecordFromCard(card);
+      activeBandDetail = band;
+
+      const name = String(band.name || 'Unknown Band').trim();
+      const logoUrl = String(band.logoUrl || '').trim();
+      const status = String(band.status || '').trim() || 'Unknown';
+      const archived = Number(band.archivedSets || 0);
+      const total = Number(band.totalSets || 0);
+      const locationValue = [band.location, band.state, band.country].map((value) => String(value || '').trim()).filter(Boolean).join(', ') || '—';
+      const coreLines = groupBandCoreMembers([
+        withBandRole(band.vox1, 'vox'),
+        withBandRole(band.vox2, 'vox'),
+        withBandRole(band.vox3, 'vox'),
+        withBandRole(band.guitar1, 'gtr'),
+        withBandRole(band.guitar2, 'gtr'),
+        withBandRole(band.guitar3, 'gtr'),
+        withBandRole(band.bass, 'bass'),
+        withBandRole(band.drum, 'drums'),
+        withBandRole(band.keys, 'keys')
+      ]);
+      const otherLines = [
+        band.past1,
+        band.past2,
+        band.past3,
+        band.past4,
+        band.past5,
+        band.past6
+      ].map((entry) => String(entry || '').trim()).filter(Boolean);
+
+      bandDetailOverlay.innerHTML = `
+        <div class="bandDetailTopRow">
+          <button class="personDetailBack" type="button" data-band-detail-close="1">Back</button>
+          <div class="bandDetailSummary">
+            <div class="bandDetailHeader">
+              <div class="bandDetailLogoPanel">
+                ${logoUrl
+                  ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(name)} logo" loading="lazy" decoding="async" />`
+                  : `<div class="bandDetailAlbumsState">No logo available</div>`}
+              </div>
+              <div class="bandDetailInfoPanel">
+                <div class="bandDetailNameCard">
+                  <div class="bandDetailHeroLabel">Band</div>
+                  <div class="bandDetailName">${escapeHtml(name)}</div>
+                </div>
+                <div class="bandDetailStatsGrid">
+                  <div class="bandDetailStatCard">
+                    <div class="bandDetailStatLabel">Home Location / Region</div>
+                    <div class="bandDetailStatValue">${escapeHtml(locationValue)}</div>
+                  </div>
+                  <div class="bandDetailStatCard">
+                    <div class="bandDetailStatLabel">Status</div>
+                    <div class="bandDetailStatValue">${escapeHtml(status)}</div>
+                  </div>
+                  <div class="bandDetailStatCard">
+                    <div class="bandDetailStatLabel">Sets (Archive / Total)</div>
+                    <div class="bandDetailStatValue">${archived.toLocaleString()} / ${total.toLocaleString()}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bandDetailMembersGrid">
+              <div class="bandDetailMembersPanel bandDetailMemberCard">
+                <div class="bandDetailMembersLabel">Core Members</div>
+                <div class="bandDetailMemberLines">${renderBandMemberLines(coreLines)}</div>
+              </div>
+              <div class="bandDetailMembersPanel bandDetailMemberCard">
+                <div class="bandDetailMembersLabel">Other Members</div>
+                <div class="bandDetailMemberLines">${renderBandMemberLines(otherLines)}</div>
+              </div>
+            </div>
+            <div class="bandDetailAlbumsPanel">
+              <div class="bandDetailAlbumsLabel">Current Albums in Archive</div>
+              <div class="bandDetailAlbumsGrid" data-band-detail-albums>
+                <div class="bandDetailAlbumsState">Loading albums...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      bandDetailOverlay.hidden = false;
+      bandDetailOverlay.setAttribute('aria-hidden', 'false');
+      const panel = document.querySelector('.resultsPanel');
+      if (panel) {
+        panel.style.overflow = 'hidden';
+        panel.scrollTop = 0;
+      }
+      syncMobileResultsFocusState();
+      saveMockupSessionState();
+
+      if (
+        typeof bandDetailOverlay.animate === 'function' &&
+        !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      ) {
+        bandDetailOverlay.animate(
+          [
+            { opacity: 0, transform: 'translateY(22px) scale(0.985)' },
+            { opacity: 1, transform: 'translateY(0) scale(1)' }
+          ],
+          {
+            duration: 340,
+            easing: 'cubic-bezier(0.2, 0.9, 0.2, 1)',
+            fill: 'both'
+          }
+        );
+      }
+
+      const albumsGrid = bandDetailOverlay.querySelector('[data-band-detail-albums]');
+      const albums = await fetchBandAlbums(band.smugFolder || band.name || '', band.region || '');
+      if (!bandDetailOverlay || bandDetailOverlay.hidden || activeBandDetail !== band) return;
+      if (albumsGrid) {
+        albumsGrid.innerHTML = renderBandDetailAlbumsMarkup(albums);
+      }
     }
 
     function closePersonDetailOverlay() {
@@ -3999,6 +4668,13 @@
     }
 
     document.addEventListener("click", (event) => {
+      const closeBandDetailButton = event.target && event.target.closest ? event.target.closest("[data-band-detail-close='1']") : null;
+      if (closeBandDetailButton) {
+        event.preventDefault();
+        closeBandDetailOverlay();
+        return;
+      }
+
       const closePersonShotButton = event.target && event.target.closest ? event.target.closest("[data-person-shot-close='1']") : null;
       if (closePersonShotButton) {
         event.preventDefault();
@@ -4031,6 +4707,13 @@
       if (personCard && !personCard.hidden) {
         event.preventDefault();
         openPersonDetailOverlay(personCard);
+        return;
+      }
+
+      const bandCard = event.target && event.target.closest ? event.target.closest(".resultCard[data-type='band']") : null;
+      if (bandCard && !bandCard.hidden) {
+        event.preventDefault();
+        openBandDetailOverlay(bandCard);
         return;
       }
 
@@ -4087,6 +4770,12 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && bandDetailOverlay && !bandDetailOverlay.hidden) {
+        event.preventDefault();
+        closeBandDetailOverlay();
+        return;
+      }
+
       if (event.key === "Escape" && personShotLightboxOverlay && !personShotLightboxOverlay.hidden) {
         event.preventDefault();
         closePersonShotLightboxOverlay();
@@ -4201,6 +4890,22 @@
         resultsPanel.scrollTop = Number(savedState.resultsScrollTop);
       }
       syncMobileResultsFocusState();
+
+      const activeBandName = String(savedState.activeBandName || "").trim();
+      const activeBandRegion = String(savedState.activeBandRegion || "").trim();
+      if (activeBandName && activeBandRegion) {
+        const bandNameSelector = window.CSS && window.CSS.escape
+          ? window.CSS.escape(activeBandName)
+          : activeBandName.replace(/"/g, '\\"');
+        const bandRegionSelector = window.CSS && window.CSS.escape
+          ? window.CSS.escape(activeBandRegion)
+          : activeBandRegion.replace(/"/g, '\\"');
+        const bandCard = document.querySelector(`.resultCard[data-type="band"][data-name="${bandNameSelector}"][data-category="${bandRegionSelector}"]`);
+        if (bandCard && !bandCard.hidden) {
+          await openBandDetailOverlay(bandCard);
+          return;
+        }
+      }
 
       const activePersonName = String(savedState.activePersonName || "").trim();
       if (activePersonName) {
