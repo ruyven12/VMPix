@@ -837,6 +837,10 @@
         radial-gradient(circle at top, rgba(239, 211, 155, 0.04), transparent 26%);
     }
 
+    .resultsPanel.is-person-rolodex {
+      scroll-snap-type: y proximity;
+    }
+
     .resultsDoorOverlay {
       position: absolute;
       inset: 0;
@@ -942,6 +946,19 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.02),
         inset 0 -12px 20px rgba(0, 0, 0, 0.12);
       cursor: pointer;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] {
+      width: 100%;
+      min-height: 74px;
+      height: 74px;
+      padding: 14px 22px;
+      transform-origin: center center;
+      scroll-snap-align: start;
+      transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        background 200ms ease;
     }
 
     .resultCard[data-type="band"] {
@@ -1094,6 +1111,14 @@
       width: 100%;
     }
 
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardMain {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.15fr) minmax(180px, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      text-align: left;
+    }
+
     .eyebrow {
       color: var(--cyan);
       font-size: 10px;
@@ -1196,6 +1221,23 @@
       align-items: start;
     }
 
+    .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: stretch;
+      gap: 10px;
+      height: 74px;
+      padding: 0;
+      overflow-y: auto !important;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+    }
+
+    .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody::-webkit-scrollbar {
+      display: none;
+    }
+
     .resultGroupBody[hidden] {
       display: none;
     }
@@ -1218,6 +1260,14 @@
       width: 100%;
       text-align: center;
       margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardTitle {
+      text-align: left;
+      font-size: 18px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .cardLinkText {
@@ -1251,6 +1301,13 @@
       text-align: center;
       transform: none;
       margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .personInstrumentLine {
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .cardSub {
@@ -1296,6 +1353,12 @@
       margin-top: 6px;
       padding-top: 0;
       width: 100%;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .metaRow {
+      justify-content: flex-end;
+      width: auto;
+      margin-top: 0;
     }
 
     .metaPill {
@@ -1391,23 +1454,55 @@
       z-index: 1;
     }
 
+    .personDetailStageContent {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .personDetailOverlay.is-detail-ready .personDetailStageContent {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .personDetailDoorOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+
+    .personDetailDoorPanel {
+      width: 100%;
+      height: 50%;
+      background:
+        linear-gradient(180deg, rgba(26, 12, 24, 0.98), rgba(8, 10, 17, 0.99)),
+        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.18), transparent 34%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 128, 176, 0.12),
+        0 20px 44px rgba(0, 0, 0, 0.38);
+    }
+
+    .personDetailDoorPanel.is-top {
+      transform: translateY(-100%);
+      border-bottom: 1px solid rgba(105, 222, 255, 0.24);
+    }
+
+    .personDetailDoorPanel.is-bottom {
+      transform: translateY(100%);
+      border-top: 1px solid rgba(105, 222, 255, 0.24);
+    }
+
     .personDetailOverlay.is-grain-transition {
       animation: personDetailToneIn 760ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
     }
 
     .personDetailOverlay.is-grain-transition::before {
       animation: personDetailGrainIn 860ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-    }
-
-    .personDetailOverlay.is-grain-transition > * {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    .personDetailOverlay.is-detail-ready > * {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 220ms ease, transform 220ms ease;
     }
 
     .personDetailOverlay[hidden] {
@@ -3851,6 +3946,19 @@
       });
     }
 
+    function syncPersonRolodexCards() {
+      if (!resultsPanel) return;
+      const isRolodexMode = activeFilter === "person";
+      resultsPanel.classList.toggle("is-person-rolodex", isRolodexMode);
+
+      const personCards = resultCards.filter((card) => card && card.dataset.type === "person");
+      personCards.forEach((card) => {
+        card.style.transform = "";
+        card.style.opacity = "";
+        card.style.zIndex = "";
+      });
+    }
+
     function updateResultsVisibility() {
       sortPeopleGroupBodies();
       syncSubFilterButtons();
@@ -3907,6 +4015,7 @@
         : filterLabels[activeFilter];
 
       resultsMeta.textContent = !activeSubject || !activeFilter ? "Choose archive scope and filter to start the archive" : `${visibleCount} results across ${label}`;
+      syncPersonRolodexCards();
       syncMobileResultsFocusState();
     }
 
@@ -4530,26 +4639,97 @@
       }
     }
 
-    function playPersonDetailGrainTransition() {
+    async function playPersonDetailDoorTransition() {
       if (
         !personDetailOverlay ||
         (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       ) {
+        if (personDetailOverlay) personDetailOverlay.classList.add("is-detail-ready");
         return;
       }
 
-      personDetailOverlay.classList.remove("is-grain-transition");
-      if (personDetailOverlay.__grainTransitionTimer) {
-        window.clearTimeout(personDetailOverlay.__grainTransitionTimer);
+      const topPanel = personDetailOverlay.querySelector(".personDetailDoorPanel.is-top");
+      const bottomPanel = personDetailOverlay.querySelector(".personDetailDoorPanel.is-bottom");
+      if (
+        !topPanel ||
+        !bottomPanel ||
+        typeof topPanel.animate !== "function" ||
+        typeof bottomPanel.animate !== "function"
+      ) {
+        personDetailOverlay.classList.add("is-detail-ready");
+        return;
       }
-      void personDetailOverlay.offsetWidth;
-      personDetailOverlay.classList.add("is-grain-transition");
-      personDetailOverlay.__grainTransitionTimer = window.setTimeout(() => {
-        if (personDetailOverlay) {
-          personDetailOverlay.classList.remove("is-grain-transition");
-          personDetailOverlay.classList.add("is-detail-ready");
-        }
-      }, 620);
+
+      try {
+        topPanel.getAnimations().forEach((animation) => animation.cancel());
+        bottomPanel.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      personDetailOverlay.classList.remove("is-detail-ready");
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(-100%)" },
+            { transform: "translateY(0)" }
+          ],
+          {
+            duration: 280,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(100%)" },
+            { transform: "translateY(0)" }
+          ],
+          {
+            duration: 280,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished
+      ]);
+
+      personDetailOverlay.classList.add("is-detail-ready");
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(-100%)" }
+          ],
+          {
+            duration: 360,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(100%)" }
+          ],
+          {
+            duration: 360,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished
+      ]);
+
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+    }
+
+    function playPersonDetailGrainTransition() {
+      if (!personDetailOverlay) {
+        return;
+      }
+      personDetailOverlay.classList.add("is-detail-ready");
     }
 
     async function openPersonDetailOverlay(card) {
@@ -4564,45 +4744,46 @@
       const placeholderAlbumCount = Number(person.albumCount || 0);
 
       personDetailOverlay.innerHTML = `
-        <div class="personDetailTopRow">
-          <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
-          <div class="personDetailSummary">
-            <div class="personDetailHeroCard">
-              <div class="personDetailHeroLabel">Performer</div>
-              <div class="personDetailName">${escapeHtml(name)}</div>
-            </div>
-            <div class="personDetailStatsGrid">
-              <div class="personDetailStatCard">
-                <div class="personDetailCountSplit">
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Total Albums</div>
-                    <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
-                  </div>
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Photos</div>
-                    <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+        <div class="personDetailStageContent">
+          <div class="personDetailTopRow">
+            <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
+            <div class="personDetailSummary">
+              <div class="personDetailHeroCard">
+                <div class="personDetailHeroLabel">Performer</div>
+                <div class="personDetailName">${escapeHtml(name)}</div>
+              </div>
+              <div class="personDetailStatsGrid">
+                <div class="personDetailStatCard">
+                  <div class="personDetailCountSplit">
+                    <div class="personDetailCountCol">
+                      <div class="personDetailStatLabel">Total Albums</div>
+                      <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
+                    </div>
+                    <div class="personDetailCountCol">
+                      <div class="personDetailStatLabel">Photos</div>
+                      <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Band(s)</div>
-                <div class="personDetailMeta personDetailMetaText">${escapeHtml(bands || "N/A")}</div>
-              </div>
-              <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Instrument(s)</div>
-                <div class="personDetailMeta personDetailMetaText">${escapeHtml(instrument || "N/A")}</div>
+                <div class="personDetailStatCard">
+                  <div class="personDetailStatLabel">Band(s)</div>
+                  <div class="personDetailMeta personDetailMetaText">${escapeHtml(bands || "N/A")}</div>
+                </div>
+                <div class="personDetailStatCard">
+                  <div class="personDetailStatLabel">Instrument(s)</div>
+                  <div class="personDetailMeta personDetailMetaText">${escapeHtml(instrument || "N/A")}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="personDetailList" data-person-detail-list>
-          <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
+          <div class="personDetailList" data-person-detail-list>
+            <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
+          </div>
         </div>
       `;
-      personDetailOverlay.classList.remove("is-detail-ready");
+      personDetailOverlay.classList.add("is-detail-ready");
       personDetailOverlay.hidden = false;
       personDetailOverlay.setAttribute("aria-hidden", "false");
-      playPersonDetailGrainTransition();
       const panel = document.querySelector(".resultsPanel");
       if (panel) {
         panel.style.overflow = "hidden";
@@ -4617,11 +4798,11 @@
       ) {
         personDetailOverlay.animate(
           [
-            { opacity: 0, transform: "translateY(22px) scale(0.985)" },
+            { opacity: 0, transform: "translateY(18px) scale(0.985)" },
             { opacity: 1, transform: "translateY(0) scale(1)" }
           ],
           {
-            duration: 760,
+            duration: 260,
             easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
             fill: "both"
           }
@@ -4773,7 +4954,11 @@
         setSubFilter("all");
       }
 
-      runResultsDoorTransition(() => updateResultsVisibility());
+      if (activeSubject && activeFilter) {
+        runResultsDoorTransition(() => updateResultsVisibility());
+      } else {
+        updateResultsVisibility();
+      }
       syncProgressiveControlVisibility();
       setFilterMenuOpen(false);
       saveMockupSessionState();
@@ -5071,12 +5256,16 @@
 
     if (resultsPanel) {
       resultsPanel.addEventListener("scroll", () => {
+        syncPersonRolodexCards();
         syncMobileResultsFocusState();
         saveMockupSessionState();
       }, { passive: true });
     }
 
-    window.addEventListener("resize", syncMobileResultsFocusState, { passive: true });
+    window.addEventListener("resize", () => {
+      syncPersonRolodexCards();
+      syncMobileResultsFocusState();
+    }, { passive: true });
 
     window.addEventListener("beforeunload", () => {
       saveMockupSessionState();
