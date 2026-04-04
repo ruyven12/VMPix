@@ -838,7 +838,8 @@
     }
 
     .resultsPanel.is-person-rolodex {
-      scroll-snap-type: y proximity;
+      height: auto;
+      min-height: 0;
     }
 
     .resultsDoorOverlay {
@@ -950,11 +951,10 @@
 
     .resultsPanel.is-person-rolodex .resultCard[data-type="person"] {
       width: 100%;
-      min-height: 74px;
-      height: 74px;
-      padding: 14px 22px;
+      min-height: 64px;
+      height: 64px;
+      padding: 10px 22px;
       transform-origin: center center;
-      scroll-snap-align: start;
       transition:
         border-color 200ms ease,
         box-shadow 200ms ease,
@@ -1113,10 +1113,10 @@
 
     .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardMain {
       display: grid;
-      grid-template-columns: minmax(180px, 1.15fr) minmax(180px, 1fr) auto;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       align-items: center;
-      gap: 18px;
-      text-align: left;
+      gap: 12px;
+      text-align: center;
     }
 
     .eyebrow {
@@ -1224,18 +1224,8 @@
     .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody {
       grid-template-columns: minmax(0, 1fr);
       justify-items: stretch;
-      gap: 10px;
-      height: 74px;
+      gap: 8px;
       padding: 0;
-      overflow-y: auto !important;
-      overflow-x: hidden;
-      scroll-snap-type: y mandatory;
-      overscroll-behavior: contain;
-      scrollbar-width: none;
-    }
-
-    .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody::-webkit-scrollbar {
-      display: none;
     }
 
     .resultGroupBody[hidden] {
@@ -1263,11 +1253,13 @@
     }
 
     .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardTitle {
-      text-align: left;
+      text-align: center;
       font-size: 18px;
-      white-space: nowrap;
+      line-height: 1.1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .cardLinkText {
@@ -1305,9 +1297,33 @@
 
     .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .personInstrumentLine {
       text-align: center;
-      white-space: nowrap;
+      line-height: 1.15;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    .personBandLine {
+      order: 3;
+      color: rgba(176, 161, 180, 0.72);
+      font-size: 14px;
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      width: 100%;
+      text-align: center;
+      transform: none;
+      margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .personBandLine {
+      text-align: center;
+      line-height: 1.15;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .cardSub {
@@ -1346,7 +1362,7 @@
     }
 
     .resultCard[data-type="person"] .metaRow {
-      order: 3;
+      order: 4;
       justify-content: center;
       align-self: center;
       flex-wrap: nowrap;
@@ -1356,10 +1372,11 @@
     }
 
     .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .metaRow {
-      justify-content: flex-end;
+      justify-content: center;
       width: auto;
       margin-top: 0;
     }
+
 
     .metaPill {
       padding: 6px 10px;
@@ -3367,17 +3384,19 @@
         `;
 
         const groupCards = groupPeople.map((person) => {
+          const instrument = String(person && person.instrument || '').trim();
           const bands = String(person && person.bands || '').trim();
           return `
             <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                <div class="personInstrumentLine">${escapeHtml(instrument)}</div>
+                <div class="personBandLine">${escapeHtml(bands)}</div>
                 <div class="metaRow">
                   <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
-                <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
           `;
@@ -3410,17 +3429,19 @@
       const cardsMarkup = Array.from(groupedPeople.values()).map((groupData) => {
         const { subject, category, people: groupPeople } = groupData;
         const groupCards = groupPeople.map((person) => {
+          const instrument = String(person && person.instrument || '').trim();
           const bands = String(person && person.bands || '').trim();
           return `
-            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
+            <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                <div class="personInstrumentLine">${escapeHtml(instrument)}</div>
+                <div class="personBandLine">${escapeHtml(bands)}</div>
                 <div class="metaRow">
                   <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
-                <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
           `;
@@ -3995,6 +4016,18 @@
         if (group && body) {
           const isExpanded = group.getAttribute("aria-expanded") === "true";
           body.hidden = !hasVisibleCards || !isExpanded;
+          if (!hasVisibleCards || !isExpanded) {
+            try {
+              body.getAnimations().forEach((animation) => animation.cancel());
+            } catch (_) {}
+            body.style.height = "";
+            body.style.opacity = "";
+            body.style.overflow = "hidden";
+          } else {
+            body.style.height = "";
+            body.style.opacity = "";
+            body.style.overflow = "visible";
+          }
         }
         if (label) {
           const visibleInSection = resultCards.filter((card) =>
