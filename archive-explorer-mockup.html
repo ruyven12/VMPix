@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://maps.google.com">
   <style>
     :root {
       --bg: #040308;
@@ -1826,6 +1827,14 @@
       overflow: hidden;
     }
 
+    .showDetailMapFrame iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 220px;
+      border: 0;
+      display: block;
+    }
+
     .showDetailMapFrame::before {
       content: "";
       position: absolute;
@@ -1852,23 +1861,9 @@
       background: linear-gradient(180deg, #72e0ff, #ff7eb2);
     }
 
-    .showDetailMapMeta {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 14px;
-      display: grid;
-      gap: 5px;
-      padding: 12px 13px;
-      border-radius: 14px;
-      background: rgba(8, 10, 16, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(10px);
-    }
-
-    .showDetailMapMeta .showDetailFactValue {
-      margin-top: 0;
-      font-size: 12px;
+    .showDetailMapFrame.is-live::before,
+    .showDetailMapFrame.is-live::after {
+      display: none;
     }
 
     .showDetailBandsPanel {
@@ -5236,6 +5231,10 @@
       const bandNames = getShowBandNames(show);
       const descText = String(show && (show.show_desc || show.description || show.desc) || "").trim();
       const cameraDisplayText = String(getShowCameraLabel(show) || "").replace(/^\S+\s*/, "") || "N/A";
+      const mapQuery = [venueText, locationText].filter((value) => value && value !== "N/A").join(", ");
+      const mapSrc = mapQuery
+        ? `https://maps.google.com/maps?output=embed&t=k&z=15&q=${encodeURIComponent(mapQuery)}`
+        : "";
 
       showDetailOverlay.innerHTML = `
         <div class="personDetailDoorOverlay" aria-hidden="true">
@@ -5281,21 +5280,15 @@
                     <div class="showDetailFactLabel">Bands on This Bill</div>
                     <div class="showDetailFactValue">${bandNames.length.toLocaleString()}</div>
                   </div>
-                  <div class="showDetailFactCard">
-                    <div class="showDetailFactLabel">Archive Scope</div>
-                    <div class="showDetailFactValue">Music / Shows</div>
-                  </div>
                 </div>
                 ${descText ? `<div class="showDetailDesc">${escapeHtml(descText)}</div>` : ``}
               </div>
               <div class="showDetailMapPanel">
                 <div class="showDetailSectionLabel">Location Layer</div>
-                <div class="showDetailMapFrame">
-                  <div class="showDetailMapMeta">
-                    <div class="showDetailFactLabel">Venue Lock</div>
-                    <div class="showDetailFactValue">${escapeHtml(venueText)}</div>
-                    <div class="showDetailFactValue">${escapeHtml(locationText)}</div>
-                  </div>
+                <div class="showDetailMapFrame${mapSrc ? ' is-live' : ''}">
+                  ${mapSrc
+                    ? `<iframe src="${escapeHtml(mapSrc)}" title="${escapeHtml(title)} satellite map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`
+                    : ``}
                 </div>
               </div>
             </div>
