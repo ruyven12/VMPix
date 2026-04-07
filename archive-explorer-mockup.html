@@ -378,6 +378,10 @@
       gap: 10px;
     }
 
+    .subjectSelect[hidden] {
+      display: none;
+    }
+
     .sortSelect .subjectSelectTrigger {
       min-width: 286px;
     }
@@ -833,6 +837,11 @@
         radial-gradient(circle at top, rgba(239, 211, 155, 0.04), transparent 26%);
     }
 
+    .resultsPanel.is-person-rolodex {
+      height: auto;
+      min-height: 0;
+    }
+
     .resultsDoorOverlay {
       position: absolute;
       inset: 0;
@@ -938,6 +947,18 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.02),
         inset 0 -12px 20px rgba(0, 0, 0, 0.12);
       cursor: pointer;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] {
+      width: 100%;
+      min-height: 64px;
+      height: 64px;
+      padding: 10px 22px;
+      transform-origin: center center;
+      transition:
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        background 200ms ease;
     }
 
     .resultCard[data-type="band"] {
@@ -1090,6 +1111,14 @@
       width: 100%;
     }
 
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardMain {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
     .eyebrow {
       color: var(--cyan);
       font-size: 10px;
@@ -1192,6 +1221,13 @@
       align-items: start;
     }
 
+    .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: stretch;
+      gap: 8px;
+      padding: 0;
+    }
+
     .resultGroupBody[hidden] {
       display: none;
     }
@@ -1214,6 +1250,16 @@
       width: 100%;
       text-align: center;
       margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .cardTitle {
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .cardLinkText {
@@ -1247,6 +1293,37 @@
       text-align: center;
       transform: none;
       margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .personInstrumentLine {
+      text-align: center;
+      line-height: 1.15;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .personBandLine {
+      order: 3;
+      color: rgba(176, 161, 180, 0.72);
+      font-size: 14px;
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      width: 100%;
+      text-align: center;
+      transform: none;
+      margin: 0;
+    }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .personBandLine {
+      text-align: center;
+      line-height: 1.15;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .cardSub {
@@ -1285,7 +1362,7 @@
     }
 
     .resultCard[data-type="person"] .metaRow {
-      order: 3;
+      order: 4;
       justify-content: center;
       align-self: center;
       flex-wrap: nowrap;
@@ -1293,6 +1370,13 @@
       padding-top: 0;
       width: 100%;
     }
+
+    .resultsPanel.is-person-rolodex .resultCard[data-type="person"] .metaRow {
+      justify-content: center;
+      width: auto;
+      margin-top: 0;
+    }
+
 
     .metaPill {
       padding: 6px 10px;
@@ -1364,8 +1448,120 @@
       overflow: auto;
     }
 
+    .personDetailOverlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        repeating-radial-gradient(circle at 18% 32%, rgba(186, 24, 94, 0.95) 0 1px, transparent 1px 4px),
+        repeating-radial-gradient(circle at 78% 24%, rgba(126, 10, 66, 0.82) 0 1px, transparent 1px 5px),
+        repeating-radial-gradient(circle at 46% 74%, rgba(224, 62, 126, 0.58) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(180deg, rgba(148, 18, 80, 0.18) 0 1px, transparent 1px 4px),
+        linear-gradient(180deg, rgba(84, 8, 40, 0.16), rgba(58, 6, 28, 0.06));
+      background-size: 11px 11px, 17px 17px, 13px 13px, 100% 6px, auto;
+      mix-blend-mode: screen;
+    }
+
+    .personDetailOverlay > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .personDetailStageContent {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .personDetailOverlay.is-detail-ready .personDetailStageContent {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .personDetailDoorOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+
+    .personDetailDoorPanel {
+      width: 100%;
+      height: 50%;
+      background:
+        linear-gradient(180deg, rgba(26, 12, 24, 0.98), rgba(8, 10, 17, 0.99)),
+        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.18), transparent 34%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 128, 176, 0.12),
+        0 20px 44px rgba(0, 0, 0, 0.38);
+    }
+
+    .personDetailDoorPanel.is-top {
+      transform: translateY(-100%);
+      border-bottom: 1px solid rgba(105, 222, 255, 0.24);
+    }
+
+    .personDetailDoorPanel.is-bottom {
+      transform: translateY(100%);
+      border-top: 1px solid rgba(105, 222, 255, 0.24);
+    }
+
+    .personDetailOverlay.is-grain-transition {
+      animation: personDetailToneIn 760ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    .personDetailOverlay.is-grain-transition::before {
+      animation: personDetailGrainIn 860ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
     .personDetailOverlay[hidden] {
       display: none;
+    }
+
+    @keyframes personDetailGrainIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(-18px, 10px, 0) scale(1.2);
+        filter: contrast(2.2) brightness(0.0010);
+      }
+
+      16% {
+        opacity: 0.88;
+      }
+
+      42% {
+        opacity: 0.64;
+        transform: translate3d(14px, -8px, 0) scale(1.1);
+      }
+
+      72% {
+        opacity: 0.28;
+        transform: translate3d(-6px, 8px, 0) scale(1.04);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: contrast(1) brightness(1);
+      }
+    }
+
+    @keyframes personDetailToneIn {
+      0% {
+        filter: saturate(1.24) contrast(1.16) brightness(1.08);
+      }
+
+      100% {
+        filter: saturate(1) contrast(1) brightness(1);
+      }
     }
 
     .bandDetailOverlay {
@@ -2370,7 +2566,7 @@
               </div>
             </div>
             <div class="filterHints">
-              <div class="subjectSelect" id="filterSelect">
+              <div class="subjectSelect" id="filterSelect" hidden>
                 <button class="subjectSelectTrigger" id="filterSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                   <span class="subjectSelectTriggerLabel">Filter</span>
                   <span class="subjectSelectTriggerValue" id="filterSelectValue">Select</span>
@@ -2384,7 +2580,7 @@
                 </div>
               </div>
             </div>
-            <div class="subjectSelect sortSelect" id="sortSelect">
+            <div class="subjectSelect sortSelect" id="sortSelect" hidden>
               <button class="subjectSelectTrigger" id="sortSelectTrigger" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="subjectSelectTriggerLabel">Sort</span>
                 <span class="subjectSelectTriggerValue" id="sortSelectValue">A-Z</span>
@@ -3188,17 +3384,19 @@
         `;
 
         const groupCards = groupPeople.map((person) => {
+          const instrument = String(person && person.instrument || '').trim();
           const bands = String(person && person.bands || '').trim();
           return `
             <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                <div class="personInstrumentLine">${escapeHtml(instrument)}</div>
+                <div class="personBandLine">${escapeHtml(bands)}</div>
                 <div class="metaRow">
                   <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
-                <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
           `;
@@ -3231,17 +3429,19 @@
       const cardsMarkup = Array.from(groupedPeople.values()).map((groupData) => {
         const { subject, category, people: groupPeople } = groupData;
         const groupCards = groupPeople.map((person) => {
+          const instrument = String(person && person.instrument || '').trim();
           const bands = String(person && person.bands || '').trim();
           return `
-            <article class="resultCard" data-type="person" data-subject="music" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
+            <article class="resultCard" data-type="person" data-subject="${escapeHtml(subject)}" data-category="${escapeHtml(category)}" data-name="${escapeHtml(person.name)}" data-photo-count="${Number(person.photoCount || 0)}" data-album-count="${Number(person.albumCount || 0)}">
               <div class="cardBadge">PPL</div>
               <div class="cardMain">
+                <div class="cardTitle">${escapeHtml(person.name)}</div>
+                <div class="personInstrumentLine">${escapeHtml(instrument)}</div>
+                <div class="personBandLine">${escapeHtml(bands)}</div>
                 <div class="metaRow">
                   <div class="metaPill iconMetaPill photoPill">${Number(person.photoCount || 0).toLocaleString()}</div>
                   <div class="metaPill iconMetaPill showPill">${Number(person.albumCount || 0).toLocaleString()}</div>
                 </div>
-                <div class="cardTitle">${escapeHtml(person.name)}</div>
-                ${bands ? `<div class="personInstrumentLine">${escapeHtml(bands)}</div>` : ''}
               </div>
             </article>
           `;
@@ -3460,6 +3660,21 @@
       animateSelectMenu(sortMenu, isOpen);
     }
 
+    function syncProgressiveControlVisibility() {
+      const shouldShowFilter = !!activeSubject;
+      const shouldShowSort = !!activeSubject && !!activeFilter;
+
+      if (filterSelect) {
+        filterSelect.hidden = !shouldShowFilter;
+        if (!shouldShowFilter) setFilterMenuOpen(false);
+      }
+
+      if (sortSelect) {
+        sortSelect.hidden = !shouldShowSort;
+        if (!shouldShowSort) setSortMenuOpen(false);
+      }
+    }
+
     function animateSelectMenu(menuEl, isOpen) {
       if (!menuEl) return;
       if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -3628,9 +3843,13 @@
       });
 
       const activeRule = Object.values(config).find((rule) => !rule.hidden && rule.filter === activeFilter) || null;
+      if (!activeRule) {
+        activeFilter = "";
+      }
       if (filterSelectValue) {
         filterSelectValue.textContent = activeRule ? activeRule.label : "Select";
       }
+      syncProgressiveControlVisibility();
     }
 
     function setGroupExpanded(groupButton, isExpanded) {
@@ -3748,6 +3967,19 @@
       });
     }
 
+    function syncPersonRolodexCards() {
+      if (!resultsPanel) return;
+      const isRolodexMode = activeFilter === "person";
+      resultsPanel.classList.toggle("is-person-rolodex", isRolodexMode);
+
+      const personCards = resultCards.filter((card) => card && card.dataset.type === "person");
+      personCards.forEach((card) => {
+        card.style.transform = "";
+        card.style.opacity = "";
+        card.style.zIndex = "";
+      });
+    }
+
     function updateResultsVisibility() {
       sortPeopleGroupBodies();
       syncSubFilterButtons();
@@ -3784,6 +4016,18 @@
         if (group && body) {
           const isExpanded = group.getAttribute("aria-expanded") === "true";
           body.hidden = !hasVisibleCards || !isExpanded;
+          if (!hasVisibleCards || !isExpanded) {
+            try {
+              body.getAnimations().forEach((animation) => animation.cancel());
+            } catch (_) {}
+            body.style.height = "";
+            body.style.opacity = "";
+            body.style.overflow = "hidden";
+          } else {
+            body.style.height = "";
+            body.style.opacity = "";
+            body.style.overflow = "visible";
+          }
         }
         if (label) {
           const visibleInSection = resultCards.filter((card) =>
@@ -3804,6 +4048,7 @@
         : filterLabels[activeFilter];
 
       resultsMeta.textContent = !activeSubject || !activeFilter ? "Choose archive scope and filter to start the archive" : `${visibleCount} results across ${label}`;
+      syncPersonRolodexCards();
       syncMobileResultsFocusState();
     }
 
@@ -4427,6 +4672,99 @@
       }
     }
 
+    async function playPersonDetailDoorTransition() {
+      if (
+        !personDetailOverlay ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        if (personDetailOverlay) personDetailOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      const topPanel = personDetailOverlay.querySelector(".personDetailDoorPanel.is-top");
+      const bottomPanel = personDetailOverlay.querySelector(".personDetailDoorPanel.is-bottom");
+      if (
+        !topPanel ||
+        !bottomPanel ||
+        typeof topPanel.animate !== "function" ||
+        typeof bottomPanel.animate !== "function"
+      ) {
+        personDetailOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      try {
+        topPanel.getAnimations().forEach((animation) => animation.cancel());
+        bottomPanel.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      personDetailOverlay.classList.remove("is-detail-ready");
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(-100%)" },
+            { transform: "translateY(0)" }
+          ],
+          {
+            duration: 280,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(100%)" },
+            { transform: "translateY(0)" }
+          ],
+          {
+            duration: 280,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished
+      ]);
+
+      personDetailOverlay.classList.add("is-detail-ready");
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(-100%)" }
+          ],
+          {
+            duration: 360,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(100%)" }
+          ],
+          {
+            duration: 360,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "forwards"
+          }
+        ).finished
+      ]);
+
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+    }
+
+    function playPersonDetailGrainTransition() {
+      if (!personDetailOverlay) {
+        return;
+      }
+      personDetailOverlay.classList.add("is-detail-ready");
+    }
+
     async function openPersonDetailOverlay(card) {
       if (!personDetailOverlay || !card) return;
       const person = findPersonRecordFromCard(card);
@@ -4439,41 +4777,44 @@
       const placeholderAlbumCount = Number(person.albumCount || 0);
 
       personDetailOverlay.innerHTML = `
-        <div class="personDetailTopRow">
-          <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
-          <div class="personDetailSummary">
-            <div class="personDetailHeroCard">
-              <div class="personDetailHeroLabel">Performer</div>
-              <div class="personDetailName">${escapeHtml(name)}</div>
-            </div>
-            <div class="personDetailStatsGrid">
-              <div class="personDetailStatCard">
-                <div class="personDetailCountSplit">
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Total Albums</div>
-                    <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
-                  </div>
-                  <div class="personDetailCountCol">
-                    <div class="personDetailStatLabel">Photos</div>
-                    <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+        <div class="personDetailStageContent">
+          <div class="personDetailTopRow">
+            <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
+            <div class="personDetailSummary">
+              <div class="personDetailHeroCard">
+                <div class="personDetailHeroLabel">Performer</div>
+                <div class="personDetailName">${escapeHtml(name)}</div>
+              </div>
+              <div class="personDetailStatsGrid">
+                <div class="personDetailStatCard">
+                  <div class="personDetailCountSplit">
+                    <div class="personDetailCountCol">
+                      <div class="personDetailStatLabel">Total Albums</div>
+                      <div class="personDetailMeta" data-person-album-count>${placeholderAlbumCount.toLocaleString()}</div>
+                    </div>
+                    <div class="personDetailCountCol">
+                      <div class="personDetailStatLabel">Photos</div>
+                      <div class="personDetailMeta" data-person-photo-count>${placeholderPhotoCount.toLocaleString()}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Band(s)</div>
-                <div class="personDetailMeta personDetailMetaText">${escapeHtml(bands || "N/A")}</div>
-              </div>
-              <div class="personDetailStatCard">
-                <div class="personDetailStatLabel">Instrument(s)</div>
-                <div class="personDetailMeta personDetailMetaText">${escapeHtml(instrument || "N/A")}</div>
+                <div class="personDetailStatCard">
+                  <div class="personDetailStatLabel">Band(s)</div>
+                  <div class="personDetailMeta personDetailMetaText">${escapeHtml(bands || "N/A")}</div>
+                </div>
+                <div class="personDetailStatCard">
+                  <div class="personDetailStatLabel">Instrument(s)</div>
+                  <div class="personDetailMeta personDetailMetaText">${escapeHtml(instrument || "N/A")}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="personDetailList" data-person-detail-list>
-          <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
+          <div class="personDetailList" data-person-detail-list>
+            <div class="personDetailAlbumSub" style="padding:12px 0;">Loading albums...</div>
+          </div>
         </div>
       `;
+      personDetailOverlay.classList.add("is-detail-ready");
       personDetailOverlay.hidden = false;
       personDetailOverlay.setAttribute("aria-hidden", "false");
       const panel = document.querySelector(".resultsPanel");
@@ -4490,11 +4831,11 @@
       ) {
         personDetailOverlay.animate(
           [
-            { opacity: 0, transform: "translateY(22px) scale(0.985)" },
+            { opacity: 0, transform: "translateY(18px) scale(0.985)" },
             { opacity: 1, transform: "translateY(0) scale(1)" }
           ],
           {
-            duration: 340,
+            duration: 260,
             easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
             fill: "both"
           }
@@ -4620,6 +4961,7 @@
 
       syncFilterRowForSubject(subject);
       applyFilter(activeFilter);
+      syncProgressiveControlVisibility();
       setSubjectMenuOpen(false);
       saveMockupSessionState();
     }
@@ -4645,7 +4987,12 @@
         setSubFilter("all");
       }
 
-      runResultsDoorTransition(() => updateResultsVisibility());
+      if (activeSubject && activeFilter) {
+        runResultsDoorTransition(() => updateResultsVisibility());
+      } else {
+        updateResultsVisibility();
+      }
+      syncProgressiveControlVisibility();
       setFilterMenuOpen(false);
       saveMockupSessionState();
     }
@@ -4850,6 +5197,8 @@
       button.addEventListener("click", () => applyFilter(button.dataset.filter));
     });
 
+    syncProgressiveControlVisibility();
+
     async function restoreMockupSessionState() {
       const savedState = readMockupSessionState();
       if (!savedState) return;
@@ -4940,12 +5289,16 @@
 
     if (resultsPanel) {
       resultsPanel.addEventListener("scroll", () => {
+        syncPersonRolodexCards();
         syncMobileResultsFocusState();
         saveMockupSessionState();
       }, { passive: true });
     }
 
-    window.addEventListener("resize", syncMobileResultsFocusState, { passive: true });
+    window.addEventListener("resize", () => {
+      syncPersonRolodexCards();
+      syncMobileResultsFocusState();
+    }, { passive: true });
 
     window.addEventListener("beforeunload", () => {
       saveMockupSessionState();
