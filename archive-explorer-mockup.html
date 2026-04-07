@@ -532,7 +532,7 @@
 
     .subFilterControls {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
       justify-content: center;
       max-width: 100%;
@@ -928,6 +928,16 @@
         0 0 0 1px rgba(105, 222, 255, 0.05);
     }
 
+    .resultCard.is-disabled,
+    .resultCard.is-disabled:hover {
+      cursor: default;
+      transform: none;
+      border-color: rgba(255, 255, 255, 0.06);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -18px 28px rgba(0, 0, 0, 0.14);
+    }
+
     .resultCard[hidden] {
       display: none;
     }
@@ -976,6 +986,10 @@
         inset 0 -12px 20px rgba(0, 0, 0, 0.12);
     }
 
+    .resultCard[data-type="band"][data-band-clickable="true"] {
+      cursor: pointer;
+    }
+
     .resultCard[data-type="band"][data-band-tone="gold"] {
       border-color: rgba(239, 211, 155, 0.28);
       background:
@@ -1009,9 +1023,16 @@
         0 0 0 1px rgba(131, 149, 192, 0.05);
     }
 
+    .resultCard[data-type="band"][data-band-tone="slate"] .cardTitle,
+    .resultCard[data-type="band"][data-band-tone="slate"] .bandSetStat,
+    .resultCard[data-type="band"][data-band-tone="slate"] .eyebrow {
+      color: rgba(226, 230, 241, 0.74);
+    }
+
     .resultCard[data-type="band"] .cardTitle {
       color: #f4f0f7;
       font-size: 19px;
+      line-height: 1.05;
       text-shadow: 0 0 12px rgba(255, 255, 255, 0.03);
     }
 
@@ -1023,7 +1044,7 @@
 
     .bandTitleRow {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 8px;
       min-width: 0;
     }
@@ -1031,6 +1052,11 @@
     .bandTitleRow .cardTitle {
       min-width: 0;
       margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-wrap: balance;
     }
 
     .bandSetStat {
@@ -3555,6 +3581,7 @@
             const name = String(band.name || '').trim();
             const logoUrl = String(band.logoUrl || '').trim();
             const tone = getBandTone(band.totalSets, band.archivedSets);
+            const isClickable = tone === 'gold' || tone === 'emerald';
             const totalSetsValue = String(band.totalSets || '').trim();
             const archivedSetsValue = String(band.archivedSets || '').trim();
             const totalSets = Number(totalSetsValue);
@@ -3572,7 +3599,7 @@
               .join('') || 'BND';
 
             return `
-              <article class="resultCard" data-type="band" data-band-tone="${tone}" data-subject="music" data-category="${escapeHtml(region)}" data-name="${escapeHtml(name)}">
+              <article class="resultCard${isClickable ? '' : ' is-disabled'}" data-type="band" data-band-tone="${tone}" data-band-clickable="${isClickable ? 'true' : 'false'}" data-subject="music" data-category="${escapeHtml(region)}" data-name="${escapeHtml(name)}" ${isClickable ? '' : 'aria-disabled="true"'}>
                 <div class="cardBadge">
                   ${logoUrl
                     ? `<img class="cardBadgeImage" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(name)} logo" />`
@@ -3604,6 +3631,7 @@
         .join('');
 
       mount.outerHTML = markup;
+      fitBandCardTitles();
     }
 
     function renderPeopleCards() {
@@ -3889,6 +3917,21 @@
       if (archivedSets === totalSets) return "emerald";
       if (archivedSets < totalSets) return "gold";
       return "slate";
+    }
+
+    function fitBandCardTitles() {
+      const titleEls = Array.from(document.querySelectorAll('.resultCard[data-type="band"] .bandTitleRow .cardTitle'));
+      titleEls.forEach((titleEl) => {
+        const rowEl = titleEl.closest('.bandTitleRow');
+        if (!rowEl) return;
+        titleEl.style.fontSize = '';
+        let fontSize = 19;
+        titleEl.style.fontSize = `${fontSize}px`;
+        while (fontSize > 13 && rowEl.scrollWidth > rowEl.clientWidth + 1) {
+          fontSize -= 1;
+          titleEl.style.fontSize = `${fontSize}px`;
+        }
+      });
     }
 
     function setSubjectMenuOpen(isOpen) {
@@ -5610,6 +5653,10 @@
 
       const bandCard = event.target && event.target.closest ? event.target.closest(".resultCard[data-type='band']") : null;
       if (bandCard && !bandCard.hidden) {
+        if (bandCard.dataset.bandClickable !== 'true') {
+          event.preventDefault();
+          return;
+        }
         event.preventDefault();
         openBandDetailOverlay(bandCard);
         return;
@@ -5677,6 +5724,10 @@
       if (!group) return;
       const isExpanded = group.getAttribute("aria-expanded") === "true";
       setGroupExpanded(group, !isExpanded);
+    });
+
+    window.addEventListener("resize", () => {
+      fitBandCardTitles();
     });
 
     document.addEventListener("keydown", (event) => {
