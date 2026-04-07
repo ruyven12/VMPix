@@ -2029,6 +2029,12 @@
       text-transform: uppercase;
     }
 
+    .bandDetailMembersLabel {
+      width: 100%;
+      text-align: center;
+      justify-self: center;
+    }
+
     .bandDetailName {
       margin-top: 10px;
       color: #fff6fb;
@@ -2167,7 +2173,7 @@
 
     .bandDetailAlbumTitle {
       color: #fff5fb;
-      font-size: clamp(22px, 2.4vw, 31px);
+      font-size: clamp(20px, 2.2vw, 29px);
       line-height: 1.08;
       letter-spacing: 0.02em;
       text-transform: none;
@@ -3166,6 +3172,17 @@
     }
 
     const bandAlbumCache = new Map();
+    const bandAlbumThumbCache = new Map();
+
+    function getBandAlbumKey(album) {
+      const source = (album && typeof album === 'object') ? album : {};
+      return String(
+        source.albumKey ||
+        source.AlbumKey ||
+        (source.Album && source.Album.AlbumKey) ||
+        ''
+      ).trim();
+    }
 
     async function fetchBandAlbums(folderPath, region) {
       const safeFolder = cleanBandFolderPath(folderPath);
@@ -3195,6 +3212,45 @@
       } catch (_) {
         bandAlbumCache.set(cacheKey, []);
         return [];
+      }
+    }
+
+    async function loadBandAlbumThumb(album) {
+      const directThumb = pickFirstImageUrl(album);
+      if (directThumb) return directThumb;
+
+      const albumKey = getBandAlbumKey(album);
+      if (!albumKey) return '';
+      if (bandAlbumThumbCache.has(albumKey)) return bandAlbumThumbCache.get(albumKey) || '';
+
+      try {
+        const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(albumKey)}?count=1&start=1`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const firstImage = extractAlbumImagesFromPage(payload)[0] || null;
+        const thumbUrl = pickAlbumImageThumb(firstImage);
+        bandAlbumThumbCache.set(albumKey, thumbUrl);
+        return thumbUrl;
+      } catch (_) {
+        bandAlbumThumbCache.set(albumKey, '');
+        return '';
+      }
+    }
+
+    async function hydrateBandAlbumThumbs(albums, gridEl, bandToken) {
+      const list = Array.isArray(albums) ? albums : [];
+      if (!gridEl || !list.length) return;
+
+      for (const album of list) {
+        const albumKey = getBandAlbumKey(album);
+        if (!albumKey) continue;
+        if (pickFirstImageUrl(album)) continue;
+        const thumbUrl = await loadBandAlbumThumb(album);
+        if (!thumbUrl || !activeBandDetail || activeBandDetail !== bandToken || !bandDetailOverlay || bandDetailOverlay.hidden) continue;
+        const thumbShell = gridEl.querySelector(`[data-band-album-thumb="${window.CSS && window.CSS.escape ? window.CSS.escape(albumKey) : albumKey}"]`);
+        const imgEl = thumbShell ? thumbShell.querySelector('img') : null;
+        if (!imgEl) continue;
+        imgEl.src = thumbUrl;
       }
     }
 
@@ -4351,10 +4407,11 @@
         const title = bits.showName || rawName || 'Untitled Album';
         const dateText = bits.showDate ? formatShowDateLabel(bits.showDate) : '';
         const thumbUrl = pickFirstImageUrl(album);
+        const albumKey = getBandAlbumKey(album);
         const thumbFallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="220"%3E%3Crect width="100%25" height="100%25" fill="rgba(255,255,255,0.06)" /%3E%3C/svg%3E';
         return `
           <article class="bandDetailAlbumCard">
-            <div class="bandDetailAlbumThumb">
+            <div class="bandDetailAlbumThumb"${albumKey ? ` data-band-album-thumb="${escapeHtml(albumKey)}"` : ''}>
               ${thumbUrl
                 ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
                 : `<img src="${thumbFallback}" alt="" loading="lazy" decoding="async" />`}
@@ -4487,6 +4544,7 @@
       if (!bandDetailOverlay || bandDetailOverlay.hidden || activeBandDetail !== band) return;
       if (albumsGrid) {
         albumsGrid.innerHTML = renderBandDetailAlbumsMarkup(albums);
+        hydrateBandAlbumThumbs(albums, albumsGrid, band);
       }
     }
 
