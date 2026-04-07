@@ -3626,10 +3626,13 @@
 
     function buildShowVenueLine(show) {
       const venue = String(show && show.venue || '').trim();
+      return venue;
+    }
+
+    function buildShowLocationLine(show) {
       const city = String(show && show.city || '').trim();
       const state = String(show && show.state || '').trim();
-      const place = [city, state].filter(Boolean).join(', ');
-      return [venue, place].filter(Boolean).join(' - ');
+      return [city, state].filter(Boolean).join(', ');
     }
 
     function getShowCameraLabel(show) {
@@ -3672,6 +3675,7 @@
         const rawDate = String(show && show.date || '').trim();
         const dateText = formatShowDateLabel(rawDate);
         const venueText = buildShowVenueLine(show);
+        const locationText = buildShowLocationLine(show);
         const cameraText = getShowCameraLabel(show);
         const yearValue = rawDate.split('/').pop() || '';
         const normalizedYear = /^\d{2}$/.test(yearValue) ? `20${yearValue}` : yearValue;
@@ -3687,6 +3691,7 @@
               <div class="cardTitle">${escapeHtml(title)}</div>
               ${dateText ? `<div class="showDateLine">${escapeHtml(dateText)}</div>` : ''}
               ${venueText ? `<div class="showVenueLine">${escapeHtml(venueText)}</div>` : ''}
+              ${locationText ? `<div class="showVenueLine">${escapeHtml(locationText)}</div>` : ''}
               ${cameraText ? `<div class="showCameraLine">${escapeHtml(cameraText)}</div>` : ''}
             </div>
           </article>
