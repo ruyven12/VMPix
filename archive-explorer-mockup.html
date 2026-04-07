@@ -5126,7 +5126,7 @@
               <div class="personAlbumInfoLabel">People in Album</div>
               ${peopleInAlbum.length
                 ? `<div class="chipRow">${peopleInAlbum.map((name) => `<button class="chip" type="button" data-band-album-person="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('')}</div>`
-                : `<div class="personAlbumInfoValue">${escapeHtml(bandName || 'N/A')}</div>`}
+                : `<div class="personAlbumInfoValue">No tagged individuals</div>`}
             </div>
           </div>
         `;
