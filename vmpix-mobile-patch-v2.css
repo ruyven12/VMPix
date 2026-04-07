@@ -111,8 +111,10 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
     background: #000 !important;
     opacity: 1 !important;
     z-index: 999 !important;
-    overflow: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     padding: 4px 0 !important;
+    border-radius: 18px !important;
   }
 
   .hudMenuOverlay .hudMenuItem{

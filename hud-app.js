@@ -95,8 +95,10 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           max-width: calc(100vw - 28px) !important;
           top: 74px !important;
           padding: 4px 0 !important;
-          overflow: auto !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
           transform: translateX(-50%) !important;
+          border-radius: 18px !important;
         }
 
         .hudMenuOverlay.is-collapsed{
