@@ -1072,7 +1072,8 @@
     }
 
     .resultCard[data-type="show"] {
-      grid-template-columns: 116px minmax(0, 1fr) auto;
+      grid-column: span 2;
+      grid-template-columns: 116px minmax(0, 1fr);
       align-items: center;
       padding: 14px;
       border-radius: 16px;
@@ -2689,6 +2690,7 @@
       }
 
       .resultCard[data-type="show"] {
+        grid-column: 1 / -1;
         grid-template-columns: 92px minmax(0, 1fr);
       }
 
@@ -3671,7 +3673,6 @@
         const dateText = formatShowDateLabel(rawDate);
         const venueText = buildShowVenueLine(show);
         const cameraText = getShowCameraLabel(show);
-        const bandCount = getBandCount(show);
         const yearValue = rawDate.split('/').pop() || '';
         const normalizedYear = /^\d{2}$/.test(yearValue) ? `20${yearValue}` : yearValue;
         return `
@@ -3687,11 +3688,7 @@
               ${dateText ? `<div class="showDateLine">${escapeHtml(dateText)}</div>` : ''}
               ${venueText ? `<div class="showVenueLine">${escapeHtml(venueText)}</div>` : ''}
               ${cameraText ? `<div class="showCameraLine">${escapeHtml(cameraText)}</div>` : ''}
-              <div class="metaRow">
-                <div class="metaPill">${bandCount.toLocaleString()} band${bandCount === 1 ? '' : 's'}</div>
-              </div>
             </div>
-            <div class="cardAction">Open Show</div>
           </article>
         `;
       }).join('');
