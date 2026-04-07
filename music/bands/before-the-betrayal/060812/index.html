@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/" />
   <title>Voodoo Media</title>
+  <script>
+    (function () {
+      try {
+        var redirect = new URLSearchParams(window.location.search).get("spa");
+        if (!redirect) return;
+        var target = decodeURIComponent(String(redirect || ""));
+        if (!target || target.charAt(0) !== "/") return;
+        window.history.replaceState(window.history.state || {}, document.title, target);
+      } catch (_) {}
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -245,7 +256,7 @@
     position: absolute;
     inset: 0;
     display: grid;
-    grid-template-rows:  74px auto 1fr;
+    grid-template-rows: 74px 0 1fr;
     padding: 14px 16px;
     gap: 12px;
     color: var(--hud-txt);
@@ -257,21 +268,81 @@
   .hudTopbar{
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border-radius: var(--hud-radius);
     border: 1px solid rgba(255,60,60,.22);
     background: linear-gradient(180deg, rgba(18,8,10,.72), rgba(10,6,7,.55));
     box-shadow: inset 0 0 0 1px rgba(255,60,60,.08);
+    padding: 10px 16px;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 160ms ease;
+    position: relative;
+  }
+
+  .hudTopbar:hover{
+    border-color: rgba(255,80,80,.34);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,60,60,.10),
+      0 0 18px rgba(255,60,60,.10);
+  }
+
+  .hudTopbar:active{
+    transform: translateY(1px);
+  }
+
+  .hudTopbar[aria-expanded="true"]{
+    border-color: rgba(255,80,80,.42);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,60,60,.12),
+      0 0 24px rgba(255,60,60,.12);
+  }
+
+  .hudMenuCopy{
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    flex: 0 1 auto;
+    min-width: 110px;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255, 236, 240, .94);
+    text-align: left;
+    text-shadow: 0 0 10px rgba(255, 80, 110, .14);
+  }
+
+  .hudMenuLabel{
+    color: rgba(255, 222, 228, .96);
+  }
+
+  .hudMenuChevron{
+    color: rgba(126, 228, 255, .88);
+    font-size: 11px;
+    letter-spacing: 0;
+    line-height: 1;
+    transition: transform 180ms ease, filter 180ms ease;
+    filter: drop-shadow(0 0 0 rgba(126, 228, 255, 0));
+  }
+
+  .hudTopbar[aria-expanded="true"] .hudMenuChevron{
+    transform: rotate(180deg);
+    filter: drop-shadow(0 0 6px rgba(126, 228, 255, 0.42));
   }
 
   .hudBrandLink{
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .hudBrandImg{
-    height: 100px;
+    height: 68px;
     width: auto;
     display: block;
     filter: drop-shadow(0 0 12px rgba(255,60,60,.35));
@@ -281,8 +352,7 @@
    HUD CONTENT (reveal + sweep)
    ============================= */
   .hudTopbar,
-  .hudContent > :nth-child(2),
-  .hudContent > :nth-child(3){
+  .hudStub.hudMain{
     opacity: 0;
     will-change: transform, opacity, filter;
   }
@@ -320,19 +390,13 @@
     animation: hudTopbarIn 540ms ease-out 720ms forwards;
   }
 
-  .hudContent > :nth-child(2){
+  .hudStub.hudMain{
     transform: translateY(10px);
     animation: hudSectionIn 600ms cubic-bezier(.2,.8,.2,1) 820ms forwards;
   }
 
-  .hudContent > :nth-child(3){
-    transform: translateY(8px);
-    animation: hudFooterIn 540ms ease-out 940ms forwards;
-  }
-
   .hudTopbar::after{ animation: hudScanSweep 1100ms ease-in-out 760ms 1; }
-  .hudContent > :nth-child(2)::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
-  .hudContent > :nth-child(3)::after{ animation: hudScanSweep 1200ms ease-in-out 980ms 1; }
+  .hudStub.hudMain::after{ animation: hudScanSweep 1200ms ease-in-out 860ms 1; }
 
   /* =============================
    HUD INTRO PILLS (tabs)
@@ -463,6 +527,122 @@
     filter: brightness(1.06);
     animation: hudPillActivate 220ms ease-out;
   }
+  .hudIntroText.is-disabled{
+    opacity: .58;
+    filter: saturate(.76);
+  }
+  .hudIntroText.is-admin-unlocked{
+    opacity: 1;
+    filter: brightness(1.06);
+    background: linear-gradient(180deg, rgba(255,60,60,.18), rgba(0,0,0,.14));
+    border-color: rgba(255,60,60,.45);
+    box-shadow:
+      0 0 0 1px rgba(255,60,60,.20),
+      0 0 24px rgba(255,60,60,.22),
+      inset 0 0 22px rgba(255,60,60,.14);
+  }
+  .hudAdminModal{
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(2,2,6,.74);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+  }
+  .hudAdminModal.is-open{ display:flex; }
+  .hudAdminCard{
+    width: min(420px, 94vw);
+    padding: 18px 18px 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(20,10,23,.96), rgba(12,7,16,.96));
+    border: 1px solid rgba(255,70,110,.28);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.10), 0 0 28px rgba(255,70,110,.16), 0 16px 42px rgba(0,0,0,.45);
+  }
+  .hudAdminEyebrow{
+    color: rgba(255,130,164,.86);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .hudAdminTitle{
+    margin-top: 6px;
+    color: rgba(245,236,242,.96);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    line-height: 1.04;
+  }
+  .hudAdminBody{
+    margin-top: 10px;
+    color: rgba(225,208,220,.82);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .hudAdminField{
+    width: 100%;
+    margin-top: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,70,110,.24);
+    background: rgba(0,0,0,.22);
+    color: rgba(245,236,242,.96);
+    padding: 11px 12px;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 13px;
+    letter-spacing: .08em;
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .hudAdminField:focus{
+    border-color: rgba(255,110,150,.54);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.16), 0 0 18px rgba(255,70,110,.14);
+  }
+  .hudAdminError{
+    min-height: 16px;
+    margin-top: 10px;
+    color: rgba(255,130,164,.92);
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .hudAdminActions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .hudAdminBtn{
+    appearance: none;
+    border: 1px solid rgba(255,70,110,.24);
+    background: rgba(0,0,0,.16);
+    color: rgba(245,236,242,.94);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-family: "Orbitron", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .hudAdminBtn:hover{
+    border-color: rgba(255,70,110,.44);
+    box-shadow: 0 0 0 1px rgba(255,70,110,.12), 0 0 18px rgba(255,70,110,.10);
+  }
+  .hudAdminBtn.is-primary{
+    background: linear-gradient(180deg, rgba(255,96,140,.96), rgba(224,72,114,.92));
+    color: rgba(34,8,18,.96);
+    border-color: rgba(255,120,154,.48);
+  }
 
   .hudIntroText:active{ transform: translateY(1px); }
 
@@ -474,16 +654,8 @@
     animation: hudTypeIn 420ms steps(var(--intro-chars), end) 720ms forwards;
   }
 
-  .hudContent > :nth-child(2){
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: transparent;
-    border: none;
-  }
-
-  .hudContent > :nth-child(2),
-  .hudContent > :nth-child(3){
+  .hudTopbar,
+  .hudStub.hudMain{
     font-family: 'Orbitron', system-ui, sans-serif;
   }
 
@@ -495,10 +667,12 @@
    ============================= */
   .hudMainPlain{
     width: 100%;
-    max-width: min(760px, 92%);
+    max-width: none;
+    min-height: 100%;
     margin: 0 auto;
     display: grid;
-    place-items: center;
+    place-items: stretch;
+    align-content: stretch;
     padding: 18px 20px;
     text-align: center;
   }
@@ -535,7 +709,7 @@
    HUD MAIN TEXT SAFETY
    Ensures Home text is visible even if a route module momentarily clears the mount
    ============================= */
-  #hudMainMount{ width:100%; }
+  #hudMainMount{ width:100%; min-height:100%; }
   .neonFrameTextInner{ min-height: 56px; }
   [data-hud-main-text]{ opacity: 1 !important; }
 
@@ -627,7 +801,7 @@
    NAV STUB (TOP MENU): wrap + content-sized pills
 
   /* Nav stub should not clip wrapped pills (icons/glow/rounded corners) */
-  .hudContent > .hudStub:not(.hudMain){
+  .hudMenuOverlay{
     overflow: visible;
   }
 
@@ -635,22 +809,221 @@
      rely on max-width breakpoints to prevent pill pinch/cutoff.
    - Keep HUD MAIN panel styling untouched (.hudStub.hudMain)
    ============================= */
-  .hudContent > .hudStub:not(.hudMain){
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: clamp(8px, 2.2vw, 12px);
-    padding: 10px 12px;
-    text-align: center;
+  .hudMenuOverlay{
+    display: grid;
+    justify-items: stretch;
+    justify-content: start;
+    gap: 0;
+    position: absolute;
+    top: 88px;
+    left: 20px;
+    z-index: 999;
+    width: min(340px, calc(100% - 32px));
+    padding: 6px 0;
+    text-align: left;
+    max-height: min(calc(100% - 104px), 520px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    opacity: 1;
+    transform: translateY(0);
+    transform-origin: top left;
+    border: 1px solid rgba(255,110,140,.22);
+    background: #000000;
+    border-radius: 18px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.03),
+      0 24px 54px rgba(0,0,0,.62),
+      0 0 28px rgba(255,60,60,.10);
+    animation: none !important;
+    will-change: auto;
+    isolation: isolate;
+    overscroll-behavior: contain;
+    transition:
+      opacity 100ms ease,
+      transform 100ms ease,
+      border-color 120ms ease;
+  }
+
+  .hudMenuOverlay::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.88)),
+      radial-gradient(900px 520px at 50% 20%, rgba(16,18,24,.30), transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms ease;
+    z-index: -1;
+  }
+
+  body.hud-menu-open .hudMenuOverlay::before{
+    opacity: 1;
+  }
+
+  .hudMenuOverlay.is-collapsed{
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    inset: auto;
+    width: 0;
+    max-width: 0;
+    max-height: 0;
+    min-height: 0;
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+    border-color: rgba(255,60,60,0);
+    transform: translateY(-4px);
+    overflow: hidden;
+    animation: none !important;
   }
 
   /* Make pills size to their text (no forced widths) */
-  .hudContent > .hudStub:not(.hudMain) .hudIntroText{
-    flex: 0 0 auto;
-    padding: 6px 14px;
-    font-size: clamp(11px, 2.6vw, 13px);
-    line-height: 1.05;
+  .hudMenuOverlay .hudMenuItem{
+    display: grid;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 0;
+    background: #000000;
+    box-shadow: none;
+    font-size: 14px;
+    line-height: 1.15;
+    text-align: left;
+    color: rgba(248,236,240,.96);
+    letter-spacing: .06em;
+    text-transform: none;
+    font-family: Orbitron, system-ui, sans-serif;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    transform: none !important;
+    filter: none;
+    align-items: center;
+    justify-items: start;
+  }
+
+  .hudMenuOverlay .hudMenuItem.is-disabled{
+    color: rgba(248,236,240,.46);
+    cursor: default;
+  }
+
+  .hudMenuOverlay .hudMenuItem.is-disabled:hover{
+    background: #000000;
+    border-color: rgba(255,255,255,.07);
+  }
+
+  .hudMenuOverlay .hudMenuDivider{
+    width: calc(100% - 40px);
+    height: 1px;
+    margin: 2px 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.16), rgba(255,255,255,0));
+  }
+
+  .hudMenuOverlay .hudMenuSubItem{
+    min-height: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 34px;
+    font-size: 13px;
+    text-align: left;
+    justify-items: start;
+  }
+
+  .hudMenuOverlay .hudMenuGroupPanel{
+    display: grid;
+    width: 100%;
+    gap: 0;
+  }
+
+  .hudMenuOverlay .hudMenuGroupPanel[hidden]{
+    display: none;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle .hudIntroType{
+    position: relative;
+    display: block;
+    padding-right: 18px;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle .hudIntroType::after{
+    content: '▸';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(248,236,240,.72);
+    transition: transform 100ms ease;
+  }
+
+  .hudMenuOverlay .hudMenuGroupToggle[aria-expanded="true"] .hudIntroType::after{
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  .hudMenuOverlay .hudMenuSubItem .hudIntroType{
+    display: inline-block;
+  }
+
+  .hudMenuOverlay .hudMenuItem .hudIntroType{
+    display: block;
+    width: 100%;
+    line-height: 1.15;
+  }
+
+  .hudMenuOverlay .hudMenuItem:last-child{
+    border-bottom: 0;
+  }
+
+  .hudMenuOverlay .hudMenuItem:hover{
+    background: rgba(24,24,24,.98);
+    box-shadow: none;
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .hudTopbar,
+  .hudMainPlain,
+  #hudMainMount,
+  .hudStub.hudMain::before,
+  .hudStub.hudMain::after{
+    transition:
+      opacity 140ms ease,
+      filter 160ms ease,
+      transform 160ms ease;
+  }
+
+  body.hud-menu-open .hudMainPlain,
+  body.hud-menu-open #hudMainMount{
+    opacity: .06;
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  body.hud-menu-open .hudStub.hudMain::before,
+  body.hud-menu-open .hudStub.hudMain::after{
+    opacity: 0 !important;
+  }
+
+  body.hud-menu-open .hudTopbar{
+    border-color: rgba(255,104,138,.38);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,80,80,.12),
+      0 0 28px rgba(255,40,70,.16);
+  }
+
+  body.hud-menu-open .hudTopbar .hudBrandLink{
+    opacity: .52;
+  }
+
+  .hudMenuOverlay .hudMenuItem .hudIntroType{
+    width: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+    white-space: nowrap;
   }
 
   /* Disable ch-based typing width on touch + WebViews (prevents clipped labels) */
@@ -674,8 +1047,12 @@
 
 
   .hudStub.hudMain{
+  grid-row: 3;
   border: 1px solid rgba(255,60,60,.32);
   border-radius: var(--hud-radius);
+  height: 100%;
+  min-height: 100%;
+  align-self: stretch;
 
   place-items: start center;
   align-content: start;
@@ -684,6 +1061,24 @@
   padding-top: 8px;
   padding-bottom: 12px;
 }
+
+  body.route-testing .hudMainPlain,
+  body.route-testing #hudMainMount{
+    width: 100%;
+    max-width: none;
+  }
+
+  body.route-testing .hudMainPlain{
+    margin: 0;
+    place-items: stretch;
+    padding: 6px 0 10px;
+    text-align: initial;
+  }
+
+  body.route-testing .hudStub.hudMain{
+    padding-left: 2px;
+    padding-right: 2px;
+  }
 
 
   /* =============================
@@ -754,6 +1149,12 @@
   @media (prefers-reduced-motion: reduce){
     .hudStub.hudMain::before,
     .hudStub.hudMain::after{ display:none !important; }
+    .hudContent > .hudStub:not(.hudMain){
+      transition: none !important;
+    }
+    .hudMenuChevron{
+      transition: none !important;
+    }
   }
 
   /* =============================
@@ -779,6 +1180,22 @@
   @media (prefers-reduced-motion: reduce){
     .hudStub.hudMain::before{ opacity: .38; animation: none !important; }
     .hudStub.hudMain::after{  opacity: .12; animation: none !important; }
+  }
+
+  @media (max-width: 760px){
+    body.route-home .hudStub.hudMain{
+      min-height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    body.route-home .hudMainPlain,
+    body.route-home #hudMainMount{
+      width: 100%;
+      min-height: max-content;
+    }
   }
 
   /* =============================
@@ -1229,7 +1646,7 @@
     #hudEmbers{ display:none !important; }
     .hudAtmos{ animation: none !important; }
     .hud, .hudSweep, .hudNoise,
-    .hudTopbar, .hudContent > :nth-child(2), .hudContent > :nth-child(3){
+    .hudTopbar, .hudStub.hudMain{
       animation: none !important, plasmaPulse 2s ease-in-out infinite;
     }
 
@@ -1750,7 +2167,7 @@
 </style>
 
   <link rel="stylesheet" href="vmpix-mobile-patch-v2.css?v=2">
-  <script src="vmpix-webview.js?v=2" defer></script>
+  <script src="vmpix-webview.js?v=3" defer></script>
 
 </head>
 
@@ -1772,21 +2189,23 @@
           <div class="hudFrameCorners" aria-hidden="true"></div>
 
           <div class="hudContent">
-            <div class="hudTopbar">
-              <a class="hudBrandLink" href="/" data-nav="home">
+            <div
+              class="hudTopbar"
+              role="button"
+              tabindex="0"
+              aria-label="Toggle navigation menu"
+              aria-expanded="false"
+              aria-controls="hudPrimaryNav"
+              data-hud-menu-toggle="1"
+            >
+              <div class="hudMenuCopy" aria-hidden="true">
+                <span class="hudMenuLabel">Menu</span>
+                <span class="hudMenuChevron">▼</span>
+              </div>
+              <div class="hudBrandLink" aria-hidden="true">
                 <img class="hudBrandImg" src="https://photos.smugmug.com/photos/i-BsRTsVG/0/L4SW2t9W7D5HVTVq6hFCZdKrR8RLwktQt4KbdZ2ZB/X4/i-BsRTsVG-X4.png" alt="Voodoo Media" />
-              </a>
+              </div>
             </div>
-            <div class="hudStub">
-			<a class="hudIntroText" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
-  <a class="hudIntroText" href="/music" data-nav="music"><svg class="nav-icon nav-icon-wave" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 6 12 9 6 12 18 15 9 18 12 21 12"></polyline></svg><span class="hudIntroType">Music</span></a>
-  <a class="hudIntroText" href="/wrestling" data-nav="wrestling"><svg class="nav-icon nav-icon-lucha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4 Q12 2 18 4 Q20 8 20 12 Q20 18 12 22 Q4 18 4 12 Q4 8 6 4 Z"></path><path d="M8 10 Q10 8 12 10"></path><path d="M12 10 Q14 8 16 10"></path><line x1="12" y1="10" x2="12" y2="14"></line></svg><span class="hudIntroType">Wrestling</span></a>
-  <a class="hudIntroText" href="/calendar" data-nav="calendar"><svg class="nav-icon nav-icon-calendar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="hudIntroType">Calendar</span></a>
-  <a class="hudIntroText" href="/about" data-nav="about"><span class="hudIntroType">About</span></a>
-  <a class="hudIntroText" href="/pricing" data-nav="pricing"><svg class="nav-icon nav-icon-dollar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7.5c0-1.9-1.8-3.5-4-3.5s-4 1.6-4 3.5 1.3 3.1 4 3.5 4 1.6 4 3.5-1.8 3.5-4 3.5-4-1.6-4-3.5"></path><line x1="12" y1="2.5" x2="12" y2="21.5"></line></svg><span class="hudIntroType">Pricing</span></a>
-  <a class="hudIntroText" href="/contact" data-nav="contact"><span class="hudIntroType">Contact</span></a>
-</div>
-
             <div class="hudStub hudMain">
   <!-- HUD MAIN (PLAIN) : neon frame removed globally -->
   <div class="hudMainPlain">
@@ -1794,8 +2213,33 @@
   </div>
 </div>
 </div>
-</div>
+        <div class="hudMenuOverlay is-collapsed" id="hudPrimaryNav" data-hud-menu-panel="1" hidden aria-hidden="true">
+          <a class="hudIntroText hudMenuItem" href="/" data-nav="home"><span class="hudIntroType">Home</span></a>
+          <a class="hudIntroText hudMenuItem hudMenuGroupToggle" href="#" data-nav="music" data-menu-group-toggle="music" aria-expanded="false" aria-controls="hudMenuGroupMusic"><span class="hudIntroType">Music</span></a>
+          <div class="hudMenuGroupPanel" id="hudMenuGroupMusic" data-menu-group-panel="music" hidden aria-hidden="true">
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music" data-route-path="/music" data-parent-nav="music"><span class="hudIntroType">Overview</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/project" data-route-path="/music/project" data-parent-nav="music"><span class="hudIntroType">The Reimaging Project</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/origins" data-route-path="/music/origins" data-parent-nav="music"><span class="hudIntroType">Origins of Music</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/music/stats" data-route-path="/music/stats" data-parent-nav="music"><span class="hudIntroType">Stats</span></a>
+          </div>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem hudMenuGroupToggle" href="#" data-nav="wrestling" data-menu-group-toggle="wrestling" aria-expanded="false" aria-controls="hudMenuGroupWrestling"><span class="hudIntroType">Wrestling</span></a>
+          <div class="hudMenuGroupPanel" id="hudMenuGroupWrestling" data-menu-group-panel="wrestling" hidden aria-hidden="true">
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling" data-route-path="/wrestling" data-parent-nav="wrestling"><span class="hudIntroType">Overview</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem" href="/wrestling/origins" data-route-path="/wrestling/origins" data-parent-nav="wrestling"><span class="hudIntroType">Origins of Wrestling</span></a>
+            <a class="hudIntroText hudMenuItem hudMenuSubItem is-disabled" href="#" data-disabled="1" aria-disabled="true" data-parent-nav="wrestling"><span class="hudIntroType">Stats (Coming Soon)</span></a>
+          </div>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/calendar" data-nav="calendar"><span class="hudIntroType">Calendar</span></a>
+          <a class="hudIntroText hudMenuItem" href="/pricing" data-nav="pricing"><span class="hudIntroType">Pricing Info</span></a>
+          <a class="hudIntroText hudMenuItem" href="/contact" data-nav="contact"><span class="hudIntroType">Contact Info</span></a>
+          <div class="hudMenuDivider" aria-hidden="true"></div>
+          <a class="hudIntroText hudMenuItem" href="/about" data-nav="about"><span class="hudIntroType">About</span></a>
+          <a class="hudIntroText hudMenuItem" href="/testing" data-nav="testing" data-admin-gated="1" hidden aria-hidden="true"><span class="hudIntroType">Testing</span></a>
+          <a class="hudIntroText hudMenuItem" href="/admin" data-nav="admin" data-admin-trigger="1" aria-expanded="false"><span class="hudIntroType">Admin</span></a>
         </div>
+        </div>
+      </div>
       </div>
     </main>
   </section>
@@ -1813,20 +2257,20 @@
     return base + '/analytics/collect';
   })();
 </script>
-<script src="/analytics-client.js?v=20260317-admin-analytics-l" defer></script>
+<script src="/analytics-client.js?v=20260318-admin-analytics-r3" defer></script>
 
 <!-- Music sub-modules FIRST -->
-<script src="music-archive-bands.js" defer></script>
-<script src="music-archive-shows.js" defer></script>
+<script src="music-archive-bands.js?v=20260401-geo-r1" defer></script>
+  <script src="music-archive-shows.js?v=20260401-geo-map-r1" defer></script>
 
 <!-- Music router LAST -->
-<script src="music-archive.js?v=20260317-admin-analytics-l" defer></script>
+  <script src="music-archive.js?v=20260401-recent-activity-r3" defer></script>
 
-<script src="wrestling-archive.js" defer></script>
+<script src="wrestling-archive.js?v=20260330-shows-people-chip-r1" defer></script>
 <script src="about-archive.js" defer></script>
-<script src="pricing.js?v=20260317-admin-analytics-l" defer></script>
-<script src="contact.js?v=20260317-admin-analytics-l" defer></script>
-<script src="home.js?v=20260317-admin-analytics-l" defer></script>
+<script src="pricing.js?v=20260318-admin-analytics-r2" defer></script>
+<script src="contact.js?v=20260318-admin-analytics-r2" defer></script>
+<script src="home.js?v=20260318-admin-analytics-r2" defer></script>
 
 <!-- Calendar config (must be defined before calendar.js loads) -->
 <script>
@@ -1836,8 +2280,8 @@
   // Helps if Google blocks CORS for the ICS feed
   window.VMPIX_CALENDAR_ICS_FALLBACK_JINA = true;
 </script>
-<script src="calendar.js?v=20260317-admin-analytics-l" defer></script>
-<script src="hud-app.js?v=20260317-admin-analytics-l" defer></script>
+<script src="calendar.js?v=20260318-admin-analytics-r2" defer></script>
+  <script src="hud-app.js?v=20260401-testing-protected-r1" defer></script>
 
 
 
@@ -1871,7 +2315,6 @@
 
 </body>
 </html>
-
 
 
 
