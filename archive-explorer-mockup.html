@@ -1888,6 +1888,15 @@
       justify-content: center;
     }
 
+    .personAlbumTopRow.is-person-album-actions {
+      justify-content: center;
+    }
+
+    .personAlbumTopRow.is-person-album-actions .personAlbumActions {
+      width: 100%;
+      justify-content: center;
+    }
+
     .personAlbumShotCard {
       display: grid;
       gap: 10px;
@@ -1953,6 +1962,18 @@
       gap: 14px;
     }
 
+    .personDetailHeroGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+
+    .personDetailHeroGrid.has-nickname {
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+      align-items: stretch;
+    }
+
     .personDetailHeroCard {
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 20px;
@@ -1978,6 +1999,29 @@
       font-size: 24px;
       line-height: 1.25;
       letter-spacing: 0.04em;
+    }
+
+    .personDetailNicknameCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      background:
+        radial-gradient(circle at top right, rgba(255, 204, 112, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(20, 15, 18, 0.9), rgba(11, 13, 24, 0.88));
+    }
+
+    .personDetailNicknameValue {
+      margin-top: 10px;
+      color: #fff6fb;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+      text-transform: none;
+      overflow-wrap: anywhere;
     }
 
     .personDetailStatsGrid {
@@ -2686,6 +2730,10 @@
       .personAlbumInfoCard.is-wide,
       .personAlbumInfoCard.is-third {
         grid-column: span 1;
+      }
+
+      .personDetailHeroGrid.has-nickname {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -4587,6 +4635,23 @@
       };
     }
 
+    function getPersonNickname(person) {
+      const entry = (person && typeof person === "object") ? person : {};
+      const possibleKeys = [
+        entry.aliases,
+        entry.alias,
+        entry.nickname,
+        entry.nicknames,
+        entry.Aliases,
+        entry.Alias,
+        entry.Nickname,
+        entry.Nicknames
+      ];
+      return possibleKeys
+        .map((value) => String(value || "").trim())
+        .find(Boolean) || "";
+    }
+
     function findBandRecordFromCard(card) {
       const name = String(card && card.dataset.name || '').trim();
       const region = String(card && card.dataset.category || '').trim();
@@ -5199,6 +5264,16 @@
       const albumDate = String(album.date || "").trim();
       const albumUrl = String(album.url || "").trim();
       const personName = String(activePersonDetail && activePersonDetail.name || "").trim();
+      const showDetailIndex = await loadMusicShowDetailIndex().catch(() => new Map());
+      const showDetail = findShowDetailForAlbum(album, showDetailIndex);
+      const resolvedShowName = String(
+        (showDetail && (showDetail.title || showDetail.show_name || showDetail.event || showDetail.name))
+        || albumTitle
+        || "Untitled Album"
+      ).trim();
+      const resolvedDate = albumDate || formatShowDateLabel(String(showDetail && (showDetail.date || showDetail.show_date) || "").trim());
+      const venueText = String(showDetail && showDetail.venue || "").trim();
+      const cityStateText = [String(showDetail && showDetail.city || "").trim(), String(showDetail && showDetail.state || "").trim()].filter(Boolean).join(", ");
 
       activeAlbumDetail = {
         albumKey,
@@ -5207,14 +5282,41 @@
       };
 
       personAlbumOverlay.innerHTML = `
-        <div class="personAlbumTopRow">
-          <div class="personAlbumSummary">
-            <div class="personAlbumKicker">Loading tagged shots...</div>
-            <div class="personAlbumTitle">${escapeHtml(albumTitle)}</div>
+        <div class="personAlbumTopRow is-band-album-top">
+          <div class="personAlbumActions">
+            <button class="personAlbumButton" type="button" data-person-album-close="1">Back</button>
           </div>
+        </div>
+        <div class="personAlbumSummary">
+          <div class="personAlbumSummary is-band-album">
+            <div class="personAlbumInfoGrid">
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Show Name</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedShowName || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Date</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedDate || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Venue</div>
+                <div class="personAlbumInfoValue">${escapeHtml(venueText || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">City/State</div>
+                <div class="personAlbumInfoValue">${escapeHtml(cityStateText || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Photo Total</div>
+                <div class="personAlbumInfoValue">Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="personAlbumTopRow is-person-album-actions">
           <div class="personAlbumActions">
             <button class="personAlbumButton" type="button" data-person-album-toggle="1">Show all</button>
-            <button class="personAlbumButton" type="button" data-person-album-close="1">Back</button>
+            ${albumUrl ? `<a class="personAlbumButton" href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer noopener">Buy Photos</a>` : ''}
           </div>
         </div>
         <div class="personAlbumGrid">
@@ -5237,8 +5339,30 @@
       const toggleEl = personAlbumOverlay.querySelector("[data-person-album-toggle='1']");
       if (summaryEl) {
         summaryEl.innerHTML = `
-          <div class="personAlbumKicker">${shots.length.toLocaleString()} tagged shots</div>
-          <div class="personAlbumTitle">${escapeHtml(albumTitle)}</div>
+          <div class="personAlbumSummary is-band-album">
+            <div class="personAlbumInfoGrid">
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Show Name</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedShowName || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Date</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedDate || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Venue</div>
+                <div class="personAlbumInfoValue">${escapeHtml(venueText || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">City/State</div>
+                <div class="personAlbumInfoValue">${escapeHtml(cityStateText || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Photo Total</div>
+                <div class="personAlbumInfoValue">${shots.length.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
         `;
       }
 
@@ -5387,6 +5511,7 @@
       const personToken = person;
       activePersonDetail = personToken;
       const name = String(person.name || "Unknown Person").trim();
+      const nickname = getPersonNickname(person);
       const instrument = String(person.instrument || "").trim();
       const bands = String(person.bands || "").trim();
       const placeholderPhotoCount = Number(person.photoCount || 0);
@@ -5397,9 +5522,17 @@
           <div class="personDetailTopRow">
             <button class="personDetailBack" type="button" data-person-detail-close="1">Back</button>
             <div class="personDetailSummary">
-              <div class="personDetailHeroCard">
-                <div class="personDetailHeroLabel">Performer</div>
-                <div class="personDetailName">${escapeHtml(name)}</div>
+              <div class="personDetailHeroGrid${nickname ? ' has-nickname' : ''}">
+                <div class="personDetailHeroCard">
+                  <div class="personDetailHeroLabel">Performer</div>
+                  <div class="personDetailName">${escapeHtml(name)}</div>
+                </div>
+                ${nickname ? `
+                  <div class="personDetailNicknameCard">
+                    <div class="personDetailHeroLabel">Nickname</div>
+                    <div class="personDetailNicknameValue">${escapeHtml(nickname)}</div>
+                  </div>
+                ` : ''}
               </div>
               <div class="personDetailStatsGrid">
                 <div class="personDetailStatCard">
