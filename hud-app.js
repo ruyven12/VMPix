@@ -90,7 +90,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           display: grid !important;
           justify-items: stretch !important;
           gap: 0 !important;
-          left: 12px !important;
+          left: 20px !important;
           right: auto !important;
           width: min(320px, calc(100% - 24px)) !important;
           max-width: calc(100% - 24px) !important;
@@ -139,7 +139,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           width: min(300px, calc(100% - 20px)) !important;
           max-width: calc(100% - 20px) !important;
           top: 70px !important;
-          left: 10px !important;
+          left: 20px !important;
         }
 
         .hudMenuItem{

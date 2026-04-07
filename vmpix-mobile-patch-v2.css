@@ -103,7 +103,7 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
 
   .hudMenuOverlay{
     position: absolute !important;
-    left: 12px !important;
+    left: 20px !important;
     right: auto !important;
     width: min(320px, calc(100% - 24px)) !important;
     max-width: calc(100% - 24px) !important;
