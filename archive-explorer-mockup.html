@@ -299,70 +299,6 @@
       z-index: 3;
     }
 
-    .workflowCard {
-      width: min(1280px, 100%);
-      padding: 18px 20px;
-      display: grid;
-      gap: 14px;
-      justify-items: stretch;
-      text-align: left;
-    }
-
-    .workflowCard .sectionLabel {
-      text-align: left;
-    }
-
-    .workflowIntro {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.65;
-      letter-spacing: 0.03em;
-    }
-
-    .workflowGrid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .workflowBlock {
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-md);
-      padding: 14px 15px;
-      background:
-        linear-gradient(180deg, rgba(15, 14, 25, 0.96), rgba(12, 11, 20, 0.88)),
-        rgba(16, 14, 22, 0.88);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 0 0 1px rgba(105, 222, 255, 0.03);
-    }
-
-    .workflowTitle {
-      color: rgba(247, 236, 244, 0.96);
-      font-size: 13px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .workflowCode {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.65;
-      color: rgba(208, 240, 255, 0.92);
-    }
-
-    .workflowNotes {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.7;
-      letter-spacing: 0.03em;
-    }
-
     .searchLabel,
     .sectionLabel {
       color: var(--cyan);
@@ -1883,14 +1819,16 @@
 
     .personDetailBack {
       border: 1px solid rgba(255, 95, 135, 0.34);
-      border-radius: 10px;
+      border-radius: 12px;
       background: rgba(12, 10, 18, 0.9);
       color: #fff7fb;
       font: inherit;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      padding: 8px 12px;
+      letter-spacing: 0.09em;
+      min-width: 72px;
+      min-height: 36px;
+      padding: 10px 16px;
       cursor: pointer;
     }
 
@@ -2430,10 +2368,6 @@
         grid-template-columns: 1fr;
       }
 
-      .workflowGrid {
-        grid-template-columns: 1fr;
-      }
-
       .previewPanel {
         min-height: 0;
       }
@@ -2665,42 +2599,6 @@
             </div>
           </div>
         </section>
-
-        <section class="insightCard workflowCard">
-          <div class="sectionLabel">Reset Workflow</div>
-          <div class="workflowIntro">
-            Same reset reference as the repo docs, kept here in the mockup for quick copy and paste while testing archive updates.
-          </div>
-          <div class="workflowGrid">
-            <div class="workflowBlock">
-              <div class="workflowTitle">Wrestling</div>
-              <pre class="workflowCode">cd C:\Users\deysx\Documents\GitHub\VMPix
-Invoke-WebRequest "https://wrestling-archive.onrender.com/admin/people-index/rebuild?force=1"
-node .\scripts\refresh-archive-explorer-people-data.mjs</pre>
-            </div>
-            <div class="workflowBlock">
-              <div class="workflowTitle">Music</div>
-              <pre class="workflowCode">cd C:\Users\deysx\Documents\GitHub\VMPix
-node .\scripts\build-music-people-unknown.mjs
-node .\scripts\refresh-archive-explorer-band-data.mjs
-node .\scripts\refresh-archive-explorer-people-data.mjs
-node .\scripts\generate-music-band-routes.mjs</pre>
-            </div>
-          </div>
-          <div class="workflowBlock">
-            <div class="workflowTitle">Full Reset Order</div>
-            <pre class="workflowCode">cd C:\Users\deysx\Documents\GitHub\VMPix
-Invoke-WebRequest "https://wrestling-archive.onrender.com/admin/people-index/rebuild?force=1"
-node .\scripts\build-music-people-unknown.mjs
-node .\scripts\refresh-archive-explorer-band-data.mjs
-node .\scripts\refresh-archive-explorer-people-data.mjs
-node .\scripts\generate-music-band-routes.mjs</pre>
-          </div>
-          <div class="workflowNotes">
-            Temp and source files such as _tmp_bands.csv, _people_index_live.json, and _tmp_people_index.json may still need to be refreshed upstream first. If the site still looks stale after this flow, check backend state, source temp files, and browser or deploy cache.
-          </div>
-        </section>
-
       </div>
     </section>
 
@@ -4479,6 +4377,20 @@ node .\scripts\generate-music-band-routes.mjs</pre>
         band.past5,
         band.past6
       ].map((entry) => String(entry || '').trim()).filter(Boolean);
+      const membersMarkup = [
+        coreLines.length
+          ? `<div class="bandDetailMembersPanel bandDetailMemberCard">
+                <div class="bandDetailMembersLabel">Core Members</div>
+                <div class="bandDetailMemberLines">${renderBandMemberLines(coreLines)}</div>
+              </div>`
+          : '',
+        otherLines.length
+          ? `<div class="bandDetailMembersPanel bandDetailMemberCard">
+                <div class="bandDetailMembersLabel">Other Members</div>
+                <div class="bandDetailMemberLines">${renderBandMemberLines(otherLines)}</div>
+              </div>`
+          : ''
+      ].filter(Boolean).join('');
 
       bandDetailOverlay.innerHTML = `
         <div class="bandDetailTopRow">
@@ -4511,16 +4423,7 @@ node .\scripts\generate-music-band-routes.mjs</pre>
                 </div>
               </div>
             </div>
-            <div class="bandDetailMembersGrid">
-              <div class="bandDetailMembersPanel bandDetailMemberCard">
-                <div class="bandDetailMembersLabel">Core Members</div>
-                <div class="bandDetailMemberLines">${renderBandMemberLines(coreLines)}</div>
-              </div>
-              <div class="bandDetailMembersPanel bandDetailMemberCard">
-                <div class="bandDetailMembersLabel">Other Members</div>
-                <div class="bandDetailMemberLines">${renderBandMemberLines(otherLines)}</div>
-              </div>
-            </div>
+            ${membersMarkup ? `<div class="bandDetailMembersGrid">${membersMarkup}</div>` : ''}
             <div class="bandDetailAlbumsPanel">
               <div class="bandDetailAlbumsLabel">Current Albums in Archive</div>
               <div class="bandDetailAlbumsGrid" data-band-detail-albums>
