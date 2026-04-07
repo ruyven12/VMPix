@@ -3924,13 +3924,30 @@
 
     function fitBandCardTitles() {
       const titleEls = Array.from(document.querySelectorAll('.resultCard[data-type="band"] .bandTitleRow .cardTitle'));
+      const canvas = fitBandCardTitles._canvas || (fitBandCardTitles._canvas = document.createElement('canvas'));
+      const context = canvas.getContext('2d');
+      if (!context) return;
       titleEls.forEach((titleEl) => {
         const rowEl = titleEl.closest('.bandTitleRow');
         if (!rowEl) return;
-        titleEl.style.fontSize = '';
+        const setStatEl = rowEl.querySelector('.bandSetStat');
+        const titleText = String(titleEl.textContent || '').trim();
+        const rowStyles = window.getComputedStyle(rowEl);
+        const titleStyles = window.getComputedStyle(titleEl);
+        const gap = parseFloat(rowStyles.columnGap || rowStyles.gap || '0') || 0;
+        const reservedWidth = setStatEl ? setStatEl.offsetWidth + gap : 0;
+        const availableWidth = Math.max(48, rowEl.clientWidth - reservedWidth);
+        const fontFamily = titleStyles.fontFamily || 'inherit';
+        const fontWeight = titleStyles.fontWeight || '400';
         let fontSize = 19;
         titleEl.style.fontSize = `${fontSize}px`;
-        while (fontSize > 13 && rowEl.scrollWidth > rowEl.clientWidth + 1) {
+        while (fontSize > 10) {
+          context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+          const measuredWidth = context.measureText(titleText).width;
+          const estimatedLines = Math.max(1, Math.ceil(measuredWidth / availableWidth));
+          if (estimatedLines <= 2 && titleEl.scrollHeight <= titleEl.clientHeight + 1) {
+            break;
+          }
           fontSize -= 1;
           titleEl.style.fontSize = `${fontSize}px`;
         }
