@@ -94,7 +94,7 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           width: min(720px, calc(100vw - 28px)) !important;
           max-width: calc(100vw - 28px) !important;
           top: 74px !important;
-          padding: 6px 0 !important;
+          padding: 4px 0 !important;
           overflow: auto !important;
           transform: translateX(-50%) !important;
         }
@@ -107,10 +107,14 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
         .hudMenuItem{
           font-size: 12px !important;
-          padding: 14px 16px !important;
+          min-height: 42px !important;
+          padding: 11px 16px !important;
           max-width: none !important;
           transform: none !important;
           text-align: center !important;
+          align-items: center !important;
+          justify-items: center !important;
+          line-height: 1.15 !important;
         }
 
         .hudIntroType{
@@ -136,7 +140,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
         .hudMenuItem{
           font-size: 11px !important;
-          padding: 12px 13px !important;
+          min-height: 40px !important;
+          padding: 10px 13px !important;
         }
 
         .hudIntroType{

@@ -819,7 +819,7 @@
     left: 50%;
     z-index: 999;
     width: min(720px, calc(100vw - 32px));
-    padding: 10px 0;
+    padding: 6px 0;
     text-align: left;
     max-height: min(60vh, 420px);
     overflow: auto;
@@ -866,21 +866,24 @@
   .hudMenuOverlay .hudMenuItem{
     display: grid;
     width: 100%;
-    padding: 16px 20px;
+    min-height: 44px;
+    padding: 12px 20px;
     border: 0;
     border-radius: 0;
     background: #000000;
     box-shadow: none;
     font-size: 14px;
-    line-height: 1.2;
+    line-height: 1.15;
     text-align: center;
     color: rgba(248,236,240,.96);
-    letter-spacing: .08em;
+    letter-spacing: .06em;
     text-transform: none;
     font-family: Orbitron, system-ui, sans-serif;
     border-bottom: 1px solid rgba(255,255,255,.07);
     transform: none !important;
     filter: none;
+    align-items: center;
+    justify-items: center;
   }
 
   .hudMenuOverlay .hudMenuItem.is-disabled{
@@ -896,13 +899,14 @@
   .hudMenuOverlay .hudMenuDivider{
     width: calc(100% - 40px);
     height: 1px;
-    margin: 0 20px;
+    margin: 2px 20px;
     background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.16), rgba(255,255,255,0));
   }
 
   .hudMenuOverlay .hudMenuSubItem{
-    padding-top: 12px;
-    padding-bottom: 12px;
+    min-height: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     font-size: 13px;
     text-align: center;
     justify-items: center;
@@ -911,6 +915,7 @@
   .hudMenuOverlay .hudMenuGroupPanel{
     display: grid;
     width: 100%;
+    gap: 0;
   }
 
   .hudMenuOverlay .hudMenuGroupPanel[hidden]{
@@ -938,6 +943,12 @@
 
   .hudMenuOverlay .hudMenuSubItem .hudIntroType{
     display: inline-block;
+  }
+
+  .hudMenuOverlay .hudMenuItem .hudIntroType{
+    display: block;
+    width: 100%;
+    line-height: 1.15;
   }
 
   .hudMenuOverlay .hudMenuItem:last-child{
