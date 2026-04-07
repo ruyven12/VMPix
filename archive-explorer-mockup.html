@@ -1083,6 +1083,15 @@
         linear-gradient(180deg, rgba(21, 17, 27, 0.94), rgba(12, 13, 20, 0.92));
     }
 
+    .resultCard[data-type="show"] .cardMain {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .resultCard[data-type="show"] .cardTitle {
+      margin-top: 2px;
+    }
+
     .resultCard[data-type="person"] .cardBadge {
       display: none;
     }
@@ -1613,6 +1622,306 @@
 
     .bandDetailOverlay[hidden] {
       display: none;
+    }
+
+    .showDetailOverlay {
+      background:
+        radial-gradient(circle at 50% -8%, rgba(105, 222, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 50% 42%, rgba(255, 80, 154, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(9, 10, 18, 0.985), rgba(6, 7, 14, 0.975));
+    }
+
+    .showDetailShell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .showDetailTopRow {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .showDetailHeroSection {
+      position: relative;
+      display: grid;
+      gap: 18px;
+      padding: 18px 18px 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at 50% 30%, rgba(86, 215, 255, 0.08), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(255, 79, 154, 0.09), transparent 34%),
+        linear-gradient(180deg, rgba(24, 18, 30, 0.92), rgba(8, 10, 18, 0.96));
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(86, 215, 255, 0.04);
+    }
+
+    .showDetailHeroSection::before,
+    .showDetailHeroSection::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .showDetailHeroSection::before {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(86, 215, 255, 0.16), transparent 24%),
+        radial-gradient(circle at 50% 50%, rgba(255, 79, 154, 0.12), transparent 38%);
+      opacity: 0.9;
+      filter: blur(16px);
+    }
+
+    .showDetailHeroSection::after {
+      background:
+        linear-gradient(78deg, transparent 0 22%, rgba(86, 215, 255, 0.18) 23%, transparent 24% 46%, rgba(86, 215, 255, 0.16) 47%, transparent 48% 72%, rgba(255, 79, 154, 0.16) 73%, transparent 74%),
+        linear-gradient(102deg, transparent 0 28%, rgba(86, 215, 255, 0.1) 29%, transparent 30% 66%, rgba(255, 79, 154, 0.1) 67%, transparent 68%);
+      opacity: 0.35;
+    }
+
+    .showDetailHeroSection > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .showDetailPosterWrap {
+      width: min(100%, 320px);
+      margin: 0 auto;
+      padding: 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background:
+        linear-gradient(180deg, rgba(6, 10, 18, 0.88), rgba(6, 8, 14, 0.94));
+      box-shadow:
+        0 22px 48px rgba(0, 0, 0, 0.38),
+        inset 0 0 0 1px rgba(86, 215, 255, 0.05);
+    }
+
+    .showDetailPosterFrame {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(7, 10, 16, 0.82);
+      min-height: 340px;
+      display: grid;
+      place-items: center;
+    }
+
+    .showDetailPosterFrame img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .showDetailPosterFallback {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .showDetailTitlePlate {
+      width: min(100%, 620px);
+      margin: -10px auto 0;
+      padding: 12px 18px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 111, 174, 0.2);
+      background:
+        linear-gradient(180deg, rgba(22, 15, 28, 0.96), rgba(11, 12, 19, 0.98));
+      text-align: center;
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.34),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .showDetailTitleEyebrow {
+      color: rgba(86, 215, 255, 0.88);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .showDetailTitle {
+      margin-top: 6px;
+      color: #ff8bbd;
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.04;
+      text-shadow: 0 0 20px rgba(255, 111, 174, 0.18);
+    }
+
+    .showDetailInfoGrid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.9fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .showDetailMetaPanel,
+    .showDetailMapPanel,
+    .showDetailBandsPanel {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background:
+        linear-gradient(180deg, rgba(18, 16, 26, 0.9), rgba(8, 11, 18, 0.94));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 0 0 1px rgba(86, 215, 255, 0.03);
+    }
+
+    .showDetailFactsGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .showDetailFactCard {
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .showDetailFactLabel,
+    .showDetailSectionLabel {
+      color: rgba(86, 215, 255, 0.86);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .showDetailFactValue {
+      margin-top: 7px;
+      color: #f6f3ff;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .showDetailDesc {
+      margin-top: 14px;
+      color: rgba(226, 219, 231, 0.8);
+      font-size: 12px;
+      line-height: 1.65;
+      letter-spacing: 0.03em;
+      text-transform: none;
+    }
+
+    .showDetailMapFrame {
+      margin-top: 12px;
+      min-height: 220px;
+      border-radius: 18px;
+      border: 1px solid rgba(86, 215, 255, 0.16);
+      background:
+        radial-gradient(circle at 64% 38%, rgba(255, 255, 255, 0.16) 0 2px, transparent 3px),
+        radial-gradient(circle at 64% 38%, rgba(255, 79, 154, 0.52) 0 8px, transparent 10px),
+        linear-gradient(135deg, rgba(86, 215, 255, 0.08), rgba(255, 79, 154, 0.08)),
+        rgba(8, 12, 22, 0.94);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .showDetailMapFrame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 19%, rgba(255, 255, 255, 0.06) 20%, transparent 21% 39%, rgba(255, 255, 255, 0.06) 40%, transparent 41% 59%, rgba(255, 255, 255, 0.06) 60%, transparent 61% 79%, rgba(255, 255, 255, 0.06) 80%, transparent 81%),
+        linear-gradient(transparent 0 19%, rgba(255, 255, 255, 0.06) 20%, transparent 21% 39%, rgba(255, 255, 255, 0.06) 40%, transparent 41% 59%, rgba(255, 255, 255, 0.06) 60%, transparent 61% 79%, rgba(255, 255, 255, 0.06) 80%, transparent 81%);
+      opacity: 0.34;
+      pointer-events: none;
+    }
+
+    .showDetailMapFrame::after {
+      content: "";
+      position: absolute;
+      left: 64%;
+      top: 38%;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      box-shadow:
+        0 0 0 4px rgba(255, 79, 154, 0.16),
+        0 0 0 12px rgba(255, 79, 154, 0.08);
+      background: linear-gradient(180deg, #72e0ff, #ff7eb2);
+    }
+
+    .showDetailMapMeta {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      gap: 5px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(8, 10, 16, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(10px);
+    }
+
+    .showDetailMapMeta .showDetailFactValue {
+      margin-top: 0;
+      font-size: 12px;
+    }
+
+    .showDetailBandsPanel {
+      gap: 12px;
+      display: grid;
+    }
+
+    .showDetailBandsGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .showDetailBandChip {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(72, 214, 148, 0.22);
+      background:
+        linear-gradient(180deg, rgba(18, 42, 32, 0.86), rgba(11, 28, 22, 0.94));
+      color: rgba(245, 252, 247, 0.92);
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      text-align: left;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 0 0 1px rgba(72, 214, 148, 0.06);
+    }
+
+    .showDetailBandChip.is-empty {
+      border-style: dashed;
+      color: rgba(220, 196, 211, 0.72);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    @media (max-width: 860px) {
+      .showDetailInfoGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .showDetailHeroSection {
+        padding: 14px 14px 16px;
+      }
+
+      .showDetailTitlePlate {
+        margin-top: -6px;
+        padding: 10px 14px 12px;
+      }
+
+      .showDetailFactsGrid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .personAlbumOverlay {
@@ -2862,6 +3171,7 @@
           <div class="resultsDoorPanel is-left" id="resultsDoorLeft"></div>
           <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
         </div>
+        <div class="showDetailOverlay personDetailOverlay" id="showDetailOverlay" hidden aria-hidden="true"></div>
         <div class="bandDetailOverlay" id="bandDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personAlbumOverlay" id="personAlbumOverlay" hidden aria-hidden="true"></div>
@@ -3636,10 +3946,11 @@
     }
 
     function getShowCameraLabel(show) {
+      const cameraIcon = "\uD83D\uDCF8";
       const direct = String(show && show.camera || '').trim();
-      if (direct) return `Camera Used: ${direct}`;
+      if (direct) return `${cameraIcon} ${direct}`;
       const cameras = [String(show && show.camera_used_1 || '').trim(), String(show && show.camera_used_2 || '').trim()].filter(Boolean);
-      return cameras.length ? `Camera Used: ${cameras.join(' / ')}` : '';
+      return cameras.length ? `${cameraIcon} ${cameras.join(' / ')}` : '';
     }
 
     function getBandCount(show) {
@@ -3668,6 +3979,7 @@
       const rows = (Array.isArray(shows) && shows.length ? shows : fallbackShows)
         .slice()
         .sort((a, b) => getShowDateSortValue(b && b.date) - getShowDateSortValue(a && a.date));
+      window.ARCHIVE_MOCKUP_SHOWS = rows.slice();
 
       mount.innerHTML = rows.map((show) => {
         const title = String(show && (show.title || show.show_name || show.event || show.name) || 'Untitled Show').trim();
@@ -3680,7 +3992,7 @@
         const yearValue = rawDate.split('/').pop() || '';
         const normalizedYear = /^\d{2}$/.test(yearValue) ? `20${yearValue}` : yearValue;
         return `
-          <article class="resultCard" data-type="show" data-subject="music" data-name="${escapeHtml(title)}" data-show-year="${escapeHtml(normalizedYear)}">
+          <article class="resultCard" data-type="show" data-subject="music" data-name="${escapeHtml(title)}" data-show-date="${escapeHtml(rawDate)}" data-show-year="${escapeHtml(normalizedYear)}">
             <div class="cardBadge">
               ${posterUrl
                 ? `<img class="cardBadgeImage" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" />`
@@ -3963,6 +4275,7 @@
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
     const resultsDoorLeft = document.getElementById("resultsDoorLeft");
     const resultsDoorRight = document.getElementById("resultsDoorRight");
+    const showDetailOverlay = document.getElementById("showDetailOverlay");
     const bandDetailOverlay = document.getElementById("bandDetailOverlay");
     const personDetailOverlay = document.getElementById("personDetailOverlay");
     const personAlbumOverlay = document.getElementById("personAlbumOverlay");
@@ -3974,6 +4287,7 @@
     let activeSubFilter = "all";
     let subFilterMode = "letters";
     let resultsDoorBusy = false;
+    let activeShowDetail = null;
     let activeBandDetail = null;
     let activePersonDetail = null;
     let activeAlbumDetail = null;
@@ -4562,6 +4876,7 @@
         window.matchMedia("(max-width: 760px)").matches &&
         activeSubject === "music" &&
         activeFilter === "band" &&
+        showDetailOverlay.hidden &&
         bandDetailOverlay.hidden &&
         personDetailOverlay.hidden &&
         personAlbumOverlay.hidden &&
@@ -4800,6 +5115,276 @@
         totalSets: '',
         archivedSets: ''
       };
+    }
+
+    function findShowRecordFromCard(card) {
+      const title = String(card && card.dataset && card.dataset.name || "").trim();
+      const rawDate = String(card && card.dataset && card.dataset.showDate || "").trim();
+      const shows = Array.isArray(window.ARCHIVE_MOCKUP_SHOWS) ? window.ARCHIVE_MOCKUP_SHOWS : [];
+      return shows.find((show) => {
+        const showTitle = String(show && (show.title || show.show_name || show.event || show.name) || "").trim();
+        const showDate = String(show && (show.date || show.show_date) || "").trim();
+        return showTitle === title && showDate === rawDate;
+      }) || {
+        title,
+        date: rawDate,
+        venue: "",
+        city: "",
+        state: "",
+        camera: "",
+        poster_url: ""
+      };
+    }
+
+    function getShowPosterUrl(show) {
+      return String(show && (show.poster_url || show.show_url || show.posterUrl) || "").trim();
+    }
+
+    function getShowBandNames(show) {
+      const source = (show && typeof show === "object") ? show : {};
+      const names = [];
+      for (let i = 1; i <= 20; i += 1) {
+        const value = String(source[`band_${i}`] || source[`band${i}`] || "").trim();
+        if (value) names.push(value);
+      }
+      return names;
+    }
+
+    async function playShowDetailDoorTransition() {
+      if (
+        !showDetailOverlay ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        if (showDetailOverlay) showDetailOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      const topPanel = showDetailOverlay.querySelector(".personDetailDoorPanel.is-top");
+      const bottomPanel = showDetailOverlay.querySelector(".personDetailDoorPanel.is-bottom");
+      if (
+        !topPanel ||
+        !bottomPanel ||
+        typeof topPanel.animate !== "function" ||
+        typeof bottomPanel.animate !== "function"
+      ) {
+        showDetailOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      try {
+        topPanel.getAnimations().forEach((animation) => animation.cancel());
+        bottomPanel.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      showDetailOverlay.classList.remove("is-detail-ready");
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(-100%)" },
+            { transform: "translateY(0)" }
+          ],
+          { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(100%)" },
+            { transform: "translateY(0)" }
+          ],
+          { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+        ).finished
+      ]);
+
+      showDetailOverlay.classList.add("is-detail-ready");
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(-100%)" }
+          ],
+          { duration: 360, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(100%)" }
+          ],
+          { duration: 360, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+        ).finished
+      ]);
+
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+    }
+
+    async function openShowDetailOverlay(card) {
+      if (!showDetailOverlay || !card) return;
+
+      const show = findShowRecordFromCard(card);
+      activeShowDetail = show;
+
+      const title = String(show && (show.title || show.show_name || show.event || show.name) || "Untitled Show").trim();
+      const rawDate = String(show && (show.date || show.show_date) || "").trim();
+      const prettyDate = formatShowDateLabel(rawDate);
+      const venueText = buildShowVenueLine(show) || "N/A";
+      const locationText = buildShowLocationLine(show) || "N/A";
+      const cameraText = getShowCameraLabel(show).replace(/^📸\s*/, "") || "N/A";
+      const posterUrl = getShowPosterUrl(show);
+      const bandNames = getShowBandNames(show);
+      const descText = String(show && (show.show_desc || show.description || show.desc) || "").trim();
+      const cameraDisplayText = String(getShowCameraLabel(show) || "").replace(/^\S+\s*/, "") || "N/A";
+
+      showDetailOverlay.innerHTML = `
+        <div class="personDetailDoorOverlay" aria-hidden="true">
+          <div class="personDetailDoorPanel is-top"></div>
+          <div class="personDetailDoorPanel is-bottom"></div>
+        </div>
+        <div class="personDetailStageContent showDetailShell">
+          <div class="showDetailTopRow">
+            <button class="personDetailBack" type="button" data-show-detail-close="1">Back to Show List</button>
+          </div>
+          <section class="showDetailHeroSection">
+            <div class="showDetailPosterWrap">
+              <div class="showDetailPosterFrame">
+                ${posterUrl
+                  ? `<img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
+                  : `<div class="showDetailPosterFallback">No Poster</div>`}
+              </div>
+            </div>
+            <div class="showDetailTitlePlate">
+              <div class="showDetailTitleEyebrow">Music Show Archive</div>
+              <div class="showDetailTitle">${escapeHtml(title)}</div>
+            </div>
+            <div class="showDetailInfoGrid">
+              <div class="showDetailMetaPanel">
+                <div class="showDetailFactsGrid">
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">Venue</div>
+                    <div class="showDetailFactValue">${escapeHtml(venueText)}</div>
+                  </div>
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">City / State</div>
+                    <div class="showDetailFactValue">${escapeHtml(locationText)}</div>
+                  </div>
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">Date</div>
+                    <div class="showDetailFactValue">${escapeHtml(prettyDate || "N/A")}</div>
+                  </div>
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">Camera Used</div>
+                    <div class="showDetailFactValue">📸 ${escapeHtml(cameraText)}</div>
+                  </div>
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">Bands on This Bill</div>
+                    <div class="showDetailFactValue">${bandNames.length.toLocaleString()}</div>
+                  </div>
+                  <div class="showDetailFactCard">
+                    <div class="showDetailFactLabel">Archive Scope</div>
+                    <div class="showDetailFactValue">Music / Shows</div>
+                  </div>
+                </div>
+                ${descText ? `<div class="showDetailDesc">${escapeHtml(descText)}</div>` : ``}
+              </div>
+              <div class="showDetailMapPanel">
+                <div class="showDetailSectionLabel">Location Layer</div>
+                <div class="showDetailMapFrame">
+                  <div class="showDetailMapMeta">
+                    <div class="showDetailFactLabel">Venue Lock</div>
+                    <div class="showDetailFactValue">${escapeHtml(venueText)}</div>
+                    <div class="showDetailFactValue">${escapeHtml(locationText)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="showDetailBandsPanel">
+            <div class="showDetailSectionLabel">Bands on This Bill</div>
+            <div class="showDetailBandsGrid">
+              ${bandNames.length
+                ? bandNames.map((name) => `<div class="showDetailBandChip">${escapeHtml(name)}</div>`).join("")
+                : `<div class="showDetailBandChip is-empty">No band data listed yet.</div>`}
+            </div>
+          </section>
+        </div>
+      `;
+
+      const cameraFactCard = Array.from(showDetailOverlay.querySelectorAll(".showDetailFactCard")).find((cardEl) => {
+        const labelEl = cardEl.querySelector(".showDetailFactLabel");
+        return labelEl && String(labelEl.textContent || "").trim() === "Camera Used";
+      });
+      if (cameraFactCard) {
+        const valueEl = cameraFactCard.querySelector(".showDetailFactValue");
+        if (valueEl) valueEl.textContent = `\uD83D\uDCF8 ${cameraDisplayText}`;
+      }
+
+      showDetailOverlay.classList.add("is-grain-transition");
+      showDetailOverlay.classList.add("is-detail-ready");
+      showDetailOverlay.hidden = false;
+      showDetailOverlay.setAttribute("aria-hidden", "false");
+      const panel = document.querySelector(".resultsPanel");
+      if (panel) {
+        panel.style.overflow = "hidden";
+        panel.scrollTop = 0;
+      }
+      syncMobileResultsFocusState();
+      saveMockupSessionState();
+
+      if (
+        typeof showDetailOverlay.animate === "function" &&
+        !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        showDetailOverlay.animate(
+          [
+            { opacity: 0, transform: "translateY(18px) scale(0.985)" },
+            { opacity: 1, transform: "translateY(0) scale(1)" }
+          ],
+          {
+            duration: 260,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "both"
+          }
+        );
+      }
+
+      playShowDetailDoorTransition().catch(() => {});
+    }
+
+    function closeShowDetailOverlay() {
+      if (!showDetailOverlay) return;
+      const finishClose = () => {
+        showDetailOverlay.hidden = true;
+        showDetailOverlay.setAttribute("aria-hidden", "true");
+        showDetailOverlay.classList.remove("is-detail-ready", "is-grain-transition");
+        showDetailOverlay.innerHTML = "";
+        activeShowDetail = null;
+        const panel = document.querySelector(".resultsPanel");
+        if (panel) panel.style.overflow = "auto";
+        syncMobileResultsFocusState();
+        saveMockupSessionState();
+      };
+
+      if (
+        typeof showDetailOverlay.animate !== "function" ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        finishClose();
+        return;
+      }
+
+      showDetailOverlay.animate(
+        [
+          { opacity: 1, transform: "translateY(0) scale(1)" },
+          { opacity: 0, transform: "translateY(18px) scale(0.985)" }
+        ],
+        {
+          duration: 260,
+          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          fill: "forwards"
+        }
+      ).addEventListener("finish", finishClose, { once: true });
     }
 
     function findMusicPersonCardByName(name) {
@@ -5902,6 +6487,13 @@
         return;
       }
 
+      const closeShowDetailButton = event.target && event.target.closest ? event.target.closest("[data-show-detail-close='1']") : null;
+      if (closeShowDetailButton) {
+        event.preventDefault();
+        closeShowDetailOverlay();
+        return;
+      }
+
       const closeBandDetailButton = event.target && event.target.closest ? event.target.closest("[data-band-detail-close='1']") : null;
       if (closeBandDetailButton) {
         event.preventDefault();
@@ -5952,6 +6544,13 @@
         }
         event.preventDefault();
         openBandDetailOverlay(bandCard);
+        return;
+      }
+
+      const showCard = event.target && event.target.closest ? event.target.closest(".resultCard[data-type='show']") : null;
+      if (showCard && !showCard.hidden) {
+        event.preventDefault();
+        openShowDetailOverlay(showCard);
         return;
       }
 
@@ -6024,6 +6623,12 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && showDetailOverlay && !showDetailOverlay.hidden) {
+        event.preventDefault();
+        closeShowDetailOverlay();
+        return;
+      }
+
       if (event.key === "Escape" && bandDetailOverlay && !bandDetailOverlay.hidden) {
         event.preventDefault();
         closeBandDetailOverlay();
