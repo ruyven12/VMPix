@@ -2235,6 +2235,11 @@
       gap: 12px;
     }
 
+    .bandDetailMembersGrid.is-single {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+
     .bandDetailMemberCard {
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 18px;
@@ -2244,6 +2249,10 @@
       gap: 10px;
       align-content: start;
       min-height: 148px;
+    }
+
+    .bandDetailMembersGrid.is-single .bandDetailMemberCard {
+      width: min(420px, 100%);
     }
 
     .bandDetailMemberLines {
@@ -2920,10 +2929,12 @@
     const MUSIC_SHOW_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/show-index.json';
     const MUSIC_PEOPLE_INDEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/people-index.json';
     const MUSIC_API_BASE = 'https://music-archive-3lfa.onrender.com';
+    const MUSIC_BANDS_CSV_ENDPOINT = `${MUSIC_API_BASE}/sheet/bands`;
     let musicShowPosterIndexPromise = null;
     let musicShowBandIndexPromise = null;
     let musicShowDetailIndexPromise = null;
     let musicPeopleDetailIndexPromise = null;
+    let musicBandsDataPromise = null;
     const personAlbumThumbCache = new Map();
 
     function escapeHtml(value) {
@@ -3098,6 +3109,112 @@
 
     function normalizePersonLookupName(name) {
       return String(name || '').trim().toLowerCase();
+    }
+
+    function parseMockupCsvLine(line) {
+      const out = [];
+      let cur = '';
+      let quoted = false;
+      const text = String(line || '');
+      for (let i = 0; i < text.length; i += 1) {
+        const ch = text[i];
+        if (ch === '"') {
+          if (quoted && text[i + 1] === '"') {
+            cur += '"';
+            i += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (ch === ',' && !quoted) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map((value) => String(value || '').trim());
+    }
+
+    function getBandLetterBucket(name) {
+      const raw = String(name || '').trim();
+      if (!raw) return '0-C';
+      const first = raw.charAt(0).toUpperCase();
+      if ('ABC0123456789'.includes(first)) return '0-C';
+      if ('DEFG'.includes(first)) return 'D-G';
+      if ('HIJK'.includes(first)) return 'H-K';
+      if ('LMNO'.includes(first)) return 'L-O';
+      if ('PQRS'.includes(first)) return 'P-S';
+      return 'T-Z';
+    }
+
+    function mapBandCsvRow(row) {
+      const entry = (row && typeof row === 'object') ? row : {};
+      const name = String(entry.band || entry.name || '').trim();
+      if (!name) return null;
+      return {
+        name,
+        smugFolder: String(entry.smug_folder || entry.smugfolder || '').trim(),
+        region: String(entry.region || 'Local').trim() || 'Local',
+        letter: String(entry.letter || '').trim() || getBandLetterBucket(name),
+        logoUrl: String(entry.logo_url || entry.logourl || '').trim(),
+        location: String(entry.location || '').trim(),
+        state: String(entry.state || '').trim(),
+        country: String(entry.country || '').trim(),
+        vox1: String(entry.vox_1 || '').trim(),
+        vox2: String(entry.vox_2 || '').trim(),
+        vox3: String(entry.vox_3 || '').trim(),
+        guitar1: String(entry.guitar_1 || '').trim(),
+        guitar2: String(entry.guitar_2 || '').trim(),
+        guitar3: String(entry.guitar_3 || '').trim(),
+        bass: String(entry.bass || '').trim(),
+        drum: String(entry.drum || '').trim(),
+        keys: String(entry.keys || '').trim(),
+        past1: String(entry.past_1 || '').trim(),
+        past2: String(entry.past_2 || '').trim(),
+        past3: String(entry.past_3 || '').trim(),
+        past4: String(entry.past_4 || '').trim(),
+        past5: String(entry.past_5 || '').trim(),
+        past6: String(entry.past_6 || '').trim(),
+        totalSets: String(entry.total_sets || '').trim(),
+        archivedSets: String(entry.sets_archive || '').trim(),
+        status: String(entry.status || '').trim()
+      };
+    }
+
+    function parseBandsCsvText(csvText) {
+      const lines = String(csvText || '').split(/\r?\n/).filter((line) => line.trim());
+      if (!lines.length) return [];
+      const header = parseMockupCsvLine(lines.shift()).map((value) => String(value || '').trim().toLowerCase());
+      return lines
+        .map((line) => {
+          const cols = parseMockupCsvLine(line);
+          const row = {};
+          header.forEach((key, index) => {
+            row[key] = String(cols[index] || '').trim();
+          });
+          return mapBandCsvRow(row);
+        })
+        .filter(Boolean);
+    }
+
+    async function loadMockupBandsData(forceFresh = false) {
+      if (!forceFresh && musicBandsDataPromise) return musicBandsDataPromise;
+      musicBandsDataPromise = fetch(`${MUSIC_BANDS_CSV_ENDPOINT}?t=${Date.now()}`, { cache: 'no-store' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.text();
+        })
+        .then((csvText) => {
+          const parsedBands = parseBandsCsvText(csvText);
+          if (parsedBands.length) {
+            window.ARCHIVE_MOCKUP_BANDS = parsedBands;
+            return parsedBands;
+          }
+          return Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : [];
+        })
+        .catch(() => Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : []);
+      return musicBandsDataPromise;
     }
 
     async function loadMusicPeopleDetailIndex() {
@@ -3598,9 +3715,9 @@
       }
     }
 
-    function renderBandCards() {
+    async function renderBandCards(forceFresh = false) {
       const mount = document.getElementById('bandGroupsMount');
-      const bands = Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : [];
+      const bands = await loadMockupBandsData(forceFresh);
       if (!mount || !bands.length) return;
 
       const regionOrder = ["Local", "Regional", "National", "International"];
@@ -3794,7 +3911,18 @@
       resultsList.insertAdjacentHTML('afterbegin', cardsMarkup);
     }
 
-    renderBandCards();
+    window.forceRefreshArchiveMockupData = async function forceRefreshArchiveMockupData() {
+      const mount = document.getElementById('bandGroupsMount');
+      if (mount) {
+        mount.outerHTML = '<div id="bandGroupsMount"></div>';
+      }
+      musicBandsDataPromise = null;
+      await renderBandCards(true);
+      refreshResultCollections();
+      updateResultsVisibility();
+      fitBandCardTitles();
+    };
+
     renderShowCardsFromData([]);
     renderPeopleCards();
 
@@ -5061,6 +5189,7 @@
               </div>`
           : ''
       ].filter(Boolean).join('');
+      const memberPanelCount = [coreLines.length ? 1 : 0, otherLines.length ? 1 : 0].reduce((sum, value) => sum + value, 0);
 
       bandDetailOverlay.innerHTML = `
         <div class="bandDetailTopRow">
@@ -5093,7 +5222,7 @@
                 </div>
               </div>
             </div>
-            ${membersMarkup ? `<div class="bandDetailMembersGrid">${membersMarkup}</div>` : ''}
+            ${membersMarkup ? `<div class="bandDetailMembersGrid${memberPanelCount === 1 ? ' is-single' : ''}">${membersMarkup}</div>` : ''}
             <div class="bandDetailAlbumsPanel">
               <div class="bandDetailAlbumsLabel">Current Albums in Archive</div>
               <div class="bandDetailAlbumsGrid" data-band-detail-albums>
@@ -6080,10 +6209,11 @@
       saveMockupSessionState();
     });
 
-    refreshResultCollections();
-    updateResultsVisibility();
-
-    renderMusicShowCards().then(async () => {
+    Promise.resolve(renderBandCards()).then(() => {
+      refreshResultCollections();
+      updateResultsVisibility();
+      return renderMusicShowCards();
+    }).then(async () => {
       refreshResultCollections();
       updateResultsVisibility();
       await restoreMockupSessionState();
