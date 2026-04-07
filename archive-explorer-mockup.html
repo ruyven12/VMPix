@@ -1222,6 +1222,10 @@
       align-items: start;
     }
 
+    .resultGroupSection[data-type="band"] .resultGroupBody {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .resultsPanel.is-person-rolodex .resultGroupSection[data-type="person"] .resultGroupBody {
       grid-template-columns: minmax(0, 1fr);
       justify-items: stretch;
@@ -2619,6 +2623,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .resultGroupSection[data-type="band"] .resultGroupBody {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .resultCard[data-type="person"] {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -2685,6 +2693,10 @@
 
       .resultGroupBody {
         grid-template-columns: 1fr;
+      }
+
+      .resultGroupSection[data-type="band"] .resultGroupBody {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
   </style>
