@@ -4155,6 +4155,13 @@
       saveMockupSessionState();
       if (!body || section.hidden) return;
       animateGroupBody(body, isExpanded);
+      if (isExpanded) {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            fitBandCardTitles();
+          });
+        });
+      }
     }
 
     function animateGroupBody(body, isExpanded) {
@@ -4311,10 +4318,10 @@
         if (group && body) {
           const isExpanded = group.getAttribute("aria-expanded") === "true";
           body.hidden = !hasVisibleCards || !isExpanded;
-          if (!hasVisibleCards || !isExpanded) {
-            try {
-              body.getAnimations().forEach((animation) => animation.cancel());
-            } catch (_) {}
+        if (!hasVisibleCards || !isExpanded) {
+          try {
+            body.getAnimations().forEach((animation) => animation.cancel());
+          } catch (_) {}
             body.style.height = "";
             body.style.opacity = "";
             body.style.overflow = "hidden";
@@ -4335,6 +4342,8 @@
           label.textContent = `${baseLabel} (${visibleInSection.toLocaleString()})`;
         }
       });
+
+      fitBandCardTitles();
 
       const label = !activeSubject || !activeFilter
         ? "nothing yet"
