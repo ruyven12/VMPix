@@ -1,0 +1,47 @@
+VMPix Reset Commands
+Workspace:
+C:\Users\deysx\Documents\GitHub\VMPix
+
+Run from PowerShell in this folder unless noted otherwise.
+
+cd C:\Users\deysx\Documents\GitHub\VMPix
+
+WRESTLING
+
+1. Rebuild the live Wrestling people index on the backend
+Invoke-WebRequest "https://wrestling-archive.onrender.com/admin/people-index/rebuild?force=1"
+
+2. Refresh the local people data file in this repo
+node .\scripts\refresh-archive-explorer-people-data.mjs
+
+MUSIC
+
+1. Rebuild the music people unknown bucket
+node .\scripts\build-music-people-unknown.mjs
+
+2. Refresh the local music band data file
+node .\scripts\refresh-archive-explorer-band-data.mjs
+
+3. Refresh the local people data file
+node .\scripts\refresh-archive-explorer-people-data.mjs
+
+4. Regenerate music band and band-date routes
+node .\scripts\generate-music-band-routes.mjs
+
+FULL RESET ORDER
+
+cd C:\Users\deysx\Documents\GitHub\VMPix
+Invoke-WebRequest "https://wrestling-archive.onrender.com/admin/people-index/rebuild?force=1"
+node .\scripts\build-music-people-unknown.mjs
+node .\scripts\refresh-archive-explorer-band-data.mjs
+node .\scripts\refresh-archive-explorer-people-data.mjs
+node .\scripts\generate-music-band-routes.mjs
+
+NOTES
+
+- Wrestling frontend data depends on the deployed backend at https://wrestling-archive.onrender.com
+- This repo does not include a checked-in command for downloading fresh _tmp_bands.csv, _people_index_live.json, or _tmp_people_index.json
+- If the site still looks stale after running the commands above, the issue is usually one of:
+  stale temp/source files
+  stale backend data
+  frontend deploy or browser cache
