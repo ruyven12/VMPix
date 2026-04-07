@@ -301,17 +301,17 @@
   .hudMenuCopy{
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 12px;
-    flex: 1 1 auto;
-    min-width: 0;
+    flex: 0 1 auto;
+    min-width: 110px;
     font-family: "Orbitron", system-ui, sans-serif;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: .18em;
     text-transform: uppercase;
     color: rgba(255, 236, 240, .94);
-    text-align: center;
+    text-align: left;
     text-shadow: 0 0 10px rgba(255, 80, 110, .14);
   }
 
@@ -811,22 +811,22 @@
    ============================= */
   .hudMenuOverlay{
     display: grid;
-    justify-items: center;
+    justify-items: stretch;
     justify-content: start;
     gap: 0;
-    position: fixed;
-    top: 118px;
-    left: 50%;
+    position: absolute;
+    top: 88px;
+    left: 16px;
     z-index: 999;
-    width: min(720px, calc(100vw - 32px));
+    width: min(340px, calc(100% - 32px));
     padding: 6px 0;
     text-align: left;
-    max-height: min(60vh, 420px);
+    max-height: min(calc(100% - 104px), 520px);
     overflow-x: hidden;
     overflow-y: auto;
     opacity: 1;
-    transform: translateX(-50%);
-    transform-origin: top center;
+    transform: translateY(0);
+    transform-origin: top left;
     border: 1px solid rgba(255,110,140,.22);
     background: #000000;
     border-radius: 18px;
@@ -878,7 +878,7 @@
     padding-bottom: 0;
     border-width: 0;
     border-color: rgba(255,60,60,0);
-    transform: translateX(-50%) translateY(-4px);
+    transform: translateY(-4px);
     overflow: hidden;
     animation: none !important;
   }
@@ -895,7 +895,7 @@
     box-shadow: none;
     font-size: 14px;
     line-height: 1.15;
-    text-align: center;
+    text-align: left;
     color: rgba(248,236,240,.96);
     letter-spacing: .06em;
     text-transform: none;
@@ -904,7 +904,7 @@
     transform: none !important;
     filter: none;
     align-items: center;
-    justify-items: center;
+    justify-items: start;
   }
 
   .hudMenuOverlay .hudMenuItem.is-disabled{
@@ -928,9 +928,10 @@
     min-height: 40px;
     padding-top: 10px;
     padding-bottom: 10px;
+    padding-left: 34px;
     font-size: 13px;
-    text-align: center;
-    justify-items: center;
+    text-align: left;
+    justify-items: start;
   }
 
   .hudMenuOverlay .hudMenuGroupPanel{
@@ -945,21 +946,22 @@
 
   .hudMenuOverlay .hudMenuGroupToggle .hudIntroType{
     position: relative;
-    display: inline-block;
-    padding-right: 16px;
+    display: block;
+    padding-right: 18px;
   }
 
   .hudMenuOverlay .hudMenuGroupToggle .hudIntroType::after{
-    content: '▾';
+    content: '▸';
     position: absolute;
     right: 0;
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
     color: rgba(248,236,240,.72);
     transition: transform 100ms ease;
   }
 
   .hudMenuOverlay .hudMenuGroupToggle[aria-expanded="true"] .hudIntroType::after{
-    transform: rotate(180deg);
+    transform: translateY(-50%) rotate(90deg);
   }
 
   .hudMenuOverlay .hudMenuSubItem .hudIntroType{
@@ -1011,6 +1013,10 @@
     box-shadow:
       inset 0 0 0 1px rgba(255,80,80,.12),
       0 0 28px rgba(255,40,70,.16);
+  }
+
+  body.hud-menu-open .hudTopbar .hudBrandLink{
+    opacity: .52;
   }
 
   .hudMenuOverlay .hudMenuItem .hudIntroType{

@@ -102,12 +102,12 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
   }
 
   .hudMenuOverlay{
-    position: fixed !important;
-    left: 50% !important;
+    position: absolute !important;
+    left: 12px !important;
     right: auto !important;
-    width: min(720px, calc(100vw - 20px)) !important;
-    max-width: calc(100vw - 20px) !important;
-    transform: translateX(-50%) !important;
+    width: min(320px, calc(100% - 24px)) !important;
+    max-width: calc(100% - 24px) !important;
+    transform: none !important;
     background: #000 !important;
     opacity: 1 !important;
     z-index: 999 !important;
@@ -124,13 +124,13 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
     min-height: 42px !important;
     padding: 11px 16px !important;
     background: #000 !important;
-    text-align: center !important;
+    text-align: left !important;
     border-radius: 0 !important;
     border-bottom: 1px solid rgba(255,255,255,.07) !important;
     box-shadow: none !important;
     transform: none !important;
     align-items: center !important;
-    justify-items: center !important;
+    justify-items: start !important;
     line-height: 1.15 !important;
   }
 }
@@ -147,12 +147,14 @@ html.webview, html.messenger, html.facebook, html.instagram, html.twitter, html.
   min-height: 38px !important;
   padding-top: 9px !important;
   padding-bottom: 9px !important;
+  padding-left: 28px !important;
 }
 
 .hudMenuOverlay .hudMenuItem .hudIntroType{
   display: block !important;
   width: 100% !important;
   line-height: 1.15 !important;
+  text-align: left !important;
 }
 
 html.webview .hudIntroType,

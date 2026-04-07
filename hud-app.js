@@ -83,21 +83,22 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           gap: 8px !important;
           font-size: 10px !important;
           letter-spacing: .14em !important;
+          min-width: 92px !important;
         }
 
         .hudMenuOverlay{
           display: grid !important;
-          justify-items: center !important;
+          justify-items: stretch !important;
           gap: 0 !important;
-          left: 50% !important;
+          left: 12px !important;
           right: auto !important;
-          width: min(720px, calc(100vw - 28px)) !important;
-          max-width: calc(100vw - 28px) !important;
+          width: min(320px, calc(100% - 24px)) !important;
+          max-width: calc(100% - 24px) !important;
           top: 74px !important;
           padding: 4px 0 !important;
           overflow-x: hidden !important;
           overflow-y: auto !important;
-          transform: translateX(-50%) !important;
+          transform: none !important;
           border-radius: 18px !important;
         }
 
@@ -113,9 +114,9 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
           padding: 11px 16px !important;
           max-width: none !important;
           transform: none !important;
-          text-align: center !important;
+          text-align: left !important;
           align-items: center !important;
-          justify-items: center !important;
+          justify-items: start !important;
           line-height: 1.15 !important;
         }
 
@@ -135,9 +136,10 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
 
       @media (max-width: 520px){
         .hudMenuOverlay{
-          width: calc(100vw - 20px) !important;
-          max-width: calc(100vw - 20px) !important;
+          width: min(300px, calc(100% - 20px)) !important;
+          max-width: calc(100% - 20px) !important;
           top: 70px !important;
+          left: 10px !important;
         }
 
         .hudMenuItem{
