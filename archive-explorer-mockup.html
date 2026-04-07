@@ -2093,6 +2093,9 @@
       line-height: 1.55;
       letter-spacing: 0.02em;
       text-transform: none;
+      text-align: center;
+      justify-self: center;
+      width: 100%;
     }
 
     .bandDetailAlbumsPanel {
@@ -2162,18 +2165,40 @@
       object-fit: cover;
     }
 
+    .bandDetailAlbumThumbImage.is-hidden {
+      display: none;
+    }
+
+    .bandDetailAlbumThumbFallback {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(108, 221, 255, 0.24);
+      background: rgba(10, 14, 24, 0.82);
+      color: rgba(247, 236, 244, 0.88);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(255, 95, 135, 0.06);
+    }
+
     .bandDetailAlbumMeta {
       display: grid;
-      gap: 6px;
+      gap: 16px;
       min-width: 0;
       align-content: center;
       justify-items: start;
-      padding: 4px 0;
+      padding: 2px 0;
     }
 
     .bandDetailAlbumTitle {
       color: #fff5fb;
-      font-size: clamp(20px, 2.2vw, 29px);
+      font-size: clamp(18px, 2vw, 27px);
       line-height: 1.08;
       letter-spacing: 0.02em;
       text-transform: none;
@@ -2185,10 +2210,11 @@
     .bandDetailAlbumSub {
       color: var(--muted);
       font-size: 14px;
-      line-height: 1.35;
+      line-height: 1.25;
       text-transform: none;
       letter-spacing: 0.02em;
       text-align: left;
+      margin-top: 2px;
     }
 
     .personDetailAlbumCard {
@@ -2544,7 +2570,7 @@
       }
 
       .bandDetailAlbumTitle {
-        font-size: 22px;
+        font-size: 20px;
       }
 
       .personDetailBandAlbums,
@@ -4406,15 +4432,14 @@
         const bits = parseAlbumNameToShowBits(rawName);
         const title = bits.showName || rawName || 'Untitled Album';
         const dateText = bits.showDate ? formatShowDateLabel(bits.showDate) : '';
-        const thumbUrl = pickFirstImageUrl(album);
+        const thumbUrl = String(album && album.posterUrl || '').trim() || pickFirstImageUrl(album);
         const albumKey = getBandAlbumKey(album);
-        const thumbFallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="220"%3E%3Crect width="100%25" height="100%25" fill="rgba(255,255,255,0.06)" /%3E%3C/svg%3E';
         return `
           <article class="bandDetailAlbumCard">
             <div class="bandDetailAlbumThumb"${albumKey ? ` data-band-album-thumb="${escapeHtml(albumKey)}"` : ''}>
               ${thumbUrl
-                ? `<img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
-                : `<img src="${thumbFallback}" alt="" loading="lazy" decoding="async" />`}
+                ? `<img class="bandDetailAlbumThumbImage" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
+                : `<div class="bandDetailAlbumThumbFallback" aria-hidden="true">NA</div>`}
             </div>
             <div class="bandDetailAlbumMeta">
               <div class="bandDetailAlbumTitle">${escapeHtml(title)}</div>
@@ -4423,6 +4448,47 @@
           </article>
         `;
       }).join('');
+    }
+
+    function attachBandAlbumPosterUrls(albums, posterIndex) {
+      const list = Array.isArray(albums) ? albums : [];
+      const index = posterIndex instanceof Map ? posterIndex : new Map();
+      return list.map((album) => {
+        const source = (album && typeof album === 'object') ? album : {};
+        const rawName = String(source.Name || source.Title || source.name || source.title || 'Untitled Album').trim();
+        const bits = parseAlbumNameToShowBits(rawName);
+        const lookupTitle = bits.showName || rawName || 'Untitled Album';
+        const dateSortValue = getShowDateSortValue(bits.showDate || '');
+        const posterUrl = String(
+          source.posterUrl ||
+          index.get(getShowPosterLookupKey(lookupTitle, dateSortValue)) ||
+          index.get(getShowPosterLookupKey(lookupTitle, 0)) ||
+          index.get(getShowPosterDateLookupKey(dateSortValue)) ||
+          ''
+        ).trim();
+        return Object.assign({}, source, {
+          posterUrl
+        });
+      });
+    }
+
+    function ensureBandAlbumThumbFallbacks(gridEl) {
+      if (!gridEl) return;
+      const thumbEls = Array.from(gridEl.querySelectorAll('.bandDetailAlbumThumb'));
+      thumbEls.forEach((thumbEl) => {
+        const imgEl = thumbEl.querySelector('.bandDetailAlbumThumbImage');
+        if (!imgEl) return;
+        const showFallback = () => {
+          imgEl.classList.add('is-hidden');
+          if (!thumbEl.querySelector('.bandDetailAlbumThumbFallback')) {
+            thumbEl.insertAdjacentHTML('beforeend', '<div class="bandDetailAlbumThumbFallback" aria-hidden="true">NA</div>');
+          }
+        };
+        imgEl.addEventListener('error', showFallback, { once: true });
+        if (!imgEl.getAttribute('src')) {
+          showFallback();
+        }
+      });
     }
 
     async function openBandDetailOverlay(card) {
@@ -4541,10 +4607,13 @@
 
       const albumsGrid = bandDetailOverlay.querySelector('[data-band-detail-albums]');
       const albums = await fetchBandAlbums(band.smugFolder || band.name || '', band.region || '');
+      const posterIndex = await loadMusicShowPosterIndex().catch(() => new Map());
+      const albumsWithPosterUrls = attachBandAlbumPosterUrls(albums, posterIndex);
       if (!bandDetailOverlay || bandDetailOverlay.hidden || activeBandDetail !== band) return;
       if (albumsGrid) {
-        albumsGrid.innerHTML = renderBandDetailAlbumsMarkup(albums);
-        hydrateBandAlbumThumbs(albums, albumsGrid, band);
+        albumsGrid.innerHTML = renderBandDetailAlbumsMarkup(albumsWithPosterUrls);
+        ensureBandAlbumThumbFallbacks(albumsGrid);
+        hydrateBandAlbumThumbs(albumsWithPosterUrls, albumsGrid, band);
       }
     }
 
