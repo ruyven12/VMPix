@@ -1723,6 +1723,13 @@
       gap: 4px;
     }
 
+    .personAlbumSummary.is-band-album {
+      width: 100%;
+      gap: 12px;
+      justify-items: center;
+      text-align: center;
+    }
+
     .personAlbumKicker {
       color: var(--muted);
       font-size: 11px;
@@ -1736,6 +1743,50 @@
       line-height: 1.18;
       letter-spacing: 0.03em;
       text-transform: none;
+    }
+
+    .personAlbumInfoGrid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .personAlbumInfoCard {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 6px;
+      align-content: start;
+      text-align: center;
+      justify-items: center;
+    }
+
+    .personAlbumInfoCard.is-wide {
+      grid-column: span 3;
+    }
+
+    .personAlbumInfoCard.is-third {
+      grid-column: span 2;
+    }
+
+    .personAlbumInfoLabel {
+      color: #6cddff;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .personAlbumInfoValue {
+      color: rgba(245, 242, 248, 0.94);
+      font-size: 15px;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      overflow-wrap: anywhere;
+      text-align: center;
     }
 
     .personAlbumActions {
@@ -1771,6 +1822,35 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .personAlbumPeopleBlock {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+      justify-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .personAlbumPeopleBlock .chipRow {
+      justify-content: center;
+    }
+
+    .personAlbumPeopleBlock .chip {
+      color: #fff7fb;
+      text-transform: none;
+      letter-spacing: 0.02em;
+    }
+
+    .personAlbumTopRow.is-band-album-top {
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .personAlbumTopRow.is-band-album-top .personAlbumActions {
+      width: 100%;
+      justify-content: center;
     }
 
     .personAlbumShotCard {
@@ -2133,6 +2213,7 @@
       overflow: hidden;
       min-height: 118px;
       transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      cursor: pointer;
     }
 
     .bandDetailAlbumCard:hover {
@@ -2558,6 +2639,15 @@
       .statGrid {
         grid-template-columns: 1fr;
       }
+
+      .personAlbumInfoGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .personAlbumInfoCard.is-wide,
+      .personAlbumInfoCard.is-third {
+        grid-column: span 1;
+      }
     }
 
     @media (max-width: 560px) {
@@ -2576,6 +2666,15 @@
       .personDetailBandAlbums,
       .personAlbumGrid {
         grid-template-columns: 1fr;
+      }
+
+      .personAlbumInfoGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .personAlbumInfoCard.is-wide,
+      .personAlbumInfoCard.is-third {
+        grid-column: span 1;
       }
 
       .resultsList {
@@ -2732,6 +2831,7 @@
     const MUSIC_API_BASE = 'https://music-archive-3lfa.onrender.com';
     let musicShowPosterIndexPromise = null;
     let musicShowBandIndexPromise = null;
+    let musicShowDetailIndexPromise = null;
     let musicPeopleDetailIndexPromise = null;
     const personAlbumThumbCache = new Map();
 
@@ -2869,6 +2969,40 @@
           .catch(() => new Map());
       }
       return musicShowBandIndexPromise;
+    }
+
+    async function loadMusicShowDetailIndex() {
+      if (!musicShowDetailIndexPromise) {
+        musicShowDetailIndexPromise = fetch(MUSIC_SHOW_INDEX_ENDPOINT, { cache: 'no-store' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then((payload) => {
+            const shows = Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload && payload.shows)
+                ? payload.shows
+                : Array.isArray(payload && payload.rows)
+                  ? payload.rows
+                  : [];
+            const map = new Map();
+            shows.forEach((show) => {
+              const title = String(show && (show.title || show.show_name || show.event || show.name) || '').trim();
+              const dateSortValue = getShowDateSortValue(String(show && (show.date || show.show_date) || '').trim());
+              if (!title) return;
+              map.set(getShowPosterLookupKey(title, dateSortValue), show);
+              const titleOnlyKey = getShowPosterLookupKey(title, 0);
+              if (!map.has(titleOnlyKey)) map.set(titleOnlyKey, show);
+              if (dateSortValue && !map.has(getShowPosterDateLookupKey(dateSortValue))) {
+                map.set(getShowPosterDateLookupKey(dateSortValue), show);
+              }
+            });
+            return map;
+          })
+          .catch(() => new Map());
+      }
+      return musicShowDetailIndexPromise;
     }
 
     function normalizePersonLookupName(name) {
@@ -4387,6 +4521,53 @@
       };
     }
 
+    function findMusicPersonCardByName(name) {
+      const normalizedName = normalizePersonLookupName(name);
+      if (!normalizedName) return null;
+      return resultCards.find((card) =>
+        card &&
+        card.dataset &&
+        card.dataset.subject === "music" &&
+        card.dataset.type === "person" &&
+        normalizePersonLookupName(card.dataset.name || "") === normalizedName
+      ) || null;
+    }
+
+    function createPersonCardStub(person) {
+      const entry = (person && typeof person === "object") ? person : {};
+      return {
+        dataset: {
+          name: String(entry.name || "").trim(),
+          category: String(entry.category || "").trim(),
+          photoCount: String(Number(entry.photoCount || 0)),
+          albumCount: String(Number(entry.albumCount || 0))
+        }
+      };
+    }
+
+    function openMusicPersonDetailFromBandAlbum(personName) {
+      const normalizedName = normalizePersonLookupName(personName);
+      if (!normalizedName) return;
+
+      applySubjectFilter("music");
+      applyFilter("person");
+
+      const people = Array.isArray(window.ARCHIVE_MOCKUP_PEOPLE) ? window.ARCHIVE_MOCKUP_PEOPLE : [];
+      const personRecord = people.find((person) => normalizePersonLookupName(person && person.name || "") === normalizedName) || null;
+      const personCard = findMusicPersonCardByName(personName) || (personRecord ? createPersonCardStub(personRecord) : null);
+      if (!personCard) return;
+
+      closePersonAlbumOverlay();
+      const shouldCloseBandDetail = !!(bandDetailOverlay && !bandDetailOverlay.hidden);
+      if (shouldCloseBandDetail) {
+        closeBandDetailOverlay();
+      }
+
+      window.setTimeout(() => {
+        openPersonDetailOverlay(personCard);
+      }, shouldCloseBandDetail ? 280 : 0);
+    }
+
     function closeBandDetailOverlay() {
       if (!bandDetailOverlay) return;
       const finishClose = () => {
@@ -4435,7 +4616,7 @@
         const thumbUrl = String(album && album.posterUrl || '').trim() || pickFirstImageUrl(album);
         const albumKey = getBandAlbumKey(album);
         return `
-          <article class="bandDetailAlbumCard">
+          <article class="bandDetailAlbumCard"${albumKey ? ` data-band-album-key="${escapeHtml(albumKey)}"` : ''}>
             <div class="bandDetailAlbumThumb"${albumKey ? ` data-band-album-thumb="${escapeHtml(albumKey)}"` : ''}>
               ${thumbUrl
                 ? `<img class="bandDetailAlbumThumbImage" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(title)} poster" loading="lazy" decoding="async" />`
@@ -4472,6 +4653,19 @@
       });
     }
 
+    function findShowDetailForAlbum(album, showDetailIndex) {
+      const source = (album && typeof album === 'object') ? album : {};
+      const index = showDetailIndex instanceof Map ? showDetailIndex : new Map();
+      const rawName = String(source.Name || source.Title || source.name || source.title || 'Untitled Album').trim();
+      const bits = parseAlbumNameToShowBits(rawName);
+      const lookupTitle = bits.showName || rawName || 'Untitled Album';
+      const dateSortValue = getShowDateSortValue(bits.showDate || '');
+      return index.get(getShowPosterLookupKey(lookupTitle, dateSortValue))
+        || index.get(getShowPosterLookupKey(lookupTitle, 0))
+        || index.get(getShowPosterDateLookupKey(dateSortValue))
+        || null;
+    }
+
     function ensureBandAlbumThumbFallbacks(gridEl) {
       if (!gridEl) return;
       const thumbEls = Array.from(gridEl.querySelectorAll('.bandDetailAlbumThumb'));
@@ -4489,6 +4683,187 @@
           showFallback();
         }
       });
+    }
+
+    async function loadBandAlbumShots(albumKey, count = 120) {
+      const key = String(albumKey || '').trim();
+      if (!key) return [];
+
+      try {
+        const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(key)}?count=${Math.max(1, Number(count) || 120)}&start=1`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        return extractAlbumImagesFromPage(payload).map((albumImage, index) => {
+          const thumbUrl = pickAlbumImageThumb(albumImage);
+          const fullUrl = pickAlbumImageFull(albumImage);
+          const caption = String(
+            albumImage && (albumImage.Caption || albumImage.caption || albumImage.Title || albumImage.title || albumImage.FileName || albumImage.fileName) || ''
+          ).trim();
+          return {
+            id: String(albumImage && (albumImage.ImageKey || albumImage.id || index + 1) || index + 1),
+            thumbUrl,
+            fullUrl,
+            caption: caption || `#${index + 1}`,
+            index: index + 1
+          };
+        }).filter((image) => image.thumbUrl && image.fullUrl);
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function extractBandMemberName(line) {
+      return String(line || '')
+        .replace(/\s*\([^)]*\)\s*$/, '')
+        .replace(/\s*[-–—]\s*.+$/, '')
+        .trim();
+    }
+
+    function getBandMemberNames(band) {
+      const source = (band && typeof band === 'object') ? band : {};
+      const raw = [
+        source.vox1,
+        source.vox2,
+        source.vox3,
+        source.guitar1,
+        source.guitar2,
+        source.guitar3,
+        source.bass,
+        source.drum,
+        source.keys,
+        source.past1,
+        source.past2,
+        source.past3,
+        source.past4,
+        source.past5,
+        source.past6
+      ];
+      const seen = new Set();
+      return raw
+        .map((entry) => extractBandMemberName(entry))
+        .filter(Boolean)
+        .filter((name) => {
+          const key = name.toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    }
+
+    function getBandAlbumPeopleFromShots(shots, band) {
+      const members = getBandMemberNames(band);
+      if (!members.length) return [];
+      return members.filter((name) => {
+        return shots.some((shot) => captionMatchesPerson(shot && shot.caption, name));
+      });
+    }
+
+    async function openBandAlbumOverlay(album, band) {
+      if (!personAlbumOverlay || !album || !band) return;
+
+      const albumKey = String(album.albumKey || album.AlbumKey || '').trim();
+      const albumTitle = String(album.title || album.Name || album.Title || 'Untitled Album').trim();
+      const albumDate = String(album.date || '').trim();
+      const albumUrl = String(album.url || album.Url || album.URL || '').trim();
+      const bandName = String(band && band.name || '').trim();
+      const showDetailIndex = await loadMusicShowDetailIndex().catch(() => new Map());
+      const showDetail = findShowDetailForAlbum(album, showDetailIndex);
+      const resolvedShowName = String(
+        (showDetail && (showDetail.title || showDetail.show_name || showDetail.event || showDetail.name))
+        || albumTitle
+        || 'Untitled Album'
+      ).trim();
+      const resolvedDate = albumDate || formatShowDateLabel(String(showDetail && (showDetail.date || showDetail.show_date) || '').trim());
+      const venueText = String(showDetail && showDetail.venue || '').trim();
+
+      activeAlbumDetail = {
+        albumKey,
+        albumTitle,
+        expanded: true,
+        mode: 'band'
+      };
+
+      personAlbumOverlay.innerHTML = `
+        <div class="personAlbumTopRow is-band-album-top">
+          <div class="personAlbumActions">
+            <button class="personDetailBack" type="button" data-person-album-close="1">Back to Show List</button>
+          </div>
+        </div>
+        ${albumUrl ? `
+          <div class="personAlbumTopRow">
+            <div class="personAlbumActions">
+              <a class="personAlbumButton" href="${escapeHtml(albumUrl)}" target="_blank" rel="noreferrer noopener">Buy Photos</a>
+            </div>
+          </div>
+        ` : ''}
+        <div class="personAlbumSummary">
+          <div class="personAlbumKicker">Loading album shots...</div>
+          <div class="personAlbumTitle">${escapeHtml(albumDate ? `${albumDate} - ${albumTitle}` : albumTitle)}</div>
+        </div>
+        <div class="personAlbumGrid">
+          <div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">Loading shots...</div>
+        </div>
+      `;
+      personAlbumOverlay.hidden = false;
+      personAlbumOverlay.setAttribute("aria-hidden", "false");
+      saveMockupSessionState();
+
+      const shots = await loadBandAlbumShots(albumKey, 120);
+      if (!personAlbumOverlay || personAlbumOverlay.hidden || !activeAlbumDetail || activeAlbumDetail.albumKey !== albumKey) {
+        return;
+      }
+
+      const peopleInAlbum = getBandAlbumPeopleFromShots(shots, band);
+      activeAlbumDetail.shots = shots;
+
+      const summaryEl = personAlbumOverlay.querySelector(".personAlbumSummary");
+      const gridEl = personAlbumOverlay.querySelector(".personAlbumGrid");
+      if (summaryEl) {
+        summaryEl.innerHTML = `
+          <div class="personAlbumSummary is-band-album">
+            <div class="personAlbumInfoGrid">
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Show Name</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedShowName || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-wide">
+                <div class="personAlbumInfoLabel">Date</div>
+                <div class="personAlbumInfoValue">${escapeHtml(resolvedDate || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Venue</div>
+                <div class="personAlbumInfoValue">${escapeHtml(venueText || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">City/State</div>
+                <div class="personAlbumInfoValue">${escapeHtml([String(showDetail && showDetail.city || '').trim(), String(showDetail && showDetail.state || '').trim()].filter(Boolean).join(', ') || 'N/A')}</div>
+              </div>
+              <div class="personAlbumInfoCard is-third">
+                <div class="personAlbumInfoLabel">Photo Total</div>
+                <div class="personAlbumInfoValue">${shots.length.toLocaleString()}</div>
+              </div>
+            </div>
+            <div class="personAlbumPeopleBlock">
+              <div class="personAlbumInfoLabel">People in Album</div>
+              ${peopleInAlbum.length
+                ? `<div class="chipRow">${peopleInAlbum.map((name) => `<button class="chip" type="button" data-band-album-person="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('')}</div>`
+                : `<div class="personAlbumInfoValue">${escapeHtml(bandName || 'N/A')}</div>`}
+            </div>
+          </div>
+        `;
+      }
+
+      if (gridEl) {
+        gridEl.innerHTML = shots.length
+          ? shots.map((shot) => `
+              <article class="personAlbumShotCard" data-shot-id="${escapeHtml(shot.id)}" tabindex="0" role="button" aria-label="Open full photo ${shot.index}">
+                <div class="personAlbumShotThumb">
+                  <img src="${escapeHtml(shot.thumbUrl)}" alt="${escapeHtml(albumTitle)} shot ${shot.index}" loading="lazy" decoding="async" />
+                </div>
+              </article>
+            `).join("")
+          : `<div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">No shots found for this album yet.</div>`;
+      }
     }
 
     async function openBandDetailOverlay(card) {
@@ -4609,6 +4984,7 @@
       const albums = await fetchBandAlbums(band.smugFolder || band.name || '', band.region || '');
       const posterIndex = await loadMusicShowPosterIndex().catch(() => new Map());
       const albumsWithPosterUrls = attachBandAlbumPosterUrls(albums, posterIndex);
+      activeBandDetail.albums = albumsWithPosterUrls;
       if (!bandDetailOverlay || bandDetailOverlay.hidden || activeBandDetail !== band) return;
       if (albumsGrid) {
         albumsGrid.innerHTML = renderBandDetailAlbumsMarkup(albumsWithPosterUrls);
@@ -5169,6 +5545,13 @@
     }
 
     document.addEventListener("click", (event) => {
+      const bandAlbumPersonChip = event.target && event.target.closest ? event.target.closest("[data-band-album-person]") : null;
+      if (bandAlbumPersonChip) {
+        event.preventDefault();
+        openMusicPersonDetailFromBandAlbum(String(bandAlbumPersonChip.dataset.bandAlbumPerson || "").trim());
+        return;
+      }
+
       const closeBandDetailButton = event.target && event.target.closest ? event.target.closest("[data-band-detail-close='1']") : null;
       if (closeBandDetailButton) {
         event.preventDefault();
@@ -5232,6 +5615,18 @@
             openPersonAlbumOverlay(album);
           }
         });
+        return;
+      }
+
+      const bandAlbumCard = event.target && event.target.closest ? event.target.closest(".bandDetailAlbumCard") : null;
+      if (bandAlbumCard && !bandAlbumCard.hidden && activeBandDetail) {
+        event.preventDefault();
+        const albumKey = String(bandAlbumCard.dataset.bandAlbumKey || "").trim();
+        const albums = Array.isArray(activeBandDetail.albums) ? activeBandDetail.albums : [];
+        const album = albums.find((entry) => String(getBandAlbumKey(entry) || '').trim() === albumKey);
+        if (album) {
+          openBandAlbumOverlay(album, activeBandDetail);
+        }
         return;
       }
 
