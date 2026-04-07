@@ -873,6 +873,41 @@
       border-left: 1px solid rgba(105, 222, 255, 0.24);
     }
 
+    .showAlbumWipeOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+
+    .showAlbumWipeBlade {
+        position: absolute;
+        inset: -42% -62%;
+        opacity: 0;
+        transform: translate3d(-155%, 155%, 0) rotate(-14deg) scaleX(0.9);
+        background:
+          linear-gradient(90deg, rgba(8, 10, 18, 0) 0%, rgba(105, 222, 255, 0.18) 18%, rgba(255, 114, 181, 0.86) 48%, rgba(10, 12, 20, 0.98) 66%, rgba(8, 10, 18, 0) 100%),
+          linear-gradient(180deg, rgba(22, 10, 24, 0.98), rgba(8, 10, 18, 0.98));
+        box-shadow:
+          0 0 26px rgba(255, 114, 181, 0.22),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        clip-path: polygon(0 0, 78% 0, 100% 100%, 22% 100%);
+        filter: saturate(1.08);
+      }
+
+    .showAlbumWipeBlade::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 24%, rgba(255, 255, 255, 0.18) 32%, transparent 40% 100%),
+        repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 5px);
+      mix-blend-mode: screen;
+      opacity: 0.72;
+    }
+
     .resultsPanel::after {
       content: "";
       position: absolute;
@@ -1521,11 +1556,12 @@
       transform: translateY(8px);
     }
 
-    .personDetailOverlay.is-detail-ready .personDetailStageContent {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 220ms ease, transform 220ms ease;
-    }
+    .personDetailOverlay.is-detail-ready .personDetailStageContent,
+    .personAlbumOverlay.is-detail-ready .personDetailStageContent {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
 
     .personDetailDoorOverlay {
       position: absolute;
@@ -3179,6 +3215,9 @@
           <div class="resultsDoorPanel is-left" id="resultsDoorLeft"></div>
           <div class="resultsDoorPanel is-right" id="resultsDoorRight"></div>
         </div>
+        <div class="showAlbumWipeOverlay" id="showAlbumWipeOverlay" aria-hidden="true">
+          <div class="showAlbumWipeBlade" id="showAlbumWipeBlade"></div>
+        </div>
         <div class="showDetailOverlay personDetailOverlay" id="showDetailOverlay" hidden aria-hidden="true"></div>
         <div class="bandDetailOverlay" id="bandDetailOverlay" hidden aria-hidden="true"></div>
         <div class="personDetailOverlay" id="personDetailOverlay" hidden aria-hidden="true"></div>
@@ -3677,11 +3716,65 @@
       return bands;
     }
 
+    function parsePeopleCaption(caption) {
+      const raw = String(caption || '').trim();
+      if (!raw) return [];
+      const parts = raw.split(';').map((value) => String(value || '').trim()).filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const part of parts) {
+        const key = part.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(part);
+      }
+      return out;
+    }
+
     function captionMatchesPerson(caption, personName) {
-      const normalizedCaption = normalizeCaptionMatchValue(caption);
       const normalizedPersonName = normalizeCaptionMatchValue(personName);
-      if (!normalizedCaption || !normalizedPersonName) return false;
-      return normalizedCaption.includes(normalizedPersonName);
+      if (!normalizedPersonName) return false;
+      const parts = parsePeopleCaption(caption);
+      for (const part of parts) {
+        if (normalizeCaptionMatchValue(part) === normalizedPersonName) return true;
+      }
+      return false;
+    }
+
+    function extractImageKeyFromAlbumImage(albumImage) {
+      return String(
+        albumImage && (albumImage.ImageKey || (albumImage.Image && albumImage.Image.ImageKey) || albumImage.imageKey) || ''
+      ).trim();
+    }
+
+    function extractCaptionFromAlbumImage(albumImage) {
+      const source = (albumImage && typeof albumImage === "object") ? albumImage : {};
+      const nested = (source.Image && typeof source.Image === "object") ? source.Image : {};
+      return String(
+        source.Caption || source.caption || source.Description || source.description ||
+        nested.Caption || nested.caption || nested.Description || nested.description ||
+        ''
+      ).trim();
+    }
+
+    async function fetchImageCaptionByKey(imageKey) {
+      const key = String(imageKey || '').trim();
+      if (!key) return '';
+      try {
+        const response = await fetch(`${MUSIC_API_BASE}/smug/image/${encodeURIComponent(key)}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        const source = payload && payload.Response && payload.Response.Image
+          ? payload.Response.Image
+          : payload && payload.Image
+            ? payload.Image
+            : null;
+        return String(
+          source && (source.Caption || source.caption || source.Description || source.description) || ''
+        ).trim();
+      } catch (_) {
+        return '';
+      }
     }
 
     async function loadPersonAlbumShots(albumKey, personName, count = 8) {
@@ -3692,20 +3785,25 @@
         const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(key)}?count=120&start=1`, { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = await response.json();
-        const shots = extractAlbumImagesFromPage(payload).map((albumImage, index) => {
+        const images = extractAlbumImagesFromPage(payload);
+        const shots = [];
+        for (let index = 0; index < images.length; index += 1) {
+          const albumImage = images[index];
           const thumbUrl = pickAlbumImageThumb(albumImage);
           const fullUrl = pickAlbumImageFull(albumImage);
-          const caption = String(
-            albumImage && (albumImage.Caption || albumImage.caption || albumImage.Title || albumImage.title || albumImage.FileName || albumImage.fileName) || ''
-          ).trim();
-          return {
+          let caption = extractCaptionFromAlbumImage(albumImage);
+          if (!caption) {
+            caption = await fetchImageCaptionByKey(extractImageKeyFromAlbumImage(albumImage));
+          }
+          if (!thumbUrl || !fullUrl || !captionMatchesPerson(caption, personName)) continue;
+          shots.push({
             id: String(albumImage && (albumImage.ImageKey || albumImage.id || index + 1) || index + 1),
             thumbUrl,
             fullUrl,
             caption: caption || `#${index + 1}`,
             index: index + 1
-          };
-        }).filter((image) => image.thumbUrl && image.fullUrl && captionMatchesPerson(image.caption, personName));
+          });
+        }
 
         return shots.slice(0, Math.max(1, Number(count) || 8));
       } catch (_) {
@@ -4283,6 +4381,8 @@
     const resultsDoorOverlay = document.getElementById("resultsDoorOverlay");
     const resultsDoorLeft = document.getElementById("resultsDoorLeft");
     const resultsDoorRight = document.getElementById("resultsDoorRight");
+    const showAlbumWipeOverlay = document.getElementById("showAlbumWipeOverlay");
+    const showAlbumWipeBlade = document.getElementById("showAlbumWipeBlade");
     const showDetailOverlay = document.getElementById("showDetailOverlay");
     const bandDetailOverlay = document.getElementById("bandDetailOverlay");
     const personDetailOverlay = document.getElementById("personDetailOverlay");
@@ -5158,27 +5258,45 @@
       return names;
     }
 
-    function openMusicBandDetailFromShowChip(bandName) {
+    async function openMusicShowAlbumFromShowChip(bandName) {
       const cleanName = String(bandName || "").trim();
-      if (!cleanName) return;
+      const activeShow = activeShowDetail;
+      if (!cleanName || !activeShow) return;
 
-      applySubjectFilter("music");
-      applyFilter("band");
+      const bands = Array.isArray(window.ARCHIVE_MOCKUP_BANDS) ? window.ARCHIVE_MOCKUP_BANDS : [];
+      const normalizedBand = normalizeBandLookupValue(cleanName);
+      const band = bands.find((entry) => normalizeBandLookupValue(entry && entry.name || "") === normalizedBand) || {
+        name: cleanName,
+        smugFolder: cleanName,
+        region: ""
+      };
 
-      const nameSelector = window.CSS && window.CSS.escape
-        ? window.CSS.escape(cleanName)
-        : cleanName.replace(/"/g, '\\"');
-      const bandCard = document.querySelector(`.resultCard[data-type="band"][data-name="${nameSelector}"]`);
-      if (!bandCard) return;
+      const activeShowTitle = normalizePosterLookupValue(activeShow && (activeShow.title || activeShow.show_name || activeShow.event || activeShow.name) || "");
+      const activeShowDateSort = getShowDateSortValue(String(activeShow && (activeShow.date || activeShow.show_date) || "").trim());
 
-      const shouldCloseShowDetail = !!(showDetailOverlay && !showDetailOverlay.hidden);
-      if (shouldCloseShowDetail) {
-        closeShowDetailOverlay();
-      }
+      const [albums, posterIndex, showDetailIndex] = await Promise.all([
+        fetchBandAlbums(band.smugFolder || band.name || cleanName, band.region || ""),
+        loadMusicShowPosterIndex().catch(() => new Map()),
+        loadMusicShowDetailIndex().catch(() => new Map())
+      ]);
+      const albumsWithPosterUrls = attachBandAlbumPosterUrls(albums, posterIndex);
 
-      window.setTimeout(() => {
-        openBandDetailOverlay(bandCard);
-      }, shouldCloseShowDetail ? 280 : 0);
+      const matchedAlbum = albumsWithPosterUrls.find((album) => {
+        const showDetail = findShowDetailForAlbum(album, showDetailIndex);
+        if (showDetail) {
+          const detailTitle = normalizePosterLookupValue(showDetail && (showDetail.title || showDetail.show_name || showDetail.event || showDetail.name) || "");
+          const detailDateSort = getShowDateSortValue(String(showDetail && (showDetail.date || showDetail.show_date) || "").trim());
+          return detailTitle === activeShowTitle && detailDateSort === activeShowDateSort;
+        }
+
+        const rawName = String(album && (album.Name || album.Title || album.name || album.title) || "").trim();
+        const bits = parseAlbumNameToShowBits(rawName);
+        return normalizePosterLookupValue(bits.showName || rawName) === activeShowTitle
+          && getShowDateSortValue(bits.showDate || "") === activeShowDateSort;
+      }) || null;
+
+      if (!matchedAlbum) return;
+      await openBandAlbumOverlay(matchedAlbum, band);
     }
 
     async function playShowDetailDoorTransition() {
@@ -5229,6 +5347,76 @@
       ]);
 
       showDetailOverlay.classList.add("is-detail-ready");
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(-100%)" }
+          ],
+          { duration: 360, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: "translateY(100%)" }
+          ],
+          { duration: 360, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+        ).finished
+      ]);
+
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+    }
+
+    async function playPersonAlbumDoorTransition() {
+      if (
+        !personAlbumOverlay ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        if (personAlbumOverlay) personAlbumOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      const topPanel = personAlbumOverlay.querySelector(".personDetailDoorPanel.is-top");
+      const bottomPanel = personAlbumOverlay.querySelector(".personDetailDoorPanel.is-bottom");
+      if (
+        !topPanel ||
+        !bottomPanel ||
+        typeof topPanel.animate !== "function" ||
+        typeof bottomPanel.animate !== "function"
+      ) {
+        personAlbumOverlay.classList.add("is-detail-ready");
+        return;
+      }
+
+      try {
+        topPanel.getAnimations().forEach((animation) => animation.cancel());
+        bottomPanel.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      personAlbumOverlay.classList.remove("is-detail-ready");
+      topPanel.style.transform = "translateY(-100%)";
+      bottomPanel.style.transform = "translateY(100%)";
+
+      await Promise.all([
+        topPanel.animate(
+          [
+            { transform: "translateY(-100%)" },
+            { transform: "translateY(0)" }
+          ],
+          { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+        ).finished,
+        bottomPanel.animate(
+          [
+            { transform: "translateY(100%)" },
+            { transform: "translateY(0)" }
+          ],
+          { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+        ).finished
+      ]);
+
+      personAlbumOverlay.classList.add("is-detail-ready");
 
       await Promise.all([
         topPanel.animate(
@@ -5588,20 +5776,26 @@
         const response = await fetch(`${MUSIC_API_BASE}/smug/album/${encodeURIComponent(key)}?count=${Math.max(1, Number(count) || 120)}&start=1`, { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = await response.json();
-        return extractAlbumImagesFromPage(payload).map((albumImage, index) => {
+        const images = extractAlbumImagesFromPage(payload);
+        const shots = [];
+        for (let index = 0; index < images.length; index += 1) {
+          const albumImage = images[index];
           const thumbUrl = pickAlbumImageThumb(albumImage);
           const fullUrl = pickAlbumImageFull(albumImage);
-          const caption = String(
-            albumImage && (albumImage.Caption || albumImage.caption || albumImage.Title || albumImage.title || albumImage.FileName || albumImage.fileName) || ''
-          ).trim();
-          return {
+          let caption = extractCaptionFromAlbumImage(albumImage);
+          if (!caption) {
+            caption = await fetchImageCaptionByKey(extractImageKeyFromAlbumImage(albumImage));
+          }
+          if (!thumbUrl || !fullUrl) continue;
+          shots.push({
             id: String(albumImage && (albumImage.ImageKey || albumImage.id || index + 1) || index + 1),
             thumbUrl,
             fullUrl,
             caption: caption || `#${index + 1}`,
             index: index + 1
-          };
-        }).filter((image) => image.thumbUrl && image.fullUrl);
+          });
+        }
+        return shots;
       } catch (_) {
         return [];
       }
@@ -5652,12 +5846,19 @@
         });
     }
 
-    function getBandAlbumPeopleFromShots(shots, band) {
-      const members = getBandMemberNames(band);
-      if (!members.length) return [];
-      return members.filter((name) => {
-        return shots.some((shot) => captionMatchesPerson(shot && shot.caption, name));
+    function getBandAlbumPeopleFromShots(shots) {
+      const seen = new Set();
+      const people = [];
+      (Array.isArray(shots) ? shots : []).forEach((shot) => {
+        const names = parsePeopleCaption(shot && shot.caption);
+        names.forEach((name) => {
+          const key = normalizeCaptionMatchValue(name);
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          people.push(name);
+        });
       });
+      return people;
     }
 
     async function openBandAlbumOverlay(album, band) {
@@ -5686,6 +5887,11 @@
       };
 
       personAlbumOverlay.innerHTML = `
+        <div class="personDetailDoorOverlay" aria-hidden="true">
+          <div class="personDetailDoorPanel is-top"></div>
+          <div class="personDetailDoorPanel is-bottom"></div>
+        </div>
+        <div class="personDetailStageContent">
         <div class="personAlbumTopRow is-band-album-top">
           <div class="personAlbumActions">
             <button class="personDetailBack" type="button" data-person-album-close="1">Back to Show List</button>
@@ -5705,17 +5911,37 @@
         <div class="personAlbumGrid">
           <div style="color: rgba(220, 196, 211, 0.76); font-size: 12px; letter-spacing: 0.05em;">Loading shots...</div>
         </div>
+        </div>
       `;
       personAlbumOverlay.hidden = false;
       personAlbumOverlay.setAttribute("aria-hidden", "false");
       saveMockupSessionState();
+
+      if (
+        typeof personAlbumOverlay.animate === "function" &&
+        !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        personAlbumOverlay.animate(
+          [
+            { opacity: 0, transform: "translateY(18px) scale(0.985)" },
+            { opacity: 1, transform: "translateY(0) scale(1)" }
+          ],
+          {
+            duration: 260,
+            easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+            fill: "both"
+          }
+        );
+      }
+
+      playPersonAlbumDoorTransition().catch(() => {});
 
       const shots = await loadBandAlbumShots(albumKey, 120);
       if (!personAlbumOverlay || personAlbumOverlay.hidden || !activeAlbumDetail || activeAlbumDetail.albumKey !== albumKey) {
         return;
       }
 
-      const peopleInAlbum = getBandAlbumPeopleFromShots(shots, band);
+      const peopleInAlbum = getBandAlbumPeopleFromShots(shots);
       activeAlbumDetail.shots = shots;
 
       const summaryEl = personAlbumOverlay.querySelector(".personAlbumSummary");
@@ -5937,6 +6163,7 @@
       closePersonShotLightboxOverlay();
       personAlbumOverlay.hidden = true;
       personAlbumOverlay.setAttribute("aria-hidden", "true");
+      personAlbumOverlay.classList.remove("is-detail-ready");
       personAlbumOverlay.innerHTML = "";
       activeAlbumDetail = null;
       saveMockupSessionState();
@@ -6448,6 +6675,58 @@
       }
     }
 
+    async function runShowAlbumDiagonalWipe(updateFn) {
+      if (
+        !showAlbumWipeOverlay ||
+        !showAlbumWipeBlade ||
+        typeof showAlbumWipeBlade.animate !== "function" ||
+        (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        if (typeof updateFn === "function") await updateFn();
+        return;
+      }
+
+      try {
+        showAlbumWipeBlade.getAnimations().forEach((animation) => animation.cancel());
+      } catch (_) {}
+
+      showAlbumWipeOverlay.style.pointerEvents = "none";
+      showAlbumWipeBlade.style.opacity = "0";
+      showAlbumWipeBlade.style.transform = "translate3d(-155%, 155%, 0) rotate(-14deg) scaleX(0.9)";
+
+      const wipeAnimation = showAlbumWipeBlade.animate(
+        [
+          { opacity: 0, transform: "translate3d(-155%, 155%, 0) rotate(-14deg) scaleX(0.9)", offset: 0 },
+          { opacity: 0.85, transform: "translate3d(-58%, 58%, 0) rotate(-14deg) scaleX(0.98)", offset: 0.26 },
+          { opacity: 1, transform: "translate3d(0%, 0%, 0) rotate(-14deg) scaleX(1.08)", offset: 0.5 },
+          { opacity: 0.82, transform: "translate3d(62%, -62%, 0) rotate(-14deg) scaleX(0.98)", offset: 0.76 },
+          { opacity: 0, transform: "translate3d(155%, -155%, 0) rotate(-14deg) scaleX(0.9)", offset: 1 }
+        ],
+        {
+          duration: 540,
+          easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+          fill: "forwards"
+        }
+      );
+
+      const updatePromise = typeof updateFn === "function"
+        ? new Promise((resolve) => {
+            window.setTimeout(async () => {
+              try {
+                await updateFn();
+              } finally {
+                resolve();
+              }
+            }, 220);
+          })
+        : Promise.resolve();
+
+      await Promise.all([wipeAnimation.finished, updatePromise]);
+
+      showAlbumWipeBlade.style.opacity = "0";
+      showAlbumWipeBlade.style.transform = "translate3d(-155%, 155%, 0) rotate(-14deg) scaleX(0.9)";
+    }
+
     function applySubjectFilter(subject) {
       activeSubject = subject;
       subjectButtons.forEach((button) => {
@@ -6526,7 +6805,7 @@
       const showBandChip = event.target && event.target.closest ? event.target.closest("[data-show-band-name]") : null;
       if (showBandChip) {
         event.preventDefault();
-        openMusicBandDetailFromShowChip(String(showBandChip.dataset.showBandName || "").trim());
+        openMusicShowAlbumFromShowChip(String(showBandChip.dataset.showBandName || "").trim());
         return;
       }
 
