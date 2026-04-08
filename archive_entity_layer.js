@@ -272,24 +272,25 @@
 
       @media (max-width: 768px) {
         #${CONFIG.mountId} .ae-core {
-          bottom: 20px;
-          width: min(420px, 92vmin);
+          bottom: 14px;
+          width: min(460px, 110vmin);
         }
 
         #${CONFIG.mountId} .ae-entity-video-wrap {
-          bottom: -8px;
-          width: min(${CONFIG.entityVideoWidthPx}px, 160vmin);
+          bottom: -18px;
+          width: min(900px, 185vw);
+          transform: translateX(-50%) scale(1.34);
         }
 
         #${CONFIG.mountId} .ae-entity {
-          bottom: 52px;
-          height: min(270px, 34vh);
+          bottom: 46px;
+          height: min(285px, 36vh);
         }
 
         #${CONFIG.mountId} .ae-light-column {
-          bottom: 76px;
-          width: min(250px, 52vmin);
-          height: min(400px, 42vh);
+          bottom: 70px;
+          width: min(280px, 64vmin);
+          height: min(420px, 44vh);
         }
       }
     `;
