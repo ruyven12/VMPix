@@ -18,8 +18,10 @@
 (function () {
   'use strict';
 
+  const ENABLE_ENTITY = true;
+  if (!ENABLE_ENTITY) return;
+
   const CONFIG = {
-    enabled: true,
     mountId: 'archiveEntityLayer',
     opacity: 0.82,
     bottomOffsetPx: 32,
@@ -358,8 +360,6 @@
   }
 
   function init() {
-    if (!CONFIG.enabled) return;
-
     injectStyles();
 
     const mount = document.getElementById(CONFIG.mountId);
