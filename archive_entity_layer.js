@@ -69,7 +69,7 @@
         left: 50%;
         bottom: ${CONFIG.bottomOffsetPx}px;
         transform: translateX(-50%);
-        width: min(${CONFIG.ringSizePx}px, 72vw);
+        width: min(${CONFIG.ringSizePx}px, 72vmin);
         aspect-ratio: 1 / 1;
         display: grid;
         place-items: center;
@@ -81,7 +81,7 @@
         left: 50%;
         bottom: ${CONFIG.entityVideoBottomPx}px;
         transform: translateX(-50%) scale(${CONFIG.entityVideoScale});
-        width: min(${CONFIG.entityVideoWidthPx}px, 86vw);
+        width: min(${CONFIG.entityVideoWidthPx}px, 128vmin);
         display: grid;
         place-items: center;
         pointer-events: none;
@@ -267,6 +267,29 @@
         #${CONFIG.mountId} .ae-scanline,
         #${CONFIG.mountId} .ae-light-column {
           animation: none !important;
+        }
+      }
+
+      @media (max-width: 768px) {
+        #${CONFIG.mountId} .ae-core {
+          bottom: 20px;
+          width: min(420px, 92vmin);
+        }
+
+        #${CONFIG.mountId} .ae-entity-video-wrap {
+          bottom: -8px;
+          width: min(${CONFIG.entityVideoWidthPx}px, 160vmin);
+        }
+
+        #${CONFIG.mountId} .ae-entity {
+          bottom: 52px;
+          height: min(270px, 34vh);
+        }
+
+        #${CONFIG.mountId} .ae-light-column {
+          bottom: 76px;
+          width: min(250px, 52vmin);
+          height: min(400px, 42vh);
         }
       }
     `;
