@@ -92,6 +92,18 @@
       grid-template-rows: auto minmax(0, 1fr);
     }
 
+    #archiveEntityLayer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .shell > :not(#archiveEntityLayer) {
+      position: relative;
+      z-index: 1;
+    }
+
     .shell::before {
       content: "";
       position: absolute;
@@ -3144,6 +3156,7 @@
 </head>
 <body>
   <main class="shell">
+    <div id="archiveEntityLayer"></div>
     <section class="topbar">
       <div class="titleRow heroCentered">
         <div>
@@ -7148,5 +7161,6 @@
       await restoreMockupSessionState();
     });
   </script>
+  <script src="archive-system/archive-entity-layer.js"></script>
 </body>
 </html>
