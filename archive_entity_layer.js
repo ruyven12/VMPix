@@ -413,7 +413,6 @@
 
         <div class="ae-core">
           ${entityVideoHtml}
-          <div class="ae-ring"></div>
 
           <div class="ae-entity">
             ${makeEntitySvg()}
