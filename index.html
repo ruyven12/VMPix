@@ -1071,13 +1071,20 @@
   body.route-testing .hudMainPlain{
     margin: 0;
     place-items: stretch;
-    padding: 6px 0 10px;
+    padding: 0;
     text-align: initial;
+    background: transparent;
   }
 
   body.route-testing .hudStub.hudMain{
-    padding-left: 2px;
-    padding-right: 2px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body.route-testing .hudStub.hudMain::before{
+    display: none;
   }
 
 

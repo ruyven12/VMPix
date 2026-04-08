@@ -27,8 +27,12 @@
     bottomOffsetPx: 32,
     ringSizePx: 360,
     entityHeightPx: 250,
+    entityVideoWidthPx: 750,
+    entityVideoBottomPx: -30,
+    entityVideoOpacity: 0.78,
+    entityVideoScale: 1.16,
     ringVideoSrc: '',
-    entityVideoSrc: '',
+    entityVideoSrc: 'archive-system/entity/entity-core.webm',
     debugOutline: false,
   };
 
@@ -72,6 +76,31 @@
         pointer-events: none;
       }
 
+      #${CONFIG.mountId} .ae-entity-video-wrap {
+        position: absolute;
+        left: 50%;
+        bottom: ${CONFIG.entityVideoBottomPx}px;
+        transform: translateX(-50%) scale(${CONFIG.entityVideoScale});
+        width: min(${CONFIG.entityVideoWidthPx}px, 86vw);
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      #${CONFIG.mountId} .ae-entity-video {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        opacity: ${CONFIG.entityVideoOpacity};
+        pointer-events: none;
+        mix-blend-mode: screen;
+        filter:
+          drop-shadow(0 0 12px rgba(115, 235, 255, 0.28))
+          drop-shadow(0 0 36px rgba(115, 235, 255, 0.16));
+      }
+
       #${CONFIG.mountId} .ae-light-column {
         position: absolute;
         left: 50%;
@@ -97,6 +126,7 @@
         inset: auto 0 0 0;
         margin: auto;
         width: 100%;
+        z-index: 2;
         aspect-ratio: 1 / 1;
         border-radius: 50%;
         transform: perspective(900px) rotateX(72deg);
@@ -131,6 +161,7 @@
         left: 50%;
         bottom: 58px;
         transform: translateX(-50%);
+        z-index: 3;
         width: auto;
         height: min(${CONFIG.entityHeightPx}px, 32vh);
         filter:
@@ -140,6 +171,11 @@
         animation:
           aeEntityFlicker 5.4s linear infinite,
           aeEntityFloat 4.2s ease-in-out infinite;
+        transition: opacity 180ms ease;
+      }
+
+      #${CONFIG.mountId}.is-video-active .ae-entity {
+        opacity: 0;
       }
 
       #${CONFIG.mountId} .ae-entity svg {
@@ -330,11 +366,29 @@
   }
 
   function buildMarkup() {
+    const entityVideoHtml = CONFIG.entityVideoSrc
+      ? `
+          <div class="ae-entity-video-wrap">
+            <video
+              class="ae-entity-video"
+              src="${CONFIG.entityVideoSrc}"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+            ></video>
+          </div>
+        `
+      : '';
+
     return `
       <div class="ae-root" aria-hidden="true">
         <div class="ae-light-column"></div>
 
         <div class="ae-core">
+          ${entityVideoHtml}
           <div class="ae-ring"></div>
 
           <div class="ae-entity">
@@ -355,8 +409,31 @@
   }
 
   function renderVideoVersion() {
-    // Future hook for real AE exports.
     renderFallback();
+
+    if (!rootEl || !CONFIG.entityVideoSrc) return;
+
+    const video = rootEl.querySelector('.ae-entity-video');
+    if (!video) return;
+
+    const hideVideo = () => {
+      rootEl.classList.remove('is-video-active');
+      video.style.display = 'none';
+    };
+
+    const showVideoMode = () => {
+      rootEl.classList.add('is-video-active');
+      video.style.display = '';
+    };
+
+    video.addEventListener('error', hideVideo, { once: true });
+    video.addEventListener('loadeddata', showVideoMode, { once: true });
+    video.addEventListener('playing', showVideoMode, { once: true });
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(hideVideo);
+    }
   }
 
   function init() {

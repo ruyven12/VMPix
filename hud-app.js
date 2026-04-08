@@ -4695,8 +4695,8 @@ music: {
         if (!m) return;
         m.innerHTML = `
           <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
-            <div style="border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden; background:rgba(7,10,18,.7); min-height:calc(100dvh - 120px); height:calc(100dvh - 120px);">
-              <iframe src="/archive-explorer-mockup.html?v=20260401-testing-ui-r1" title="Archive Explorer Mockup" style="display:block; width:100%; height:100%; min-height:calc(100dvh - 120px); border:0; background:#05060a;"></iframe>
+            <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
+              <iframe src="/archive-explorer-mockup.html?v=20260408-testing-ui-r2" title="Archive Explorer Mockup" style="display:block; width:100%; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
