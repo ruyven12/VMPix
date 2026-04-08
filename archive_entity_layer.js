@@ -69,7 +69,7 @@
         left: 50%;
         bottom: ${CONFIG.bottomOffsetPx}px;
         transform: translateX(-50%);
-        width: min(${CONFIG.ringSizePx}px, 72vmin);
+        width: clamp(300px, 42vmin, ${CONFIG.ringSizePx}px);
         aspect-ratio: 1 / 1;
         display: grid;
         place-items: center;
@@ -163,7 +163,7 @@
         transform: translateX(-50%);
         z-index: 3;
         width: auto;
-        height: min(${CONFIG.entityHeightPx}px, 32vh);
+        height: clamp(170px, 28vmin, ${CONFIG.entityHeightPx}px);
         filter:
           drop-shadow(0 0 8px rgba(125, 220, 255, 0.30))
           drop-shadow(0 0 16px rgba(125, 220, 255, 0.18));
@@ -273,7 +273,7 @@
       @media (max-width: 768px) {
         #${CONFIG.mountId} .ae-core {
           bottom: 14px;
-          width: min(460px, 110vmin);
+          width: clamp(280px, 78vmin, 460px);
         }
 
         #${CONFIG.mountId} .ae-entity-video-wrap {
@@ -284,7 +284,7 @@
 
         #${CONFIG.mountId} .ae-entity {
           bottom: 46px;
-          height: min(285px, 36vh);
+          height: clamp(160px, 31vmin, 250px);
         }
 
         #${CONFIG.mountId} .ae-light-column {
