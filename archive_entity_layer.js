@@ -156,56 +156,6 @@
         box-shadow: 0 0 18px rgba(255, 90, 120, 0.16);
       }
 
-      #${CONFIG.mountId} .ae-entity {
-        position: absolute;
-        left: 50%;
-        bottom: 58px;
-        transform: translateX(-50%);
-        z-index: 3;
-        width: auto;
-        height: clamp(170px, 28vmin, ${CONFIG.entityHeightPx}px);
-        filter:
-          drop-shadow(0 0 8px rgba(125, 220, 255, 0.30))
-          drop-shadow(0 0 16px rgba(125, 220, 255, 0.18));
-        opacity: 0.74;
-        animation:
-          aeEntityFlicker 5.4s linear infinite,
-          aeEntityFloat 4.2s ease-in-out infinite;
-        transition: opacity 180ms ease;
-      }
-
-      #${CONFIG.mountId}.is-video-active .ae-entity {
-        opacity: 0;
-      }
-
-      #${CONFIG.mountId} .ae-entity svg {
-        display: block;
-        width: auto;
-        height: 100%;
-      }
-
-      #${CONFIG.mountId} .ae-pin {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        margin: -5px 0 0 -5px;
-        border-radius: 50%;
-        background: rgba(255, 78, 110, 0.92);
-        box-shadow:
-          0 0 6px rgba(255, 78, 110, 0.84),
-          0 0 16px rgba(255, 78, 110, 0.42);
-        animation: aePinPulse 2.2s ease-in-out infinite;
-      }
-
-      #${CONFIG.mountId} .ae-pin.is-large {
-        width: 14px;
-        height: 14px;
-        margin: -7px 0 0 -7px;
-        box-shadow:
-          0 0 8px rgba(255, 78, 110, 0.94),
-          0 0 20px rgba(255, 78, 110, 0.50);
-      }
-
       #${CONFIG.mountId} .ae-scanline {
         position: absolute;
         left: 0;
@@ -227,26 +177,6 @@
         to   { rotate: 360deg; }
       }
 
-      @keyframes aeEntityFloat {
-        0%, 100% { transform: translateX(-50%) translateY(0); }
-        50%      { transform: translateX(-50%) translateY(-6px); }
-      }
-
-      @keyframes aeEntityFlicker {
-        0%, 8%, 12%, 100% { opacity: 0.72; }
-        9%                { opacity: 0.58; }
-        10%               { opacity: 0.80; }
-        11%               { opacity: 0.62; }
-        46%               { opacity: 0.76; }
-        47%               { opacity: 0.66; }
-        48%               { opacity: 0.78; }
-      }
-
-      @keyframes aePinPulse {
-        0%, 100% { transform: scale(1); opacity: 0.88; }
-        50%      { transform: scale(1.22); opacity: 1; }
-      }
-
       @keyframes aeColumnBreath {
         0%, 100% { opacity: 0.55; transform: translateX(-50%) scaleY(1); }
         50%      { opacity: 0.78; transform: translateX(-50%) scaleY(1.04); }
@@ -261,9 +191,6 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        #${CONFIG.mountId} .ae-ring,
-        #${CONFIG.mountId} .ae-entity,
-        #${CONFIG.mountId} .ae-pin,
         #${CONFIG.mountId} .ae-scanline,
         #${CONFIG.mountId} .ae-light-column {
           animation: none !important;
@@ -282,11 +209,6 @@
           transform: translateX(-50%) scale(1.34);
         }
 
-        #${CONFIG.mountId} .ae-entity {
-          bottom: 46px;
-          height: clamp(160px, 31vmin, 250px);
-        }
-
         #${CONFIG.mountId} .ae-light-column {
           bottom: 70px;
           width: min(280px, 64vmin);
@@ -295,98 +217,6 @@
       }
     `;
     document.head.appendChild(style);
-  }
-
-  function makeEntitySvg() {
-    return `
-      <svg viewBox="0 0 220 300" aria-hidden="true">
-        <defs>
-          <filter id="aeGlow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="2.4" result="blur"/>
-            <feMerge>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-
-        <g fill="none" filter="url(#aeGlow)">
-          <path d="M110 36
-                   C132 36, 150 54, 150 76
-                   C150 93, 140 108, 124 115
-                   L138 140
-                   C150 162, 155 184, 152 204
-                   L148 236
-                   C147 248, 154 263, 166 278
-
-                   M110 36
-                   C88 36, 70 54, 70 76
-                   C70 93, 80 108, 96 115
-                   L82 140
-                   C70 162, 65 184, 68 204
-                   L72 236
-                   C73 248, 66 263, 54 278"
-                stroke="rgba(135,235,255,0.85)"
-                stroke-width="4.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"/>
-
-          <circle cx="110" cy="72" r="34"
-                  stroke="rgba(135,235,255,0.92)"
-                  stroke-width="4.8"/>
-
-          <path d="M86 110
-                   C90 138, 98 156, 110 168
-                   C122 156, 130 138, 134 110"
-                stroke="rgba(135,235,255,0.88)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-
-          <path d="M80 144 C56 160, 44 178, 42 204 C40 220, 46 232, 58 236"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-          <path d="M140 144 C164 160, 176 178, 178 204 C180 220, 174 232, 162 236"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-
-          <path d="M98 170 C88 198, 84 220, 88 250"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-          <path d="M122 170 C132 198, 136 220, 132 250"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-
-          <path d="M88 250 C78 256, 74 266, 78 276"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-          <path d="M132 250 C142 256, 146 266, 142 276"
-                stroke="rgba(135,235,255,0.84)"
-                stroke-width="4.8"
-                stroke-linecap="round"/>
-        </g>
-      </svg>
-    `;
-  }
-
-  function buildPinsHtml() {
-    const pins = [
-      { x: 32, y: 25, large: true, delay: '0s' },
-      { x: 72, y: 20, large: false, delay: '.45s' },
-      { x: 24, y: 52, large: false, delay: '.9s' },
-      { x: 74, y: 52, large: false, delay: '1.4s' },
-      { x: 50, y: 46, large: true, delay: '1.8s' },
-      { x: 52, y: 84, large: false, delay: '.7s' }
-    ];
-
-    return pins.map((p) => {
-      const cls = 'ae-pin' + (p.large ? ' is-large' : '');
-      return `<span class="${cls}" style="left:${p.x}%; top:${p.y}%; animation-delay:${p.delay};"></span>`;
-    }).join('');
   }
 
   function buildMarkup() {
@@ -413,11 +243,6 @@
 
         <div class="ae-core">
           ${entityVideoHtml}
-
-          <div class="ae-entity">
-            ${makeEntitySvg()}
-            ${buildPinsHtml()}
-          </div>
         </div>
 
         <div class="ae-scanline" style="animation-delay: 0s;"></div>
