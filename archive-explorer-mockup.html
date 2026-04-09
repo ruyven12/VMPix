@@ -82,7 +82,7 @@
       isolation: isolate;
     }
 
-    .mockup-stage video {
+    .mockup-background-video {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -118,18 +118,46 @@
       pointer-events: none;
     }
 
+    .mockup-topbar-logo {
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      width: 210px;
+      height: calc(100% - 4px);
+      object-fit: fill;
+      object-position: right center;
+      border-radius: 14px;
+      pointer-events: none;
+    }
+
     @media (max-width: 640px) {
       .mockup-topbar {
         height: clamp(38px, 11vw, 48px);
         border-radius: 16px;
+      }
+
+      .mockup-topbar-logo {
+        width: 150px;
       }
     }
   </style>
 </head>
 <body>
   <main class="mockup-stage">
-    <div class="mockup-topbar" aria-hidden="true"></div>
+    <div class="mockup-topbar" aria-hidden="true">
+      <video
+        class="mockup-topbar-logo"
+        src="archive-system/assets/logo-animated.mp4"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      ></video>
+    </div>
     <video
+      class="mockup-background-video"
       src="archive-system/assets/background-fire.mp4"
       autoplay
       loop
