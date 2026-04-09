@@ -106,17 +106,16 @@
 
     .mockup-topbar {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      height: clamp(42px, 4.4vw, 60px);
+      top: 18px;
+      left: 50%;
+      width: auto;
+      min-width: 0;
+      height: clamp(62px, 5.8vw, 80px);
+      transform: translateX(-50%);
       border-radius: 18px;
-      border: 1px solid rgba(165, 34, 63, 0.78);
-      background:
-        linear-gradient(180deg, rgba(18, 7, 12, 0.92), rgba(8, 4, 8, 0.94));
-      box-shadow:
-        inset 0 1px 0 rgba(255, 179, 202, 0.08),
-        0 10px 22px rgba(0, 0, 0, 0.34);
+      border: 0;
+      background: transparent;
+      box-shadow: none;
       z-index: 3;
       pointer-events: none;
       opacity: 0;
@@ -128,15 +127,116 @@
     }
 
     .mockup-topbar-logo {
-      position: absolute;
-      top: 2px;
-      right: 5px;
-      width: 210px;
-      height: calc(100% - 4px);
-      object-fit: fill;
-      object-position: right center;
+      display: block;
+      width: auto;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
       border-radius: 14px;
       pointer-events: none;
+    }
+
+    .mockup-workspace {
+      position: absolute;
+      top: clamp(90px, 12vh, 132px);
+      left: 50%;
+      width: min(92%, 1120px);
+      height: min(76%, 760px);
+      transform: translateX(-50%);
+      border-radius: 24px;
+      background: rgba(6, 3, 8, 0.18);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 96, 146, 0.16),
+        inset 0 0 46px rgba(255, 96, 146, 0.05);
+      opacity: 0;
+      transition: opacity 1500ms ease;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .mockup-workspace.is-active {
+      opacity: 1;
+    }
+
+    .mockup-workspace::before,
+    .mockup-workspace::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .mockup-workspace::before {
+      border: 1px solid rgba(153, 34, 68, 0.82);
+      box-shadow:
+        0 0 18px rgba(255, 86, 135, 0.08),
+        inset 0 0 22px rgba(255, 86, 135, 0.04);
+    }
+
+    .mockup-workspace::after {
+      inset: 10px;
+      border: 1px solid rgba(255, 114, 181, 0.12);
+      animation: mockupWorkspaceBreath 4.8s ease-in-out infinite;
+    }
+
+    .mockup-workspace-border {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .mockup-workspace-border::before,
+    .mockup-workspace-border::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .mockup-workspace-border::before {
+      top: -1px;
+      left: -14%;
+      width: 28%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 120, 176, 0.92), transparent);
+      filter: blur(0.2px);
+      animation: mockupWorkspaceSweepX 6.4s linear infinite;
+    }
+
+    .mockup-workspace-border::after {
+      top: -14%;
+      right: -1px;
+      width: 2px;
+      height: 28%;
+      background: linear-gradient(180deg, transparent, rgba(105, 222, 255, 0.85), transparent);
+      filter: blur(0.2px);
+      animation: mockupWorkspaceSweepY 5.8s linear infinite;
+    }
+
+    .mockup-workspace-copy {
+      position: absolute;
+      top: clamp(26px, 4vh, 42px);
+      left: 50%;
+      width: min(86%, 760px);
+      transform: translateX(-50%);
+      text-align: center;
+      color: rgba(255, 224, 233, 0.72);
+      font-size: clamp(18px, 2vw, 28px);
+      line-height: 1.35;
+      letter-spacing: 0.03em;
+      text-wrap: balance;
+      text-shadow: 0 0 18px rgba(255, 121, 173, 0.06);
+    }
+
+    .mockup-workspace-copy strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: clamp(22px, 2.4vw, 34px);
+      color: rgba(255, 229, 236, 0.82);
+      font-weight: 700;
     }
 
     .mockup-start-button {
@@ -226,6 +326,35 @@
       }
     }
 
+    @keyframes mockupWorkspaceBreath {
+      0%, 100% {
+        opacity: 0.48;
+        box-shadow: inset 0 0 18px rgba(255, 114, 181, 0.04);
+      }
+      50% {
+        opacity: 0.9;
+        box-shadow: inset 0 0 26px rgba(255, 114, 181, 0.08);
+      }
+    }
+
+    @keyframes mockupWorkspaceSweepX {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(460%);
+      }
+    }
+
+    @keyframes mockupWorkspaceSweepY {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(460%);
+      }
+    }
+
     @media (max-width: 640px) {
       :root {
         --start-hitbox-offset-x: -25px;
@@ -233,12 +362,26 @@
       }
 
       .mockup-topbar {
-        height: clamp(38px, 11vw, 48px);
+        top: 14px;
+        height: clamp(58px, 15vw, 68px);
         border-radius: 16px;
       }
 
-      .mockup-topbar-logo {
-        width: 150px;
+      .mockup-workspace {
+        top: 76px;
+        width: min(94%, 520px);
+        height: min(80%, 760px);
+        border-radius: 20px;
+      }
+
+      .mockup-workspace-copy {
+        top: 24px;
+        width: min(90%, 380px);
+        font-size: clamp(15px, 4.4vw, 20px);
+      }
+
+      .mockup-workspace-copy strong {
+        font-size: clamp(18px, 5.2vw, 24px);
       }
 
       .mockup-start-button {
@@ -266,6 +409,13 @@
         aria-hidden="true"
       ></video>
     </div>
+    <section class="mockup-workspace" aria-hidden="true">
+      <div class="mockup-workspace-border"></div>
+      <div class="mockup-workspace-copy">
+        <strong>Welcome to Voodoo Media.</strong>
+        This working area can become the live landing panel. The border can stay active and responsive while the content inside changes by section, state, or route.
+      </div>
+    </section>
     <video
       class="mockup-background-video"
       src="archive-system/assets/background-fire.mp4"
@@ -295,9 +445,10 @@
     (function () {
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const topbar = document.querySelector('.mockup-topbar');
+      const workspace = document.querySelector('.mockup-workspace');
       const startButton = document.querySelector('.mockup-start-button');
       const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
-      if (!backgroundVideo || !topbar || !startButton || !startButtonHitbox) return;
+      if (!backgroundVideo || !topbar || !workspace || !startButton || !startButtonHitbox) return;
 
       let hidden = false;
 
@@ -324,6 +475,7 @@
         startButtonHitbox.classList.add('is-hidden');
         backgroundVideo.classList.add('is-active');
         topbar.classList.add('is-active');
+        workspace.classList.add('is-active');
         const playPromise = backgroundVideo.play();
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(() => {});
