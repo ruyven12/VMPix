@@ -11,6 +11,8 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
+      --start-hitbox-offset-x: -47px;
+      --start-hitbox-offset-y: 12px;
     }
 
     * {
@@ -74,10 +76,7 @@
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), transparent 30%),
-        linear-gradient(180deg, rgba(24, 11, 21, 0.9), rgba(8, 9, 18, 0.92)),
-        var(--panel);
+      background: #000;
       box-shadow: var(--shadow);
       isolation: isolate;
     }
@@ -89,15 +88,19 @@
       height: 100%;
       object-fit: cover;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 700ms ease;
+    }
+
+    .mockup-background-video.is-active {
+      opacity: 1;
     }
 
     .mockup-stage::before {
       content: "";
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(255, 114, 181, 0.08), transparent 32%),
-        linear-gradient(180deg, rgba(255, 114, 181, 0.04), transparent 20%);
+      background: transparent;
       pointer-events: none;
     }
 
@@ -116,6 +119,12 @@
         0 10px 22px rgba(0, 0, 0, 0.34);
       z-index: 3;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 1500ms ease;
+    }
+
+    .mockup-topbar.is-active {
+      opacity: 1;
     }
 
     .mockup-topbar-logo {
@@ -135,35 +144,105 @@
       top: 50%;
       left: 50%;
       width: clamp(1020px, 106vw, 1320px);
-      transform: translate(-50%, -50%) translateY(var(--start-button-offset-y, 0px));
+      transform: translate(-50%, -50%) scale(var(--start-button-scale, 1));
+      transform-origin: center center;
+      opacity: var(--start-button-opacity, 0);
       object-fit: contain;
       pointer-events: none;
       z-index: 2;
-      transition: transform 700ms ease;
+      transition: opacity 1200ms ease-out;
       filter:
         drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
         drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
+    }
+
+    .mockup-start-button.is-hidden {
+      visibility: hidden;
+    }
+
+    .mockup-start-button.is-exiting {
+      animation: mockupStartButtonExit 620ms ease forwards;
     }
 
     .mockup-start-button-hitbox {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 72px;
-      height: 72px;
-      transform: translate(-50%, -50%) translateY(var(--start-button-offset-y, 0px));
+      width: 100px;
+      height: 100px;
+      transform:
+        translate(-50%, -50%)
+        translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
+        scale(var(--start-button-scale, 1));
+      transform-origin: center center;
       border: 0;
+      border-radius: 50%;
       padding: 0;
       margin: 0;
       background: transparent;
+      opacity: var(--start-button-opacity, 0);
       cursor: pointer;
       z-index: 4;
-      transition: transform 700ms ease;
+      transition: opacity 1200ms ease-out;
       -webkit-appearance: none;
       appearance: none;
     }
 
+    .mockup-start-button-hitbox.is-hidden {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .mockup-start-button-hitbox.is-exiting {
+      animation: mockupStartHitboxExit 620ms ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes mockupStartButtonExit {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+      35% {
+        transform: translate(-50%, -50%) scale(1.16);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(0.04);
+        opacity: 0;
+      }
+    }
+
+    @keyframes mockupStartHitboxExit {
+      0% {
+        transform:
+          translate(-50%, -50%)
+          translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
+          scale(1);
+        opacity: 1;
+      }
+      35% {
+        transform:
+          translate(-50%, -50%)
+          translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
+          scale(1.16);
+        opacity: 1;
+      }
+      100% {
+        transform:
+          translate(-50%, -50%)
+          translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
+          scale(0.04);
+        opacity: 0;
+      }
+    }
+
     @media (max-width: 640px) {
+      :root {
+        --start-hitbox-offset-x: -45px;
+        --start-hitbox-offset-y: 10px;
+      }
+
       .mockup-topbar {
         height: clamp(38px, 11vw, 48px);
         border-radius: 16px;
@@ -178,8 +257,8 @@
       }
 
       .mockup-start-button-hitbox {
-        width: 64px;
-        height: 64px;
+        width: 78px;
+        height: 78px;
       }
     }
   </style>
@@ -201,7 +280,6 @@
     <video
       class="mockup-background-video"
       src="archive-system/assets/background-fire.mp4"
-      autoplay
       loop
       muted
       playsinline
@@ -226,16 +304,41 @@
   </main>
   <script>
     (function () {
+      const backgroundVideo = document.querySelector('.mockup-background-video');
+      const topbar = document.querySelector('.mockup-topbar');
       const startButton = document.querySelector('.mockup-start-button');
       const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
-      if (!startButton || !startButtonHitbox) return;
+      if (!backgroundVideo || !topbar || !startButton || !startButtonHitbox) return;
 
-      let moved = false;
+      let hidden = false;
+
+      window.setTimeout(() => {
+        startButton.style.setProperty('--start-button-opacity', '1');
+        startButtonHitbox.style.setProperty('--start-button-opacity', '1');
+      }, 120);
+
+      window.setTimeout(() => {
+        startButton.style.transition = 'opacity 700ms ease';
+        startButtonHitbox.style.transition = 'opacity 700ms ease';
+      }, 1400);
 
       startButtonHitbox.addEventListener('click', () => {
-        moved = !moved;
-        startButton.style.setProperty('--start-button-offset-y', moved ? '320px' : '0px');
-        startButtonHitbox.style.setProperty('--start-button-offset-y', moved ? '320px' : '0px');
+        if (hidden) return;
+        hidden = true;
+        startButtonHitbox.classList.add('is-exiting');
+        startButton.classList.add('is-exiting');
+      });
+
+      startButton.addEventListener('animationend', (event) => {
+        if (event.animationName !== 'mockupStartButtonExit') return;
+        startButton.classList.add('is-hidden');
+        startButtonHitbox.classList.add('is-hidden');
+        backgroundVideo.classList.add('is-active');
+        topbar.classList.add('is-active');
+        const playPromise = backgroundVideo.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
       });
     })();
   </script>
