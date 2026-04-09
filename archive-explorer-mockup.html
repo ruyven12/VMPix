@@ -278,14 +278,14 @@
       width: 28px;
       height: 36px;
       opacity: 0;
-      transform: translateY(0);
-      transition: opacity 260ms ease;
+      transform: translate(-280px, -180px);
+      transition: opacity 180ms ease;
       pointer-events: none;
     }
 
     .mockup-pin-anchor.is-active {
       opacity: 1;
-      animation: mockupPinReveal 520ms ease-out forwards;
+      animation: mockupPinShootIn 360ms cubic-bezier(.12,.8,.2,1) forwards;
     }
 
     .mockup-pin-anchor::before {
@@ -322,26 +322,32 @@
     }
 
     .mockup-pin-anchor.is-active::before {
-      animation: mockupPinBulbReveal 520ms ease-out forwards;
+      animation: mockupPinBulbReveal 360ms ease-out forwards;
     }
 
     .mockup-pin-anchor.is-active::after {
-      animation: mockupPinNeedleReveal 520ms ease-out forwards;
+      animation: mockupPinNeedleReveal 360ms ease-out forwards;
     }
 
-    @keyframes mockupPinReveal {
+    @keyframes mockupPinShootIn {
       0% {
         opacity: 0;
+        transform: translate(-280px, -180px);
+      }
+      72% {
+        opacity: 1;
+        transform: translate(6px, 4px);
       }
       100% {
         opacity: 1;
+        transform: translate(0, 0);
       }
     }
 
     @keyframes mockupPinNeedleReveal {
       0% {
         opacity: 0;
-        transform: rotate(-24deg) scaleY(0.15);
+        transform: rotate(-24deg) scaleY(0.35);
       }
       55% {
         opacity: 1;
@@ -356,7 +362,7 @@
     @keyframes mockupPinBulbReveal {
       0% {
         opacity: 0;
-        transform: translate(-50%, -4px) scale(0.2);
+        transform: translate(-50%, -8px) scale(0.38);
       }
       55% {
         opacity: 1;
