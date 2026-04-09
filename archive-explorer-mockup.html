@@ -95,7 +95,7 @@
       position: absolute;
       top: 0;
       width: 100%;
-      height: clamp(92px, 11vw, 140px);
+      height: clamp(82px, 7.4vw, 112px);
       overflow: hidden;
       z-index: 2;
       pointer-events: none;
@@ -105,13 +105,33 @@
 
     .mockup-top-menu {
       position: absolute;
-      top: -2px;
+      top: -10px;
       left: 0;
       width: 100%;
       height: auto;
-      min-height: 100%;
+      display: block;
       opacity: 0.98;
       filter: saturate(1.08) contrast(1.04);
+    }
+
+    @media (max-width: 900px) {
+      .mockup-top-menu-shell {
+        height: clamp(76px, 10.5vw, 96px);
+      }
+
+      .mockup-top-menu {
+        top: -6px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .mockup-top-menu-shell {
+        height: clamp(70px, 14vw, 86px);
+      }
+
+      .mockup-top-menu {
+        top: -2px;
+      }
     }
 
     .mockup-stage::before {
