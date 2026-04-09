@@ -134,14 +134,33 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: clamp(580px, 64vw, 760px);
-      transform: translate(-50%, -50%);
+      width: clamp(1020px, 106vw, 1320px);
+      transform: translate(-50%, -50%) translateY(var(--start-button-offset-y, 0px));
       object-fit: contain;
       pointer-events: none;
       z-index: 2;
+      transition: transform 700ms ease;
       filter:
         drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
         drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
+    }
+
+    .mockup-start-button-hitbox {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 72px;
+      height: 72px;
+      transform: translate(-50%, -50%) translateY(var(--start-button-offset-y, 0px));
+      border: 0;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      cursor: pointer;
+      z-index: 4;
+      transition: transform 700ms ease;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     @media (max-width: 640px) {
@@ -155,7 +174,12 @@
       }
 
       .mockup-start-button {
-        width: clamp(420px, 96vw, 560px);
+        width: clamp(760px, 160vw, 980px);
+      }
+
+      .mockup-start-button-hitbox {
+        width: 64px;
+        height: 64px;
       }
     }
   </style>
@@ -194,6 +218,26 @@
       preload="auto"
       aria-hidden="true"
     ></video>
+    <button
+      class="mockup-start-button-hitbox"
+      type="button"
+      aria-label="Start"
+    ></button>
   </main>
+  <script>
+    (function () {
+      const startButton = document.querySelector('.mockup-start-button');
+      const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
+      if (!startButton || !startButtonHitbox) return;
+
+      let moved = false;
+
+      startButtonHitbox.addEventListener('click', () => {
+        moved = !moved;
+        startButton.style.setProperty('--start-button-offset-y', moved ? '320px' : '0px');
+        startButtonHitbox.style.setProperty('--start-button-offset-y', moved ? '320px' : '0px');
+      });
+    })();
+  </script>
 </body>
 </html>
