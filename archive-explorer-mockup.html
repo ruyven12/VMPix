@@ -177,16 +177,22 @@
       object-fit: contain;
     }
 
-    .mockup-about-menu {
+    .mockup-about-slot {
       position: absolute;
       left: 50%;
       top: calc(50% + min(105px, 10.5vmin));
       width: clamp(240px, 28vw, 360px);
       transform: translate(-50%, 0);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .mockup-about-menu {
+      display: block;
+      width: 100%;
       opacity: 1;
       object-fit: contain;
       pointer-events: none;
-      z-index: 3;
       transition: opacity 220ms ease;
       filter:
         drop-shadow(0 0 12px rgba(255, 102, 153, 0.14))
@@ -200,10 +206,10 @@
     .mockup-about-hitbox {
       position: absolute;
       left: 50%;
-      top: calc(50% + min(205px, 20.5vmin));
-      width: clamp(96px, 9vw, 112px);
+      bottom: clamp(10px, 1.1vw, 14px);
+      width: min(38%, 112px);
       height: clamp(18px, 1.8vw, 22px);
-      transform: translate(-50%, 0);
+      transform: translateX(-50%);
       border: 0;
       padding: 0;
       margin: 0;
@@ -261,13 +267,17 @@
       }
 
       .mockup-about-menu {
+        width: 100%;
+      }
+
+      .mockup-about-slot {
         top: calc(50% + min(43px, 8.6vw));
         width: min(320px, calc(100vw - 56px));
       }
 
       .mockup-about-hitbox {
-        top: calc(50% + min(143px, 28.6vw));
-        width: min(108px, 30vw);
+        bottom: min(10px, 2.6vw);
+        width: min(38%, 108px);
         height: min(22px, 6vw);
       }
 
@@ -307,19 +317,21 @@
               aria-hidden="true"
             ></video>
           </div>
-          <video
-            class="mockup-about-menu"
-            src="archive-system/assets/about-menu.webm"
-            muted
-            playsinline
-            preload="auto"
-            aria-hidden="true"
-          ></video>
-          <button
-            class="mockup-about-hitbox"
-            type="button"
-            aria-label="Open About"
-          ></button>
+          <div class="mockup-about-slot">
+            <video
+              class="mockup-about-menu"
+              src="archive-system/assets/about-menu.webm"
+              muted
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+            ></video>
+            <button
+              class="mockup-about-hitbox"
+              type="button"
+              aria-label="Open About"
+            ></button>
+          </div>
         </div>
       </div>
     </section>
