@@ -182,6 +182,7 @@
       width: min(1000px, 92vw);
       height: min(1000px, 92vh);
       transform: translate(-50%, -50%);
+      overflow: visible;
     }
 
     .mockup-doll-core img,
@@ -273,12 +274,12 @@
 
     .mockup-pin-anchor {
       position: absolute;
-      left: 47.4%;
-      top: 27.5%;
+      left: 44.9%;
+      top: 41.9%;
       width: 28px;
       height: 36px;
       opacity: 0;
-      transform: translate(-280px, -180px);
+      transform: translate(-120px, -120px);
       transition: opacity 180ms ease;
       pointer-events: none;
     }
@@ -647,11 +648,6 @@
         padding: 6px 8px 5px;
       }
 
-      .mockup-pin-anchor {
-        left: 47.4%;
-        top: 27.5%;
-      }
-
       .mockup-start-button {
         width: clamp(760px, 160vw, 980px);
       }
@@ -696,8 +692,8 @@
               preload="auto"
               aria-hidden="true"
             ></video>
+            <div class="mockup-pin-anchor" aria-hidden="true"></div>
           </div>
-          <div class="mockup-pin-anchor" aria-hidden="true"></div>
           <div class="mockup-callout is-about">
             <span class="mockup-callout-label">About</span>
           </div>
