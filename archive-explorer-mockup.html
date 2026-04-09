@@ -91,6 +91,29 @@
       pointer-events: none;
     }
 
+    .mockup-top-menu-shell {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: clamp(92px, 11vw, 140px);
+      overflow: hidden;
+      z-index: 2;
+      pointer-events: none;
+      mask-image: linear-gradient(to bottom, #000 0 82%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0 82%, transparent 100%);
+    }
+
+    .mockup-top-menu {
+      position: absolute;
+      top: -2px;
+      left: 0;
+      width: 100%;
+      height: auto;
+      min-height: 100%;
+      opacity: 0.98;
+      filter: saturate(1.08) contrast(1.04);
+    }
+
     .mockup-stage::before {
       content: "";
       position: absolute;
@@ -113,6 +136,18 @@
       preload="auto"
       aria-hidden="true"
     ></video>
+    <div class="mockup-top-menu-shell" aria-hidden="true">
+      <video
+        class="mockup-top-menu"
+        src="archive-system/assets/top-menu.mp4"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      ></video>
+    </div>
   </main>
 </body>
 </html>
