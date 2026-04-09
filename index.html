@@ -1074,6 +1074,7 @@
     padding: 0;
     text-align: initial;
     background: transparent;
+    touch-action: none;
   }
 
   body.route-testing .hudStub.hudMain{
@@ -1081,10 +1082,18 @@
     border: 0;
     background: transparent;
     box-shadow: none;
+    touch-action: none;
   }
 
   body.route-testing .hudStub.hudMain::before{
     display: none;
+  }
+
+  body.route-testing,
+  body.route-testing #hudMainMount,
+  body.route-testing iframe{
+    touch-action: none;
+    overscroll-behavior: none;
   }
 
   body.route-testing #hudEmbers,
