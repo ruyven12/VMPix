@@ -278,14 +278,14 @@
       width: 28px;
       height: 36px;
       opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 700ms ease, transform 700ms ease;
+      transform: translateY(0);
+      transition: opacity 260ms ease;
       pointer-events: none;
     }
 
     .mockup-pin-anchor.is-active {
       opacity: 1;
-      transform: translateY(0);
+      animation: mockupPinReveal 520ms ease-out forwards;
     }
 
     .mockup-pin-anchor::before {
@@ -301,6 +301,9 @@
       box-shadow:
         0 0 0 2px rgba(255, 115, 160, 0.10),
         0 0 12px rgba(255, 115, 160, 0.42);
+      transform: translate(-50%, -8px) scale(0.55);
+      opacity: 0;
+      transform-origin: center center;
     }
 
     .mockup-pin-anchor::after {
@@ -315,6 +318,54 @@
       box-shadow: 0 0 6px rgba(255,255,255,0.14);
       transform: rotate(-24deg);
       transform-origin: top center;
+      opacity: 0;
+    }
+
+    .mockup-pin-anchor.is-active::before {
+      animation: mockupPinBulbReveal 520ms ease-out forwards;
+    }
+
+    .mockup-pin-anchor.is-active::after {
+      animation: mockupPinNeedleReveal 520ms ease-out forwards;
+    }
+
+    @keyframes mockupPinReveal {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes mockupPinNeedleReveal {
+      0% {
+        opacity: 0;
+        transform: rotate(-24deg) scaleY(0.15);
+      }
+      55% {
+        opacity: 1;
+        transform: rotate(-24deg) scaleY(1.08);
+      }
+      100% {
+        opacity: 1;
+        transform: rotate(-24deg) scaleY(1);
+      }
+    }
+
+    @keyframes mockupPinBulbReveal {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -4px) scale(0.2);
+      }
+      55% {
+        opacity: 1;
+        transform: translate(-50%, -8px) scale(1.08);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -8px) scale(1);
+      }
     }
 
     .mockup-start-button {
