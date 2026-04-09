@@ -139,10 +139,11 @@
     .mockup-workspace {
       position: absolute;
       top: clamp(126px, 16vh, 168px);
-      left: 50%;
-      width: min(92%, 1120px);
-      height: min(76%, 760px);
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      height: auto;
       border-radius: 24px;
       background: rgba(6, 3, 8, 0.18);
       box-shadow:
@@ -369,8 +370,11 @@
 
       .mockup-workspace {
         top: 110px;
-        width: min(94%, 520px);
-        height: min(80%, 760px);
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        width: auto;
+        height: auto;
         border-radius: 20px;
       }
 
