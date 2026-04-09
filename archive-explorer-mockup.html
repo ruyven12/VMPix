@@ -179,8 +179,8 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: min(1000px, 92vw);
-      height: min(1000px, 92vh);
+      width: min(700px, 72vmin);
+      aspect-ratio: 1 / 1;
       transform: translate(-50%, -50%);
       overflow: visible;
     }
@@ -607,9 +607,7 @@
       }
 
       .mockup-doll-core {
-        top: 50%;
-        width: min(900px, 150vw);
-        height: min(900px, 150vw);
+        width: min(700px, calc(100vw - 36px));
       }
 
       .mockup-callout {
