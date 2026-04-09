@@ -174,30 +174,17 @@
     .mockup-doll-core {
       position: absolute;
       left: 50%;
-      top: 56%;
-      width: clamp(200px, 22vw, 320px);
-      height: clamp(300px, 34vw, 460px);
+      top: 50%;
+      width: 450px;
+      height: 450px;
       transform: translate(-50%, -50%);
-      filter:
-        drop-shadow(0 0 18px rgba(104, 222, 255, 0.24))
-        drop-shadow(0 0 36px rgba(255, 94, 148, 0.10));
     }
 
-    .mockup-doll-core svg {
+    .mockup-doll-core img {
       width: 100%;
       height: 100%;
       display: block;
-    }
-
-    .mockup-hud-node {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: rgba(255, 95, 142, 0.92);
-      box-shadow:
-        0 0 0 3px rgba(255, 95, 142, 0.10),
-        0 0 10px rgba(255, 95, 142, 0.48);
+      object-fit: contain;
     }
 
     .mockup-callout {
@@ -498,9 +485,9 @@
       }
 
       .mockup-doll-core {
-        top: 54%;
-        width: clamp(156px, 42vw, 240px);
-        height: clamp(238px, 62vw, 340px);
+        top: 50%;
+        width: 450px;
+        height: 450px;
       }
 
       .mockup-callout {
@@ -570,40 +557,8 @@
       <div class="mockup-workspace-copy">
         <div class="mockup-doll-stage">
           <div class="mockup-doll-core">
-            <svg viewBox="0 0 240 360" aria-hidden="true">
-              <defs>
-                <filter id="mockupDollGlow" x="-40%" y="-40%" width="180%" height="180%">
-                  <feGaussianBlur stdDeviation="2.8" result="blur"></feGaussianBlur>
-                  <feMerge>
-                    <feMergeNode in="blur"></feMergeNode>
-                    <feMergeNode in="SourceGraphic"></feMergeNode>
-                  </feMerge>
-                </filter>
-              </defs>
-              <g fill="none" filter="url(#mockupDollGlow)">
-                <circle cx="120" cy="66" r="36" stroke="rgba(125,220,255,0.92)" stroke-width="5"></circle>
-                <path d="M92 108 C98 144, 108 166, 120 176 C132 166, 142 144, 148 108"
-                  stroke="rgba(125,220,255,0.88)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M84 128 C60 144, 48 168, 48 194 C48 214, 56 230, 70 236"
-                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M156 128 C180 144, 192 168, 192 194 C192 214, 184 230, 170 236"
-                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M110 176 C98 214, 92 248, 96 300"
-                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M130 176 C142 214, 148 248, 144 300"
-                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M94 300 C84 312, 80 324, 84 338"
-                  stroke="rgba(125,220,255,0.82)" stroke-width="5" stroke-linecap="round"></path>
-                <path d="M146 300 C156 312, 160 324, 156 338"
-                  stroke="rgba(125,220,255,0.82)" stroke-width="5" stroke-linecap="round"></path>
-              </g>
-            </svg>
+            <img src="archive-system/assets/voodoo-doll-center.png" alt="Voodoo doll centerpiece" />
           </div>
-
-          <span class="mockup-hud-node" style="left:48.6%; top:36.8%;"></span>
-          <span class="mockup-hud-node" style="left:45.9%; top:44.6%;"></span>
-          <span class="mockup-hud-node" style="left:51.8%; top:55.2%;"></span>
-          <span class="mockup-hud-node" style="left:47.2%; top:63.6%;"></span>
 
           <div class="mockup-callout" style="left:19%; top:29%;">
             <span class="mockup-callout-label">Origins</span>
