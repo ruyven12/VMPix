@@ -91,51 +91,6 @@
       pointer-events: none;
     }
 
-    .mockup-top-menu-shell {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      height: clamp(82px, 7.4vw, 112px);
-      overflow: hidden;
-      z-index: 2;
-      pointer-events: none;
-      mask-image: linear-gradient(to bottom, #000 0 82%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, #000 0 82%, transparent 100%);
-    }
-
-    .mockup-top-menu {
-      position: absolute;
-      top: -10px;
-      left: 0;
-      width: 100%;
-      height: auto;
-      display: block;
-      opacity: 0.98;
-      filter: saturate(1.08) contrast(1.04);
-    }
-
-    @media (max-width: 900px) {
-      .mockup-top-menu-shell {
-        height: clamp(76px, 10.5vw, 96px);
-      }
-
-      .mockup-top-menu {
-        top: -6px;
-      }
-    }
-
-    @media (max-width: 560px) {
-      .mockup-top-menu-shell {
-        height: clamp(70px, 14vw, 86px);
-      }
-
-      .mockup-top-menu {
-        top: -2px;
-        left: 2%;
-        width: 96%;
-      }
-    }
-
     .mockup-stage::before {
       content: "";
       position: absolute;
@@ -145,10 +100,35 @@
         linear-gradient(180deg, rgba(255, 114, 181, 0.04), transparent 20%);
       pointer-events: none;
     }
+
+    .mockup-topbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      height: clamp(42px, 4.4vw, 60px);
+      border-radius: 18px;
+      border: 1px solid rgba(165, 34, 63, 0.78);
+      background:
+        linear-gradient(180deg, rgba(18, 7, 12, 0.92), rgba(8, 4, 8, 0.94));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 179, 202, 0.08),
+        0 10px 22px rgba(0, 0, 0, 0.34);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @media (max-width: 640px) {
+      .mockup-topbar {
+        height: clamp(38px, 11vw, 48px);
+        border-radius: 16px;
+      }
+    }
   </style>
 </head>
 <body>
   <main class="mockup-stage">
+    <div class="mockup-topbar" aria-hidden="true"></div>
     <video
       src="archive-system/assets/background-fire.mp4"
       autoplay
@@ -158,18 +138,6 @@
       preload="auto"
       aria-hidden="true"
     ></video>
-    <div class="mockup-top-menu-shell" aria-hidden="true">
-      <video
-        class="mockup-top-menu"
-        src="archive-system/assets/top-menu.mp4"
-        autoplay
-        loop
-        muted
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      ></video>
-    </div>
   </main>
 </body>
 </html>
