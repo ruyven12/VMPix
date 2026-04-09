@@ -211,6 +211,11 @@
       transform: translateY(0);
     }
 
+    .mockup-callout.is-about {
+      left: 17%;
+      top: 26%;
+    }
+
     .mockup-callout::before,
     .mockup-callout::after {
       content: "";
@@ -264,6 +269,52 @@
       width: 22px;
       height: 1px;
       transform: rotate(52deg);
+    }
+
+    .mockup-pin-anchor {
+      position: absolute;
+      left: 47.4%;
+      top: 27.5%;
+      width: 28px;
+      height: 36px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 700ms ease, transform 700ms ease;
+      pointer-events: none;
+    }
+
+    .mockup-pin-anchor.is-active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mockup-pin-anchor::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      margin-left: -6px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, #ffe2e8 0 20%, #ff8db0 21% 58%, #a22345 59% 82%, #6d1127 83% 100%);
+      box-shadow:
+        0 0 0 2px rgba(255, 115, 160, 0.10),
+        0 0 12px rgba(255, 115, 160, 0.42);
+    }
+
+    .mockup-pin-anchor::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 9px;
+      width: 2px;
+      height: 38px;
+      margin-left: -1px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(147,155,168,0.62));
+      box-shadow: 0 0 6px rgba(255,255,255,0.14);
+      transform: rotate(-24deg);
+      transform-origin: top center;
     }
 
     .mockup-start-button {
@@ -508,6 +559,11 @@
         letter-spacing: 0.06em;
       }
 
+      .mockup-callout.is-about {
+        left: 8%;
+        top: 24%;
+      }
+
       .mockup-callout::before {
         left: -50px;
         width: 40px;
@@ -532,6 +588,11 @@
 
       .mockup-callout-label {
         padding: 6px 8px 5px;
+      }
+
+      .mockup-pin-anchor {
+        left: 45.6%;
+        top: 28.9%;
       }
 
       .mockup-start-button {
@@ -579,21 +640,9 @@
               aria-hidden="true"
             ></video>
           </div>
-
-          <div class="mockup-callout" style="left:19%; top:29%;">
-            <span class="mockup-callout-label">Origins</span>
-          </div>
-
-          <div class="mockup-callout is-right" style="right:18%; top:25%;">
-            <span class="mockup-callout-label">Shows</span>
-          </div>
-
-          <div class="mockup-callout" style="left:17%; top:49%;">
-            <span class="mockup-callout-label">People</span>
-          </div>
-
-          <div class="mockup-callout is-right" style="right:16%; top:54%;">
-            <span class="mockup-callout-label">Archive</span>
+          <div class="mockup-pin-anchor" aria-hidden="true"></div>
+          <div class="mockup-callout is-about">
+            <span class="mockup-callout-label">About</span>
           </div>
         </div>
       </div>
@@ -629,12 +678,13 @@
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const dollReveal = document.querySelector('.mockup-doll-reveal');
       const callouts = Array.from(document.querySelectorAll('.mockup-callout'));
+      const pinAnchor = document.querySelector('.mockup-pin-anchor');
       const topbar = document.querySelector('.mockup-topbar');
       const workspace = document.querySelector('.mockup-workspace');
       const startCopy = document.querySelector('.mockup-start-copy');
       const startButton = document.querySelector('.mockup-start-button');
       const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
-      if (!backgroundVideo || !dollReveal || !topbar || !workspace || !startCopy || !startButton || !startButtonHitbox) return;
+      if (!backgroundVideo || !dollReveal || !pinAnchor || !topbar || !workspace || !startCopy || !startButton || !startButtonHitbox) return;
 
       let hidden = false;
 
@@ -688,6 +738,7 @@
           playPromise.catch(() => {});
         }
         window.setTimeout(() => {
+          pinAnchor.classList.add('is-active');
           callouts.forEach((callout) => callout.classList.add('is-active'));
         }, 900);
       });
