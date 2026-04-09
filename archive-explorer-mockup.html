@@ -162,34 +162,108 @@
 
     .mockup-workspace-copy {
       position: absolute;
-      top: clamp(28px, 4.2vh, 48px);
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .mockup-doll-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .mockup-doll-core {
+      position: absolute;
       left: 50%;
-      width: min(92%, 920px);
-      transform: translateX(-50%);
-      text-align: center;
-      color: rgba(210, 176, 188, 0.86);
-      font-size: clamp(16px, 1.25vw, 22px);
-      font-weight: 700;
-      line-height: 1.3;
-      letter-spacing: 0.01em;
-      text-wrap: balance;
-      text-shadow: 0 0 14px rgba(255, 121, 173, 0.04);
+      top: 56%;
+      width: clamp(200px, 22vw, 320px);
+      height: clamp(300px, 34vw, 460px);
+      transform: translate(-50%, -50%);
+      filter:
+        drop-shadow(0 0 18px rgba(104, 222, 255, 0.24))
+        drop-shadow(0 0 36px rgba(255, 94, 148, 0.10));
     }
 
-    .mockup-workspace-copy strong {
+    .mockup-doll-core svg {
+      width: 100%;
+      height: 100%;
       display: block;
-      margin-bottom: 18px;
-      font-size: clamp(26px, 2.15vw, 38px);
-      color: rgba(214, 182, 194, 0.92);
-      font-weight: 700;
     }
 
-    .mockup-workspace-copy p {
-      margin: 0 0 18px;
+    .mockup-hud-node {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255, 95, 142, 0.92);
+      box-shadow:
+        0 0 0 3px rgba(255, 95, 142, 0.10),
+        0 0 10px rgba(255, 95, 142, 0.48);
     }
 
-    .mockup-workspace-copy p:last-child {
-      margin-bottom: 0;
+    .mockup-callout {
+      position: absolute;
+      color: rgba(236, 233, 236, 0.9);
+      font-size: clamp(11px, 0.8vw, 13px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+
+    .mockup-callout::before,
+    .mockup-callout::after {
+      content: "";
+      position: absolute;
+      background: rgba(226, 232, 240, 0.82);
+      transform-origin: left center;
+    }
+
+    .mockup-callout::before {
+      left: -82px;
+      top: 50%;
+      width: 68px;
+      height: 1px;
+    }
+
+    .mockup-callout::after {
+      left: -18px;
+      top: calc(50% - 20px);
+      width: 22px;
+      height: 1px;
+      transform: rotate(-52deg);
+    }
+
+    .mockup-callout-label {
+      display: inline-block;
+      padding: 8px 12px 7px;
+      border: 1px solid rgba(225, 231, 238, 0.42);
+      background: rgba(8, 10, 16, 0.36);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 12px rgba(255, 255, 255, 0.03);
+    }
+
+    .mockup-callout.is-right::before,
+    .mockup-callout.is-right::after {
+      left: auto;
+      right: -82px;
+      transform-origin: right center;
+    }
+
+    .mockup-callout.is-right::before {
+      right: -82px;
+      width: 68px;
+      top: 50%;
+      height: 1px;
+    }
+
+    .mockup-callout.is-right::after {
+      right: -18px;
+      top: calc(50% - 20px);
+      width: 22px;
+      height: 1px;
+      transform: rotate(52deg);
     }
 
     .mockup-start-button {
@@ -198,7 +272,9 @@
       left: 50%;
       width: clamp(1020px, 106vw, 1320px);
       transform: translate(-50%, -50%) scale(var(--start-button-scale, 1));
-      transform-origin: center center;
+      transform-origin:
+        calc(50% + var(--start-hitbox-offset-x))
+        calc(50% + var(--start-hitbox-offset-y));
       opacity: var(--start-button-opacity, 0);
       object-fit: contain;
       pointer-events: none;
@@ -209,12 +285,49 @@
         drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
     }
 
+    .mockup-start-copy {
+      position: absolute;
+      top: calc(50% - 128px);
+      left: 50%;
+      width: max-content;
+      max-width: min(92%, 980px);
+      transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0);
+      text-align: center;
+      color: rgba(214, 182, 194, 0.92);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+      text-wrap: balance;
+      text-shadow: 0 0 14px rgba(255, 121, 173, 0.04);
+      opacity: var(--start-button-opacity, 0);
+      pointer-events: none;
+      z-index: 2;
+      transition: opacity 1200ms ease-out;
+    }
+
+    .mockup-start-copy.is-hidden {
+      visibility: hidden;
+    }
+
+    .mockup-start-copy.is-flickering {
+      animation: mockupStartCopyFlicker 180ms steps(1, end) 1;
+    }
+
+    .mockup-start-copy.is-exiting {
+      animation: mockupStartCopyExit 420ms ease forwards;
+    }
+
     .mockup-start-button.is-hidden {
       visibility: hidden;
     }
 
     .mockup-start-button.is-exiting {
       animation: mockupStartButtonExit 620ms ease forwards;
+    }
+
+    .mockup-start-button.is-flickering {
+      animation: mockupStartButtonFlicker 180ms steps(1, end) 1;
     }
 
     .mockup-start-button-hitbox {
@@ -251,6 +364,74 @@
       pointer-events: none;
     }
 
+    .mockup-start-button-hitbox.is-flickering {
+      animation: mockupStartHitboxFlicker 180ms steps(1, end) 1;
+      pointer-events: none;
+    }
+
+    @keyframes mockupStartButtonFlicker {
+      0% {
+        opacity: 1;
+        filter:
+          drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
+          drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
+      }
+      22% {
+        opacity: 0.24;
+        filter:
+          drop-shadow(0 0 8px rgba(255, 114, 181, 0.08))
+          drop-shadow(0 0 16px rgba(105, 222, 255, 0.06));
+      }
+      44% {
+        opacity: 1;
+      }
+      66% {
+        opacity: 0.1;
+      }
+      100% {
+        opacity: 1;
+        filter:
+          drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
+          drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
+      }
+    }
+
+    @keyframes mockupStartHitboxFlicker {
+      0% {
+        opacity: 1;
+      }
+      22% {
+        opacity: 0.24;
+      }
+      44% {
+        opacity: 1;
+      }
+      66% {
+        opacity: 0.1;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes mockupStartCopyFlicker {
+      0% {
+        opacity: 1;
+      }
+      22% {
+        opacity: 0.24;
+      }
+      44% {
+        opacity: 1;
+      }
+      66% {
+        opacity: 0.1;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
     @keyframes mockupStartButtonExit {
       0% {
         transform: translate(-50%, -50%) scale(1);
@@ -279,6 +460,17 @@
       }
     }
 
+    @keyframes mockupStartCopyExit {
+      0% {
+        transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0) scale(0.04);
+        opacity: 0;
+      }
+    }
+
     @media (max-width: 640px) {
       :root {
         --start-hitbox-offset-x: -25px;
@@ -302,18 +494,55 @@
       }
 
       .mockup-workspace-copy {
-        top: 24px;
-        width: min(92%, 430px);
-        font-size: clamp(13px, 3.9vw, 17px);
+        inset: 0;
       }
 
-      .mockup-workspace-copy strong {
-        margin-bottom: 16px;
-        font-size: clamp(20px, 5.6vw, 28px);
+      .mockup-doll-core {
+        top: 54%;
+        width: clamp(156px, 42vw, 240px);
+        height: clamp(238px, 62vw, 340px);
+      }
+
+      .mockup-callout {
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+
+      .mockup-callout::before {
+        left: -50px;
+        width: 40px;
+      }
+
+      .mockup-callout::after {
+        left: -12px;
+        width: 16px;
+        top: calc(50% - 15px);
+      }
+
+      .mockup-callout.is-right::before {
+        right: -50px;
+        width: 40px;
+      }
+
+      .mockup-callout.is-right::after {
+        right: -12px;
+        width: 16px;
+        top: calc(50% - 15px);
+      }
+
+      .mockup-callout-label {
+        padding: 6px 8px 5px;
       }
 
       .mockup-start-button {
         width: clamp(760px, 160vw, 980px);
+      }
+
+      .mockup-start-copy {
+        top: calc(50% - 104px);
+        width: max-content;
+        max-width: min(92%, 430px);
+        font-size: 18px;
       }
 
       .mockup-start-button-hitbox {
@@ -339,9 +568,59 @@
     </div>
     <section class="mockup-workspace" aria-hidden="true">
       <div class="mockup-workspace-copy">
-        <strong>Welcome to the landing site for Voodoo Media.</strong>
-        <p>Right now this is a placeholder for more content later, but for now please make your selection above.</p>
-        <p>Also, this page at the moment is best viewed inside a browser and should load with most devices. If you are viewing this from Facebook webview you likely will encounter issues.</p>
+        <div class="mockup-doll-stage">
+          <div class="mockup-doll-core">
+            <svg viewBox="0 0 240 360" aria-hidden="true">
+              <defs>
+                <filter id="mockupDollGlow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feGaussianBlur stdDeviation="2.8" result="blur"></feGaussianBlur>
+                  <feMerge>
+                    <feMergeNode in="blur"></feMergeNode>
+                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g fill="none" filter="url(#mockupDollGlow)">
+                <circle cx="120" cy="66" r="36" stroke="rgba(125,220,255,0.92)" stroke-width="5"></circle>
+                <path d="M92 108 C98 144, 108 166, 120 176 C132 166, 142 144, 148 108"
+                  stroke="rgba(125,220,255,0.88)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M84 128 C60 144, 48 168, 48 194 C48 214, 56 230, 70 236"
+                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M156 128 C180 144, 192 168, 192 194 C192 214, 184 230, 170 236"
+                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M110 176 C98 214, 92 248, 96 300"
+                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M130 176 C142 214, 148 248, 144 300"
+                  stroke="rgba(125,220,255,0.84)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M94 300 C84 312, 80 324, 84 338"
+                  stroke="rgba(125,220,255,0.82)" stroke-width="5" stroke-linecap="round"></path>
+                <path d="M146 300 C156 312, 160 324, 156 338"
+                  stroke="rgba(125,220,255,0.82)" stroke-width="5" stroke-linecap="round"></path>
+              </g>
+            </svg>
+          </div>
+
+          <span class="mockup-hud-node" style="left:48.6%; top:36.8%;"></span>
+          <span class="mockup-hud-node" style="left:45.9%; top:44.6%;"></span>
+          <span class="mockup-hud-node" style="left:51.8%; top:55.2%;"></span>
+          <span class="mockup-hud-node" style="left:47.2%; top:63.6%;"></span>
+
+          <div class="mockup-callout" style="left:19%; top:29%;">
+            <span class="mockup-callout-label">Origins</span>
+          </div>
+
+          <div class="mockup-callout is-right" style="right:18%; top:25%;">
+            <span class="mockup-callout-label">Shows</span>
+          </div>
+
+          <div class="mockup-callout" style="left:17%; top:49%;">
+            <span class="mockup-callout-label">People</span>
+          </div>
+
+          <div class="mockup-callout is-right" style="right:16%; top:54%;">
+            <span class="mockup-callout-label">Archive</span>
+          </div>
+        </div>
       </div>
     </section>
     <video
@@ -363,6 +642,7 @@
       preload="auto"
       aria-hidden="true"
     ></video>
+    <div class="mockup-start-copy">Welcome to Voodoo Media</div>
     <button
       class="mockup-start-button-hitbox"
       type="button"
@@ -374,18 +654,21 @@
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const topbar = document.querySelector('.mockup-topbar');
       const workspace = document.querySelector('.mockup-workspace');
+      const startCopy = document.querySelector('.mockup-start-copy');
       const startButton = document.querySelector('.mockup-start-button');
       const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
-      if (!backgroundVideo || !topbar || !workspace || !startButton || !startButtonHitbox) return;
+      if (!backgroundVideo || !topbar || !workspace || !startCopy || !startButton || !startButtonHitbox) return;
 
       let hidden = false;
 
       window.setTimeout(() => {
+        startCopy.style.setProperty('--start-button-opacity', '1');
         startButton.style.setProperty('--start-button-opacity', '1');
         startButtonHitbox.style.setProperty('--start-button-opacity', '1');
       }, 120);
 
       window.setTimeout(() => {
+        startCopy.style.transition = 'opacity 700ms ease';
         startButton.style.transition = 'opacity 700ms ease';
         startButtonHitbox.style.transition = 'opacity 700ms ease';
       }, 1400);
@@ -393,12 +676,24 @@
       startButtonHitbox.addEventListener('click', () => {
         if (hidden) return;
         hidden = true;
-        startButtonHitbox.classList.add('is-exiting');
-        startButton.classList.add('is-exiting');
-      });
+        startCopy.classList.add('is-flickering');
+        startButtonHitbox.classList.add('is-flickering');
+        startButton.classList.add('is-flickering');
+        window.setTimeout(() => {
+        startCopy.classList.remove('is-flickering');
+        startButtonHitbox.classList.remove('is-flickering');
+        startButton.classList.remove('is-flickering');
+        startCopy.classList.add('is-exiting');
+        window.setTimeout(() => {
+          startButtonHitbox.classList.add('is-exiting');
+          startButton.classList.add('is-exiting');
+        }, 120);
+      }, 180);
+    });
 
       startButton.addEventListener('animationend', (event) => {
         if (event.animationName !== 'mockupStartButtonExit') return;
+        startCopy.classList.add('is-hidden');
         startButton.classList.add('is-hidden');
         startButtonHitbox.classList.add('is-hidden');
         backgroundVideo.classList.add('is-active');
