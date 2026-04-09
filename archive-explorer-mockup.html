@@ -14,8 +14,6 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
-      --start-hitbox-offset-x: -27px;
-      --start-hitbox-offset-y: 18px;
     }
 
     * {
@@ -94,11 +92,6 @@
       height: 100%;
       object-fit: cover;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 700ms ease;
-    }
-
-    .mockup-background-video.is-active {
       opacity: 1;
     }
 
@@ -124,11 +117,6 @@
       box-shadow: none;
       z-index: 3;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 1500ms ease;
-    }
-
-    .mockup-topbar.is-active {
       opacity: 1;
     }
 
@@ -152,27 +140,23 @@
       height: auto;
       border-radius: 24px;
       background: transparent;
-      opacity: 0;
-      transition: opacity 1500ms ease;
-      pointer-events: none;
+      opacity: 1;
+      pointer-events: auto;
       z-index: 2;
       overflow: visible;
-    }
-
-    .mockup-workspace.is-active {
-      opacity: 1;
     }
 
     .mockup-workspace-copy {
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      pointer-events: auto;
     }
 
     .mockup-doll-stage {
       position: absolute;
       inset: 0;
       overflow: visible;
+      pointer-events: none;
     }
 
     .mockup-doll-core {
@@ -193,399 +177,65 @@
       object-fit: contain;
     }
 
-    .mockup-callout {
+    .mockup-about-menu {
       position: absolute;
-      color: rgba(236, 233, 236, 0.9);
-      font-size: clamp(11px, 0.8vw, 13px);
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.06);
-      white-space: nowrap;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 700ms ease, transform 700ms ease;
-    }
-
-    .mockup-callout.is-active {
+      left: 50%;
+      top: calc(50% + min(105px, 10.5vmin));
+      width: clamp(240px, 28vw, 360px);
+      transform: translate(-50%, 0);
       opacity: 1;
-      transform: translateY(0);
-    }
-
-    .mockup-callout.is-about {
-      left: 17%;
-      top: 26%;
-    }
-
-    .mockup-callout::before,
-    .mockup-callout::after {
-      content: "";
-      position: absolute;
-      background: rgba(226, 232, 240, 0.82);
-      transform-origin: left center;
-    }
-
-    .mockup-callout::before {
-      left: -82px;
-      top: 50%;
-      width: 68px;
-      height: 1px;
-    }
-
-    .mockup-callout::after {
-      left: -18px;
-      top: calc(50% - 20px);
-      width: 22px;
-      height: 1px;
-      transform: rotate(-52deg);
-    }
-
-    .mockup-callout-label {
-      display: inline-block;
-      padding: 8px 12px 7px;
-      border: 1px solid rgba(225, 231, 238, 0.42);
-      background: rgba(8, 10, 16, 0.36);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 0 12px rgba(255, 255, 255, 0.03);
-    }
-
-    .mockup-callout.is-right::before,
-    .mockup-callout.is-right::after {
-      left: auto;
-      right: -82px;
-      transform-origin: right center;
-    }
-
-    .mockup-callout.is-right::before {
-      right: -82px;
-      width: 68px;
-      top: 50%;
-      height: 1px;
-    }
-
-    .mockup-callout.is-right::after {
-      right: -18px;
-      top: calc(50% - 20px);
-      width: 22px;
-      height: 1px;
-      transform: rotate(52deg);
-    }
-
-    .mockup-pin-anchor {
-      position: absolute;
-      left: 45.4%;
-      top: 28.9%;
-      width: 28px;
-      height: 36px;
-      opacity: 0;
-      transform: translate(-120px, -120px);
-      transition: opacity 180ms ease;
-      pointer-events: none;
-    }
-
-    .mockup-pin-anchor.is-active {
-      opacity: 1;
-      animation: mockupPinShootIn 360ms cubic-bezier(.12,.8,.2,1) forwards;
-    }
-
-    .mockup-pin-anchor::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 0;
-      width: 12px;
-      height: 12px;
-      margin-left: -6px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 38% 35%, #ffe2e8 0 20%, #ff8db0 21% 58%, #a22345 59% 82%, #6d1127 83% 100%);
-      box-shadow:
-        0 0 0 2px rgba(255, 115, 160, 0.10),
-        0 0 12px rgba(255, 115, 160, 0.42);
-      transform: translate(-50%, -8px) scale(0.55);
-      opacity: 0;
-      transform-origin: center center;
-    }
-
-    .mockup-pin-anchor::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 9px;
-      width: 2px;
-      height: 38px;
-      margin-left: -1px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(147,155,168,0.62));
-      box-shadow: 0 0 6px rgba(255,255,255,0.14);
-      transform: rotate(-24deg);
-      transform-origin: top center;
-      opacity: 0;
-    }
-
-    .mockup-pin-anchor.is-active::before {
-      animation: mockupPinBulbReveal 360ms ease-out forwards;
-    }
-
-    .mockup-pin-anchor.is-active::after {
-      animation: mockupPinNeedleReveal 360ms ease-out forwards;
-    }
-
-    @keyframes mockupPinShootIn {
-      0% {
-        opacity: 0;
-        transform: translate(-280px, -180px);
-      }
-      72% {
-        opacity: 1;
-        transform: translate(6px, 4px);
-      }
-      100% {
-        opacity: 1;
-        transform: translate(0, 0);
-      }
-    }
-
-    @keyframes mockupPinNeedleReveal {
-      0% {
-        opacity: 0;
-        transform: rotate(-24deg) scaleY(0.35);
-      }
-      55% {
-        opacity: 1;
-        transform: rotate(-24deg) scaleY(1.08);
-      }
-      100% {
-        opacity: 1;
-        transform: rotate(-24deg) scaleY(1);
-      }
-    }
-
-    @keyframes mockupPinBulbReveal {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -8px) scale(0.38);
-      }
-      55% {
-        opacity: 1;
-        transform: translate(-50%, -8px) scale(1.08);
-      }
-      100% {
-        opacity: 1;
-        transform: translate(-50%, -8px) scale(1);
-      }
-    }
-
-    .mockup-start-button {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: clamp(1020px, 106vw, 1320px);
-      transform: translate(-50%, -50%) scale(var(--start-button-scale, 1));
-      transform-origin:
-        calc(50% + var(--start-hitbox-offset-x))
-        calc(50% + var(--start-hitbox-offset-y));
-      opacity: var(--start-button-opacity, 0);
       object-fit: contain;
       pointer-events: none;
-      z-index: 2;
-      transition: opacity 1200ms ease-out;
+      z-index: 3;
+      transition: opacity 220ms ease;
       filter:
-        drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
-        drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
+        drop-shadow(0 0 12px rgba(255, 102, 153, 0.14))
+        drop-shadow(0 0 24px rgba(255, 255, 255, 0.06));
     }
 
-    .mockup-start-copy {
+    .mockup-about-menu.is-hidden {
+      opacity: 0;
+    }
+
+    .mockup-about-hitbox {
       position: absolute;
-      top: calc(50% - 128px);
+      left: 50%;
+      top: calc(50% + min(205px, 20.5vmin));
+      width: clamp(96px, 9vw, 112px);
+      height: clamp(18px, 1.8vw, 22px);
+      transform: translate(-50%, 0);
+      border: 0;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      z-index: 4;
+      pointer-events: auto;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .mockup-welcome-copy {
+      position: absolute;
+      top: calc(50% - min(290px, 29vmin));
       left: 50%;
       width: max-content;
-      max-width: min(92%, 980px);
-      transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0);
+      max-width: min(92%, 760px);
+      transform: translateX(-50%);
       text-align: center;
       color: rgba(214, 182, 194, 0.92);
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       line-height: 1.2;
       letter-spacing: 0.01em;
       text-wrap: balance;
       text-shadow: 0 0 14px rgba(255, 121, 173, 0.04);
-      opacity: var(--start-button-opacity, 0);
       pointer-events: none;
-      z-index: 2;
-      transition: opacity 1200ms ease-out;
-    }
-
-    .mockup-start-copy.is-hidden {
-      visibility: hidden;
-    }
-
-    .mockup-start-copy.is-flickering {
-      animation: mockupStartCopyFlicker 180ms steps(1, end) 1;
-    }
-
-    .mockup-start-copy.is-exiting {
-      animation: mockupStartCopyExit 420ms ease forwards;
-    }
-
-    .mockup-start-button.is-hidden {
-      visibility: hidden;
-    }
-
-    .mockup-start-button.is-exiting {
-      animation: mockupStartButtonExit 620ms ease forwards;
-    }
-
-    .mockup-start-button.is-flickering {
-      animation: mockupStartButtonFlicker 180ms steps(1, end) 1;
-    }
-
-    .mockup-start-button-hitbox {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100px;
-      height: 100px;
-      transform:
-        translate(-50%, -50%)
-        translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
-        scale(var(--start-button-scale, 1));
-      transform-origin: center center;
-      border: 0;
-      border-radius: 50%;
-      padding: 0;
-      margin: 0;
-      background: transparent;
-      opacity: var(--start-button-opacity, 0);
-      cursor: pointer;
-      z-index: 4;
-      transition: opacity 1200ms ease-out;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    .mockup-start-button-hitbox.is-hidden {
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .mockup-start-button-hitbox.is-exiting {
-      animation: mockupStartHitboxExit 620ms ease forwards;
-      pointer-events: none;
-    }
-
-    .mockup-start-button-hitbox.is-flickering {
-      animation: mockupStartHitboxFlicker 180ms steps(1, end) 1;
-      pointer-events: none;
-    }
-
-    @keyframes mockupStartButtonFlicker {
-      0% {
-        opacity: 1;
-        filter:
-          drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
-          drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
-      }
-      22% {
-        opacity: 0.24;
-        filter:
-          drop-shadow(0 0 8px rgba(255, 114, 181, 0.08))
-          drop-shadow(0 0 16px rgba(105, 222, 255, 0.06));
-      }
-      44% {
-        opacity: 1;
-      }
-      66% {
-        opacity: 0.1;
-      }
-      100% {
-        opacity: 1;
-        filter:
-          drop-shadow(0 0 18px rgba(255, 114, 181, 0.18))
-          drop-shadow(0 0 38px rgba(105, 222, 255, 0.12));
-      }
-    }
-
-    @keyframes mockupStartHitboxFlicker {
-      0% {
-        opacity: 1;
-      }
-      22% {
-        opacity: 0.24;
-      }
-      44% {
-        opacity: 1;
-      }
-      66% {
-        opacity: 0.1;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-
-    @keyframes mockupStartCopyFlicker {
-      0% {
-        opacity: 1;
-      }
-      22% {
-        opacity: 0.24;
-      }
-      44% {
-        opacity: 1;
-      }
-      66% {
-        opacity: 0.1;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-
-    @keyframes mockupStartButtonExit {
-      0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(0.04);
-        opacity: 0;
-      }
-    }
-
-    @keyframes mockupStartHitboxExit {
-      0% {
-        transform:
-          translate(-50%, -50%)
-          translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
-          scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform:
-          translate(-50%, -50%)
-          translate(var(--start-hitbox-offset-x), var(--start-hitbox-offset-y))
-          scale(0.04);
-        opacity: 0;
-      }
-    }
-
-    @keyframes mockupStartCopyExit {
-      0% {
-        transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(calc(-50% + var(--start-hitbox-offset-x)), 0) scale(0.04);
-        opacity: 0;
-      }
+      z-index: 3;
     }
 
     @media (max-width: 640px) {
-      :root {
-        --start-hitbox-offset-x: -25px;
-        --start-hitbox-offset-y: 22px;
-      }
-
       .mockup-topbar {
         top: 14px;
         height: clamp(128px, 30vw, 138px);
@@ -610,56 +260,22 @@
         width: min(700px, calc(100vw - 36px));
       }
 
-      .mockup-callout {
-        font-size: 10px;
-        letter-spacing: 0.06em;
+      .mockup-about-menu {
+        top: calc(50% + min(43px, 8.6vw));
+        width: min(320px, calc(100vw - 56px));
       }
 
-      .mockup-callout.is-about {
-        left: 8%;
-        top: 23%;
+      .mockup-about-hitbox {
+        top: calc(50% + min(143px, 28.6vw));
+        width: min(108px, 30vw);
+        height: min(22px, 6vw);
       }
 
-      .mockup-callout::before {
-        left: -50px;
-        width: 40px;
-      }
-
-      .mockup-callout::after {
-        left: -12px;
-        width: 16px;
-        top: calc(50% - 15px);
-      }
-
-      .mockup-callout.is-right::before {
-        right: -50px;
-        width: 40px;
-      }
-
-      .mockup-callout.is-right::after {
-        right: -12px;
-        width: 16px;
-        top: calc(50% - 15px);
-      }
-
-      .mockup-callout-label {
-        padding: 6px 8px 5px;
-      }
-
-      .mockup-start-button {
-        width: clamp(760px, 160vw, 980px);
-      }
-
-      .mockup-start-copy {
-        top: calc(50% - 104px);
+      .mockup-welcome-copy {
+        top: calc(50% - min(208px, 46vw));
         width: max-content;
         max-width: min(92%, 430px);
-        font-size: 18px;
-      }
-
-      .mockup-start-button-hitbox {
-        width: 78px;
-        height: 78px;
+        font-size: 16px;
       }
     }
   </style>
@@ -690,11 +306,20 @@
               preload="auto"
               aria-hidden="true"
             ></video>
-            <div class="mockup-pin-anchor" aria-hidden="true"></div>
           </div>
-          <div class="mockup-callout is-about">
-            <span class="mockup-callout-label">About</span>
-          </div>
+          <video
+            class="mockup-about-menu"
+            src="archive-system/assets/about-menu.webm"
+            muted
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+          ></video>
+          <button
+            class="mockup-about-hitbox"
+            type="button"
+            aria-label="Open About"
+          ></button>
         </div>
       </div>
     </section>
@@ -707,91 +332,68 @@
       preload="auto"
       aria-hidden="true"
     ></video>
-    <video
-      class="mockup-start-button"
-      src="archive-system/assets/start-button.webm"
-      autoplay
-      loop
-      muted
-      playsinline
-      preload="auto"
-      aria-hidden="true"
-    ></video>
-    <div class="mockup-start-copy">Welcome to Voodoo Media</div>
-    <button
-      class="mockup-start-button-hitbox"
-      type="button"
-      aria-label="Start"
-    ></button>
+    <div class="mockup-welcome-copy">Welcome to the landing page. Make your selection below.</div>
   </main>
   <script>
     (function () {
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const dollReveal = document.querySelector('.mockup-doll-reveal');
-      const callouts = Array.from(document.querySelectorAll('.mockup-callout'));
-      const pinAnchor = document.querySelector('.mockup-pin-anchor');
-      const topbar = document.querySelector('.mockup-topbar');
-      const workspace = document.querySelector('.mockup-workspace');
-      const startCopy = document.querySelector('.mockup-start-copy');
-      const startButton = document.querySelector('.mockup-start-button');
-      const startButtonHitbox = document.querySelector('.mockup-start-button-hitbox');
-      if (!backgroundVideo || !dollReveal || !pinAnchor || !topbar || !workspace || !startCopy || !startButton || !startButtonHitbox) return;
+      const aboutMenu = document.querySelector('.mockup-about-menu');
+      const aboutHitbox = document.querySelector('.mockup-about-hitbox');
+      if (!backgroundVideo || !dollReveal || !aboutMenu || !aboutHitbox) return;
+      let isRestarting = false;
 
-      let hidden = false;
-
-      window.setTimeout(() => {
-        startCopy.style.setProperty('--start-button-opacity', '1');
-        startButton.style.setProperty('--start-button-opacity', '1');
-        startButtonHitbox.style.setProperty('--start-button-opacity', '1');
-      }, 120);
-
-      window.setTimeout(() => {
-        startCopy.style.transition = 'opacity 700ms ease';
-        startButton.style.transition = 'opacity 700ms ease';
-        startButtonHitbox.style.transition = 'opacity 700ms ease';
-      }, 1400);
-
-      startButtonHitbox.addEventListener('click', () => {
-        if (hidden) return;
-        hidden = true;
-        startCopy.classList.add('is-flickering');
-        startButtonHitbox.classList.add('is-flickering');
-        startButton.classList.add('is-flickering');
-        window.setTimeout(() => {
-        startCopy.classList.remove('is-flickering');
-        startButtonHitbox.classList.remove('is-flickering');
-        startButton.classList.remove('is-flickering');
-        startCopy.classList.add('is-exiting');
-        window.setTimeout(() => {
-          startButtonHitbox.classList.add('is-exiting');
-          startButton.classList.add('is-exiting');
-        }, 120);
-      }, 180);
-    });
-
-      startButton.addEventListener('animationend', (event) => {
-        if (event.animationName !== 'mockupStartButtonExit') return;
-        startCopy.classList.add('is-hidden');
-        startButton.classList.add('is-hidden');
-        startButtonHitbox.classList.add('is-hidden');
-        backgroundVideo.classList.add('is-active');
-        topbar.classList.add('is-active');
-        workspace.classList.add('is-active');
+      const playAboutMenu = () => {
+        aboutMenu.classList.remove('is-hidden');
         try {
+          aboutMenu.currentTime = 0;
+        } catch (_) {}
+        const aboutMenuPromise = aboutMenu.play();
+        if (aboutMenuPromise && typeof aboutMenuPromise.catch === 'function') {
+          aboutMenuPromise.catch(() => {});
+        }
+      };
+
+      const restartRevealSequence = () => {
+        if (isRestarting) return;
+        isRestarting = true;
+        aboutMenu.classList.add('is-hidden');
+        try {
+          aboutMenu.pause();
+          aboutMenu.currentTime = 0;
+        } catch (_) {}
+        try {
+          dollReveal.pause();
           dollReveal.currentTime = 0;
         } catch (_) {}
         const revealPromise = dollReveal.play();
         if (revealPromise && typeof revealPromise.catch === 'function') {
           revealPromise.catch(() => {});
         }
-        const playPromise = backgroundVideo.play();
-        if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch(() => {});
-        }
         window.setTimeout(() => {
-          pinAnchor.classList.add('is-active');
-          callouts.forEach((callout) => callout.classList.add('is-active'));
+          playAboutMenu();
+          isRestarting = false;
         }, 900);
+      };
+
+      const playPromise = backgroundVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {});
+      }
+
+      try {
+        dollReveal.currentTime = 0;
+      } catch (_) {}
+
+      const revealPromise = dollReveal.play();
+      if (revealPromise && typeof revealPromise.catch === 'function') {
+        revealPromise.catch(() => {});
+      }
+
+      window.setTimeout(playAboutMenu, 900);
+
+      aboutHitbox.addEventListener('click', () => {
+        restartRevealSequence();
       });
     })();
   </script>
