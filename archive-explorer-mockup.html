@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>VMPix Archive Explorer Mockup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,11 +33,13 @@
         radial-gradient(circle at 82% 18%, rgba(239, 211, 155, 0.08), transparent 26%),
         linear-gradient(180deg, #040308 0%, #090611 42%, #05060c 100%);
       overflow: hidden;
+      overscroll-behavior: none;
     }
 
     body {
       position: relative;
       font-family: "Orbitron", Arial, sans-serif;
+      touch-action: none;
     }
 
     body::before,
@@ -82,6 +84,7 @@
       background: #000;
       box-shadow: var(--shadow);
       isolation: isolate;
+      touch-action: none;
     }
 
     .mockup-background-video {
