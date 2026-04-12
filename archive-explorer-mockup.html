@@ -14,6 +14,10 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
+      --about-crop-left: 31%;
+      --about-crop-right: 31%;
+      --about-crop-top: 40%;
+      --about-crop-bottom: 43%;
     }
 
     * {
@@ -184,7 +188,7 @@
       width: clamp(240px, 28vw, 360px);
       transform: translate(-50%, 0);
       z-index: 3;
-      pointer-events: none;
+      pointer-events: auto;
     }
 
     .mockup-about-menu {
@@ -205,16 +209,16 @@
 
     .mockup-about-hitbox {
       position: absolute;
-      left: 50%;
-      bottom: clamp(10px, 1.1vw, 14px);
-      width: min(38%, 112px);
-      height: clamp(18px, 1.8vw, 22px);
-      transform: translateX(-50%);
+      left: var(--about-crop-left);
+      right: var(--about-crop-right);
+      top: calc(var(--about-crop-top) + 5px);
+      bottom: var(--about-crop-bottom);
+      transform: none;
       border: 0;
       padding: 0;
       margin: 0;
       background: transparent;
-      border-radius: 999px;
+      border-radius: 0;
       cursor: pointer;
       z-index: 4;
       pointer-events: auto;
@@ -273,12 +277,6 @@
       .mockup-about-slot {
         top: calc(50% + min(43px, 8.6vw));
         width: min(320px, calc(100vw - 56px));
-      }
-
-      .mockup-about-hitbox {
-        bottom: min(10px, 2.6vw);
-        width: min(38%, 108px);
-        height: min(22px, 6vw);
       }
 
       .mockup-welcome-copy {
