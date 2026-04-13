@@ -14,10 +14,11 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
-      --about-crop-left: 24%;
-      --about-crop-right: 24%;
-      --about-crop-top: 34%;
-      --about-crop-bottom: 36%;
+      --menu-hitbox-left: 34%;
+      --menu-hitbox-right: 34%;
+      --menu-hitbox-top: 28%;
+      --menu-hitbox-bottom: 28%;
+      --menu-row-gap: clamp(120px, 12vw, 176px);
     }
 
     * {
@@ -127,17 +128,17 @@
       opacity: 1;
     }
 
-    .mockup-stage.is-about-open .mockup-background-video,
-    .mockup-stage.is-about-open .mockup-workspace,
-    .mockup-stage.is-about-open .mockup-topbar,
-    .mockup-stage.is-about-open .mockup-welcome-copy {
+    .mockup-stage.is-panel-open .mockup-background-video,
+    .mockup-stage.is-panel-open .mockup-workspace,
+    .mockup-stage.is-panel-open .mockup-topbar,
+    .mockup-stage.is-panel-open .mockup-welcome-copy {
       filter: blur(14px) saturate(0.84);
       transform: scale(1.02);
       opacity: 0.42;
       transition: filter 360ms ease, transform 360ms ease, opacity 360ms ease;
     }
 
-    .mockup-stage.is-about-open .mockup-workspace {
+    .mockup-stage.is-panel-open .mockup-workspace {
       pointer-events: none;
     }
 
@@ -1070,7 +1071,7 @@
 
     .mockup-about-slot {
       position: absolute;
-      left: 50%;
+      left: calc(50% - var(--menu-row-gap));
       top: calc(50% + min(105px, 10.5vmin));
       width: clamp(335px, 36vw, 455px);
       display: grid;
@@ -1080,8 +1081,22 @@
       pointer-events: auto;
     }
 
+    .mockup-pricing-slot {
+      position: absolute;
+      left: calc(50% + var(--menu-row-gap));
+      top: calc(50% + min(108px, 10.8vmin));
+      width: clamp(335px, 36vw, 455px);
+      display: grid;
+      transform: translate(-50%, 0);
+      transform-origin: center center;
+      z-index: 3;
+      pointer-events: auto;
+    }
+
     .mockup-about-menu,
-    .mockup-about-menu-reverse {
+    .mockup-about-menu-reverse,
+    .mockup-pricing-menu,
+    .mockup-pricing-menu-reverse {
       grid-area: 1 / 1;
       display: block;
       width: 100%;
@@ -1095,28 +1110,39 @@
     }
 
     .mockup-about-menu.is-hidden,
-    .mockup-about-menu-reverse.is-hidden {
+    .mockup-about-menu-reverse.is-hidden,
+    .mockup-pricing-menu.is-hidden,
+    .mockup-pricing-menu-reverse.is-hidden {
       opacity: 0;
     }
 
-    .mockup-about-hitbox {
+    .mockup-about-hitbox,
+    .mockup-pricing-hitbox {
       grid-area: 1 / 1;
       position: absolute;
-      left: var(--about-crop-left);
-      right: var(--about-crop-right);
-      top: calc(var(--about-crop-top) + 5px);
-      bottom: var(--about-crop-bottom);
+      left: var(--menu-hitbox-left);
+      right: var(--menu-hitbox-right);
+      top: var(--menu-hitbox-top);
+      bottom: var(--menu-hitbox-bottom);
       transform: none;
       border: 0;
       padding: 0;
       margin: 0;
       background: transparent;
-      border-radius: 0;
+      border-radius: 1px;
+      box-shadow: none;
       cursor: pointer;
       z-index: 4;
       pointer-events: auto;
       -webkit-appearance: none;
       appearance: none;
+    }
+
+    .mockup-about-hitbox:hover,
+    .mockup-pricing-hitbox:hover,
+    .mockup-about-hitbox:focus-visible,
+    .mockup-pricing-hitbox:focus-visible {
+      outline: none;
     }
 
     .mockup-welcome-copy {
@@ -1201,10 +1227,10 @@
     }
 
     @media (max-width: 640px) {
-      .mockup-stage.is-about-open .mockup-background-video,
-      .mockup-stage.is-about-open .mockup-workspace,
-      .mockup-stage.is-about-open .mockup-topbar,
-      .mockup-stage.is-about-open .mockup-welcome-copy {
+      .mockup-stage.is-panel-open .mockup-background-video,
+      .mockup-stage.is-panel-open .mockup-workspace,
+      .mockup-stage.is-panel-open .mockup-topbar,
+      .mockup-stage.is-panel-open .mockup-welcome-copy {
         filter: none;
         transform: none;
         opacity: 0.16;
@@ -1241,7 +1267,14 @@
 
       .mockup-about-slot {
         top: calc(50% + min(43px, 8.6vw));
-        width: min(415px, calc(100vw - 12px));
+        left: calc(50% - min(94px, 18vw));
+        width: min(278px, calc(100vw - 176px));
+      }
+
+      .mockup-pricing-slot {
+        top: calc(50% + min(47px, 9.2vw));
+        left: calc(50% + min(94px, 18vw));
+        width: min(278px, calc(100vw - 176px));
       }
 
       .mockup-welcome-copy {
@@ -1334,7 +1367,7 @@
     <div class="mockup-topbar" aria-hidden="true">
       <video
         class="mockup-topbar-logo"
-        src="assets/logo-animated.mp4"
+        src="assets/main/logo-animated.mp4"
         autoplay
         loop
         muted
@@ -1349,7 +1382,7 @@
           <div class="mockup-doll-core">
             <video
               class="mockup-doll-reveal"
-              src="assets/lightning-doll-reveal.webm"
+              src="assets/main/lightning-doll-reveal.webm"
               muted
               playsinline
               preload="auto"
@@ -1359,7 +1392,7 @@
           <div class="mockup-about-slot">
             <video
               class="mockup-about-menu"
-              src="assets/about-menu.webm"
+              src="assets/about/about-menu.webm"
               muted
               playsinline
               preload="auto"
@@ -1367,7 +1400,7 @@
             ></video>
             <video
               class="mockup-about-menu-reverse is-hidden"
-              src="assets/about-menu-reverse.webm"
+              src="assets/about/about-menu-reverse.webm"
               muted
               playsinline
               preload="auto"
@@ -1379,12 +1412,35 @@
               aria-label="Open About"
             ></button>
           </div>
+          <div class="mockup-pricing-slot" aria-hidden="true">
+            <video
+              class="mockup-pricing-menu"
+              src="assets/pricing/pricing-menu.webm"
+              muted
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+            ></video>
+            <video
+              class="mockup-pricing-menu-reverse is-hidden"
+              src="assets/pricing/pricing-menu-reverse.webm"
+              muted
+              playsinline
+              preload="auto"
+              aria-hidden="true"
+            ></video>
+            <button
+              class="mockup-pricing-hitbox"
+              type="button"
+              aria-label="Open Pricing"
+            ></button>
+          </div>
         </div>
       </div>
     </section>
     <video
       class="mockup-background-video"
-      src="assets/background-fire.mp4"
+      src="assets/main/background-fire.mp4"
       loop
       muted
       playsinline
@@ -1410,7 +1466,40 @@
           <div class="mockup-about-title">
             <video
               class="mockup-about-title-video"
-              src="assets/about-site-title.webm?v=20260413-r1"
+              src="assets/about/about-site-title.webm?v=20260413-r1"
+              muted
+              playsinline
+              preload="auto"
+            ></video>
+          </div>
+          <div class="mockup-about-copy-text">
+            <span class="mockup-about-copy-line">This website is a nearly-100% automated website through a lot of code, and using assistance from AI entities such as ChatGPT and Codex, with some elements and animations being created using Adobe After Effects from scratch.</span>
+            <span class="mockup-about-copy-line">The photo catalog is a direct read from the Smugmug library that I operate under, with datapoints also being read from a database.</span>
+            <span class="mockup-about-copy-line">This site is an ever-evolving entity and will house a lot more as time goes on - just need time is all.</span>
+            <span class="mockup-about-copy-line">If you have questions, feel free to contact me through the avenues on the Contact screen.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="mockup-pricing-overlay mockup-about-overlay" aria-hidden="true">
+      <div class="mockup-about-panel">
+        <div class="mockup-about-crt-flash" aria-hidden="true"></div>
+        <video
+          class="mockup-about-section-video"
+          src="assets/about-section.webm?v=20260413-r2"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+        <div class="mockup-about-copy">
+          <div class="mockup-about-copy-chrome" aria-hidden="true"></div>
+          <div class="mockup-about-copy-corners" aria-hidden="true"></div>
+          <div class="mockup-about-copy-shimmer" aria-hidden="true"></div>
+          <div class="mockup-about-copy-scan" aria-hidden="true"></div>
+          <div class="mockup-about-title">
+            <video
+              class="mockup-about-title-video"
+              src="assets/about/about-site-title.webm?v=20260413-r1"
               muted
               playsinline
               preload="auto"
@@ -1438,51 +1527,94 @@
       const topbar = document.querySelector('.mockup-topbar');
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const dollReveal = document.querySelector('.mockup-doll-reveal');
-      const aboutMenu = document.querySelector('.mockup-about-menu');
-      const aboutMenuReverse = document.querySelector('.mockup-about-menu-reverse');
-      const aboutSlot = document.querySelector('.mockup-about-slot');
-      const aboutHitbox = document.querySelector('.mockup-about-hitbox');
       const welcomeCopy = document.querySelector('.mockup-welcome-copy');
       const mockupStage = document.querySelector('.mockup-stage');
       const aboutOverlay = document.querySelector('.mockup-about-overlay');
-      const aboutCopy = document.querySelector('.mockup-about-copy');
-      const aboutSectionVideo = document.querySelector('.mockup-about-section-video');
-      const aboutTitleVideo = document.querySelector('.mockup-about-title-video');
-      if (!topbar || !backgroundVideo || !dollReveal || !aboutMenu || !aboutMenuReverse || !aboutSlot || !aboutHitbox || !mockupStage || !aboutOverlay || !aboutCopy || !aboutSectionVideo || !aboutTitleVideo) return;
-      const ABOUT_LOOP_START = 1.52;
-      const ABOUT_LOOP_END = 4.92;
+      const pricingOverlay = document.querySelector('.mockup-pricing-overlay');
+      const aboutSlot = document.querySelector('.mockup-about-slot');
+      const pricingSlot = document.querySelector('.mockup-pricing-slot');
+      const aboutHitbox = document.querySelector('.mockup-about-hitbox');
+      const pricingHitbox = document.querySelector('.mockup-pricing-hitbox');
+      const aboutMenu = document.querySelector('.mockup-about-menu');
+      const aboutMenuReverse = document.querySelector('.mockup-about-menu-reverse');
+      const pricingMenu = document.querySelector('.mockup-pricing-menu');
+      const pricingMenuReverse = document.querySelector('.mockup-pricing-menu-reverse');
+      if (!topbar || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
+
+      const createPanel = ({ key, route, slot, hitbox, menu, reverseMenu, overlay }) => {
+        const copy = overlay.querySelector('.mockup-about-copy');
+        const sectionVideo = overlay.querySelector('.mockup-about-section-video');
+        const titleVideo = overlay.querySelector('.mockup-about-title-video');
+        if (!copy || !sectionVideo || !titleVideo) return null;
+        return { key, route, slot, hitbox, menu, reverseMenu, overlay, copy, sectionVideo, titleVideo };
+      };
+
+      const panels = {
+        about: createPanel({
+          key: 'about',
+          route: '/testing/about',
+          slot: aboutSlot,
+          hitbox: aboutHitbox,
+          menu: aboutMenu,
+          reverseMenu: aboutMenuReverse,
+          overlay: aboutOverlay
+        }),
+        pricing: createPanel({
+          key: 'pricing',
+          route: '/testing/pricing',
+          slot: pricingSlot,
+          hitbox: pricingHitbox,
+          menu: pricingMenu,
+          reverseMenu: pricingMenuReverse,
+          overlay: pricingOverlay
+        })
+      };
+      if (!panels.about || !panels.pricing) return;
+
+      const PANEL_LOOP_START = 1.52;
+      const PANEL_LOOP_END = 4.92;
+      const PRICING_REVEAL_DELAY_MS = 180;
       const ROUTE_HOME = '/testing/home';
-      const ROUTE_ABOUT = '/testing/about';
       let isTransitioning = false;
-      let isAboutOpen = false;
-      let aboutLoopTimer = 0;
-      let aboutStageTimerIds = [];
+      let activePanelKey = '';
+      let panelLoopTimer = 0;
+      let panelStageTimerIds = [];
+      let pricingMenuDelayTimer = 0;
       let shellRoutePath = '';
 
       try {
         const initialShellRoute = new URLSearchParams(window.location.search).get('shellRoute');
-        if (initialShellRoute === ROUTE_HOME || initialShellRoute === ROUTE_ABOUT) {
+        if (initialShellRoute === ROUTE_HOME || initialShellRoute === panels.about.route || initialShellRoute === panels.pricing.route) {
           shellRoutePath = initialShellRoute;
         }
       } catch (_) {}
 
       const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-      const clearAboutStageTimers = () => {
-        aboutStageTimerIds.forEach((timerId) => window.clearTimeout(timerId));
-        aboutStageTimerIds = [];
+      const clearPricingMenuDelay = () => {
+        if (pricingMenuDelayTimer) {
+          window.clearTimeout(pricingMenuDelayTimer);
+          pricingMenuDelayTimer = 0;
+        }
       };
 
-      const queueAboutStage = (fn, delay) => {
+      const clearPanelStageTimers = () => {
+        panelStageTimerIds.forEach((timerId) => window.clearTimeout(timerId));
+        panelStageTimerIds = [];
+      };
+
+      const queuePanelStage = (fn, delay) => {
         const timerId = window.setTimeout(fn, delay);
-        aboutStageTimerIds.push(timerId);
+        panelStageTimerIds.push(timerId);
       };
 
       const getPathname = () => shellRoutePath || window.location.pathname || '';
 
       const getCurrentRoute = () => {
         const pathname = getPathname();
-        return pathname === ROUTE_ABOUT ? ROUTE_ABOUT : ROUTE_HOME;
+        if (pathname === panels.about.route) return panels.about.route;
+        if (pathname === panels.pricing.route) return panels.pricing.route;
+        return ROUTE_HOME;
       };
 
       const updateRoute = (route, mode = 'pushState') => {
@@ -1532,43 +1664,68 @@
           timeoutId = window.setTimeout(done, fallbackMs);
         });
 
-      const playAboutMenu = () => {
-        aboutMenu.classList.remove('is-hidden');
-        aboutMenuReverse.classList.add('is-hidden');
+      const playPanelMenu = (panel) => {
+        if (!panel) return;
+        panel.menu.classList.remove('is-hidden');
+        panel.reverseMenu.classList.add('is-hidden');
         try {
-          aboutMenu.currentTime = 0;
+          panel.menu.currentTime = 0;
         } catch (_) {}
         try {
-          aboutMenuReverse.pause();
-          aboutMenuReverse.currentTime = 0;
+          panel.reverseMenu.pause();
+          panel.reverseMenu.currentTime = 0;
         } catch (_) {}
-        const aboutMenuPromise = playVideoFromStart(aboutMenu);
-        if (aboutMenuPromise && typeof aboutMenuPromise.catch === 'function') {
-          aboutMenuPromise.catch(() => {});
+        const panelMenuPromise = playVideoFromStart(panel.menu);
+        if (panelMenuPromise && typeof panelMenuPromise.catch === 'function') {
+          panelMenuPromise.catch(() => {});
         }
       };
 
-      const replayAboutLoop = () => {
-        if (!isAboutOpen) return;
+      const playPricingMenu = () => {
+        clearPricingMenuDelay();
+        panels.pricing.menu.classList.remove('is-hidden');
+        panels.pricing.reverseMenu.classList.add('is-hidden');
         try {
-          aboutSectionVideo.currentTime = ABOUT_LOOP_START;
-          const replayPromise = aboutSectionVideo.play();
+          panels.pricing.menu.currentTime = 0;
+        } catch (_) {}
+        try {
+          panels.pricing.reverseMenu.pause();
+          panels.pricing.reverseMenu.currentTime = 0;
+        } catch (_) {}
+        pricingMenuDelayTimer = window.setTimeout(() => {
+          pricingMenuDelayTimer = 0;
+          const pricingMenuPromise = playVideoFromStart(panels.pricing.menu);
+          if (pricingMenuPromise && typeof pricingMenuPromise.catch === 'function') {
+            pricingMenuPromise.catch(() => {});
+          }
+        }, PRICING_REVEAL_DELAY_MS);
+      };
+
+      const getActivePanel = () => panels[activePanelKey] || null;
+
+      const replayPanelLoop = () => {
+        const panel = getActivePanel();
+        if (!panel) return;
+        try {
+          panel.sectionVideo.currentTime = PANEL_LOOP_START;
+          const replayPromise = panel.sectionVideo.play();
           if (replayPromise && typeof replayPromise.catch === 'function') {
             replayPromise.catch(() => {});
           }
         } catch (_) {}
       };
 
-      const stopAboutLoopWatcher = () => {
-        if (aboutLoopTimer) {
-          window.clearInterval(aboutLoopTimer);
-          aboutLoopTimer = 0;
+      const stopPanelLoopWatcher = () => {
+        if (panelLoopTimer) {
+          window.clearInterval(panelLoopTimer);
+          panelLoopTimer = 0;
         }
       };
 
-      const setAboutExpandOrigin = () => {
+      const setPanelExpandOrigin = (panel) => {
+        if (!panel) return;
         const stageRect = mockupStage.getBoundingClientRect();
-        const slotRect = aboutSlot.getBoundingClientRect();
+        const slotRect = panel.slot.getBoundingClientRect();
         const slotCenterX = slotRect.left + (slotRect.width / 2);
         const slotCenterY = slotRect.top + (slotRect.height / 2);
         const stageCenterX = stageRect.left + (stageRect.width / 2);
@@ -1578,136 +1735,197 @@
         const scaleX = Math.max(slotRect.width / Math.max(stageRect.width, 1), 0.08);
         const scaleY = Math.max(slotRect.height / Math.max(stageRect.height, 1), 0.08);
 
-        aboutOverlay.style.setProperty('--about-expand-x', `${translateX}px`);
-        aboutOverlay.style.setProperty('--about-expand-y', `${translateY}px`);
-        aboutOverlay.style.setProperty('--about-expand-scale-x', scaleX.toFixed(4));
-        aboutOverlay.style.setProperty('--about-expand-scale-y', scaleY.toFixed(4));
+        panel.overlay.style.setProperty('--about-expand-x', `${translateX}px`);
+        panel.overlay.style.setProperty('--about-expand-y', `${translateY}px`);
+        panel.overlay.style.setProperty('--about-expand-scale-x', scaleX.toFixed(4));
+        panel.overlay.style.setProperty('--about-expand-scale-y', scaleY.toFixed(4));
       };
 
-      const startAboutLoopWatcher = () => {
-        stopAboutLoopWatcher();
-        aboutLoopTimer = window.setInterval(() => {
-          if (!isAboutOpen) return;
-          if (aboutSectionVideo.paused || aboutSectionVideo.seeking) return;
-          if (aboutSectionVideo.currentTime >= ABOUT_LOOP_END) {
-            replayAboutLoop();
+      const startPanelLoopWatcher = (panel) => {
+        stopPanelLoopWatcher();
+        if (!panel) return;
+        panelLoopTimer = window.setInterval(() => {
+          if (activePanelKey !== panel.key) return;
+          if (panel.sectionVideo.paused || panel.sectionVideo.seeking) return;
+          if (panel.sectionVideo.currentTime >= PANEL_LOOP_END) {
+            replayPanelLoop();
           }
         }, 24);
       };
 
-      const applyAboutStateImmediately = () => {
-        clearAboutStageTimers();
-        stopAboutLoopWatcher();
-        aboutHitbox.disabled = true;
+      const hideAllHomeMenus = () => {
+        Object.values(panels).forEach((panel) => {
+          panel.menu.classList.add('is-hidden');
+          panel.reverseMenu.classList.add('is-hidden');
+          try {
+            panel.menu.pause();
+            panel.menu.currentTime = 0;
+          } catch (_) {}
+          try {
+            panel.reverseMenu.pause();
+            panel.reverseMenu.currentTime = 0;
+          } catch (_) {}
+        });
+      };
+
+      const resetPanelTransforms = (panel) => {
+        if (!panel) return;
+        panel.overlay.style.setProperty('--about-expand-x', '0px');
+        panel.overlay.style.setProperty('--about-expand-y', '0px');
+        panel.overlay.style.setProperty('--about-expand-scale-x', '1');
+        panel.overlay.style.setProperty('--about-expand-scale-y', '1');
+      };
+
+      const applyPanelStateImmediately = (panel) => {
+        if (!panel) return;
+        clearPanelStageTimers();
+        stopPanelLoopWatcher();
+        Object.values(panels).forEach((entry) => {
+          entry.hitbox.disabled = true;
+          entry.overlay.classList.remove('is-visible', 'is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
+          entry.overlay.setAttribute('aria-hidden', 'true');
+          try {
+            entry.sectionVideo.pause();
+            entry.sectionVideo.currentTime = 0;
+          } catch (_) {}
+          try {
+            entry.titleVideo.pause();
+            entry.titleVideo.currentTime = 0;
+          } catch (_) {}
+        });
         if (welcomeCopy) {
           welcomeCopy.classList.add('is-hidden');
         }
-        aboutMenu.classList.add('is-hidden');
-        aboutMenuReverse.classList.add('is-hidden');
-        mockupStage.classList.add('is-about-open');
-        aboutOverlay.classList.remove('is-closing');
-        aboutOverlay.classList.add('is-visible', 'is-expanded', 'is-energized', 'is-content-visible');
-        aboutOverlay.setAttribute('aria-hidden', 'false');
-        isAboutOpen = true;
+        hideAllHomeMenus();
+        mockupStage.classList.add('is-panel-open');
+        panel.overlay.classList.remove('is-closing');
+        panel.overlay.classList.add('is-visible', 'is-expanded', 'is-energized', 'is-content-visible');
+        panel.overlay.setAttribute('aria-hidden', 'false');
+        activePanelKey = panel.key;
         try {
-          aboutSectionVideo.pause();
-          aboutSectionVideo.currentTime = ABOUT_LOOP_START;
+          panel.sectionVideo.pause();
+          panel.sectionVideo.currentTime = PANEL_LOOP_START;
         } catch (_) {}
-        const aboutPlayPromise = aboutSectionVideo.play();
-        if (aboutPlayPromise && typeof aboutPlayPromise.catch === 'function') {
-          aboutPlayPromise.catch(() => {});
+        const panelPlayPromise = panel.sectionVideo.play();
+        if (panelPlayPromise && typeof panelPlayPromise.catch === 'function') {
+          panelPlayPromise.catch(() => {});
         }
         try {
-          aboutTitleVideo.pause();
-          aboutTitleVideo.currentTime = aboutTitleVideo.duration || 9999;
+          panel.titleVideo.pause();
+          panel.titleVideo.currentTime = panel.titleVideo.duration || 9999;
         } catch (_) {}
-        startAboutLoopWatcher();
+        startPanelLoopWatcher(panel);
       };
 
       const applyHomeStateImmediately = () => {
-        clearAboutStageTimers();
-        stopAboutLoopWatcher();
-        aboutOverlay.classList.remove('is-visible', 'is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
-        aboutOverlay.setAttribute('aria-hidden', 'true');
-        mockupStage.classList.remove('is-about-open');
-        isAboutOpen = false;
-        aboutHitbox.disabled = false;
+        clearPanelStageTimers();
+        stopPanelLoopWatcher();
+        Object.values(panels).forEach((panel) => {
+          panel.overlay.classList.remove('is-visible', 'is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
+          panel.overlay.setAttribute('aria-hidden', 'true');
+          panel.hitbox.disabled = false;
+          resetPanelTransforms(panel);
+          try {
+            panel.sectionVideo.pause();
+            panel.sectionVideo.currentTime = 0;
+          } catch (_) {}
+          try {
+            panel.titleVideo.pause();
+            panel.titleVideo.currentTime = 0;
+          } catch (_) {}
+        });
+        mockupStage.classList.remove('is-panel-open');
+        activePanelKey = '';
         if (welcomeCopy) {
           welcomeCopy.classList.remove('is-hidden');
           welcomeCopy.classList.add('is-visible');
         }
-        playAboutMenu();
+        playPanelMenu(panels.about);
+        playPricingMenu();
       };
 
-      const openAboutSequence = async (options = {}) => {
+      const openPanelSequence = async (panel, options = {}) => {
         const { updateBrowserRoute = true } = options;
-        if (isTransitioning || isAboutOpen) return;
+        if (!panel || isTransitioning || activePanelKey) return;
         isTransitioning = true;
-        aboutHitbox.disabled = true;
+        Object.values(panels).forEach((entry) => {
+          entry.hitbox.disabled = true;
+        });
         if (welcomeCopy) {
           welcomeCopy.classList.add('is-hidden');
         }
-        aboutMenu.classList.add('is-hidden');
-        aboutMenuReverse.classList.remove('is-hidden');
+        hideAllHomeMenus();
+        clearPricingMenuDelay();
         try {
-          aboutMenu.pause();
+          panel.menu.pause();
         } catch (_) {}
-        await playVideoFromStart(aboutMenuReverse, 2.5);
-        await waitForVideoEnd(aboutMenuReverse, 200);
-        setAboutExpandOrigin();
-        clearAboutStageTimers();
-        aboutOverlay.classList.remove('is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
-        mockupStage.classList.add('is-about-open');
-        aboutOverlay.classList.add('is-visible');
-        aboutOverlay.setAttribute('aria-hidden', 'false');
-        isAboutOpen = true;
-        await playVideoFromStart(aboutSectionVideo);
-        await playVideoFromStart(aboutTitleVideo);
+        await playVideoFromStart(panel.reverseMenu, 2.5);
+        await waitForVideoEnd(panel.reverseMenu, 200);
+        setPanelExpandOrigin(panel);
+        clearPanelStageTimers();
+        Object.values(panels).forEach((entry) => {
+          if (entry !== panel) {
+            entry.overlay.classList.remove('is-visible', 'is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
+            entry.overlay.setAttribute('aria-hidden', 'true');
+          }
+        });
+        panel.overlay.classList.remove('is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
+        mockupStage.classList.add('is-panel-open');
+        panel.overlay.classList.add('is-visible');
+        panel.overlay.setAttribute('aria-hidden', 'false');
+        activePanelKey = panel.key;
+        await playVideoFromStart(panel.sectionVideo);
+        await playVideoFromStart(panel.titleVideo);
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
-            aboutOverlay.classList.add('is-expanded');
+            panel.overlay.classList.add('is-expanded');
           });
         });
-        queueAboutStage(() => {
-          aboutOverlay.classList.add('is-energized');
+        queuePanelStage(() => {
+          panel.overlay.classList.add('is-energized');
         }, 240);
-        queueAboutStage(() => {
-          aboutOverlay.classList.add('is-content-visible');
+        queuePanelStage(() => {
+          panel.overlay.classList.add('is-content-visible');
         }, 980);
-        startAboutLoopWatcher();
+        startPanelLoopWatcher(panel);
         if (updateBrowserRoute) {
-          updateRoute(ROUTE_ABOUT);
+          updateRoute(panel.route);
         }
         isTransitioning = false;
       };
 
-      const closeAboutSequence = async (options = {}) => {
+      const closeActivePanelSequence = async (options = {}) => {
         const { updateBrowserRoute = true } = options;
-        if (isTransitioning || !isAboutOpen) return;
+        const panel = getActivePanel();
+        if (isTransitioning || !panel) return;
         isTransitioning = true;
-        clearAboutStageTimers();
-        stopAboutLoopWatcher();
-        aboutOverlay.classList.add('is-closing');
-        aboutOverlay.classList.remove('is-content-visible');
-        aboutOverlay.classList.remove('is-energized');
+        clearPanelStageTimers();
+        stopPanelLoopWatcher();
+        panel.overlay.classList.add('is-closing');
+        panel.overlay.classList.remove('is-content-visible');
+        panel.overlay.classList.remove('is-energized');
         try {
-          aboutSectionVideo.pause();
-          aboutSectionVideo.currentTime = 0;
+          panel.sectionVideo.pause();
+          panel.sectionVideo.currentTime = 0;
         } catch (_) {}
         try {
-          aboutTitleVideo.pause();
-          aboutTitleVideo.currentTime = 0;
+          panel.titleVideo.pause();
+          panel.titleVideo.currentTime = 0;
         } catch (_) {}
         await wait(500);
-        aboutOverlay.classList.remove('is-visible');
+        panel.overlay.classList.remove('is-visible');
         await wait(260);
-        aboutOverlay.classList.remove('is-expanded');
-        aboutOverlay.classList.remove('is-closing');
-        aboutOverlay.setAttribute('aria-hidden', 'true');
-        mockupStage.classList.remove('is-about-open');
-        isAboutOpen = false;
-        playAboutMenu();
-        aboutHitbox.disabled = false;
+        panel.overlay.classList.remove('is-expanded');
+        panel.overlay.classList.remove('is-closing');
+        panel.overlay.setAttribute('aria-hidden', 'true');
+        mockupStage.classList.remove('is-panel-open');
+        activePanelKey = '';
+        playPanelMenu(panels.about);
+        playPricingMenu();
+        Object.values(panels).forEach((entry) => {
+          entry.hitbox.disabled = false;
+          resetPanelTransforms(entry);
+        });
         if (welcomeCopy) {
           welcomeCopy.classList.remove('is-hidden');
           welcomeCopy.classList.add('is-visible');
@@ -1743,70 +1961,113 @@
       }, 760);
 
       window.setTimeout(() => {
-        if (getCurrentRoute() === ROUTE_ABOUT) {
-          applyAboutStateImmediately();
+        if (getCurrentRoute() === panels.about.route) {
+          applyPanelStateImmediately(panels.about);
+          return;
+        }
+        if (getCurrentRoute() === panels.pricing.route) {
+          applyPanelStateImmediately(panels.pricing);
           return;
         }
         applyHomeStateImmediately();
       }, 900);
 
       aboutHitbox.addEventListener('click', () => {
-        openAboutSequence();
+        openPanelSequence(panels.about);
       });
 
-      aboutOverlay.addEventListener('click', (event) => {
-        if (!isAboutOpen || isTransitioning) return;
-        if (aboutCopy.contains(event.target)) return;
-        closeAboutSequence();
+      pricingHitbox.addEventListener('click', () => {
+        openPanelSequence(panels.pricing);
       });
 
-      aboutSectionVideo.addEventListener('ended', () => {
-        replayAboutLoop();
+      Object.values(panels).forEach((panel) => {
+        panel.overlay.addEventListener('click', (event) => {
+          if (activePanelKey !== panel.key || isTransitioning) return;
+          if (panel.copy.contains(event.target)) return;
+          closeActivePanelSequence();
+        });
+
+        panel.sectionVideo.addEventListener('ended', () => {
+          if (activePanelKey !== panel.key) return;
+          replayPanelLoop();
+        });
       });
 
       window.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-        closeAboutSequence();
+        closeActivePanelSequence();
       });
 
       window.addEventListener('popstate', () => {
         const route = getCurrentRoute();
-        if (route === ROUTE_ABOUT) {
-          if (isAboutOpen) return;
-          openAboutSequence({ updateBrowserRoute: false });
+        if (route === panels.about.route) {
+          if (activePanelKey === panels.about.key) return;
+          if (activePanelKey) {
+            applyPanelStateImmediately(panels.about);
+            return;
+          }
+          openPanelSequence(panels.about, { updateBrowserRoute: false });
           return;
         }
-        if (!isAboutOpen) return;
-        closeAboutSequence({ updateBrowserRoute: false });
+        if (route === panels.pricing.route) {
+          if (activePanelKey === panels.pricing.key) return;
+          if (activePanelKey) {
+            applyPanelStateImmediately(panels.pricing);
+            return;
+          }
+          openPanelSequence(panels.pricing, { updateBrowserRoute: false });
+          return;
+        }
+        if (!activePanelKey) return;
+        closeActivePanelSequence({ updateBrowserRoute: false });
       });
 
       window.addEventListener('beforeunload', () => {
-        stopAboutLoopWatcher();
-        clearAboutStageTimers();
+        stopPanelLoopWatcher();
+        clearPanelStageTimers();
+        clearPricingMenuDelay();
       });
 
       window.addEventListener('message', (event) => {
         const data = event && event.data;
         if (!data || data.type !== 'vmTestingRouteSync') return;
-        const nextRoute = data.route === ROUTE_ABOUT ? ROUTE_ABOUT : ROUTE_HOME;
+        const nextRoute =
+          data.route === panels.about.route
+            ? panels.about.route
+            : data.route === panels.pricing.route
+              ? panels.pricing.route
+              : ROUTE_HOME;
         shellRoutePath = nextRoute;
-        if (nextRoute === ROUTE_ABOUT) {
-          if (!isAboutOpen) openAboutSequence({ updateBrowserRoute: false });
+        if (nextRoute === panels.about.route) {
+          if (activePanelKey !== panels.about.key) {
+            if (activePanelKey) {
+              applyPanelStateImmediately(panels.about);
+            } else {
+              openPanelSequence(panels.about, { updateBrowserRoute: false });
+            }
+          }
           return;
         }
-        if (isAboutOpen) {
-          closeAboutSequence({ updateBrowserRoute: false });
+        if (nextRoute === panels.pricing.route) {
+          if (activePanelKey !== panels.pricing.key) {
+            if (activePanelKey) {
+              applyPanelStateImmediately(panels.pricing);
+            } else {
+              openPanelSequence(panels.pricing, { updateBrowserRoute: false });
+            }
+          }
+          return;
+        }
+        if (activePanelKey) {
+          closeActivePanelSequence({ updateBrowserRoute: false });
           return;
         }
         applyHomeStateImmediately();
       });
 
       window.addEventListener('resize', () => {
-        if (!isAboutOpen) return;
-        aboutOverlay.style.setProperty('--about-expand-x', '0px');
-        aboutOverlay.style.setProperty('--about-expand-y', '0px');
-        aboutOverlay.style.setProperty('--about-expand-scale-x', '1');
-        aboutOverlay.style.setProperty('--about-expand-scale-y', '1');
+        if (!activePanelKey) return;
+        resetPanelTransforms(getActivePanel());
       });
 
       if (getPathname() !== getCurrentRoute()) {

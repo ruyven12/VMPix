@@ -1,0 +1,17 @@
+Adobe After Effects v26.0 Windows 64 render log for project “Website.aep”
+
+Rendering started on 4/13/2026 at 2:26:42 PM
+
+  4/13/2026 2:26:42 PM: Starting composition “pricing-hire-title”.
+
+  Output To: C:\Users\deysx\Documents\pricing-hire-title.mov    4/13/2026 2:26:45 PM: Finished composition “pricing-hire-title”.
+
+
+  4/13/2026 2:26:45 PM: Starting composition “pricing-print-title”.
+
+  Output To: C:\Users\deysx\Documents\pricing-print-title.mov    4/13/2026 2:26:48 PM: Finished composition “pricing-print-title”.
+
+
+  Total Time Elapsed: 6 Seconds
+Log closed on 4/13/2026 at 2:26:48 PM
+
