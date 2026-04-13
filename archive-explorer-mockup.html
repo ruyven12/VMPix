@@ -14,10 +14,10 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
-      --about-crop-left: 31%;
-      --about-crop-right: 31%;
-      --about-crop-top: 40%;
-      --about-crop-bottom: 43%;
+      --about-crop-left: 29%;
+      --about-crop-right: 29%;
+      --about-crop-top: 38%;
+      --about-crop-bottom: 40%;
     }
 
     * {
@@ -179,6 +179,11 @@
       opacity: 1;
     }
 
+    .mockup-about-overlay.is-closing::before {
+      opacity: 1;
+      transition: opacity 220ms ease 120ms;
+    }
+
     .mockup-about-panel {
       inset: 0;
       position: absolute;
@@ -198,6 +203,12 @@
       transform: translate(0, 0) scale(1, 1);
       border-radius: 0;
       animation: mockup-about-panel-settle 720ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
+    }
+
+    .mockup-about-overlay.is-closing .mockup-about-panel {
+      transition: none;
+      border-radius: 0;
+      animation: mockup-about-panel-crt-off 320ms cubic-bezier(0.22, 0.78, 0.22, 1) forwards;
     }
 
     .mockup-about-section-video {
@@ -256,6 +267,14 @@
       animation: mockup-about-title-settle 740ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
     }
 
+    .mockup-about-overlay.is-closing .mockup-about-title {
+      transition-delay: 0ms;
+      transition-duration: 90ms;
+      transform: translateX(-50%) translateY(4px) scale(0.98);
+      opacity: 0;
+      animation: none;
+    }
+
     .mockup-about-copy {
       position: absolute;
       left: 50%;
@@ -304,6 +323,14 @@
       animation:
         mockup-about-frame-breathe 3.8s ease-in-out infinite 900ms,
         mockup-about-copy-settle 780ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
+    }
+
+    .mockup-about-overlay.is-closing .mockup-about-copy {
+      transition-delay: 0ms;
+      transition-duration: 110ms;
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(8px) scale(0.99);
+      animation: none;
     }
 
     .mockup-about-copy::before,
@@ -465,6 +492,11 @@
       animation: mockup-about-copy-scan 720ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
     }
 
+    .mockup-about-overlay.is-closing .mockup-about-copy-scan {
+      animation: none;
+      opacity: 0;
+    }
+
     .mockup-about-copy-text {
       position: relative;
       z-index: 1;
@@ -479,6 +511,13 @@
 
     .mockup-about-overlay.is-content-visible .mockup-about-copy-text {
       animation: mockup-about-text-reveal 760ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards;
+    }
+
+    .mockup-about-overlay.is-closing .mockup-about-copy-text {
+      animation: none;
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(8px);
     }
 
     .mockup-about-copy-shimmer {
@@ -530,6 +569,20 @@
       animation: mockup-about-side-shimmer 4.8s ease-in-out infinite 1s;
     }
 
+    .mockup-about-overlay.is-closing .mockup-about-copy::before,
+    .mockup-about-overlay.is-closing .mockup-about-copy::after,
+    .mockup-about-overlay.is-closing .mockup-about-copy-chrome::before,
+    .mockup-about-overlay.is-closing .mockup-about-copy-chrome::after,
+    .mockup-about-overlay.is-closing .mockup-about-copy-corners::before,
+    .mockup-about-overlay.is-closing .mockup-about-copy-corners::after,
+    .mockup-about-overlay.is-closing .mockup-about-copy-shimmer,
+    .mockup-about-overlay.is-closing .mockup-about-copy-shimmer::before,
+    .mockup-about-overlay.is-closing .mockup-about-copy-shimmer::after {
+      animation: none;
+      transition: opacity 260ms ease;
+      opacity: 0;
+    }
+
     @keyframes mockup-about-frame-breathe {
       0%,
       100% {
@@ -559,6 +612,29 @@
       }
       100% {
         transform: translate(0, 0) scale(1, 1);
+      }
+    }
+
+    @keyframes mockup-about-panel-crt-off {
+      0% {
+        transform: translate(0, 0) scale(1, 1);
+        opacity: 1;
+        filter: brightness(1.05);
+      }
+      58% {
+        transform: translate(0, 0) scale(1, 0.035);
+        opacity: 1;
+        filter: brightness(1.18);
+      }
+      82% {
+        transform: translate(0, 0) scale(0.11, 0.035);
+        opacity: 1;
+        filter: brightness(1.26);
+      }
+      100% {
+        transform: translate(0, 0) scale(0.01, 0.01);
+        opacity: 0;
+        filter: brightness(0.9);
       }
     }
 
@@ -862,7 +938,7 @@
       position: absolute;
       left: 50%;
       top: calc(50% + min(105px, 10.5vmin));
-      width: clamp(240px, 28vw, 360px);
+      width: clamp(260px, 30vw, 380px);
       display: grid;
       transform: translate(-50%, 0);
       transform-origin: center center;
@@ -1021,7 +1097,7 @@
 
       .mockup-about-slot {
         top: calc(50% + min(43px, 8.6vw));
-        width: min(320px, calc(100vw - 56px));
+        width: min(340px, calc(100vw - 40px));
       }
 
       .mockup-welcome-copy {
@@ -1351,7 +1427,7 @@
         await waitForVideoEnd(aboutMenuReverse, 200);
         setAboutExpandOrigin();
         clearAboutStageTimers();
-        aboutOverlay.classList.remove('is-expanded', 'is-energized', 'is-content-visible');
+        aboutOverlay.classList.remove('is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
         mockupStage.classList.add('is-about-open');
         aboutOverlay.classList.add('is-visible');
         aboutOverlay.setAttribute('aria-hidden', 'false');
@@ -1378,12 +1454,9 @@
         isTransitioning = true;
         clearAboutStageTimers();
         stopAboutLoopWatcher();
-        setAboutExpandOrigin();
+        aboutOverlay.classList.add('is-closing');
         aboutOverlay.classList.remove('is-content-visible');
-        await wait(90);
         aboutOverlay.classList.remove('is-energized');
-        await wait(120);
-        aboutOverlay.classList.remove('is-expanded');
         try {
           aboutSectionVideo.pause();
           aboutSectionVideo.currentTime = 0;
@@ -1392,8 +1465,11 @@
           aboutTitleVideo.pause();
           aboutTitleVideo.currentTime = 0;
         } catch (_) {}
-        await wait(680);
+        await wait(320);
         aboutOverlay.classList.remove('is-visible');
+        await wait(220);
+        aboutOverlay.classList.remove('is-expanded');
+        aboutOverlay.classList.remove('is-closing');
         aboutOverlay.setAttribute('aria-hidden', 'true');
         mockupStage.classList.remove('is-about-open');
         isAboutOpen = false;
