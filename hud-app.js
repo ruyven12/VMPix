@@ -643,6 +643,7 @@ function pulseFrame(){
   // =============================
   const mount = () => document.getElementById('hudMainMount');
   const DEFAULT_SITE_TITLE = 'Voodoo Media';
+  let testingFrame = null;
 
   function buildDocumentTitle(label){
     const part = String(label || '').trim();
@@ -694,10 +695,11 @@ function pulseFrame(){
     return 'home';
   }
 
-    function routePathForKey(route){
+  function routePathForKey(route){
     const key = sanitizeRouteKey(route) || 'home';
     if (key === 'home') return '/';
     if (key === 'music') return '/music';
+    if (key === 'testing') return '/testing/home';
     return `/${key}`;
   }
 
@@ -716,7 +718,8 @@ function pulseFrame(){
     const currentPath = String(location.pathname || '').trim();
     const shouldPreserveSubpath = preservePath && (
       (key === 'music' && currentPath.toLowerCase().startsWith('/music/')) ||
-      (key === 'wrestling' && currentPath.toLowerCase().startsWith('/wrestling/'))
+      (key === 'wrestling' && currentPath.toLowerCase().startsWith('/wrestling/')) ||
+      (key === 'testing' && currentPath.toLowerCase().startsWith('/testing/'))
     );
     const target = shouldPreserveSubpath
       ? currentPath + (location.search || '')
@@ -4693,18 +4696,28 @@ music: {
       render(){
         const m = mount();
         if (!m) return;
+        const shellRoute = currentTestingShellPath();
         m.innerHTML = `
           <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
             <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
-              <iframe src="/archive-explorer-mockup.html?v=20260408-testing-ui-r2" title="Archive Explorer Mockup" style="display:block; width:100%; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
+              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260408-testing-ui-r2&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
+        testingFrame = document.getElementById('vmTestingRouteFrame');
+        if (testingFrame) {
+          testingFrame.addEventListener('load', () => {
+            syncTestingFrameRoute();
+          }, { once: true });
+        }
       },
       onEnter(){
         setDocumentTitle('Testing');
+        syncTestingFrameRoute();
       },
-      onLeave(){}
+      onLeave(){
+        testingFrame = null;
+      }
     },
 
     calendar: {
@@ -6010,7 +6023,29 @@ function navigate(route){
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
     }
 
+    if (top === 'testing') {
+      const trail = ['/', '/testing/home'];
+      const sub = String(parts[1] || '').toLowerCase();
+      if (sub === 'about') trail.push('/testing/about');
+      return trail.filter((value, index, arr) => arr.indexOf(value) === index);
+    }
+
     return ['/', clean].filter((value, index, arr) => arr.indexOf(value) === index);
+  }
+
+  function currentTestingShellPath(){
+    const path = String(location.pathname || '').trim().toLowerCase();
+    return path === '/testing/about' ? '/testing/about' : '/testing/home';
+  }
+
+  function syncTestingFrameRoute(){
+    if (!testingFrame || !testingFrame.contentWindow) return;
+    try {
+      testingFrame.contentWindow.postMessage({
+        type: 'vmTestingRouteSync',
+        route: currentTestingShellPath()
+      }, '*');
+    } catch (_) {}
   }
 
   function seedInternalHistoryTrail(){
@@ -6044,6 +6079,11 @@ function navigate(route){
       }
 
       navigate(currentRouteKey());
+      if (currentRouteKey() === 'testing') {
+        window.setTimeout(() => {
+          syncTestingFrameRoute();
+        }, 0);
+      }
 
       try {
         const pathname = String(location.pathname || '').trim() || '/';
@@ -6053,6 +6093,21 @@ function navigate(route){
       } catch (_) {}
     });
   }
+
+  window.addEventListener('message', (event) => {
+    const data = event && event.data;
+    if (!data || data.type !== 'vmTestingRoute') return;
+    const nextPath = data.route === '/testing/about' ? '/testing/about' : '/testing/home';
+    const currentPath = String(location.pathname || '').trim() || '/';
+    if (currentPath === nextPath) {
+      syncTestingFrameRoute();
+      return;
+    }
+    navigateToPath(nextPath);
+    window.setTimeout(() => {
+      syncTestingFrameRoute();
+    }, 0);
+  });
 
 window.addEventListener('hashchange', () => {
     const hashRoute = sanitizeRouteKey(String(location.hash || '').replace(/^#\/?/, '').trim());

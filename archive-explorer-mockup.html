@@ -1451,12 +1451,20 @@
       if (!topbar || !backgroundVideo || !dollReveal || !aboutMenu || !aboutMenuReverse || !aboutSlot || !aboutHitbox || !mockupStage || !aboutOverlay || !aboutCopy || !aboutSectionVideo || !aboutTitleVideo) return;
       const ABOUT_LOOP_START = 1.52;
       const ABOUT_LOOP_END = 4.92;
-      const ROUTE_HOME = '/testing-home';
-      const ROUTE_ABOUT = '/testing-about';
+      const ROUTE_HOME = '/testing/home';
+      const ROUTE_ABOUT = '/testing/about';
       let isTransitioning = false;
       let isAboutOpen = false;
       let aboutLoopTimer = 0;
       let aboutStageTimerIds = [];
+      let shellRoutePath = '';
+
+      try {
+        const initialShellRoute = new URLSearchParams(window.location.search).get('shellRoute');
+        if (initialShellRoute === ROUTE_HOME || initialShellRoute === ROUTE_ABOUT) {
+          shellRoutePath = initialShellRoute;
+        }
+      } catch (_) {}
 
       const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -1470,7 +1478,7 @@
         aboutStageTimerIds.push(timerId);
       };
 
-      const getPathname = () => window.location.pathname || '';
+      const getPathname = () => shellRoutePath || window.location.pathname || '';
 
       const getCurrentRoute = () => {
         const pathname = getPathname();
@@ -1478,8 +1486,15 @@
       };
 
       const updateRoute = (route, mode = 'pushState') => {
-        if (!window.history || typeof window.history[mode] !== 'function') return;
         if (getPathname() === route) return;
+        shellRoutePath = route;
+        if (window.parent && window.parent !== window) {
+          try {
+            window.parent.postMessage({ type: 'vmTestingRoute', route }, '*');
+          } catch (_) {}
+          return;
+        }
+        if (!window.history || typeof window.history[mode] !== 'function') return;
         try {
           window.history[mode]({ route }, '', route);
         } catch (_) {}
@@ -1768,6 +1783,22 @@
       window.addEventListener('beforeunload', () => {
         stopAboutLoopWatcher();
         clearAboutStageTimers();
+      });
+
+      window.addEventListener('message', (event) => {
+        const data = event && event.data;
+        if (!data || data.type !== 'vmTestingRouteSync') return;
+        const nextRoute = data.route === ROUTE_ABOUT ? ROUTE_ABOUT : ROUTE_HOME;
+        shellRoutePath = nextRoute;
+        if (nextRoute === ROUTE_ABOUT) {
+          if (!isAboutOpen) openAboutSequence({ updateBrowserRoute: false });
+          return;
+        }
+        if (isAboutOpen) {
+          closeAboutSequence({ updateBrowserRoute: false });
+          return;
+        }
+        applyHomeStateImmediately();
       });
 
       window.addEventListener('resize', () => {
