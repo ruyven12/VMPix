@@ -204,13 +204,17 @@
       height: 100%;
       max-height: none;
       object-fit: cover;
-      background: #020204;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(22, 12, 20, 0.3) 0%, rgba(6, 5, 10, 0.14) 42%, rgba(2, 2, 4, 0.94) 100%),
+        linear-gradient(180deg, rgba(5, 4, 8, 0.92) 0%, rgba(2, 2, 4, 0.98) 100%);
       transform: scale(1.04);
       filter: saturate(1.02);
       transition:
         transform 560ms cubic-bezier(0.18, 0.82, 0.2, 1),
         filter 560ms ease;
       will-change: transform, filter;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .mockup-about-overlay.is-expanded .mockup-about-section-video {
@@ -227,12 +231,17 @@
       max-width: 1380px;
       transform: translate(-50%, -50%) translateY(28px);
       padding: clamp(34px, 4vw, 56px) clamp(34px, 4vw, 56px);
-      border: 1px solid rgba(255, 176, 212, 0.2);
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(10, 8, 14, 0.8) 0%, rgba(7, 6, 10, 0.7) 100%);
+      border: 1px solid rgba(177, 36, 48, 0.34);
+      border-radius: 38px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(18, 8, 12, 0.34) 0%, rgba(4, 3, 7, 0.12) 72%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(180deg, rgba(7, 4, 7, 0.34) 0%, rgba(3, 3, 5, 0.2) 100%);
       box-shadow:
-        0 18px 60px rgba(0, 0, 0, 0.36),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        inset 0 0 0 1px rgba(255, 120, 120, 0.05),
+        inset 0 0 32px rgba(255, 40, 55, 0.05),
+        -16px 0 34px rgba(255, 32, 32, 0.12),
+        0 20px 44px rgba(161, 15, 24, 0.12),
+        0 18px 60px rgba(0, 0, 0, 0.28);
       color: rgba(246, 235, 241, 0.94);
       display: flex;
       align-items: center;
@@ -249,11 +258,207 @@
         transform 560ms cubic-bezier(0.18, 0.82, 0.2, 1);
       z-index: 1;
       pointer-events: none;
+      overflow: hidden;
+      isolation: isolate;
+      animation: mockup-about-frame-breathe 3.8s ease-in-out infinite;
     }
 
     .mockup-about-overlay.is-expanded .mockup-about-copy {
       opacity: 1;
       transform: translate(-50%, -50%) translateY(0);
+    }
+
+    .mockup-about-copy::before,
+    .mockup-about-copy::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .mockup-about-copy::before {
+      inset: -1px;
+      border: 1px solid rgba(192, 41, 50, 0.46);
+      box-shadow:
+        inset 0 0 18px rgba(255, 80, 80, 0.1),
+        inset 0 0 44px rgba(124, 0, 0, 0.1),
+        -12px 0 26px rgba(255, 42, 42, 0.18),
+        0 10px 26px rgba(196, 24, 31, 0.15);
+      opacity: 0.92;
+      z-index: 0;
+    }
+
+    .mockup-about-copy::after {
+      inset: -32px -22px -38px -36px;
+      border-radius: 56px;
+      background:
+        radial-gradient(circle at 2% 10%, rgba(255, 35, 35, 0.5) 0%, rgba(255, 35, 35, 0.18) 15%, rgba(255, 35, 35, 0) 34%),
+        radial-gradient(circle at 8% 88%, rgba(255, 28, 28, 0.28) 0%, rgba(255, 28, 28, 0.08) 18%, rgba(255, 28, 28, 0) 36%),
+        linear-gradient(180deg, rgba(255, 20, 20, 0.1) 0%, rgba(255, 20, 20, 0) 16%),
+        linear-gradient(90deg, rgba(255, 24, 24, 0.34) 0%, rgba(255, 24, 24, 0.08) 12%, rgba(255, 24, 24, 0) 26%),
+        linear-gradient(0deg, rgba(255, 28, 28, 0.34) 0%, rgba(255, 28, 28, 0.08) 12%, rgba(255, 28, 28, 0) 28%);
+      filter: blur(20px);
+      opacity: 0.84;
+      z-index: -1;
+      animation: mockup-about-frame-flicker 4.2s ease-in-out infinite;
+    }
+
+    .mockup-about-copy-chrome,
+    .mockup-about-copy-corners {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .mockup-about-copy-chrome {
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .mockup-about-copy-chrome::before,
+    .mockup-about-copy-chrome::after,
+    .mockup-about-copy-corners::before,
+    .mockup-about-copy-corners::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .mockup-about-copy-chrome::before {
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, rgba(255, 52, 52, 0.8) 0%, rgba(185, 18, 24, 0.42) 16%, rgba(130, 0, 0, 0.1) 34%, rgba(0, 0, 0, 0) 54%) top left / 100% 2px no-repeat,
+        linear-gradient(90deg, rgba(255, 40, 40, 0.92) 0%, rgba(204, 20, 26, 0.54) 14%, rgba(132, 0, 0, 0.12) 28%, rgba(0, 0, 0, 0) 46%) bottom left / 100% 2px no-repeat,
+        linear-gradient(180deg, rgba(255, 44, 44, 0.95) 0%, rgba(172, 12, 20, 0.32) 22%, rgba(0, 0, 0, 0) 56%) top left / 2px 100% no-repeat,
+        linear-gradient(180deg, rgba(70, 0, 0, 0.12) 0%, rgba(120, 0, 0, 0.08) 35%, rgba(255, 46, 46, 0.24) 100%) top right / 2px 100% no-repeat;
+      opacity: 0.95;
+      mix-blend-mode: screen;
+      animation: mockup-about-rails-shift 5.4s ease-in-out infinite;
+    }
+
+    .mockup-about-copy-chrome::after {
+      inset: 10px 14px;
+      border-radius: 28px;
+      background:
+        linear-gradient(90deg, rgba(255, 70, 70, 0.28) 0%, rgba(255, 70, 70, 0.02) 18%, rgba(255, 70, 70, 0) 42%) top left / 100% 1px no-repeat,
+        linear-gradient(90deg, rgba(255, 70, 70, 0.42) 0%, rgba(255, 70, 70, 0.06) 16%, rgba(255, 70, 70, 0) 34%) bottom left / 100% 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 60, 60, 0.32) 0%, rgba(255, 60, 60, 0) 30%) top left / 1px 100% no-repeat;
+      opacity: 0.74;
+    }
+
+    .mockup-about-copy-corners {
+      z-index: 0;
+    }
+
+    .mockup-about-copy-corners::before {
+      left: -22px;
+      top: -18px;
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 48% 52%, rgba(255, 44, 44, 0.64) 0%, rgba(255, 44, 44, 0.2) 28%, rgba(255, 44, 44, 0) 62%);
+      filter: blur(18px);
+      opacity: 0.88;
+      animation: mockup-about-corner-pulse 4.8s ease-in-out infinite;
+    }
+
+    .mockup-about-copy-corners::after {
+      left: -10px;
+      right: 28px;
+      bottom: -18px;
+      height: 34px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, rgba(255, 38, 38, 0.72) 0%, rgba(255, 38, 38, 0.34) 18%, rgba(255, 38, 38, 0.08) 54%, rgba(255, 38, 38, 0) 86%);
+      filter: blur(12px);
+      opacity: 0.78;
+      transform-origin: left center;
+      animation: mockup-about-bottom-burn 4.4s ease-in-out infinite;
+    }
+
+    .mockup-about-copy-text {
+      position: relative;
+      z-index: 1;
+      max-width: min(860px, 92%);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.03),
+        0 0 26px rgba(255, 90, 120, 0.04);
+    }
+
+    @keyframes mockup-about-frame-breathe {
+      0%,
+      100% {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 120, 120, 0.05),
+          inset 0 0 32px rgba(255, 40, 55, 0.05),
+          -16px 0 34px rgba(255, 32, 32, 0.12),
+          0 20px 44px rgba(161, 15, 24, 0.12),
+          0 18px 60px rgba(0, 0, 0, 0.28);
+      }
+      50% {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 140, 140, 0.08),
+          inset 0 0 36px rgba(255, 40, 55, 0.08),
+          -20px 0 42px rgba(255, 32, 32, 0.18),
+          0 24px 52px rgba(161, 15, 24, 0.16),
+          0 18px 60px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    @keyframes mockup-about-frame-flicker {
+      0%,
+      100% {
+        opacity: 0.68;
+      }
+      40% {
+        opacity: 0.82;
+      }
+      52% {
+        opacity: 0.62;
+      }
+      70% {
+        opacity: 0.78;
+      }
+    }
+
+    @keyframes mockup-about-rails-shift {
+      0%,
+      100% {
+        opacity: 0.88;
+        transform: translateX(0);
+      }
+      50% {
+        opacity: 1;
+        transform: translateX(6px);
+      }
+    }
+
+    @keyframes mockup-about-corner-pulse {
+      0%,
+      100% {
+        opacity: 0.78;
+        transform: scale(0.98);
+      }
+      45% {
+        opacity: 0.98;
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes mockup-about-bottom-burn {
+      0%,
+      100% {
+        opacity: 0.68;
+        transform: scaleX(0.98);
+      }
+      50% {
+        opacity: 0.96;
+        transform: scaleX(1.02);
+      }
     }
 
     .mockup-stage::before {
@@ -614,7 +819,11 @@
           preload="auto"
         ></video>
         <div class="mockup-about-copy">
-          This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.
+          <div class="mockup-about-copy-chrome" aria-hidden="true"></div>
+          <div class="mockup-about-copy-corners" aria-hidden="true"></div>
+          <div class="mockup-about-copy-text">
+            This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.
+          </div>
         </div>
       </div>
     </section>
