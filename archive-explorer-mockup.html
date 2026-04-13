@@ -1451,6 +1451,8 @@
       if (!topbar || !backgroundVideo || !dollReveal || !aboutMenu || !aboutMenuReverse || !aboutSlot || !aboutHitbox || !mockupStage || !aboutOverlay || !aboutCopy || !aboutSectionVideo || !aboutTitleVideo) return;
       const ABOUT_LOOP_START = 1.52;
       const ABOUT_LOOP_END = 4.92;
+      const ROUTE_HOME = '/home';
+      const ROUTE_ABOUT = '/about';
       let isTransitioning = false;
       let isAboutOpen = false;
       let aboutLoopTimer = 0;
@@ -1466,6 +1468,21 @@
       const queueAboutStage = (fn, delay) => {
         const timerId = window.setTimeout(fn, delay);
         aboutStageTimerIds.push(timerId);
+      };
+
+      const getPathname = () => window.location.pathname || '';
+
+      const getCurrentRoute = () => {
+        const pathname = getPathname();
+        return pathname === ROUTE_ABOUT ? ROUTE_ABOUT : ROUTE_HOME;
+      };
+
+      const updateRoute = (route, mode = 'pushState') => {
+        if (!window.history || typeof window.history[mode] !== 'function') return;
+        if (getPathname() === route) return;
+        try {
+          window.history[mode]({ route }, '', route);
+        } catch (_) {}
       };
 
       const playVideoFromStart = (video, playbackRate = 1) => {
@@ -1563,7 +1580,52 @@
         }, 24);
       };
 
-      const openAboutSequence = async () => {
+      const applyAboutStateImmediately = () => {
+        clearAboutStageTimers();
+        stopAboutLoopWatcher();
+        aboutHitbox.disabled = true;
+        if (welcomeCopy) {
+          welcomeCopy.classList.add('is-hidden');
+        }
+        aboutMenu.classList.add('is-hidden');
+        aboutMenuReverse.classList.add('is-hidden');
+        mockupStage.classList.add('is-about-open');
+        aboutOverlay.classList.remove('is-closing');
+        aboutOverlay.classList.add('is-visible', 'is-expanded', 'is-energized', 'is-content-visible');
+        aboutOverlay.setAttribute('aria-hidden', 'false');
+        isAboutOpen = true;
+        try {
+          aboutSectionVideo.pause();
+          aboutSectionVideo.currentTime = ABOUT_LOOP_START;
+        } catch (_) {}
+        const aboutPlayPromise = aboutSectionVideo.play();
+        if (aboutPlayPromise && typeof aboutPlayPromise.catch === 'function') {
+          aboutPlayPromise.catch(() => {});
+        }
+        try {
+          aboutTitleVideo.pause();
+          aboutTitleVideo.currentTime = aboutTitleVideo.duration || 9999;
+        } catch (_) {}
+        startAboutLoopWatcher();
+      };
+
+      const applyHomeStateImmediately = () => {
+        clearAboutStageTimers();
+        stopAboutLoopWatcher();
+        aboutOverlay.classList.remove('is-visible', 'is-expanded', 'is-energized', 'is-content-visible', 'is-closing');
+        aboutOverlay.setAttribute('aria-hidden', 'true');
+        mockupStage.classList.remove('is-about-open');
+        isAboutOpen = false;
+        aboutHitbox.disabled = false;
+        if (welcomeCopy) {
+          welcomeCopy.classList.remove('is-hidden');
+          welcomeCopy.classList.add('is-visible');
+        }
+        playAboutMenu();
+      };
+
+      const openAboutSequence = async (options = {}) => {
+        const { updateBrowserRoute = true } = options;
         if (isTransitioning || isAboutOpen) return;
         isTransitioning = true;
         aboutHitbox.disabled = true;
@@ -1598,10 +1660,14 @@
           aboutOverlay.classList.add('is-content-visible');
         }, 980);
         startAboutLoopWatcher();
+        if (updateBrowserRoute) {
+          updateRoute(ROUTE_ABOUT);
+        }
         isTransitioning = false;
       };
 
-      const closeAboutSequence = async () => {
+      const closeAboutSequence = async (options = {}) => {
+        const { updateBrowserRoute = true } = options;
         if (isTransitioning || !isAboutOpen) return;
         isTransitioning = true;
         clearAboutStageTimers();
@@ -1631,6 +1697,9 @@
           welcomeCopy.classList.remove('is-hidden');
           welcomeCopy.classList.add('is-visible');
         }
+        if (updateBrowserRoute) {
+          updateRoute(ROUTE_HOME);
+        }
         isTransitioning = false;
       };
 
@@ -1658,7 +1727,13 @@
         }
       }, 760);
 
-      window.setTimeout(playAboutMenu, 900);
+      window.setTimeout(() => {
+        if (getCurrentRoute() === ROUTE_ABOUT) {
+          applyAboutStateImmediately();
+          return;
+        }
+        applyHomeStateImmediately();
+      }, 900);
 
       aboutHitbox.addEventListener('click', () => {
         openAboutSequence();
@@ -1679,6 +1754,17 @@
         closeAboutSequence();
       });
 
+      window.addEventListener('popstate', () => {
+        const route = getCurrentRoute();
+        if (route === ROUTE_ABOUT) {
+          if (isAboutOpen) return;
+          openAboutSequence({ updateBrowserRoute: false });
+          return;
+        }
+        if (!isAboutOpen) return;
+        closeAboutSequence({ updateBrowserRoute: false });
+      });
+
       window.addEventListener('beforeunload', () => {
         stopAboutLoopWatcher();
         clearAboutStageTimers();
@@ -1691,6 +1777,10 @@
         aboutOverlay.style.setProperty('--about-expand-scale-x', '1');
         aboutOverlay.style.setProperty('--about-expand-scale-y', '1');
       });
+
+      if (getPathname() !== getCurrentRoute()) {
+        updateRoute(getCurrentRoute(), 'replaceState');
+      }
     })();
   </script>
 </body>
