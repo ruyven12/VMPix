@@ -1094,6 +1094,44 @@
       background: linear-gradient(180deg, rgba(var(--pricing-accent-rgb), 0) 0%, rgba(var(--pricing-accent-strong-rgb), 0.88) 50%, rgba(var(--pricing-accent-rgb), 0) 100%);
     }
 
+    .mockup-pricing-content {
+      position: relative;
+      z-index: 1;
+      width: min(900px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .mockup-pricing-title.is-module-leaving,
+    .mockup-pricing-title.is-module-entering,
+    .mockup-pricing-content.is-module-leaving,
+    .mockup-pricing-content.is-module-entering {
+      will-change: transform, opacity, filter;
+    }
+
+    .mockup-pricing-title.is-module-leaving[data-module-direction="next"],
+    .mockup-pricing-content.is-module-leaving[data-module-direction="next"] {
+      animation: mockup-pricing-module-leave-next 240ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-title.is-module-entering[data-module-direction="next"],
+    .mockup-pricing-content.is-module-entering[data-module-direction="next"] {
+      animation: mockup-pricing-module-enter-next 360ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-title.is-module-leaving[data-module-direction="prev"],
+    .mockup-pricing-content.is-module-leaving[data-module-direction="prev"] {
+      animation: mockup-pricing-module-leave-prev 240ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-title.is-module-entering[data-module-direction="prev"],
+    .mockup-pricing-content.is-module-entering[data-module-direction="prev"] {
+      animation: mockup-pricing-module-enter-prev 360ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+    }
+
     .mockup-pricing-overlay .mockup-about-title {
       width: min(640px, 100%);
       margin-bottom: 14px;
@@ -1143,26 +1181,15 @@
       transform: translateY(0) scale(1);
     }
 
-    .mockup-pricing-content {
-      position: relative;
-      z-index: 1;
-      width: min(900px, 100%);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      align-items: center;
-      pointer-events: auto;
-    }
-
     .mockup-pricing-mode-toggle {
       display: none;
     }
 
     .mockup-pricing-panel-nav {
       position: absolute;
-      top: 52%;
+      top: 50%;
       transform: translateY(-50%);
-      z-index: 2;
+      z-index: 3;
       pointer-events: auto;
     }
 
@@ -1245,6 +1272,60 @@
       box-sizing: border-box;
     }
 
+    .mockup-pricing-transfer-scan {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      mix-blend-mode: screen;
+      overflow: hidden;
+    }
+
+    .mockup-pricing-transfer-scan::before,
+    .mockup-pricing-transfer-scan::after {
+      content: "";
+      position: absolute;
+      top: -8%;
+      bottom: -8%;
+      border-radius: 999px;
+      opacity: 0;
+    }
+
+    .mockup-pricing-transfer-scan::before {
+      width: 24%;
+      filter: blur(18px);
+      background:
+        linear-gradient(90deg, rgba(var(--pricing-accent-rgb), 0) 0%, rgba(var(--pricing-accent-strong-rgb), 0.78) 48%, rgba(var(--pricing-accent-rgb), 0) 100%);
+    }
+
+    .mockup-pricing-transfer-scan::after {
+      width: 44%;
+      filter: blur(46px);
+      background:
+        linear-gradient(90deg, rgba(var(--pricing-accent-rgb), 0) 0%, rgba(var(--pricing-accent-rgb), 0.28) 50%, rgba(var(--pricing-accent-rgb), 0) 100%);
+    }
+
+    .mockup-pricing-overlay.is-transitioning-pane .mockup-pricing-transfer-scan {
+      opacity: 1;
+    }
+
+    .mockup-pricing-overlay.is-transitioning-pane .mockup-pricing-transfer-scan[data-scan-direction="next"]::before {
+      animation: mockup-pricing-transfer-next 420ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-overlay.is-transitioning-pane .mockup-pricing-transfer-scan[data-scan-direction="next"]::after {
+      animation: mockup-pricing-transfer-next-soft 460ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-overlay.is-transitioning-pane .mockup-pricing-transfer-scan[data-scan-direction="prev"]::before {
+      animation: mockup-pricing-transfer-prev 420ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-overlay.is-transitioning-pane .mockup-pricing-transfer-scan[data-scan-direction="prev"]::after {
+      animation: mockup-pricing-transfer-prev-soft 460ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
     .mockup-pricing-pane {
       position: absolute;
       inset: 0;
@@ -1277,19 +1358,23 @@
     }
 
     .mockup-pricing-pane.is-entering[data-swipe-direction="next"] {
-      animation: mockup-pricing-pane-enter-next 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+      animation: mockup-pricing-pane-enter-next 520ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
     }
 
     .mockup-pricing-pane.is-leaving[data-swipe-direction="next"] {
-      animation: mockup-pricing-pane-leave-next 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+      animation: mockup-pricing-pane-leave-next 420ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
     }
 
     .mockup-pricing-pane.is-entering[data-swipe-direction="prev"] {
-      animation: mockup-pricing-pane-enter-prev 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+      animation: mockup-pricing-pane-enter-prev 520ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
     }
 
     .mockup-pricing-pane.is-leaving[data-swipe-direction="prev"] {
-      animation: mockup-pricing-pane-leave-prev 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+      animation: mockup-pricing-pane-leave-prev 420ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-panel-arrow.is-pressed {
+      animation: mockup-pricing-arrow-pulse 320ms cubic-bezier(0.2, 0.8, 0.24, 1) forwards;
     }
 
     .mockup-pricing-pane-copy {
@@ -1521,47 +1606,184 @@
       }
     }
 
-    @keyframes mockup-pricing-pane-enter-next {
+    @keyframes mockup-pricing-module-leave-next {
       0% {
-        opacity: 0.24;
-        transform: translateX(24%);
+        opacity: 1;
+        filter: blur(0);
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0.12;
+        filter: blur(10px);
+        transform: translateX(-10%);
+      }
+    }
+
+    @keyframes mockup-pricing-module-enter-next {
+      0% {
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateX(12%);
       }
       100% {
         opacity: 1;
+        filter: blur(0);
         transform: translateX(0);
+      }
+    }
+
+    @keyframes mockup-pricing-module-leave-prev {
+      0% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0.12;
+        filter: blur(10px);
+        transform: translateX(10%);
+      }
+    }
+
+    @keyframes mockup-pricing-module-enter-prev {
+      0% {
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateX(-12%);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes mockup-pricing-pane-enter-next {
+      0% {
+        opacity: 0.2;
+        filter: blur(10px);
+        transform: translateX(20%) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateX(0) scale(1);
       }
     }
 
     @keyframes mockup-pricing-pane-leave-next {
       0% {
         opacity: 1;
-        transform: translateX(0);
+        filter: blur(0);
+        transform: translateX(0) scale(1);
       }
       100% {
-        opacity: 0.24;
-        transform: translateX(-24%);
+        opacity: 0.14;
+        filter: blur(8px);
+        transform: translateX(-18%) scale(0.988);
       }
     }
 
     @keyframes mockup-pricing-pane-enter-prev {
       0% {
-        opacity: 0.24;
-        transform: translateX(-24%);
+        opacity: 0.2;
+        filter: blur(10px);
+        transform: translateX(-20%) scale(0.985);
       }
       100% {
         opacity: 1;
-        transform: translateX(0);
+        filter: blur(0);
+        transform: translateX(0) scale(1);
       }
     }
 
     @keyframes mockup-pricing-pane-leave-prev {
       0% {
         opacity: 1;
-        transform: translateX(0);
+        filter: blur(0);
+        transform: translateX(0) scale(1);
       }
       100% {
-        opacity: 0.24;
-        transform: translateX(24%);
+        opacity: 0.14;
+        filter: blur(8px);
+        transform: translateX(18%) scale(0.988);
+      }
+    }
+
+    @keyframes mockup-pricing-transfer-next {
+      0% {
+        left: -30%;
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.96;
+      }
+      100% {
+        left: 108%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes mockup-pricing-transfer-next-soft {
+      0% {
+        left: -42%;
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.72;
+      }
+      100% {
+        left: 112%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes mockup-pricing-transfer-prev {
+      0% {
+        right: -30%;
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.96;
+      }
+      100% {
+        right: 108%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes mockup-pricing-transfer-prev-soft {
+      0% {
+        right: -42%;
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.72;
+      }
+      100% {
+        right: 112%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes mockup-pricing-arrow-pulse {
+      0% {
+        transform: scale(1);
+        box-shadow:
+          inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.16),
+          0 0 18px rgba(var(--pricing-accent-rgb), 0.12);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow:
+          inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.32),
+          0 0 26px rgba(var(--pricing-accent-rgb), 0.26);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow:
+          inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.16),
+          0 0 18px rgba(var(--pricing-accent-rgb), 0.12);
       }
     }
 
@@ -2143,7 +2365,7 @@
         <div class="mockup-about-crt-flash" aria-hidden="true"></div>
         <video
           class="mockup-about-section-video"
-          src="assets/about-section.webm?v=20260413-r2"
+          src="assets/main/background-fire.mp4"
           muted
           playsinline
           preload="auto"
@@ -2176,7 +2398,7 @@
         <div class="mockup-about-crt-flash" aria-hidden="true"></div>
         <video
           class="mockup-about-section-video"
-          src="assets/about-section.webm?v=20260413-r2"
+          src="assets/main/background-fire.mp4"
           muted
           playsinline
           preload="auto"
@@ -2210,28 +2432,29 @@
               </div>
             </div>
           </div>
+          <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-prev" data-pricing-arrow-wrap="prev" hidden>
+            <button
+              type="button"
+              class="mockup-pricing-panel-arrow"
+              data-pricing-nav="prev"
+              aria-label="Show print pricing"
+            >
+              <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8249;</span>
+            </button>
+          </div>
+          <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-next" data-pricing-arrow-wrap="next">
+            <button
+              type="button"
+              class="mockup-pricing-panel-arrow"
+              data-pricing-nav="next"
+              aria-label="Show hire pricing"
+            >
+              <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8250;</span>
+            </button>
+          </div>
           <div class="mockup-pricing-content">
+            <div class="mockup-pricing-transfer-scan" aria-hidden="true"></div>
             <div class="mockup-pricing-pane-stack">
-              <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-prev" data-pricing-arrow-wrap="prev" hidden>
-                <button
-                  type="button"
-                  class="mockup-pricing-panel-arrow"
-                  data-pricing-nav="prev"
-                  aria-label="Show print pricing"
-                >
-                  <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8249;</span>
-                </button>
-              </div>
-              <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-next" data-pricing-arrow-wrap="next">
-                <button
-                  type="button"
-                  class="mockup-pricing-panel-arrow"
-                  data-pricing-nav="next"
-                  aria-label="Show hire pricing"
-                >
-                  <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8250;</span>
-                </button>
-              </div>
               <section class="mockup-pricing-pane mockup-pricing-pane-prints is-active" data-pricing-pane="prints">
                 <div class="mockup-pricing-pane-copy">
                   <p class="mockup-pricing-pane-intro">All photographs on this site that were not taken with a cell phone are available for purchase in a variety of formats. These images have been used for posters, signed wrestler prints, trading cards, and other promotional and personal projects.</p>
@@ -2316,6 +2539,9 @@
       const pricingPanes = Array.from(document.querySelectorAll('[data-pricing-pane]'));
       const pricingTitleVideos = Array.from(document.querySelectorAll('[data-pricing-title-video]'));
       const pricingNavButtons = Array.from(document.querySelectorAll('[data-pricing-nav]'));
+      const pricingTransferScan = pricingOverlay.querySelector('.mockup-pricing-transfer-scan');
+      const pricingTitle = pricingOverlay.querySelector('.mockup-pricing-title');
+      const pricingContent = pricingOverlay.querySelector('.mockup-pricing-content');
       const pricingArrowWraps = {
         prev: document.querySelector('[data-pricing-arrow-wrap="prev"]'),
         next: document.querySelector('[data-pricing-arrow-wrap="next"]')
@@ -2438,15 +2664,52 @@
           pane.removeAttribute('data-swipe-direction');
         });
 
-        if (shouldAnimate) {
-          currentPane.hidden = false;
-          currentPane.classList.remove('is-active');
-          currentPane.classList.add('is-leaving');
-          currentPane.dataset.swipeDirection = direction;
+        [pricingTitle, pricingContent].forEach((element) => {
+          if (!element) return;
+          element.classList.remove('is-module-leaving');
+          element.classList.remove('is-module-entering');
+          element.removeAttribute('data-module-direction');
+        });
 
-          nextPane.hidden = false;
-          nextPane.classList.add('is-active', 'is-entering', 'is-switching');
-          nextPane.dataset.swipeDirection = direction;
+        pricingOverlay.classList.remove('is-transitioning-pane');
+        if (pricingTransferScan) {
+          pricingTransferScan.removeAttribute('data-scan-direction');
+        }
+
+        if (shouldAnimate) {
+          [pricingTitle, pricingContent].forEach((element) => {
+            if (!element) return;
+            element.dataset.moduleDirection = direction;
+            element.classList.add('is-module-leaving');
+          });
+
+          if (pricingTransferScan) {
+            pricingTransferScan.dataset.scanDirection = direction;
+            void pricingTransferScan.offsetWidth;
+          }
+          pricingOverlay.classList.add('is-transitioning-pane');
+
+          window.setTimeout(() => {
+            pricingOverlay.dataset.pricingMode = nextMode;
+            updatePricingArrowVisibility(nextMode);
+
+            currentPane.hidden = false;
+            currentPane.classList.remove('is-active');
+            currentPane.classList.add('is-leaving');
+            currentPane.dataset.swipeDirection = direction;
+
+            nextPane.hidden = false;
+            nextPane.classList.add('is-active', 'is-entering', 'is-switching');
+            nextPane.dataset.swipeDirection = direction;
+
+            [pricingTitle, pricingContent].forEach((element) => {
+              if (!element) return;
+              element.classList.remove('is-module-leaving');
+              element.classList.add('is-module-entering');
+            });
+
+            syncPricingTitleVideo(nextMode, { restart: restartTitle || animate });
+          }, 170);
 
           window.setTimeout(() => {
             currentPane.hidden = true;
@@ -2455,11 +2718,25 @@
           }, 620);
 
           window.setTimeout(() => {
+            pricingOverlay.classList.remove('is-transitioning-pane');
+            if (pricingTransferScan) {
+              pricingTransferScan.removeAttribute('data-scan-direction');
+            }
+          }, 480);
+
+          window.setTimeout(() => {
             nextPane.classList.remove('is-entering');
             nextPane.classList.remove('is-switching');
             nextPane.removeAttribute('data-swipe-direction');
+            [pricingTitle, pricingContent].forEach((element) => {
+              if (!element) return;
+              element.classList.remove('is-module-entering');
+              element.removeAttribute('data-module-direction');
+            });
           }, 760);
         } else {
+          pricingOverlay.dataset.pricingMode = nextMode;
+          updatePricingArrowVisibility(nextMode);
           pricingPanes.forEach((pane) => {
             const isActive = pane.dataset.pricingPane === nextMode;
             pane.hidden = !isActive;
@@ -2472,9 +2749,8 @@
               }, 760);
             }
           });
+          syncPricingTitleVideo(nextMode, { restart: restartTitle || animate });
         }
-
-        syncPricingTitleVideo(nextMode, { restart: restartTitle || animate });
       };
 
       setPricingMode('prints');
@@ -2875,6 +3151,12 @@
       pricingNavButtons.forEach((button) => {
         button.addEventListener('click', () => {
           if (activePanelKey !== panels.pricing.key || isTransitioning) return;
+          button.classList.remove('is-pressed');
+          void button.offsetWidth;
+          button.classList.add('is-pressed');
+          window.setTimeout(() => {
+            button.classList.remove('is-pressed');
+          }, 320);
           if (button.dataset.pricingNav === 'next') {
             setPricingMode('hire', { animate: true, direction: 'next' });
             return;
