@@ -12,7 +12,7 @@ This site is a nearly-100% automated website using coding that reads from the na
   function render(mountEl){
     if (!mountEl) return;
 
-    // About styles (mobile scaling + subtle glow) — injected once
+    // About styles (mobile scaling + subtle glow) â€” injected once
     if (!document.getElementById('aboutArchiveStyles')) {
       const s = document.createElement('style');
       s.id = 'aboutArchiveStyles';

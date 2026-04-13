@@ -127,6 +127,62 @@
       opacity: 1;
     }
 
+    .mockup-stage.is-about-open .mockup-background-video,
+    .mockup-stage.is-about-open .mockup-workspace,
+    .mockup-stage.is-about-open .mockup-topbar,
+    .mockup-stage.is-about-open .mockup-welcome-copy {
+      filter: blur(14px) saturate(0.84);
+      transform: scale(1.02);
+      opacity: 0.42;
+      transition: filter 360ms ease, transform 360ms ease, opacity 360ms ease;
+    }
+
+    .mockup-stage.is-about-open .mockup-workspace {
+      pointer-events: none;
+    }
+
+    .mockup-about-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: block;
+      padding: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 320ms ease;
+    }
+
+    .mockup-about-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mockup-about-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 162, 211, 0.16), transparent 32%),
+        linear-gradient(180deg, rgba(2, 3, 6, 0.28) 0%, rgba(2, 3, 6, 0.72) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .mockup-about-panel {
+      inset: 0;
+      position: absolute;
+      overflow: hidden;
+    }
+
+    .mockup-about-section-video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      object-fit: cover;
+      background: #020204;
+    }
+
     .mockup-stage::before {
       content: "";
       position: absolute;
@@ -386,6 +442,10 @@
         max-width: min(92%, 430px);
         font-size: 16px;
       }
+
+      .mockup-about-section-video {
+        min-height: 100%;
+      }
     }
 
     @media (max-width: 932px) and (orientation: landscape) {
@@ -462,6 +522,17 @@
       aria-hidden="true"
     ></video>
     <div class="mockup-welcome-copy">Welcome to the landing page. Make your selection below.</div>
+    <section class="mockup-about-overlay" aria-hidden="true">
+      <div class="mockup-about-panel">
+        <video
+          class="mockup-about-section-video"
+          src="assets/about-section.webm?v=20260412-r2"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+      </div>
+    </section>
   </main>
   <div class="mockup-rotate-guard" aria-hidden="true">
     <div class="mockup-rotate-guard-copy">This mockup is portrait only on mobile. Rotate your device back upright to continue.</div>
@@ -480,8 +551,15 @@
       const aboutSlot = document.querySelector('.mockup-about-slot');
       const aboutHitbox = document.querySelector('.mockup-about-hitbox');
       const welcomeCopy = document.querySelector('.mockup-welcome-copy');
-      if (!topbar || !backgroundVideo || !dollReveal || !aboutMenu || !aboutMenuReverse || !aboutSlot || !aboutHitbox) return;
+      const mockupStage = document.querySelector('.mockup-stage');
+      const aboutOverlay = document.querySelector('.mockup-about-overlay');
+      const aboutSectionVideo = document.querySelector('.mockup-about-section-video');
+      if (!topbar || !backgroundVideo || !dollReveal || !aboutMenu || !aboutMenuReverse || !aboutSlot || !aboutHitbox || !mockupStage || !aboutOverlay || !aboutSectionVideo) return;
+      const ABOUT_LOOP_START = 1.52;
+      const ABOUT_LOOP_END = 4.92;
       let isTransitioning = false;
+      let isAboutOpen = false;
+      let aboutLoopTimer = 0;
 
       const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -533,8 +611,37 @@
         }
       };
 
+      const replayAboutLoop = () => {
+        if (!isAboutOpen) return;
+        try {
+          aboutSectionVideo.currentTime = ABOUT_LOOP_START;
+          const replayPromise = aboutSectionVideo.play();
+          if (replayPromise && typeof replayPromise.catch === 'function') {
+            replayPromise.catch(() => {});
+          }
+        } catch (_) {}
+      };
+
+      const stopAboutLoopWatcher = () => {
+        if (aboutLoopTimer) {
+          window.clearInterval(aboutLoopTimer);
+          aboutLoopTimer = 0;
+        }
+      };
+
+      const startAboutLoopWatcher = () => {
+        stopAboutLoopWatcher();
+        aboutLoopTimer = window.setInterval(() => {
+          if (!isAboutOpen) return;
+          if (aboutSectionVideo.paused || aboutSectionVideo.seeking) return;
+          if (aboutSectionVideo.currentTime >= ABOUT_LOOP_END) {
+            replayAboutLoop();
+          }
+        }, 24);
+      };
+
       const openAboutSequence = async () => {
-        if (isTransitioning) return;
+        if (isTransitioning || isAboutOpen) return;
         isTransitioning = true;
         aboutHitbox.disabled = true;
         if (welcomeCopy) {
@@ -547,6 +654,13 @@
         } catch (_) {}
         await playVideoFromStart(aboutMenuReverse, 2.5);
         await waitForVideoEnd(aboutMenuReverse, 200);
+        mockupStage.classList.add('is-about-open');
+        aboutOverlay.classList.add('is-visible');
+        aboutOverlay.setAttribute('aria-hidden', 'false');
+        isAboutOpen = true;
+        await playVideoFromStart(aboutSectionVideo);
+        startAboutLoopWatcher();
+        isTransitioning = false;
       };
 
       const playPromise = backgroundVideo.play();
@@ -577,6 +691,14 @@
 
       aboutHitbox.addEventListener('click', () => {
         openAboutSequence();
+      });
+
+      aboutSectionVideo.addEventListener('ended', () => {
+        replayAboutLoop();
+      });
+
+      window.addEventListener('beforeunload', () => {
+        stopAboutLoopWatcher();
       });
     })();
   </script>
