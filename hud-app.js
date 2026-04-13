@@ -6027,6 +6027,7 @@ function navigate(route){
       const trail = ['/', '/testing/home'];
       const sub = String(parts[1] || '').toLowerCase();
       if (sub === 'about') trail.push('/testing/about');
+      if (sub === 'pricing') trail.push('/testing/pricing');
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
     }
 
@@ -6035,7 +6036,9 @@ function navigate(route){
 
   function currentTestingShellPath(){
     const path = String(location.pathname || '').trim().toLowerCase();
-    return path === '/testing/about' ? '/testing/about' : '/testing/home';
+    if (path === '/testing/about') return '/testing/about';
+    if (path === '/testing/pricing') return '/testing/pricing';
+    return '/testing/home';
   }
 
   function syncTestingFrameRoute(){
@@ -6097,7 +6100,12 @@ function navigate(route){
   window.addEventListener('message', (event) => {
     const data = event && event.data;
     if (!data || data.type !== 'vmTestingRoute') return;
-    const nextPath = data.route === '/testing/about' ? '/testing/about' : '/testing/home';
+    const nextPath =
+      data.route === '/testing/about'
+        ? '/testing/about'
+        : data.route === '/testing/pricing'
+          ? '/testing/pricing'
+          : '/testing/home';
     const currentPath = String(location.pathname || '').trim() || '/';
     if (currentPath === nextPath) {
       syncTestingFrameRoute();
