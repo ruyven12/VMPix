@@ -208,7 +208,50 @@
     .mockup-about-overlay.is-closing .mockup-about-panel {
       transition: none;
       border-radius: 0;
-      animation: mockup-about-panel-crt-off 320ms cubic-bezier(0.22, 0.78, 0.22, 1) forwards;
+      animation: mockup-about-panel-crt-off 460ms cubic-bezier(0.22, 0.78, 0.22, 1) forwards;
+    }
+
+    .mockup-about-crt-flash {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(76%, 1200px);
+      height: 4px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, rgba(255, 48, 48, 0) 0%, rgba(255, 92, 92, 0.94) 18%, rgba(255, 28, 28, 1) 50%, rgba(255, 92, 92, 0.94) 82%, rgba(255, 48, 48, 0) 100%);
+      box-shadow:
+        0 0 10px rgba(255, 128, 128, 0.36),
+        0 0 24px rgba(255, 56, 56, 0.74),
+        0 0 52px rgba(255, 18, 18, 0.46);
+      opacity: 0;
+      transform: translate(-50%, -50%) scaleX(0.02) scaleY(0.2);
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .mockup-about-crt-flash::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 126, 126, 0.98) 0%, rgba(255, 58, 58, 0.95) 36%, rgba(255, 24, 24, 0.62) 58%, rgba(255, 24, 24, 0) 100%);
+      box-shadow:
+        0 0 14px rgba(255, 126, 126, 0.42),
+        0 0 30px rgba(255, 44, 44, 0.68);
+      transform: translate(-50%, -50%) scale(0.1);
+      opacity: 0;
+    }
+
+    .mockup-about-overlay.is-closing .mockup-about-crt-flash {
+      animation: mockup-about-crt-flash 520ms cubic-bezier(0.2, 0.8, 0.22, 1) forwards;
+    }
+
+    .mockup-about-overlay.is-closing .mockup-about-crt-flash::before {
+      animation: mockup-about-crt-dot 520ms cubic-bezier(0.2, 0.8, 0.22, 1) forwards;
     }
 
     .mockup-about-section-video {
@@ -635,6 +678,44 @@
         transform: translate(0, 0) scale(0.01, 0.01);
         opacity: 0;
         filter: brightness(0.9);
+      }
+    }
+
+    @keyframes mockup-about-crt-flash {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scaleX(0.06) scaleY(0.24);
+      }
+      25% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+      }
+      68% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scaleX(0.08) scaleY(0.72);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scaleX(0.01) scaleY(0.01);
+      }
+    }
+
+    @keyframes mockup-about-crt-dot {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.08);
+      }
+      58% {
+        opacity: 0.18;
+        transform: translate(-50%, -50%) scale(0.16);
+      }
+      78% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.04);
       }
     }
 
@@ -1246,6 +1327,7 @@
     <div class="mockup-welcome-copy">Welcome to the landing page. Make your selection below.</div>
     <section class="mockup-about-overlay" aria-hidden="true">
       <div class="mockup-about-panel">
+        <div class="mockup-about-crt-flash" aria-hidden="true"></div>
         <video
           class="mockup-about-section-video"
           src="assets/about-section.webm?v=20260413-r2"
@@ -1465,9 +1547,9 @@
           aboutTitleVideo.pause();
           aboutTitleVideo.currentTime = 0;
         } catch (_) {}
-        await wait(320);
+        await wait(500);
         aboutOverlay.classList.remove('is-visible');
-        await wait(220);
+        await wait(260);
         aboutOverlay.classList.remove('is-expanded');
         aboutOverlay.classList.remove('is-closing');
         aboutOverlay.setAttribute('aria-hidden', 'true');
