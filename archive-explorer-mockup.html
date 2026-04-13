@@ -14,10 +14,10 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
-      --about-crop-left: 29%;
-      --about-crop-right: 29%;
-      --about-crop-top: 38%;
-      --about-crop-bottom: 40%;
+      --about-crop-left: 27%;
+      --about-crop-right: 27%;
+      --about-crop-top: 36%;
+      --about-crop-bottom: 38%;
     }
 
     * {
@@ -279,11 +279,10 @@
     }
 
     .mockup-about-title {
-      position: absolute;
-      left: 50%;
-      top: calc(16% - 31px);
-      width: min(640px, calc(100% - 80px));
-      transform: translateX(-50%) translateY(24px) scale(0.97);
+      position: relative;
+      width: min(600px, 100%);
+      margin: 0 auto 14px;
+      transform: translateY(-6px) scale(0.97);
       opacity: 0;
       z-index: 2;
       pointer-events: none;
@@ -306,14 +305,14 @@
     .mockup-about-overlay.is-expanded .mockup-about-title {
       transition-delay: 190ms;
       opacity: 1;
-      transform: translateX(-50%) translateY(0) scale(1);
+      transform: translateY(0) scale(1);
       animation: mockup-about-title-settle 740ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
     }
 
     .mockup-about-overlay.is-closing .mockup-about-title {
       transition-delay: 0ms;
       transition-duration: 90ms;
-      transform: translateX(-50%) translateY(4px) scale(0.98);
+      transform: translateY(4px) scale(0.98);
       opacity: 0;
       animation: none;
     }
@@ -321,14 +320,16 @@
     .mockup-about-copy {
       position: absolute;
       left: 50%;
-      top: calc(45% + 50px);
+      top: 50%;
       width: calc(100% - 160px);
-      min-height: calc(100% - 240px);
+      min-height: 0;
       max-width: 1380px;
       transform: translate(-50%, -50%) translateY(36px) scale(0.985);
       padding: clamp(34px, 4vw, 56px) clamp(34px, 4vw, 56px);
       border: 1px solid rgba(177, 36, 48, 0.34);
       border-radius: 38px;
+      outline: 1px solid rgba(255, 255, 255, 0.24);
+      outline-offset: -1px;
       background:
         radial-gradient(circle at 50% 50%, rgba(18, 8, 12, 0.34) 0%, rgba(4, 3, 7, 0.12) 72%, rgba(0, 0, 0, 0) 100%),
         linear-gradient(180deg, rgba(7, 4, 7, 0.34) 0%, rgba(3, 3, 5, 0.2) 100%);
@@ -340,6 +341,7 @@
         0 18px 60px rgba(0, 0, 0, 0.28);
       color: rgba(246, 235, 241, 0.94);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
@@ -721,13 +723,13 @@
 
     @keyframes mockup-about-title-settle {
       0% {
-        transform: translateX(-50%) translateY(18px) scale(0.95);
+        transform: translateY(18px) scale(0.95);
       }
       58% {
-        transform: translateX(-50%) translateY(-2px) scale(1.018);
+        transform: translateY(-2px) scale(1.018);
       }
       100% {
-        transform: translateX(-50%) translateY(0) scale(1);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -1019,7 +1021,7 @@
       position: absolute;
       left: 50%;
       top: calc(50% + min(105px, 10.5vmin));
-      width: clamp(260px, 30vw, 380px);
+      width: clamp(285px, 32vw, 405px);
       display: grid;
       transform: translate(-50%, 0);
       transform-origin: center center;
@@ -1148,6 +1150,16 @@
     }
 
     @media (max-width: 640px) {
+      .mockup-stage.is-about-open .mockup-background-video,
+      .mockup-stage.is-about-open .mockup-workspace,
+      .mockup-stage.is-about-open .mockup-topbar,
+      .mockup-stage.is-about-open .mockup-welcome-copy {
+        filter: none;
+        transform: none;
+        opacity: 0.16;
+        transition: opacity 220ms ease;
+      }
+
       .mockup-topbar {
         top: 14px;
         height: clamp(128px, 30vw, 138px);
@@ -1178,7 +1190,7 @@
 
       .mockup-about-slot {
         top: calc(50% + min(43px, 8.6vw));
-        width: min(340px, calc(100vw - 40px));
+        width: min(365px, calc(100vw - 24px));
       }
 
       .mockup-welcome-copy {
@@ -1192,22 +1204,22 @@
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
         background:
-          radial-gradient(circle at 50% 18%, rgba(255, 162, 211, 0.1), transparent 32%),
-          linear-gradient(180deg, rgba(2, 3, 6, 0.44) 0%, rgba(2, 3, 6, 0.82) 100%);
+          radial-gradient(circle at 50% 18%, rgba(255, 102, 132, 0.08), transparent 28%),
+          linear-gradient(180deg, rgba(2, 3, 6, 0.72) 0%, rgba(2, 2, 4, 0.9) 100%);
       }
 
       .mockup-about-title {
-        top: calc(15% - 25px);
-        width: min(470px, calc(100% - 36px));
+        width: min(560px, 100%);
+        margin: 0 auto 12px;
       }
 
       .mockup-about-copy {
-        top: calc(40% + 50px);
-        width: calc(100% - 44px);
-        min-height: calc(100% - 180px);
-        padding: 22px 18px;
+        top: 50%;
+        width: calc(100% - 48px);
+        min-height: 0;
+        padding: 18px 16px;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.55;
       }
 
       .mockup-about-copy,
@@ -1225,25 +1237,29 @@
       .mockup-about-copy {
         box-shadow:
           inset 0 0 0 1px rgba(255, 120, 120, 0.05),
-          inset 0 0 24px rgba(255, 40, 55, 0.04),
-          -10px 0 18px rgba(255, 32, 32, 0.08),
-          0 12px 28px rgba(161, 15, 24, 0.08),
-          0 12px 36px rgba(0, 0, 0, 0.22);
+          inset 0 0 16px rgba(255, 40, 55, 0.03),
+          -6px 0 12px rgba(255, 32, 32, 0.05),
+          0 8px 20px rgba(161, 15, 24, 0.05),
+          0 8px 24px rgba(0, 0, 0, 0.16);
       }
 
       .mockup-about-copy::after {
-        filter: blur(12px);
-        opacity: 0.56;
+        filter: blur(8px);
+        opacity: 0.32;
       }
 
       .mockup-about-copy-corners::before {
-        filter: blur(12px);
-        opacity: 0.66;
+        filter: blur(8px);
+        opacity: 0.34;
       }
 
       .mockup-about-copy-corners::after {
-        filter: blur(8px);
-        opacity: 0.58;
+        filter: blur(5px);
+        opacity: 0.26;
+      }
+
+      .mockup-about-copy-text {
+        max-width: 100%;
       }
 
       .mockup-about-section-video {
@@ -1335,20 +1351,20 @@
           playsinline
           preload="auto"
         ></video>
-        <div class="mockup-about-title">
-          <video
-            class="mockup-about-title-video"
-            src="assets/about-site-title.webm?v=20260413-r1"
-            muted
-            playsinline
-            preload="auto"
-          ></video>
-        </div>
         <div class="mockup-about-copy">
           <div class="mockup-about-copy-chrome" aria-hidden="true"></div>
           <div class="mockup-about-copy-corners" aria-hidden="true"></div>
           <div class="mockup-about-copy-shimmer" aria-hidden="true"></div>
           <div class="mockup-about-copy-scan" aria-hidden="true"></div>
+          <div class="mockup-about-title">
+            <video
+              class="mockup-about-title-video"
+              src="assets/about-site-title.webm?v=20260413-r1"
+              muted
+              playsinline
+              preload="auto"
+            ></video>
+          </div>
           <div class="mockup-about-copy-text">
             This website is a nearly-100% automated website through a lot of code, and using assistance from AI entities such as ChatGPT and Codex, with some elements and animations being created using Adobe After Effects from scratch. The photo catalog is a direct read from the Smugmug library that I operate under, with datapoints also being read from a database. This site is an ever-evolving entity and will house a lot more as time goes on - just need time is all. If you have questions, feel free to contact me through the avenues on the Contact screen.
           </div>
