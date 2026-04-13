@@ -1155,30 +1155,44 @@
     }
 
     .mockup-pricing-mode-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(4, 7, 12, 0.48);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(8px);
+      display: none;
     }
 
-    .mockup-pricing-nav-button {
+    .mockup-pricing-panel-nav {
+      position: absolute;
+      top: 52%;
+      transform: translateY(-50%);
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .mockup-pricing-panel-nav-prev {
+      left: 22px;
+    }
+
+    .mockup-pricing-panel-nav-next {
+      right: 22px;
+    }
+
+    .mockup-pricing-panel-nav[hidden] {
+      display: none !important;
+    }
+
+    .mockup-pricing-panel-arrow {
       appearance: none;
       border: 0;
-      width: 40px;
-      height: 40px;
+      width: 72px;
+      height: 72px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%),
+        rgba(4, 8, 14, 0.64);
       box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-        0 0 12px rgba(var(--pricing-accent-rgb), 0.08);
+        inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.16),
+        0 0 18px rgba(var(--pricing-accent-rgb), 0.12);
       color: rgba(242, 249, 255, 0.9);
       cursor: pointer;
       transition:
@@ -1188,73 +1202,94 @@
         color 180ms ease;
     }
 
-    .mockup-pricing-nav-button:hover,
-    .mockup-pricing-nav-button:focus-visible {
+    .mockup-pricing-panel-arrow:hover,
+    .mockup-pricing-panel-arrow:focus-visible {
       outline: none;
-      transform: translateY(-1px);
+      transform: scale(1.04);
       background: linear-gradient(180deg, rgba(var(--pricing-accent-rgb), 0.18) 0%, rgba(var(--pricing-edge-rgb), 0.12) 100%);
       box-shadow:
         inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.28),
-        0 0 16px rgba(var(--pricing-accent-rgb), 0.16);
+        0 0 20px rgba(var(--pricing-accent-rgb), 0.18);
+    }
+
+    .mockup-pricing-panel-arrow::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      pointer-events: none;
     }
 
     .mockup-pricing-nav-icon {
       display: block;
-      font-size: 18px;
+      font-size: 30px;
       line-height: 1;
       font-weight: 700;
+    }
+
+    .mockup-pricing-panel-nav-next .mockup-pricing-nav-icon {
+      transform: translateX(1px);
+    }
+
+    .mockup-pricing-panel-nav-prev .mockup-pricing-nav-icon {
       transform: translateX(-1px);
-    }
-
-    .mockup-pricing-mode-button {
-      appearance: none;
-      border: 0;
-      border-radius: 999px;
-      min-width: 132px;
-      padding: 9px 14px;
-      background: transparent;
-      color: rgba(231, 241, 248, 0.66);
-      font: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition:
-        color 180ms ease,
-        background 220ms ease,
-        box-shadow 220ms ease,
-        transform 180ms ease;
-    }
-
-    .mockup-pricing-mode-button:hover,
-    .mockup-pricing-mode-button:focus-visible {
-      color: rgba(255, 255, 255, 0.88);
-      outline: none;
-      transform: translateY(-1px);
-    }
-
-    .mockup-pricing-mode-button.is-active {
-      color: rgba(248, 252, 255, 0.96);
-      background: linear-gradient(180deg, rgba(var(--pricing-accent-rgb), 0.22) 0%, rgba(var(--pricing-edge-rgb), 0.18) 100%);
-      box-shadow:
-        inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.34),
-        0 0 18px rgba(var(--pricing-accent-rgb), 0.16);
     }
 
     .mockup-pricing-pane-stack {
       width: 100%;
       position: relative;
+      min-height: 428px;
+      overflow: hidden;
+      padding-inline: 108px;
+      box-sizing: border-box;
     }
 
     .mockup-pricing-pane {
+      position: absolute;
+      inset: 0;
       width: 100%;
       max-width: min(900px, 100%);
       margin: 0 auto;
+      opacity: 0;
+      transform: translateX(0);
+      pointer-events: none;
     }
 
     .mockup-pricing-pane[hidden] {
       display: none !important;
+    }
+
+    .mockup-pricing-pane.is-active {
+      position: relative;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mockup-pricing-pane.is-entering,
+    .mockup-pricing-pane.is-leaving {
+      display: block !important;
+    }
+
+    .mockup-pricing-pane.is-entering {
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .mockup-pricing-pane.is-entering[data-swipe-direction="next"] {
+      animation: mockup-pricing-pane-enter-next 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-pane.is-leaving[data-swipe-direction="next"] {
+      animation: mockup-pricing-pane-leave-next 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-pane.is-entering[data-swipe-direction="prev"] {
+      animation: mockup-pricing-pane-enter-prev 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
+    }
+
+    .mockup-pricing-pane.is-leaving[data-swipe-direction="prev"] {
+      animation: mockup-pricing-pane-leave-prev 620ms cubic-bezier(0.18, 0.82, 0.24, 1) forwards;
     }
 
     .mockup-pricing-pane-copy {
@@ -1483,6 +1518,50 @@
         opacity: 1;
         transform: translateY(0);
         filter: blur(0);
+      }
+    }
+
+    @keyframes mockup-pricing-pane-enter-next {
+      0% {
+        opacity: 0.24;
+        transform: translateX(24%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes mockup-pricing-pane-leave-next {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0.24;
+        transform: translateX(-24%);
+      }
+    }
+
+    @keyframes mockup-pricing-pane-enter-prev {
+      0% {
+        opacity: 0.24;
+        transform: translateX(-24%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes mockup-pricing-pane-leave-prev {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0.24;
+        transform: translateX(24%);
       }
     }
 
@@ -1906,20 +1985,34 @@
       }
 
       .mockup-pricing-mode-toggle {
-        width: 100%;
-        display: grid;
-        grid-template-columns: auto repeat(2, minmax(0, 1fr));
+        display: none;
       }
 
-      .mockup-pricing-nav-button {
-        width: 38px;
-        height: 38px;
+      .mockup-pricing-panel-nav {
+        top: 50%;
+        transform: translateY(-50%);
       }
 
-      .mockup-pricing-mode-button {
-        min-width: 0;
-        padding: 10px 12px;
-        letter-spacing: 0.12em;
+      .mockup-pricing-panel-nav-prev {
+        left: 4px;
+      }
+
+      .mockup-pricing-panel-nav-next {
+        right: 4px;
+      }
+
+      .mockup-pricing-panel-arrow {
+        width: 52px;
+        height: 52px;
+      }
+
+      .mockup-pricing-nav-icon {
+        font-size: 24px;
+      }
+
+      .mockup-pricing-pane-stack {
+        min-height: 0;
+        padding-inline: 56px;
       }
 
       .mockup-pricing-pane-copy {
@@ -2118,35 +2211,27 @@
             </div>
           </div>
           <div class="mockup-pricing-content">
-            <div class="mockup-pricing-mode-toggle" role="tablist" aria-label="Pricing mode">
-              <button
-                type="button"
-                class="mockup-pricing-nav-button"
-                data-pricing-nav="previous"
-                aria-label="Switch pricing view"
-              >
-                <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8249;</span>
-              </button>
-              <button
-                type="button"
-                class="mockup-pricing-mode-button is-active"
-                data-pricing-mode-target="prints"
-                role="tab"
-                aria-selected="true"
-              >
-                Prints
-              </button>
-              <button
-                type="button"
-                class="mockup-pricing-mode-button"
-                data-pricing-mode-target="hire"
-                role="tab"
-                aria-selected="false"
-              >
-                Hire
-              </button>
-            </div>
             <div class="mockup-pricing-pane-stack">
+              <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-prev" data-pricing-arrow-wrap="prev" hidden>
+                <button
+                  type="button"
+                  class="mockup-pricing-panel-arrow"
+                  data-pricing-nav="prev"
+                  aria-label="Show print pricing"
+                >
+                  <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8249;</span>
+                </button>
+              </div>
+              <div class="mockup-pricing-panel-nav mockup-pricing-panel-nav-next" data-pricing-arrow-wrap="next">
+                <button
+                  type="button"
+                  class="mockup-pricing-panel-arrow"
+                  data-pricing-nav="next"
+                  aria-label="Show hire pricing"
+                >
+                  <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8250;</span>
+                </button>
+              </div>
               <section class="mockup-pricing-pane mockup-pricing-pane-prints is-active" data-pricing-pane="prints">
                 <div class="mockup-pricing-pane-copy">
                   <p class="mockup-pricing-pane-intro">All photographs on this site that were not taken with a cell phone are available for purchase in a variety of formats. These images have been used for posters, signed wrestler prints, trading cards, and other promotional and personal projects.</p>
@@ -2228,10 +2313,13 @@
       const aboutMenuReverse = document.querySelector('.mockup-about-menu-reverse');
       const pricingMenu = document.querySelector('.mockup-pricing-menu');
       const pricingMenuReverse = document.querySelector('.mockup-pricing-menu-reverse');
-      const pricingModeButtons = Array.from(document.querySelectorAll('[data-pricing-mode-target]'));
-      const pricingNavButton = document.querySelector('[data-pricing-nav="previous"]');
       const pricingPanes = Array.from(document.querySelectorAll('[data-pricing-pane]'));
       const pricingTitleVideos = Array.from(document.querySelectorAll('[data-pricing-title-video]'));
+      const pricingNavButtons = Array.from(document.querySelectorAll('[data-pricing-nav]'));
+      const pricingArrowWraps = {
+        prev: document.querySelector('[data-pricing-arrow-wrap="prev"]'),
+        next: document.querySelector('[data-pricing-arrow-wrap="next"]')
+      };
       if (!topbar || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
 
       const createPanel = ({ key, route, slot, hitbox, menu, reverseMenu, overlay }) => {
@@ -2297,6 +2385,15 @@
         panelStageTimerIds = [];
       };
 
+      const updatePricingArrowVisibility = (mode) => {
+        if (pricingArrowWraps.prev) {
+          pricingArrowWraps.prev.hidden = mode !== 'hire';
+        }
+        if (pricingArrowWraps.next) {
+          pricingArrowWraps.next.hidden = mode !== 'prints';
+        }
+      };
+
       const syncPricingTitleVideo = (mode, options = {}) => {
         const { restart = false } = options;
         pricingTitleVideos.forEach((video) => {
@@ -2321,29 +2418,62 @@
         });
       };
 
+      const getPricingPaneByMode = (mode) => pricingPanes.find((pane) => pane.dataset.pricingPane === mode) || null;
+
       const setPricingMode = (mode, options = {}) => {
-        const { animate = false, restartTitle = false } = options;
+        const { animate = false, restartTitle = false, direction = 'next' } = options;
         const nextMode = mode === 'hire' ? 'hire' : 'prints';
+        const currentMode = pricingOverlay.dataset.pricingMode === 'hire' ? 'hire' : 'prints';
+        const currentPane = getPricingPaneByMode(currentMode);
+        const nextPane = getPricingPaneByMode(nextMode);
+        const shouldAnimate = animate && currentMode !== nextMode && currentPane && nextPane;
+
         pricingOverlay.dataset.pricingMode = nextMode;
-        pricingModeButtons.forEach((button) => {
-          const isActive = button.dataset.pricingModeTarget === nextMode;
-          button.classList.toggle('is-active', isActive);
-          button.setAttribute('aria-selected', isActive ? 'true' : 'false');
-          button.tabIndex = isActive ? 0 : -1;
-        });
+        updatePricingArrowVisibility(nextMode);
+
         pricingPanes.forEach((pane) => {
-          const isActive = pane.dataset.pricingPane === nextMode;
-          pane.hidden = !isActive;
-          pane.classList.toggle('is-active', isActive);
           pane.classList.remove('is-switching');
-          if (isActive && animate) {
-            void pane.offsetWidth;
-            pane.classList.add('is-switching');
-            window.setTimeout(() => {
-              pane.classList.remove('is-switching');
-            }, 760);
-          }
+          pane.classList.remove('is-entering');
+          pane.classList.remove('is-leaving');
+          pane.removeAttribute('data-swipe-direction');
         });
+
+        if (shouldAnimate) {
+          currentPane.hidden = false;
+          currentPane.classList.remove('is-active');
+          currentPane.classList.add('is-leaving');
+          currentPane.dataset.swipeDirection = direction;
+
+          nextPane.hidden = false;
+          nextPane.classList.add('is-active', 'is-entering', 'is-switching');
+          nextPane.dataset.swipeDirection = direction;
+
+          window.setTimeout(() => {
+            currentPane.hidden = true;
+            currentPane.classList.remove('is-leaving');
+            currentPane.removeAttribute('data-swipe-direction');
+          }, 620);
+
+          window.setTimeout(() => {
+            nextPane.classList.remove('is-entering');
+            nextPane.classList.remove('is-switching');
+            nextPane.removeAttribute('data-swipe-direction');
+          }, 760);
+        } else {
+          pricingPanes.forEach((pane) => {
+            const isActive = pane.dataset.pricingPane === nextMode;
+            pane.hidden = !isActive;
+            pane.classList.toggle('is-active', isActive);
+            if (isActive && animate) {
+              void pane.offsetWidth;
+              pane.classList.add('is-switching');
+              window.setTimeout(() => {
+                pane.classList.remove('is-switching');
+              }, 760);
+            }
+          });
+        }
+
         syncPricingTitleVideo(nextMode, { restart: restartTitle || animate });
       };
 
@@ -2742,32 +2872,16 @@
         openPanelSequence(panels.pricing);
       });
 
-      pricingModeButtons.forEach((button, index) => {
+      pricingNavButtons.forEach((button) => {
         button.addEventListener('click', () => {
           if (activePanelKey !== panels.pricing.key || isTransitioning) return;
-          setPricingMode(button.dataset.pricingModeTarget, { animate: true });
-        });
-
-        button.addEventListener('keydown', (event) => {
-          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-          event.preventDefault();
-          const direction = event.key === 'ArrowRight' ? 1 : -1;
-          const nextButton = pricingModeButtons[(index + direction + pricingModeButtons.length) % pricingModeButtons.length];
-          if (!nextButton) return;
-          nextButton.focus();
-          if (activePanelKey === panels.pricing.key && !isTransitioning) {
-            setPricingMode(nextButton.dataset.pricingModeTarget, { animate: true });
+          if (button.dataset.pricingNav === 'next') {
+            setPricingMode('hire', { animate: true, direction: 'next' });
+            return;
           }
+          setPricingMode('prints', { animate: true, direction: 'prev' });
         });
       });
-
-      if (pricingNavButton) {
-        pricingNavButton.addEventListener('click', () => {
-          if (activePanelKey !== panels.pricing.key || isTransitioning) return;
-          const nextMode = pricingOverlay.dataset.pricingMode === 'hire' ? 'prints' : 'hire';
-          setPricingMode(nextMode, { animate: true });
-        });
-      }
 
       Object.values(panels).forEach((panel) => {
         panel.overlay.addEventListener('click', (event) => {
