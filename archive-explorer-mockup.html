@@ -147,6 +147,7 @@
       z-index: 8;
       display: block;
       padding: 0;
+      visibility: hidden;
       opacity: 0;
       pointer-events: none;
       --about-expand-x: 0px;
@@ -157,6 +158,7 @@
     }
 
     .mockup-about-overlay.is-visible {
+      visibility: visible;
       opacity: 1;
       pointer-events: auto;
     }
@@ -1011,6 +1013,9 @@
     }
 
     .mockup-pricing-overlay .mockup-about-copy {
+      width: calc(100% - 220px);
+      max-width: 1220px;
+      padding: clamp(26px, 3vw, 40px) clamp(24px, 3vw, 40px);
       border-color: rgba(var(--pricing-accent-rgb), 0.34);
       background:
         radial-gradient(circle at 50% 50%, rgba(8, 18, 26, 0.42) 0%, rgba(4, 6, 9, 0.14) 72%, rgba(0, 0, 0, 0) 100%),
@@ -1022,6 +1027,9 @@
         0 20px 44px rgba(var(--pricing-shadow-rgb), 0.16),
         0 18px 60px rgba(0, 0, 0, 0.28);
       color: var(--pricing-copy-color);
+      font-size: clamp(11px, 1.15vw, 15px);
+      line-height: 1.55;
+      pointer-events: auto;
       animation: mockup-pricing-frame-breathe 4s ease-in-out infinite;
     }
 
@@ -1087,32 +1095,22 @@
     }
 
     .mockup-pricing-overlay .mockup-about-title {
-      width: min(720px, 100%);
-      margin-bottom: 18px;
+      width: min(640px, 100%);
+      margin-bottom: 14px;
     }
 
     .mockup-pricing-title {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      pointer-events: none;
-    }
-
-    .mockup-pricing-kicker {
-      display: block;
-      font-size: clamp(11px, 0.85vw, 13px);
-      font-weight: 700;
-      letter-spacing: 0.42em;
-      text-transform: uppercase;
-      color: rgba(var(--pricing-accent-rgb), 0.76);
-      text-shadow: 0 0 12px rgba(var(--pricing-accent-rgb), 0.18);
+      gap: 0;
+      pointer-events: auto;
     }
 
     .mockup-pricing-title-switcher {
       position: relative;
       width: 100%;
-      min-height: 3.2em;
+      min-height: clamp(62px, 7vw, 108px);
     }
 
     .mockup-pricing-heading {
@@ -1121,20 +1119,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(28px, 3.6vw, 52px);
-      line-height: 1.04;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(var(--pricing-accent-strong-rgb), 0.94);
-      text-shadow: var(--pricing-title-glow);
       opacity: 0;
       transform: translateY(12px) scale(0.985);
       transition:
         opacity 260ms ease,
-        transform 420ms cubic-bezier(0.16, 0.84, 0.22, 1),
-        color 260ms ease,
-        text-shadow 260ms ease;
+        transform 420ms cubic-bezier(0.16, 0.84, 0.22, 1);
+      pointer-events: none;
+    }
+
+    .mockup-pricing-heading video {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 18px rgba(var(--pricing-accent-rgb), 0.26))
+        drop-shadow(0 0 34px rgba(var(--pricing-edge-rgb), 0.14));
     }
 
     .mockup-pricing-overlay[data-pricing-mode="prints"] .mockup-pricing-heading-prints,
@@ -1146,18 +1146,19 @@
     .mockup-pricing-content {
       position: relative;
       z-index: 1;
-      width: min(960px, 100%);
+      width: min(900px, 100%);
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 14px;
       align-items: center;
+      pointer-events: auto;
     }
 
     .mockup-pricing-mode-toggle {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 7px;
+      gap: 8px;
+      padding: 6px;
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(4, 7, 12, 0.48);
@@ -1165,12 +1166,52 @@
       backdrop-filter: blur(8px);
     }
 
+    .mockup-pricing-nav-button {
+      appearance: none;
+      border: 0;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 12px rgba(var(--pricing-accent-rgb), 0.08);
+      color: rgba(242, 249, 255, 0.9);
+      cursor: pointer;
+      transition:
+        transform 180ms ease,
+        box-shadow 220ms ease,
+        background 220ms ease,
+        color 180ms ease;
+    }
+
+    .mockup-pricing-nav-button:hover,
+    .mockup-pricing-nav-button:focus-visible {
+      outline: none;
+      transform: translateY(-1px);
+      background: linear-gradient(180deg, rgba(var(--pricing-accent-rgb), 0.18) 0%, rgba(var(--pricing-edge-rgb), 0.12) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(var(--pricing-accent-rgb), 0.28),
+        0 0 16px rgba(var(--pricing-accent-rgb), 0.16);
+    }
+
+    .mockup-pricing-nav-icon {
+      display: block;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+      transform: translateX(-1px);
+    }
+
     .mockup-pricing-mode-button {
       appearance: none;
       border: 0;
       border-radius: 999px;
-      min-width: 168px;
-      padding: 10px 16px;
+      min-width: 132px;
+      padding: 9px 14px;
       background: transparent;
       color: rgba(231, 241, 248, 0.66);
       font: inherit;
@@ -1219,7 +1260,8 @@
     .mockup-pricing-pane-copy {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
+      width: 100%;
       text-shadow:
         0 0 12px rgba(255, 255, 255, 0.03),
         0 0 26px rgba(var(--pricing-accent-rgb), 0.08);
@@ -1230,9 +1272,16 @@
       opacity: 0.92;
     }
 
+    .mockup-pricing-pane-hire .mockup-pricing-pane-copy {
+      max-width: 820px;
+      margin: 0 auto;
+      text-align: center;
+      align-items: center;
+    }
+
     .mockup-pricing-subtitle {
       margin: 4px 0 0;
-      font-size: clamp(14px, 1.2vw, 18px);
+      font-size: clamp(13px, 1.05vw, 16px);
       font-weight: 700;
       letter-spacing: 0.16em;
       text-transform: uppercase;
@@ -1241,9 +1290,10 @@
 
     .mockup-pricing-print-list {
       display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      margin-top: 10px;
-      padding: 18px 18px 20px;
+      margin-top: 8px;
+      padding: 14px;
       border-radius: 28px;
       background:
         linear-gradient(180deg, rgba(var(--pricing-accent-rgb), 0.08) 0%, rgba(7, 12, 20, 0.22) 100%);
@@ -1254,10 +1304,11 @@
 
     .mockup-pricing-print-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 18px;
-      align-items: center;
-      padding: 10px 14px;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      align-items: start;
+      min-height: 74px;
+      padding: 10px 12px;
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.02);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -1266,13 +1317,21 @@
     .mockup-pricing-print-label {
       text-align: left;
       opacity: 0.92;
+      line-height: 1.35;
     }
 
     .mockup-pricing-print-price {
-      min-width: 64px;
-      text-align: right;
+      min-width: 0;
+      text-align: left;
       font-weight: 700;
+      font-size: 1.05em;
       color: rgba(var(--pricing-accent-strong-rgb), 0.96);
+    }
+
+    @media (max-width: 1180px) {
+      .mockup-pricing-print-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     .mockup-pricing-hire-grid {
@@ -1835,12 +1894,11 @@
       }
 
       .mockup-pricing-title-switcher {
-        min-height: 3.8em;
+        min-height: clamp(56px, 18vw, 84px);
       }
 
-      .mockup-pricing-heading {
-        font-size: clamp(22px, 7vw, 34px);
-        letter-spacing: 0.06em;
+      .mockup-pricing-heading video {
+        max-height: 100%;
       }
 
       .mockup-pricing-content {
@@ -1850,7 +1908,12 @@
       .mockup-pricing-mode-toggle {
         width: 100%;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: auto repeat(2, minmax(0, 1fr));
+      }
+
+      .mockup-pricing-nav-button {
+        width: 38px;
+        height: 38px;
       }
 
       .mockup-pricing-mode-button {
@@ -1864,12 +1927,14 @@
       }
 
       .mockup-pricing-print-list {
+        grid-template-columns: 1fr;
         padding: 14px 12px 16px;
       }
 
       .mockup-pricing-print-row {
-        gap: 12px;
+        gap: 8px;
         padding: 10px 12px;
+        min-height: 0;
       }
 
       .mockup-pricing-hire-grid {
@@ -2029,14 +2094,39 @@
           <div class="mockup-about-copy-shimmer" aria-hidden="true"></div>
           <div class="mockup-about-copy-scan" aria-hidden="true"></div>
           <div class="mockup-about-title mockup-pricing-title">
-            <span class="mockup-pricing-kicker">Services + Products</span>
             <div class="mockup-pricing-title-switcher" aria-live="polite">
-              <span class="mockup-pricing-heading mockup-pricing-heading-prints">Pricing for Prints</span>
-              <span class="mockup-pricing-heading mockup-pricing-heading-hire">Pricing for Hire</span>
+              <div class="mockup-pricing-heading mockup-pricing-heading-prints">
+                <video
+                  class="mockup-pricing-title-video"
+                  data-pricing-title-video="prints"
+                  src="assets/pricing/pricing-print-title.webm"
+                  muted
+                  playsinline
+                  preload="auto"
+                ></video>
+              </div>
+              <div class="mockup-pricing-heading mockup-pricing-heading-hire">
+                <video
+                  class="mockup-pricing-title-video"
+                  data-pricing-title-video="hire"
+                  src="assets/pricing/pricing-hire-title.webm"
+                  muted
+                  playsinline
+                  preload="auto"
+                ></video>
+              </div>
             </div>
           </div>
           <div class="mockup-pricing-content">
             <div class="mockup-pricing-mode-toggle" role="tablist" aria-label="Pricing mode">
+              <button
+                type="button"
+                class="mockup-pricing-nav-button"
+                data-pricing-nav="previous"
+                aria-label="Switch pricing view"
+              >
+                <span class="mockup-pricing-nav-icon" aria-hidden="true">&#8249;</span>
+              </button>
               <button
                 type="button"
                 class="mockup-pricing-mode-button is-active"
@@ -2044,7 +2134,7 @@
                 role="tab"
                 aria-selected="true"
               >
-                Print Pricing
+                Prints
               </button>
               <button
                 type="button"
@@ -2053,7 +2143,7 @@
                 role="tab"
                 aria-selected="false"
               >
-                Hire Pricing
+                Hire
               </button>
             </div>
             <div class="mockup-pricing-pane-stack">
@@ -2105,22 +2195,7 @@
               <section class="mockup-pricing-pane mockup-pricing-pane-hire" data-pricing-pane="hire" hidden>
                 <div class="mockup-pricing-pane-copy">
                   <p class="mockup-pricing-pane-intro">While I frequently photograph music shows and wrestling events, my work is not limited to those areas. I have experience covering weddings, professional business events, promotional shoots, and a wide range of other projects.</p>
-                  <p class="mockup-pricing-pane-intro">Pricing for hired work is primarily based on travel requirements and time commitment. I believe in offering fair and reasonable rates and am flexible depending on the scope of the project.</p>
-                  <div class="mockup-pricing-hire-grid">
-                    <article class="mockup-pricing-hire-card">
-                      <h3 class="mockup-pricing-hire-card-title">Coverage</h3>
-                      <p>Live events, weddings, business functions, portraits, promo sessions, and specialty shoots all fit within the same service lane.</p>
-                    </article>
-                    <article class="mockup-pricing-hire-card">
-                      <h3 class="mockup-pricing-hire-card-title">Travel + Time</h3>
-                      <p>Rates scale with location, total time on site, and how much coverage or turnaround the project needs.</p>
-                    </article>
-                    <article class="mockup-pricing-hire-card">
-                      <h3 class="mockup-pricing-hire-card-title">Flexible Scope</h3>
-                      <p>Every assignment can be shaped around the ask, whether that means simple coverage, a custom deliverable mix, or something more specific.</p>
-                    </article>
-                  </div>
-                  <p class="mockup-pricing-hire-note">For inquiries or to discuss your specific needs, reach out through the Contact section and we can tailor the quote to the project.</p>
+                  <p class="mockup-pricing-pane-intro">Pricing for hired work is primarily based on travel requirements and time commitment. I believe in offering fair and reasonable rates and am flexible depending on the scope of the project. For inquiries or to discuss your specific needs, please reach out through the Contact section.</p>
                 </div>
               </section>
             </div>
@@ -2154,7 +2229,9 @@
       const pricingMenu = document.querySelector('.mockup-pricing-menu');
       const pricingMenuReverse = document.querySelector('.mockup-pricing-menu-reverse');
       const pricingModeButtons = Array.from(document.querySelectorAll('[data-pricing-mode-target]'));
+      const pricingNavButton = document.querySelector('[data-pricing-nav="previous"]');
       const pricingPanes = Array.from(document.querySelectorAll('[data-pricing-pane]'));
+      const pricingTitleVideos = Array.from(document.querySelectorAll('[data-pricing-title-video]'));
       if (!topbar || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
 
       const createPanel = ({ key, route, slot, hitbox, menu, reverseMenu, overlay }) => {
@@ -2220,8 +2297,32 @@
         panelStageTimerIds = [];
       };
 
+      const syncPricingTitleVideo = (mode, options = {}) => {
+        const { restart = false } = options;
+        pricingTitleVideos.forEach((video) => {
+          const isActive = video.dataset.pricingTitleVideo === mode;
+          if (!isActive) {
+            try {
+              video.pause();
+              video.currentTime = 0;
+            } catch (_) {}
+            return;
+          }
+          if (restart) {
+            playVideoFromStart(video);
+            return;
+          }
+          try {
+            const playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {});
+            }
+          } catch (_) {}
+        });
+      };
+
       const setPricingMode = (mode, options = {}) => {
-        const { animate = false } = options;
+        const { animate = false, restartTitle = false } = options;
         const nextMode = mode === 'hire' ? 'hire' : 'prints';
         pricingOverlay.dataset.pricingMode = nextMode;
         pricingModeButtons.forEach((button) => {
@@ -2243,6 +2344,7 @@
             }, 760);
           }
         });
+        syncPricingTitleVideo(nextMode, { restart: restartTitle || animate });
       };
 
       setPricingMode('prints');
@@ -2457,7 +2559,7 @@
           panelPlayPromise.catch(() => {});
         }
         if (panel.key === 'pricing') {
-          setPricingMode('prints');
+          setPricingMode('prints', { restartTitle: true });
         }
         if (panel.titleVideo) {
           try {
@@ -2529,7 +2631,7 @@
         panel.overlay.setAttribute('aria-hidden', 'false');
         activePanelKey = panel.key;
         if (panel.key === 'pricing') {
-          setPricingMode('prints');
+          setPricingMode('prints', { restartTitle: true });
         }
         await playVideoFromStart(panel.sectionVideo);
         await playVideoFromStart(panel.titleVideo);
@@ -2658,6 +2760,14 @@
           }
         });
       });
+
+      if (pricingNavButton) {
+        pricingNavButton.addEventListener('click', () => {
+          if (activePanelKey !== panels.pricing.key || isTransitioning) return;
+          const nextMode = pricingOverlay.dataset.pricingMode === 'hire' ? 'prints' : 'hire';
+          setPricingMode(nextMode, { animate: true });
+        });
+      }
 
       Object.values(panels).forEach((panel) => {
         panel.overlay.addEventListener('click', (event) => {
