@@ -149,6 +149,10 @@
       padding: 0;
       opacity: 0;
       pointer-events: none;
+      --about-expand-x: 0px;
+      --about-expand-y: 0px;
+      --about-expand-scale-x: 1;
+      --about-expand-scale-y: 1;
       transition: opacity 320ms ease;
     }
 
@@ -166,12 +170,32 @@
         linear-gradient(180deg, rgba(2, 3, 6, 0.28) 0%, rgba(2, 3, 6, 0.72) 100%);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: opacity 420ms ease;
+    }
+
+    .mockup-about-overlay.is-expanded::before {
+      opacity: 1;
     }
 
     .mockup-about-panel {
       inset: 0;
       position: absolute;
       overflow: hidden;
+      transform-origin: center center;
+      transform:
+        translate(var(--about-expand-x), var(--about-expand-y))
+        scale(var(--about-expand-scale-x), var(--about-expand-scale-y));
+      border-radius: 26px;
+      transition:
+        transform 560ms cubic-bezier(0.18, 0.82, 0.2, 1),
+        border-radius 560ms cubic-bezier(0.18, 0.82, 0.2, 1);
+      will-change: transform, border-radius;
+    }
+
+    .mockup-about-overlay.is-expanded .mockup-about-panel {
+      transform: translate(0, 0) scale(1, 1);
+      border-radius: 0;
     }
 
     .mockup-about-section-video {
@@ -181,6 +205,55 @@
       max-height: none;
       object-fit: cover;
       background: #020204;
+      transform: scale(1.04);
+      filter: saturate(1.02);
+      transition:
+        transform 560ms cubic-bezier(0.18, 0.82, 0.2, 1),
+        filter 560ms ease;
+      will-change: transform, filter;
+    }
+
+    .mockup-about-overlay.is-expanded .mockup-about-section-video {
+      transform: scale(1);
+      filter: saturate(1);
+    }
+
+    .mockup-about-copy {
+      position: absolute;
+      left: 50%;
+      top: calc(56% - 20px);
+      width: calc(100% - 160px);
+      min-height: calc(100% - 240px);
+      max-width: 1380px;
+      transform: translate(-50%, -50%) translateY(28px);
+      padding: clamp(34px, 4vw, 56px) clamp(34px, 4vw, 56px);
+      border: 1px solid rgba(255, 176, 212, 0.2);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(10, 8, 14, 0.8) 0%, rgba(7, 6, 10, 0.7) 100%);
+      box-shadow:
+        0 18px 60px rgba(0, 0, 0, 0.36),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      color: rgba(246, 235, 241, 0.94);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: clamp(15px, 1.5vw, 19px);
+      font-weight: 500;
+      line-height: 1.7;
+      letter-spacing: 0.01em;
+      text-wrap: balance;
+      opacity: 0;
+      transition:
+        opacity 420ms ease,
+        transform 560ms cubic-bezier(0.18, 0.82, 0.2, 1);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .mockup-about-overlay.is-expanded .mockup-about-copy {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0);
     }
 
     .mockup-stage::before {
@@ -443,6 +516,15 @@
         font-size: 16px;
       }
 
+      .mockup-about-copy {
+        top: calc(55% - 20px);
+        width: calc(100% - 44px);
+        min-height: calc(100% - 180px);
+        padding: 22px 18px;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
       .mockup-about-section-video {
         min-height: 100%;
       }
@@ -526,11 +608,14 @@
       <div class="mockup-about-panel">
         <video
           class="mockup-about-section-video"
-          src="assets/about-section.webm?v=20260412-r2"
+          src="assets/about-section.webm?v=20260413-r2"
           muted
           playsinline
           preload="auto"
         ></video>
+        <div class="mockup-about-copy">
+          This site is a nearly-100% automated website using coding that reads from the native SmugMug system and creates it in a better customizable UI. This website was also created in assistance with ChatGPT. It is also an ever-evolving website and will need work like anything else. If it breaks, let me know.
+        </div>
       </div>
     </section>
   </main>
@@ -629,6 +714,24 @@
         }
       };
 
+      const setAboutExpandOrigin = () => {
+        const stageRect = mockupStage.getBoundingClientRect();
+        const slotRect = aboutSlot.getBoundingClientRect();
+        const slotCenterX = slotRect.left + (slotRect.width / 2);
+        const slotCenterY = slotRect.top + (slotRect.height / 2);
+        const stageCenterX = stageRect.left + (stageRect.width / 2);
+        const stageCenterY = stageRect.top + (stageRect.height / 2);
+        const translateX = slotCenterX - stageCenterX;
+        const translateY = slotCenterY - stageCenterY;
+        const scaleX = Math.max(slotRect.width / Math.max(stageRect.width, 1), 0.08);
+        const scaleY = Math.max(slotRect.height / Math.max(stageRect.height, 1), 0.08);
+
+        aboutOverlay.style.setProperty('--about-expand-x', `${translateX}px`);
+        aboutOverlay.style.setProperty('--about-expand-y', `${translateY}px`);
+        aboutOverlay.style.setProperty('--about-expand-scale-x', scaleX.toFixed(4));
+        aboutOverlay.style.setProperty('--about-expand-scale-y', scaleY.toFixed(4));
+      };
+
       const startAboutLoopWatcher = () => {
         stopAboutLoopWatcher();
         aboutLoopTimer = window.setInterval(() => {
@@ -654,11 +757,18 @@
         } catch (_) {}
         await playVideoFromStart(aboutMenuReverse, 2.5);
         await waitForVideoEnd(aboutMenuReverse, 200);
+        setAboutExpandOrigin();
         mockupStage.classList.add('is-about-open');
+        aboutOverlay.classList.remove('is-expanded');
         aboutOverlay.classList.add('is-visible');
         aboutOverlay.setAttribute('aria-hidden', 'false');
         isAboutOpen = true;
         await playVideoFromStart(aboutSectionVideo);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            aboutOverlay.classList.add('is-expanded');
+          });
+        });
         startAboutLoopWatcher();
         isTransitioning = false;
       };
@@ -699,6 +809,14 @@
 
       window.addEventListener('beforeunload', () => {
         stopAboutLoopWatcher();
+      });
+
+      window.addEventListener('resize', () => {
+        if (!isAboutOpen) return;
+        aboutOverlay.style.setProperty('--about-expand-x', '0px');
+        aboutOverlay.style.setProperty('--about-expand-y', '0px');
+        aboutOverlay.style.setProperty('--about-expand-scale-x', '1');
+        aboutOverlay.style.setProperty('--about-expand-scale-y', '1');
       });
     })();
   </script>
