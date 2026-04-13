@@ -1,0 +1,17 @@
+Adobe After Effects v26.0 Windows 64 render log for project “Website.aep”
+
+Rendering started on 4/13/2026 at 2:01:59 PM
+
+  4/13/2026 2:01:59 PM: Starting composition “about-menu”.
+
+  Output To: C:\Users\deysx\Documents\about-menu.mov    4/13/2026 2:02:00 PM: Finished composition “about-menu”.
+
+
+  4/13/2026 2:02:00 PM: Starting composition “about-menu-reverse”.
+
+  Output To: C:\Users\deysx\Documents\about-menu-reverse.mov    4/13/2026 2:02:01 PM: Finished composition “about-menu-reverse”.
+
+
+  Total Time Elapsed: 2 Seconds
+Log closed on 4/13/2026 at 2:02:01 PM
+
