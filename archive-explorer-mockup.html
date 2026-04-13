@@ -552,6 +552,7 @@
       opacity: 0;
       clip-path: inset(0 0 100% 0);
       transform: translateY(10px);
+      filter: blur(8px);
     }
 
     .mockup-about-overlay.is-content-visible .mockup-about-copy-text {
@@ -563,6 +564,38 @@
       opacity: 0;
       clip-path: inset(0 0 100% 0);
       transform: translateY(8px);
+      filter: blur(8px);
+    }
+
+    .mockup-about-copy-line {
+      display: block;
+      opacity: 0;
+      transform: translateY(14px);
+      filter: blur(8px);
+    }
+
+    .mockup-about-copy-line + .mockup-about-copy-line {
+      margin-top: 0.38em;
+    }
+
+    .mockup-about-overlay.is-content-visible .mockup-about-copy-line {
+      animation: mockup-about-line-reveal 620ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards;
+    }
+
+    .mockup-about-overlay.is-content-visible .mockup-about-copy-line:nth-child(1) {
+      animation-delay: 120ms;
+    }
+
+    .mockup-about-overlay.is-content-visible .mockup-about-copy-line:nth-child(2) {
+      animation-delay: 240ms;
+    }
+
+    .mockup-about-overlay.is-content-visible .mockup-about-copy-line:nth-child(3) {
+      animation-delay: 360ms;
+    }
+
+    .mockup-about-overlay.is-content-visible .mockup-about-copy-line:nth-child(4) {
+      animation-delay: 480ms;
     }
 
     .mockup-about-copy-shimmer {
@@ -890,6 +923,7 @@
         opacity: 0;
         clip-path: inset(0 0 100% 0);
         transform: translateY(10px);
+        filter: blur(8px);
       }
       38% {
         opacity: 0.72;
@@ -898,6 +932,23 @@
         opacity: 1;
         clip-path: inset(0 0 0 0);
         transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes mockup-about-line-reveal {
+      0% {
+        opacity: 0;
+        transform: translateY(14px);
+        filter: blur(8px);
+      }
+      55% {
+        opacity: 0.88;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
       }
     }
 
@@ -1366,7 +1417,10 @@
             ></video>
           </div>
           <div class="mockup-about-copy-text">
-            This website is a nearly-100% automated website through a lot of code, and using assistance from AI entities such as ChatGPT and Codex, with some elements and animations being created using Adobe After Effects from scratch. The photo catalog is a direct read from the Smugmug library that I operate under, with datapoints also being read from a database. This site is an ever-evolving entity and will house a lot more as time goes on - just need time is all. If you have questions, feel free to contact me through the avenues on the Contact screen.
+            <span class="mockup-about-copy-line">This website is a nearly-100% automated website through a lot of code, and using assistance from AI entities such as ChatGPT and Codex, with some elements and animations being created using Adobe After Effects from scratch.</span>
+            <span class="mockup-about-copy-line">The photo catalog is a direct read from the Smugmug library that I operate under, with datapoints also being read from a database.</span>
+            <span class="mockup-about-copy-line">This site is an ever-evolving entity and will house a lot more as time goes on - just need time is all.</span>
+            <span class="mockup-about-copy-line">If you have questions, feel free to contact me through the avenues on the Contact screen.</span>
           </div>
         </div>
       </div>
@@ -1542,7 +1596,7 @@
         }, 240);
         queueAboutStage(() => {
           aboutOverlay.classList.add('is-content-visible');
-        }, 470);
+        }, 980);
         startAboutLoopWatcher();
         isTransitioning = false;
       };
