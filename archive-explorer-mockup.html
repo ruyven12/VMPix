@@ -1449,8 +1449,27 @@
     }
 
     @media (max-width: 1180px) {
+      .mockup-library-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup-library-chip-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
       .mockup-pricing-print-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 880px) {
+      .mockup-library-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .mockup-library-status {
+        width: 100%;
       }
     }
 
@@ -1808,13 +1827,88 @@
       background: transparent;
       box-shadow: none;
       z-index: 3;
-      pointer-events: none;
+      pointer-events: auto;
       opacity: 0;
       transition: opacity 420ms ease;
     }
 
     .mockup-topbar.is-visible {
       opacity: 1;
+    }
+
+    .mockup-topbar-logo-button {
+      position: relative;
+      display: block;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 18px;
+      transition: transform 240ms ease, filter 240ms ease;
+      isolation: isolate;
+    }
+
+    .mockup-topbar-logo-button::before {
+      content: "";
+      position: absolute;
+      inset: 16% 8%;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle, rgba(255, 82, 82, 0.22) 0%, rgba(255, 82, 82, 0.08) 42%, rgba(255, 82, 82, 0) 76%);
+      filter: blur(12px);
+      opacity: 0.82;
+      pointer-events: none;
+      transition: opacity 240ms ease, transform 240ms ease;
+    }
+
+    .mockup-topbar-logo-button::after {
+      content: "";
+      position: absolute;
+      inset: 18% 5%;
+      border-radius: 18px;
+      border-top: 1px solid rgba(255, 94, 148, 0.26);
+      border-bottom: 1px solid rgba(96, 222, 255, 0.18);
+      clip-path: inset(0 78% 0 0 round 18px);
+      opacity: 0.88;
+      pointer-events: none;
+      animation: mockup-logo-border-idle 3.9s ease-in-out infinite;
+    }
+
+    .mockup-topbar-logo-button:hover,
+    .mockup-topbar-logo-button:focus-visible {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.08);
+      outline: none;
+    }
+
+    .mockup-topbar-logo-button:hover::before,
+    .mockup-topbar-logo-button:focus-visible::before {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .mockup-topbar-logo-button:hover::after,
+    .mockup-topbar-logo-button:focus-visible::after {
+      animation-duration: 1.4s;
+      border-top-color: rgba(255, 112, 162, 0.44);
+      border-bottom-color: rgba(122, 228, 255, 0.36);
+    }
+
+    .mockup-topbar-logo-button.is-arming {
+      animation: mockup-logo-arm-jolt 320ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+    }
+
+    .mockup-topbar-logo-button.is-arming::before {
+      opacity: 1;
+      transform: scale(1.16);
+      animation: mockup-logo-arm-flare 360ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+    }
+
+    .mockup-topbar-logo-button.is-arming::after {
+      animation: mockup-logo-arm-trace 420ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+      border-top-color: rgba(255, 126, 176, 0.74);
+      border-bottom-color: rgba(134, 232, 255, 0.58);
     }
 
     .mockup-topbar-logo {
@@ -1825,6 +1919,1154 @@
       object-position: center;
       border-radius: 14px;
       pointer-events: none;
+    }
+
+    .mockup-library-overlay::before {
+      background:
+        radial-gradient(circle at 50% 16%, rgba(122, 224, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 12% 82%, rgba(255, 92, 140, 0.08), transparent 20%),
+        linear-gradient(180deg, rgba(1, 6, 12, 0.34) 0%, rgba(2, 8, 18, 0.76) 100%);
+    }
+
+    .mockup-library-overlay .mockup-about-copy {
+      width: min(1240px, calc(100% - 124px));
+      max-height: calc(100% - 112px);
+      justify-content: flex-start;
+      text-align: left;
+      border-color: rgba(94, 212, 255, 0.34);
+      background:
+        radial-gradient(circle at 50% 20%, rgba(14, 42, 54, 0.22) 0%, rgba(4, 6, 11, 0.12) 68%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(180deg, rgba(4, 10, 18, 0.52) 0%, rgba(2, 5, 11, 0.32) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(120, 222, 255, 0.06),
+        inset 0 0 34px rgba(70, 188, 255, 0.08),
+        -18px 0 36px rgba(255, 72, 112, 0.08),
+        0 18px 48px rgba(14, 98, 140, 0.12),
+        0 18px 64px rgba(0, 0, 0, 0.3);
+      animation:
+        mockup-about-frame-breathe 3.8s ease-in-out infinite,
+        mockup-library-shell-hum 6.2s ease-in-out infinite;
+      overflow: hidden;
+    }
+
+    .mockup-library-overlay .mockup-about-copy::before {
+      border-color: rgba(96, 222, 255, 0.42);
+      box-shadow:
+        inset 0 0 18px rgba(100, 228, 255, 0.12),
+        inset 0 0 44px rgba(6, 70, 88, 0.16),
+        -12px 0 22px rgba(255, 72, 112, 0.12),
+        0 10px 28px rgba(24, 92, 140, 0.18);
+    }
+
+    .mockup-library-overlay .mockup-about-copy::after {
+      background:
+        radial-gradient(circle at 4% 14%, rgba(96, 222, 255, 0.34) 0%, rgba(96, 222, 255, 0.12) 16%, rgba(96, 222, 255, 0) 36%),
+        radial-gradient(circle at 88% 10%, rgba(255, 86, 130, 0.24) 0%, rgba(255, 86, 130, 0.08) 18%, rgba(255, 86, 130, 0) 34%),
+        linear-gradient(90deg, rgba(86, 208, 255, 0.22) 0%, rgba(86, 208, 255, 0.05) 12%, rgba(86, 208, 255, 0) 26%),
+        linear-gradient(0deg, rgba(255, 86, 130, 0.18) 0%, rgba(255, 86, 130, 0.06) 12%, rgba(255, 86, 130, 0) 24%);
+      opacity: 0.78;
+    }
+
+    .mockup-library-overlay .mockup-about-copy-chrome::before {
+      background:
+        linear-gradient(90deg, rgba(102, 226, 255, 0.78) 0%, rgba(44, 168, 214, 0.38) 16%, rgba(0, 0, 0, 0) 46%) top left / 100% 2px no-repeat,
+        linear-gradient(90deg, rgba(255, 92, 138, 0.68) 0%, rgba(255, 92, 138, 0.22) 16%, rgba(0, 0, 0, 0) 34%) bottom left / 100% 2px no-repeat,
+        linear-gradient(180deg, rgba(96, 222, 255, 0.84) 0%, rgba(26, 98, 120, 0.32) 24%, rgba(0, 0, 0, 0) 54%) top left / 2px 100% no-repeat,
+        linear-gradient(180deg, rgba(255, 92, 138, 0.82) 0%, rgba(255, 92, 138, 0.22) 22%, rgba(0, 0, 0, 0) 56%) top right / 2px 100% no-repeat;
+    }
+
+    .mockup-library-overlay .mockup-about-copy-corners::before {
+      background:
+        radial-gradient(circle at 48% 52%, rgba(96, 222, 255, 0.58) 0%, rgba(96, 222, 255, 0.18) 30%, rgba(96, 222, 255, 0) 62%);
+    }
+
+    .mockup-library-overlay .mockup-about-copy-corners::after {
+      background:
+        linear-gradient(90deg, rgba(255, 96, 142, 0.54) 0%, rgba(96, 222, 255, 0.32) 18%, rgba(96, 222, 255, 0.08) 54%, rgba(96, 222, 255, 0) 86%);
+    }
+
+    .mockup-library-overlay .mockup-about-copy-shimmer::before {
+      background: linear-gradient(90deg, rgba(96, 222, 255, 0) 0%, rgba(96, 222, 255, 0.74) 46%, rgba(96, 222, 255, 0) 100%);
+    }
+
+    .mockup-library-overlay .mockup-about-copy-shimmer::after {
+      background: linear-gradient(180deg, rgba(255, 92, 138, 0) 0%, rgba(255, 92, 138, 0.84) 50%, rgba(255, 92, 138, 0) 100%);
+    }
+
+    .mockup-library-overlay .mockup-about-title {
+      width: min(980px, 100%);
+      margin: 0 0 14px;
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    .mockup-library-hud {
+      position: absolute;
+      inset: 16px;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      border-radius: 30px;
+    }
+
+    .mockup-library-hud::before,
+    .mockup-library-hud::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .mockup-library-hud::before {
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.024) 0,
+          rgba(255, 255, 255, 0.024) 1px,
+          transparent 5px,
+          transparent 10px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.32;
+    }
+
+    .mockup-library-hud::after {
+      left: -8%;
+      right: -8%;
+      top: 18%;
+      height: 14%;
+      background: linear-gradient(180deg, rgba(134, 232, 255, 0), rgba(134, 232, 255, 0.22), rgba(134, 232, 255, 0));
+      opacity: 0;
+      transform: translateY(-220%);
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-hud::after {
+      animation: mockup-library-scan-band 1.1s cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+    }
+
+    .mockup-library-signal-strip {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      width: 140px;
+      height: 72px;
+      border-left: 1px solid rgba(255, 92, 138, 0.18);
+      border-top: 1px solid rgba(96, 222, 255, 0.16);
+      opacity: 0.74;
+    }
+
+    .mockup-library-signal-strip::before,
+    .mockup-library-signal-strip::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 10px;
+    }
+
+    .mockup-library-signal-strip::before {
+      top: 14px;
+      height: 18px;
+      background:
+        linear-gradient(90deg, rgba(255, 96, 142, 0) 0%, rgba(255, 96, 142, 0.54) 12%, rgba(255, 96, 142, 0.12) 36%, rgba(255, 96, 142, 0) 100%);
+      clip-path: polygon(0 58%, 10% 48%, 18% 64%, 26% 32%, 38% 62%, 48% 24%, 60% 68%, 72% 40%, 82% 72%, 100% 52%, 100% 100%, 0 100%);
+      opacity: 0.8;
+      animation: mockup-library-wave-hum 3.2s ease-in-out infinite;
+    }
+
+    .mockup-library-signal-strip::after {
+      bottom: 12px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(96, 222, 255, 0.54), rgba(96, 222, 255, 0));
+      box-shadow: 0 0 14px rgba(96, 222, 255, 0.18);
+      animation: mockup-library-signal-drift 2.8s linear infinite;
+    }
+
+    .mockup-library-meter-cluster {
+      position: absolute;
+      right: 24px;
+      top: 26px;
+      width: 148px;
+      height: 92px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      align-items: end;
+      gap: 5px;
+      opacity: 0.76;
+    }
+
+    .mockup-library-meter-cluster span {
+      display: block;
+      width: 100%;
+      min-height: 14px;
+      border-radius: 999px 999px 3px 3px;
+      background: linear-gradient(180deg, rgba(132, 227, 255, 0.86) 0%, rgba(132, 227, 255, 0.26) 100%);
+      box-shadow: 0 0 16px rgba(96, 222, 255, 0.14);
+      transform-origin: center bottom;
+      animation: mockup-library-meter-rise 2.4s ease-in-out infinite;
+    }
+
+    .mockup-library-meter-cluster span:nth-child(2n) {
+      background: linear-gradient(180deg, rgba(255, 98, 146, 0.84) 0%, rgba(255, 98, 146, 0.22) 100%);
+      box-shadow: 0 0 16px rgba(255, 98, 146, 0.12);
+    }
+
+    .mockup-library-meter-cluster span:nth-child(1) { height: 28%; animation-delay: -0.12s; }
+    .mockup-library-meter-cluster span:nth-child(2) { height: 56%; animation-delay: -0.52s; }
+    .mockup-library-meter-cluster span:nth-child(3) { height: 34%; animation-delay: -0.82s; }
+    .mockup-library-meter-cluster span:nth-child(4) { height: 72%; animation-delay: -0.22s; }
+    .mockup-library-meter-cluster span:nth-child(5) { height: 42%; animation-delay: -1.12s; }
+    .mockup-library-meter-cluster span:nth-child(6) { height: 88%; animation-delay: -0.64s; }
+    .mockup-library-meter-cluster span:nth-child(7) { height: 48%; animation-delay: -1.42s; }
+    .mockup-library-meter-cluster span:nth-child(8) { height: 66%; animation-delay: -0.34s; }
+    .mockup-library-meter-cluster span:nth-child(9) { height: 36%; animation-delay: -1.24s; }
+    .mockup-library-meter-cluster span:nth-child(10) { height: 82%; animation-delay: -0.74s; }
+    .mockup-library-meter-cluster span:nth-child(11) { height: 44%; animation-delay: -1.52s; }
+    .mockup-library-meter-cluster span:nth-child(12) { height: 62%; animation-delay: -0.44s; }
+
+    .mockup-library-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(114, 225, 255, 0.18);
+      position: relative;
+    }
+
+    .mockup-library-title::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      width: 34%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255, 102, 153, 0.84), rgba(96, 222, 255, 0.24), rgba(96, 222, 255, 0));
+      box-shadow:
+        0 0 16px rgba(255, 102, 153, 0.16),
+        0 0 18px rgba(96, 222, 255, 0.12);
+      animation: mockup-library-title-trace 3.6s ease-in-out infinite;
+    }
+
+    .mockup-library-title-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(146, 235, 255, 0.9);
+    }
+
+    .mockup-library-title-kicker::before {
+      content: "";
+      width: 32px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(96, 222, 255, 0.9), rgba(96, 222, 255, 0));
+      box-shadow: 0 0 16px rgba(96, 222, 255, 0.28);
+    }
+
+    .mockup-library-title-main {
+      margin: 10px 0 0;
+      font-size: clamp(30px, 3.6vw, 56px);
+      font-weight: 600;
+      line-height: 0.98;
+      letter-spacing: 0.04em;
+      color: rgba(239, 249, 255, 0.96);
+      text-shadow:
+        0 0 18px rgba(96, 222, 255, 0.12),
+        0 0 28px rgba(96, 222, 255, 0.08);
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+      transform: translateY(8px);
+    }
+
+    .mockup-library-title-sub {
+      max-width: 600px;
+      margin: 10px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      color: rgba(208, 231, 238, 0.74);
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(7px);
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-title-main {
+      animation: mockup-library-title-reveal 760ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 120ms;
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-title-sub {
+      animation: mockup-library-copy-rise 640ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 260ms;
+    }
+
+    .mockup-library-status {
+      min-width: 232px;
+      padding: 16px 18px;
+      border: 1px solid rgba(96, 222, 255, 0.18);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(10, 28, 36, 0.7) 0%, rgba(5, 14, 24, 0.42) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 26px rgba(96, 222, 255, 0.08);
+      text-align: left;
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(8px);
+    }
+
+    .mockup-library-status-readout {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mockup-library-status-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(132, 227, 255, 0.26);
+      box-shadow:
+        inset 0 0 0 5px rgba(132, 227, 255, 0.05),
+        0 0 18px rgba(132, 227, 255, 0.08);
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .mockup-library-status-ring::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border-top: 2px solid rgba(132, 227, 255, 0.74);
+      border-right: 2px solid rgba(255, 98, 146, 0.32);
+      border-bottom: 2px solid rgba(132, 227, 255, 0.08);
+      border-left: 2px solid rgba(132, 227, 255, 0.14);
+      animation: mockup-library-ring-spin 5.2s linear infinite;
+    }
+
+    .mockup-library-status-meta {
+      display: grid;
+      gap: 4px;
+    }
+
+    .mockup-library-status-code {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 134, 176, 0.76);
+    }
+
+    .mockup-library-status-label,
+    .mockup-library-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(132, 227, 255, 0.64);
+    }
+
+    .mockup-library-status-value {
+      margin-top: 8px;
+      font-size: 15px;
+      line-height: 1.36;
+      color: rgba(242, 249, 255, 0.94);
+    }
+
+    .mockup-library-overlay .mockup-about-copy-text {
+      width: 100%;
+      max-width: 1100px;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(96, 222, 255, 0.28) rgba(4, 10, 18, 0.18);
+    }
+
+    .mockup-library-overlay .mockup-about-copy-text::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .mockup-library-overlay .mockup-about-copy-text::-webkit-scrollbar-track {
+      background: rgba(4, 10, 18, 0.18);
+      border-radius: 999px;
+    }
+
+    .mockup-library-overlay .mockup-about-copy-text::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(96, 222, 255, 0.44), rgba(255, 98, 146, 0.28));
+      border-radius: 999px;
+    }
+
+    .mockup-library-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.34fr) minmax(250px, 0.66fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 1120px;
+      min-height: 0;
+      flex: 1 1 auto;
+      opacity: 0;
+      transform: translateY(16px);
+      filter: blur(8px);
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-grid {
+      animation: mockup-about-text-reveal 760ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards;
+      animation-delay: 140ms;
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-status {
+      animation: mockup-library-copy-rise 620ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 200ms;
+    }
+
+    .mockup-library-stack {
+      display: grid;
+      gap: 14px;
+      min-height: 0;
+      align-content: start;
+    }
+
+    .mockup-library-stack.is-docked {
+      gap: 12px;
+      align-content: start;
+    }
+
+    .mockup-library-module {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(96, 222, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(10, 26, 36, 0.62) 0%, rgba(4, 9, 18, 0.54) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 18px 34px rgba(0, 0, 0, 0.18);
+      transition:
+        transform 240ms ease,
+        border-color 240ms ease,
+        box-shadow 240ms ease,
+        filter 240ms ease;
+    }
+
+    .mockup-library-module.is-primary {
+      min-height: 0;
+    }
+
+    .mockup-library-module.is-tall {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mockup-library-module.is-docked {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(9, 20, 30, 0.72) 0%, rgba(5, 11, 18, 0.58) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+        0 12px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .mockup-library-module::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, rgba(96, 222, 255, 0.08) 0%, rgba(96, 222, 255, 0) 32%),
+        linear-gradient(180deg, rgba(255, 92, 138, 0.05) 0%, rgba(255, 92, 138, 0) 38%);
+      pointer-events: none;
+    }
+
+    .mockup-library-module::after {
+      content: "";
+      position: absolute;
+      left: -12%;
+      top: 0;
+      bottom: 0;
+      width: 34%;
+      background: linear-gradient(90deg, rgba(96, 222, 255, 0), rgba(96, 222, 255, 0.14), rgba(255, 96, 142, 0.08), rgba(255, 96, 142, 0));
+      transform: translateX(-180%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mockup-library-module:hover,
+    .mockup-library-module:focus-within {
+      transform: translateY(-4px);
+      border-color: rgba(122, 228, 255, 0.28);
+      box-shadow:
+        inset 0 0 0 1px rgba(122, 228, 255, 0.04),
+        0 0 26px rgba(96, 222, 255, 0.08),
+        0 22px 38px rgba(0, 0, 0, 0.24);
+      filter: brightness(1.04);
+    }
+
+    .mockup-library-module:hover::after,
+    .mockup-library-module:focus-within::after {
+      opacity: 1;
+      animation: mockup-library-module-sweep 860ms cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+    }
+
+    .mockup-library-module-title {
+      margin: 8px 0 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: rgba(244, 250, 255, 0.94);
+    }
+
+    .mockup-library-module-copy {
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.58;
+      color: rgba(208, 231, 238, 0.72);
+    }
+
+    .mockup-library-module.is-docked .mockup-library-module-title {
+      font-size: 16px;
+      line-height: 1.24;
+    }
+
+    .mockup-library-module.is-docked .mockup-library-module-copy {
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .mockup-library-panel-frame {
+      position: relative;
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(96, 222, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(7, 19, 28, 0.86) 0%, rgba(6, 12, 18, 0.7) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 0 20px rgba(96, 222, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .mockup-library-panel-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(96, 222, 255, 0.12) 0%, rgba(96, 222, 255, 0) 16%),
+        linear-gradient(180deg, rgba(255, 98, 146, 0.08) 0%, rgba(255, 98, 146, 0) 26%);
+      pointer-events: none;
+    }
+
+    .mockup-library-panel-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(96, 222, 255, 0.12);
+      background: rgba(6, 16, 24, 0.74);
+    }
+
+    .mockup-library-panel-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(130, 228, 255, 0.68);
+    }
+
+    .mockup-library-panel-code {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255, 120, 164, 0.72);
+    }
+
+    .mockup-library-main-display {
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      min-height: 168px;
+    }
+
+    .mockup-library-main-matrix {
+      position: relative;
+      min-height: 168px;
+      border-right: 1px solid rgba(96, 222, 255, 0.1);
+      background:
+        linear-gradient(0deg, rgba(96, 222, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(96, 222, 255, 0.06) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.08) 0%, rgba(0, 0, 0, 0) 64%);
+      background-size: 100% 20px, 20px 100%, 100% 100%;
+      overflow: hidden;
+    }
+
+    .mockup-library-main-matrix::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.03) 0,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 4px,
+          transparent 9px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.3;
+    }
+
+    .mockup-library-main-matrix::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(96, 222, 255, 0) 0%, rgba(96, 222, 255, 0.16) 46%, rgba(255, 98, 146, 0.12) 54%, rgba(255, 98, 146, 0) 100%);
+      transform: translateX(-120%);
+      animation: mockup-library-matrix-sweep 4.8s linear infinite;
+      opacity: 0.64;
+    }
+
+    .mockup-library-main-matrix-grid {
+      position: absolute;
+      inset: 16px 18px 14px 16px;
+      display: grid;
+      grid-template-columns: repeat(14, minmax(0, 1fr));
+      align-items: end;
+      gap: 5px;
+    }
+
+    .mockup-library-main-matrix-grid span {
+      display: block;
+      width: 100%;
+      border-radius: 999px 999px 2px 2px;
+      background: linear-gradient(180deg, rgba(132, 227, 255, 0.82) 0%, rgba(132, 227, 255, 0.18) 100%);
+      box-shadow: 0 0 12px rgba(96, 222, 255, 0.12);
+      animation: mockup-library-data-breathe 2.6s ease-in-out infinite;
+    }
+
+    .mockup-library-main-matrix-grid span:nth-child(3n) {
+      background: linear-gradient(180deg, rgba(255, 98, 146, 0.72) 0%, rgba(255, 98, 146, 0.14) 100%);
+      box-shadow: 0 0 12px rgba(255, 98, 146, 0.1);
+    }
+
+    .mockup-library-main-side {
+      padding: 14px 12px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(9, 18, 28, 0.86) 0%, rgba(4, 10, 18, 0.7) 100%);
+    }
+
+    .mockup-library-radial {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto;
+      border-radius: 50%;
+      border: 1px solid rgba(132, 227, 255, 0.18);
+      position: relative;
+      box-shadow:
+        inset 0 0 0 10px rgba(132, 227, 255, 0.03),
+        0 0 20px rgba(132, 227, 255, 0.08);
+    }
+
+    .mockup-library-radial::before,
+    .mockup-library-radial::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+    }
+
+    .mockup-library-radial::before {
+      border-top: 2px solid rgba(132, 227, 255, 0.82);
+      border-right: 2px solid rgba(132, 227, 255, 0.14);
+      border-bottom: 2px solid rgba(255, 98, 146, 0.18);
+      border-left: 2px solid rgba(132, 227, 255, 0.28);
+      animation: mockup-library-ring-spin 6s linear infinite;
+    }
+
+    .mockup-library-radial::after {
+      inset: 24px;
+      background: radial-gradient(circle, rgba(132, 227, 255, 0.28) 0%, rgba(132, 227, 255, 0) 72%);
+    }
+
+    .mockup-library-radial-value {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(236, 248, 255, 0.94);
+      text-shadow: 0 0 14px rgba(132, 227, 255, 0.12);
+    }
+
+    .mockup-library-radial-caption {
+      margin-top: -4px;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-align: center;
+      color: rgba(132, 227, 255, 0.62);
+    }
+
+    .mockup-library-side-lines {
+      display: grid;
+      gap: 6px;
+    }
+
+    .mockup-library-side-lines span {
+      display: block;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255, 98, 146, 0.5), rgba(255, 98, 146, 0.08));
+      box-shadow: 0 0 12px rgba(255, 98, 146, 0.08);
+      animation: mockup-library-line-pulse 3s ease-in-out infinite;
+    }
+
+    .mockup-library-side-lines span:nth-child(2n) {
+      background: linear-gradient(90deg, rgba(132, 227, 255, 0.56), rgba(132, 227, 255, 0.08));
+      box-shadow: 0 0 12px rgba(132, 227, 255, 0.08);
+    }
+
+    .mockup-library-data-note {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(96, 222, 255, 0.1);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(194, 226, 236, 0.72);
+      background: rgba(5, 12, 18, 0.74);
+    }
+
+    .mockup-library-scope-roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mockup-library-scope-pill {
+      padding: 9px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 222, 255, 0.12);
+      background: rgba(7, 16, 24, 0.62);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      color: rgba(214, 236, 242, 0.78);
+    }
+
+    .mockup-library-scope-pill.is-hot {
+      border-color: rgba(255, 98, 146, 0.22);
+      color: rgba(255, 228, 236, 0.94);
+      box-shadow: 0 0 16px rgba(255, 98, 146, 0.07);
+    }
+
+    .mockup-library-chip-row,
+    .mockup-library-entry-grid,
+    .mockup-library-scope-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .mockup-library-scope-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mockup-library-scope-card,
+    .mockup-library-entry-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(96, 222, 255, 0.14);
+      background: linear-gradient(180deg, rgba(8, 24, 34, 0.74) 0%, rgba(6, 14, 22, 0.54) 100%);
+      transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        background 220ms ease;
+    }
+
+    .mockup-library-entry-card.is-active {
+      border-color: rgba(132, 227, 255, 0.24);
+      box-shadow:
+        inset 0 0 0 1px rgba(132, 227, 255, 0.04),
+        0 0 22px rgba(132, 227, 255, 0.08);
+    }
+
+    .mockup-library-entry-card:not(.is-active) {
+      opacity: 0.78;
+      transform: scale(0.985);
+    }
+
+    .mockup-library-scope-card:hover,
+    .mockup-library-entry-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 106, 154, 0.24);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 0 20px rgba(255, 106, 154, 0.08);
+    }
+
+    .mockup-library-scope-card.is-primary {
+      border-color: rgba(255, 92, 138, 0.24);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 92, 138, 0.06),
+        0 0 24px rgba(255, 92, 138, 0.08);
+    }
+
+    .mockup-library-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(242, 249, 255, 0.94);
+    }
+
+    .mockup-library-card-copy {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(201, 225, 232, 0.66);
+    }
+
+    .mockup-library-chip-row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .mockup-library-chip {
+      padding: 12px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 222, 255, 0.14);
+      background: rgba(9, 24, 34, 0.62);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: center;
+      color: rgba(228, 245, 250, 0.84);
+      transition:
+        transform 200ms ease,
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        color 200ms ease;
+    }
+
+    .mockup-library-chip.is-active {
+      border-color: rgba(255, 92, 138, 0.28);
+      color: rgba(255, 235, 242, 0.96);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 92, 138, 0.06),
+        0 0 20px rgba(255, 92, 138, 0.08);
+    }
+
+    .mockup-library-chip:hover {
+      transform: translateY(-2px);
+      border-color: rgba(132, 227, 255, 0.28);
+      box-shadow: 0 0 18px rgba(96, 222, 255, 0.08);
+    }
+
+    .mockup-library-entry-grid {
+      grid-template-columns: 1fr;
+      flex: 1 1 auto;
+      overflow: hidden;
+      gap: 10px;
+    }
+
+    .mockup-library-entry-topline {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(150, 231, 255, 0.72);
+    }
+
+    .mockup-library-entry-title {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(242, 249, 255, 0.96);
+    }
+
+    .mockup-library-entry-card:not(.is-active) .mockup-library-entry-title {
+      font-size: 15px;
+      color: rgba(212, 233, 238, 0.86);
+    }
+
+    .mockup-library-entry-copy {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.62;
+      color: rgba(208, 231, 238, 0.72);
+    }
+
+    .mockup-library-entry-card:not(.is-active) .mockup-library-entry-copy {
+      font-size: 11px;
+      line-height: 1.48;
+      color: rgba(187, 212, 220, 0.62);
+    }
+
+    .mockup-library-query {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(96, 222, 255, 0.16);
+      background: rgba(4, 13, 20, 0.74);
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(230, 244, 248, 0.88);
+      overflow: hidden;
+    }
+
+    .mockup-library-query code {
+      color: rgba(255, 173, 201, 0.94);
+    }
+
+    .mockup-library-notes {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .mockup-library-utility-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mockup-library-utility-cell {
+      padding: 10px 10px 9px;
+      border-radius: 12px;
+      border: 1px solid rgba(96, 222, 255, 0.12);
+      background: rgba(6, 15, 22, 0.6);
+    }
+
+    .mockup-library-utility-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(132, 227, 255, 0.58);
+    }
+
+    .mockup-library-utility-value {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.2;
+      color: rgba(240, 248, 252, 0.92);
+    }
+
+    .mockup-library-note {
+      padding: 14px 16px;
+      border-left: 2px solid rgba(255, 92, 138, 0.42);
+      border-radius: 14px;
+      background: rgba(8, 16, 24, 0.56);
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(214, 234, 239, 0.7);
+    }
+
+    .mockup-library-overlay .mockup-library-module,
+    .mockup-library-overlay .mockup-library-scope-card,
+    .mockup-library-overlay .mockup-library-entry-card,
+    .mockup-library-overlay .mockup-library-chip,
+    .mockup-library-overlay .mockup-library-query,
+    .mockup-library-overlay .mockup-library-note {
+      opacity: 0;
+      transform: translateY(14px);
+      filter: blur(8px);
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-module,
+    .mockup-library-overlay.is-content-visible .mockup-library-scope-card,
+    .mockup-library-overlay.is-content-visible .mockup-library-entry-card,
+    .mockup-library-overlay.is-content-visible .mockup-library-chip,
+    .mockup-library-overlay.is-content-visible .mockup-library-query,
+    .mockup-library-overlay.is-content-visible .mockup-library-note {
+      animation: mockup-library-copy-rise 620ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards;
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-module:nth-of-type(1) { animation-delay: 250ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-module:nth-of-type(2) { animation-delay: 360ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-scope-card:nth-child(1) { animation-delay: 380ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-scope-card:nth-child(2) { animation-delay: 450ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-scope-card:nth-child(3) { animation-delay: 520ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-scope-card:nth-child(4) { animation-delay: 590ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-chip:nth-child(1) { animation-delay: 470ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-chip:nth-child(2) { animation-delay: 530ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-chip:nth-child(3) { animation-delay: 590ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-chip:nth-child(4) { animation-delay: 650ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-chip:nth-child(5) { animation-delay: 710ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-entry-card:nth-child(1) { animation-delay: 420ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-entry-card:nth-child(2) { animation-delay: 510ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-entry-card:nth-child(3) { animation-delay: 600ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-query { animation-delay: 700ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-note:nth-child(1) { animation-delay: 520ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-note:nth-child(2) { animation-delay: 620ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-note:nth-child(3) { animation-delay: 720ms; }
+
+    .mockup-library-overlay.is-closing .mockup-library-hud::after,
+    .mockup-library-overlay.is-closing .mockup-library-module::after {
+      animation: none;
+      opacity: 0;
+    }
+
+    @keyframes mockup-logo-border-idle {
+      0%, 100% {
+        clip-path: inset(0 82% 0 0 round 18px);
+        opacity: 0.54;
+      }
+      50% {
+        clip-path: inset(0 12% 0 0 round 18px);
+        opacity: 0.96;
+      }
+    }
+
+    @keyframes mockup-logo-arm-jolt {
+      0% { transform: scale(1); }
+      48% { transform: scale(1.05); }
+      100% { transform: scale(1.015); }
+    }
+
+    @keyframes mockup-logo-arm-flare {
+      0% { opacity: 0.86; filter: blur(12px); }
+      54% { opacity: 1; filter: blur(18px); }
+      100% { opacity: 0.92; filter: blur(14px); }
+    }
+
+    @keyframes mockup-logo-arm-trace {
+      0% {
+        clip-path: inset(0 92% 0 0 round 18px);
+        opacity: 0.8;
+      }
+      52% {
+        clip-path: inset(0 0 0 0 round 18px);
+        opacity: 1;
+      }
+      100% {
+        clip-path: inset(0 14% 0 0 round 18px);
+        opacity: 0.96;
+      }
+    }
+
+    @keyframes mockup-library-shell-hum {
+      0%, 100% {
+        box-shadow:
+          inset 0 0 0 1px rgba(120, 222, 255, 0.06),
+          inset 0 0 34px rgba(70, 188, 255, 0.08),
+          -18px 0 36px rgba(255, 72, 112, 0.08),
+          0 18px 48px rgba(14, 98, 140, 0.12),
+          0 18px 64px rgba(0, 0, 0, 0.3);
+      }
+      50% {
+        box-shadow:
+          inset 0 0 0 1px rgba(120, 222, 255, 0.08),
+          inset 0 0 40px rgba(70, 188, 255, 0.12),
+          -18px 0 42px rgba(255, 72, 112, 0.12),
+          0 18px 52px rgba(14, 98, 140, 0.16),
+          0 18px 64px rgba(0, 0, 0, 0.32);
+      }
+    }
+
+    @keyframes mockup-library-scan-band {
+      0% {
+        opacity: 0;
+        transform: translateY(-220%);
+      }
+      24% {
+        opacity: 0.9;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(420%);
+      }
+    }
+
+    @keyframes mockup-library-wave-hum {
+      0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.74; }
+      50% { transform: translateX(3px) scaleY(1.08); opacity: 0.96; }
+    }
+
+    @keyframes mockup-library-signal-drift {
+      0% { transform: translateX(-16%); opacity: 0.32; }
+      40% { opacity: 0.82; }
+      100% { transform: translateX(22%); opacity: 0.18; }
+    }
+
+    @keyframes mockup-library-meter-rise {
+      0%, 100% { transform: scaleY(0.82); opacity: 0.72; }
+      50% { transform: scaleY(1.08); opacity: 1; }
+    }
+
+    @keyframes mockup-library-ring-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes mockup-library-matrix-sweep {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(140%); }
+    }
+
+    @keyframes mockup-library-data-breathe {
+      0%, 100% { opacity: 0.66; transform: scaleY(0.88); }
+      50% { opacity: 1; transform: scaleY(1.06); }
+    }
+
+    @keyframes mockup-library-line-pulse {
+      0%, 100% { opacity: 0.56; transform: scaleX(0.94); }
+      50% { opacity: 1; transform: scaleX(1); }
+    }
+
+    @keyframes mockup-library-title-trace {
+      0%, 100% { width: 26%; opacity: 0.68; }
+      50% { width: 42%; opacity: 1; }
+    }
+
+    @keyframes mockup-library-title-reveal {
+      0% {
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+        transform: translateY(8px);
+      }
+      100% {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes mockup-library-copy-rise {
+      0% {
+        opacity: 0;
+        transform: translateY(14px);
+        filter: blur(8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes mockup-library-module-sweep {
+      0% { transform: translateX(-180%); }
+      100% { transform: translateX(340%); }
     }
 
     .mockup-workspace {
@@ -2194,6 +3436,115 @@
         max-width: 100%;
       }
 
+      .mockup-library-overlay .mockup-about-title {
+        margin-bottom: 18px;
+      }
+
+      .mockup-library-overlay .mockup-about-copy {
+        width: calc(100% - 32px);
+        max-height: calc(100% - 32px);
+        padding: 14px 12px;
+      }
+
+      .mockup-library-hud {
+        inset: 10px;
+      }
+
+      .mockup-library-signal-strip,
+      .mockup-library-meter-cluster {
+        display: none;
+      }
+
+      .mockup-library-status {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .mockup-library-status-readout {
+        gap: 10px;
+      }
+
+      .mockup-library-title-main {
+        font-size: clamp(26px, 10vw, 42px);
+      }
+
+      .mockup-library-title-sub {
+        font-size: 12px;
+      }
+
+      .mockup-library-grid,
+      .mockup-library-stack,
+      .mockup-library-scope-grid,
+      .mockup-library-chip-row {
+        gap: 10px;
+      }
+
+      .mockup-library-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup-library-main-display {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup-library-main-matrix {
+        min-height: 132px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(96, 222, 255, 0.1);
+      }
+
+      .mockup-library-main-matrix-grid {
+        inset: 14px 14px 14px 14px;
+        gap: 4px;
+      }
+
+      .mockup-library-main-side {
+        grid-template-columns: 84px 1fr;
+        align-items: center;
+      }
+
+      .mockup-library-radial {
+        width: 70px;
+        height: 70px;
+      }
+
+      .mockup-library-radial-value {
+        font-size: 18px;
+      }
+
+      .mockup-library-side-lines {
+        gap: 6px;
+      }
+
+      .mockup-library-scope-roadmap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mockup-library-scope-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup-library-chip-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mockup-library-module,
+      .mockup-library-entry-card,
+      .mockup-library-scope-card,
+      .mockup-library-query,
+      .mockup-library-note,
+      .mockup-library-status {
+        border-radius: 16px;
+      }
+
+      .mockup-library-panel-frame,
+      .mockup-library-main-display,
+      .mockup-library-main-side,
+      .mockup-library-entry-grid,
+      .mockup-library-notes {
+        min-width: 0;
+      }
+
       .mockup-pricing-title-switcher {
         min-height: clamp(56px, 18vw, 84px);
       }
@@ -2274,17 +3625,23 @@
 </head>
 <body>
   <main class="mockup-stage">
-    <div class="mockup-topbar" aria-hidden="true">
-      <video
-        class="mockup-topbar-logo"
-        src="assets/main/logo-animated.mp4"
-        autoplay
-        loop
-        muted
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      ></video>
+    <div class="mockup-topbar">
+      <button
+        class="mockup-topbar-logo-button"
+        type="button"
+        aria-label="Open Library Browser"
+      >
+        <video
+          class="mockup-topbar-logo"
+          src="assets/main/logo-animated.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="auto"
+          aria-hidden="true"
+        ></video>
+      </button>
     </div>
     <section class="mockup-workspace" aria-hidden="true">
       <div class="mockup-workspace-copy">
@@ -2359,7 +3716,195 @@
       preload="auto"
       aria-hidden="true"
     ></video>
-    <div class="mockup-welcome-copy">Welcome to the landing page. Make your selection below.</div>
+    <div class="mockup-welcome-copy">Welcome to the landing page. Click the logo to open the library browser concept.</div>
+    <section class="mockup-library-overlay mockup-about-overlay" aria-hidden="true">
+      <div class="mockup-about-panel">
+        <div class="mockup-about-crt-flash" aria-hidden="true"></div>
+        <video
+          class="mockup-about-section-video"
+          src="assets/main/background-fire.mp4"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+        <div class="mockup-about-copy">
+          <div class="mockup-about-copy-chrome" aria-hidden="true"></div>
+          <div class="mockup-about-copy-corners" aria-hidden="true"></div>
+          <div class="mockup-about-copy-shimmer" aria-hidden="true"></div>
+          <div class="mockup-about-copy-scan" aria-hidden="true"></div>
+          <div class="mockup-library-hud" aria-hidden="true">
+            <div class="mockup-library-signal-strip"></div>
+            <div class="mockup-library-meter-cluster">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <div class="mockup-about-title">
+            <div class="mockup-library-title">
+              <div>
+                <div class="mockup-library-title-kicker">Core Interaction Model</div>
+                <h2 class="mockup-library-title-main">Library Browser</h2>
+                <p class="mockup-library-title-sub">A futuristic entry layer for a larger archive system that can eventually hold multiple scopes, multiple mediums, and multiple ways of discovering the material.</p>
+              </div>
+              <div class="mockup-library-status">
+                <div class="mockup-library-status-label">First Release</div>
+                <div class="mockup-library-status-value">Start with one live archive slice, but design the browser around scalable paths now.</div>
+                <div class="mockup-library-status-readout">
+                  <div class="mockup-library-status-ring"></div>
+                  <div class="mockup-library-status-meta">
+                    <div class="mockup-library-status-code">SYS READY</div>
+                    <div class="mockup-library-status-label">Boot Sequence Stable</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mockup-about-copy-text">
+            <div class="mockup-library-grid">
+              <div class="mockup-library-stack">
+                <section class="mockup-library-module is-primary">
+                  <div class="mockup-library-section-label">Scope Layer</div>
+                  <h3 class="mockup-library-module-title">Pick the archive scope before the user ever sees raw records.</h3>
+                  <p class="mockup-library-module-copy">The browser should feel like entering a system, not a folder. A visitor chooses what kind of archive space they want first, then narrows from there.</p>
+                  <div class="mockup-library-panel-frame">
+                    <div class="mockup-library-panel-head">
+                      <div class="mockup-library-panel-label">Active Processing Surface</div>
+                      <div class="mockup-library-panel-code">Node 01</div>
+                    </div>
+                    <div class="mockup-library-main-display">
+                      <div class="mockup-library-main-matrix">
+                        <div class="mockup-library-main-matrix-grid">
+                          <span style="height: 22%"></span>
+                          <span style="height: 44%"></span>
+                          <span style="height: 31%"></span>
+                          <span style="height: 72%"></span>
+                          <span style="height: 38%"></span>
+                          <span style="height: 82%"></span>
+                          <span style="height: 52%"></span>
+                          <span style="height: 28%"></span>
+                          <span style="height: 64%"></span>
+                          <span style="height: 46%"></span>
+                          <span style="height: 77%"></span>
+                          <span style="height: 35%"></span>
+                          <span style="height: 58%"></span>
+                          <span style="height: 26%"></span>
+                        </div>
+                      </div>
+                      <div class="mockup-library-main-side">
+                        <div class="mockup-library-radial">
+                          <div class="mockup-library-radial-value">87</div>
+                        </div>
+                        <div class="mockup-library-radial-caption">Archive Sync</div>
+                        <div class="mockup-library-side-lines">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mockup-library-data-note">Primary shell should feel like one bounded machine display inside the panel.</div>
+                  </div>
+                  <div class="mockup-library-scope-grid">
+                    <article class="mockup-library-scope-card is-primary">
+                      <div class="mockup-library-card-title">Core Archive</div>
+                      <div class="mockup-library-card-copy">The first live slice. One contained collection with enough visual polish to establish the whole language.</div>
+                    </article>
+                    <article class="mockup-library-scope-card">
+                      <div class="mockup-library-card-title">People</div>
+                      <div class="mockup-library-card-copy">Identity-driven browsing where performers, artists, or subjects become the anchor.</div>
+                    </article>
+                    <article class="mockup-library-scope-card">
+                      <div class="mockup-library-card-title">Shows / Events</div>
+                      <div class="mockup-library-card-copy">Chronology and location forward. Best when the user remembers when or where something happened.</div>
+                    </article>
+                    <article class="mockup-library-scope-card">
+                      <div class="mockup-library-card-title">Artifacts / Media</div>
+                      <div class="mockup-library-card-copy">A later layer for scans, posters, clips, documents, and supplemental pieces around the main record.</div>
+                    </article>
+                  </div>
+                </section>
+                <section class="mockup-library-module">
+                  <div class="mockup-library-section-label">Medium Layer</div>
+                  <h3 class="mockup-library-module-title">Every scope should be able to surface different media without changing the shell.</h3>
+                  <p class="mockup-library-module-copy">The same shell can start small now, then absorb Music, Wrestling, and other archive branches without redesigning the menu language.</p>
+                  <div class="mockup-library-chip-row">
+                    <div class="mockup-library-chip is-active">Photo</div>
+                    <div class="mockup-library-chip">Video</div>
+                    <div class="mockup-library-chip">Audio</div>
+                    <div class="mockup-library-chip">Paper</div>
+                    <div class="mockup-library-chip">Metadata</div>
+                  </div>
+                  <div class="mockup-library-scope-roadmap">
+                    <div class="mockup-library-scope-pill is-hot">Music</div>
+                    <div class="mockup-library-scope-pill is-hot">Wrestling</div>
+                    <div class="mockup-library-scope-pill">Photos</div>
+                    <div class="mockup-library-scope-pill">More</div>
+                  </div>
+                </section>
+              </div>
+              <div class="mockup-library-stack is-docked">
+                <section class="mockup-library-module is-tall is-docked">
+                  <div class="mockup-library-section-label">Entry Paths</div>
+                  <h3 class="mockup-library-module-title">Three clean ways into the system.</h3>
+                  <div class="mockup-library-entry-grid">
+                    <article class="mockup-library-entry-card is-active">
+                      <div class="mockup-library-entry-topline"><span>Path 01</span><span>Identity First</span></div>
+                      <div class="mockup-library-entry-title">Start with who</div>
+                      <div class="mockup-library-entry-copy">The user enters through a person, performer, or subject and then branches into appearances, related shows, and attached media.</div>
+                    </article>
+                    <article class="mockup-library-entry-card">
+                      <div class="mockup-library-entry-topline"><span>Path 02</span><span>Event First</span></div>
+                      <div class="mockup-library-entry-title">Start with the show or event</div>
+                      <div class="mockup-library-entry-copy">The user remembers the night first, then browses the people, the chronology, and the media extracted from that event shell.</div>
+                    </article>
+                    <article class="mockup-library-entry-card">
+                      <div class="mockup-library-entry-topline"><span>Path 03</span><span>Signal First</span></div>
+                      <div class="mockup-library-entry-title">Start with a search pulse</div>
+                      <div class="mockup-library-entry-copy">A future command-style search can let the browser suggest routes instead of only matching records.</div>
+                    </article>
+                  </div>
+                  <div class="mockup-library-query">Suggested command layer: <code>scope:core medium:photo query:"first live collection"</code></div>
+                </section>
+                <section class="mockup-library-module is-docked">
+                  <div class="mockup-library-section-label">Design Direction</div>
+                  <h3 class="mockup-library-module-title">Docked Telemetry</h3>
+                  <div class="mockup-library-utility-grid">
+                    <div class="mockup-library-utility-cell">
+                      <div class="mockup-library-utility-label">Active Scope</div>
+                      <div class="mockup-library-utility-value">Core</div>
+                    </div>
+                    <div class="mockup-library-utility-cell">
+                      <div class="mockup-library-utility-label">Next Scope</div>
+                      <div class="mockup-library-utility-value">Music</div>
+                    </div>
+                    <div class="mockup-library-utility-cell">
+                      <div class="mockup-library-utility-label">Route Bias</div>
+                      <div class="mockup-library-utility-value">Identity</div>
+                    </div>
+                    <div class="mockup-library-utility-cell">
+                      <div class="mockup-library-utility-label">Shell State</div>
+                      <div class="mockup-library-utility-value">Stable</div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section class="mockup-about-overlay" aria-hidden="true">
       <div class="mockup-about-panel">
         <div class="mockup-about-crt-flash" aria-hidden="true"></div>
@@ -2522,11 +4067,13 @@
       }
 
       const topbar = document.querySelector('.mockup-topbar');
+      const topbarLogoButton = document.querySelector('.mockup-topbar-logo-button');
       const backgroundVideo = document.querySelector('.mockup-background-video');
       const dollReveal = document.querySelector('.mockup-doll-reveal');
       const welcomeCopy = document.querySelector('.mockup-welcome-copy');
       const mockupStage = document.querySelector('.mockup-stage');
-      const aboutOverlay = document.querySelector('.mockup-about-overlay');
+      const libraryOverlay = document.querySelector('.mockup-library-overlay');
+      const aboutOverlay = document.querySelector('section.mockup-about-overlay:not(.mockup-library-overlay):not(.mockup-pricing-overlay)');
       const pricingOverlay = document.querySelector('.mockup-pricing-overlay');
       const aboutSlot = document.querySelector('.mockup-about-slot');
       const pricingSlot = document.querySelector('.mockup-pricing-slot');
@@ -2546,18 +4093,27 @@
         prev: document.querySelector('[data-pricing-arrow-wrap="prev"]'),
         next: document.querySelector('[data-pricing-arrow-wrap="next"]')
       };
-      if (!topbar || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
+      if (!topbar || !topbarLogoButton || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !libraryOverlay || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
 
       const createPanel = ({ key, route, slot, hitbox, menu, reverseMenu, overlay }) => {
         const copy = overlay.querySelector('.mockup-about-copy');
         const sectionVideo = overlay.querySelector('.mockup-about-section-video');
         const titleVideo = overlay.querySelector('.mockup-about-title-video');
         const title = overlay.querySelector('.mockup-about-title');
-        if (!copy || !sectionVideo || !title) return null;
+        if (!copy || !sectionVideo || !title || !slot || !hitbox) return null;
         return { key, route, slot, hitbox, menu, reverseMenu, overlay, copy, sectionVideo, titleVideo };
       };
 
       const panels = {
+        library: createPanel({
+          key: 'library',
+          route: '/testing/library',
+          slot: topbarLogoButton,
+          hitbox: topbarLogoButton,
+          menu: null,
+          reverseMenu: null,
+          overlay: libraryOverlay
+        }),
         about: createPanel({
           key: 'about',
           route: '/testing/about',
@@ -2577,7 +4133,7 @@
           overlay: pricingOverlay
         })
       };
-      if (!panels.about || !panels.pricing) return;
+      if (!panels.library || !panels.about || !panels.pricing) return;
 
       const PANEL_LOOP_START = 1.52;
       const PANEL_LOOP_END = 4.92;
@@ -2592,12 +4148,20 @@
 
       try {
         const initialShellRoute = new URLSearchParams(window.location.search).get('shellRoute');
-        if (initialShellRoute === ROUTE_HOME || initialShellRoute === panels.about.route || initialShellRoute === panels.pricing.route) {
+        if (initialShellRoute === ROUTE_HOME || initialShellRoute === panels.library.route || initialShellRoute === panels.about.route || initialShellRoute === panels.pricing.route) {
           shellRoutePath = initialShellRoute;
         }
       } catch (_) {}
 
       const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+      const armLogoGateway = async () => {
+        topbarLogoButton.classList.remove('is-arming');
+        void topbarLogoButton.offsetWidth;
+        topbarLogoButton.classList.add('is-arming');
+        await wait(210);
+        topbarLogoButton.classList.remove('is-arming');
+      };
 
       const clearPricingMenuDelay = () => {
         if (pricingMenuDelayTimer) {
@@ -2764,6 +4328,7 @@
 
       const getCurrentRoute = () => {
         const pathname = getPathname();
+        if (pathname === panels.library.route) return panels.library.route;
         if (pathname === panels.about.route) return panels.about.route;
         if (pathname === panels.pricing.route) return panels.pricing.route;
         return ROUTE_HOME;
@@ -2817,7 +4382,7 @@
         });
 
       const playPanelMenu = (panel) => {
-        if (!panel) return;
+        if (!panel || !panel.menu || !panel.reverseMenu) return;
         panel.menu.classList.remove('is-hidden');
         panel.reverseMenu.classList.add('is-hidden');
         try {
@@ -2907,6 +4472,7 @@
 
       const hideAllHomeMenus = () => {
         Object.values(panels).forEach((panel) => {
+          if (!panel.menu || !panel.reverseMenu) return;
           panel.menu.classList.add('is-hidden');
           panel.reverseMenu.classList.add('is-hidden');
           try {
@@ -3018,9 +4584,11 @@
         }
         hideAllHomeMenus();
         clearPricingMenuDelay();
-        try {
-          panel.menu.pause();
-        } catch (_) {}
+        if (panel.menu) {
+          try {
+            panel.menu.pause();
+          } catch (_) {}
+        }
         await playVideoFromStart(panel.reverseMenu, 2.5);
         await waitForVideoEnd(panel.reverseMenu, 200);
         setPanelExpandOrigin(panel);
@@ -3129,6 +4697,10 @@
       }, 760);
 
       window.setTimeout(() => {
+        if (getCurrentRoute() === panels.library.route) {
+          applyPanelStateImmediately(panels.library);
+          return;
+        }
         if (getCurrentRoute() === panels.about.route) {
           applyPanelStateImmediately(panels.about);
           return;
@@ -3142,6 +4714,13 @@
 
       aboutHitbox.addEventListener('click', () => {
         openPanelSequence(panels.about);
+      });
+
+      topbarLogoButton.addEventListener('click', () => {
+        if (isTransitioning || activePanelKey) return;
+        armLogoGateway().then(() => {
+          openPanelSequence(panels.library);
+        });
       });
 
       pricingHitbox.addEventListener('click', () => {
@@ -3185,6 +4764,15 @@
 
       window.addEventListener('popstate', () => {
         const route = getCurrentRoute();
+        if (route === panels.library.route) {
+          if (activePanelKey === panels.library.key) return;
+          if (activePanelKey) {
+            applyPanelStateImmediately(panels.library);
+            return;
+          }
+          openPanelSequence(panels.library, { updateBrowserRoute: false });
+          return;
+        }
         if (route === panels.about.route) {
           if (activePanelKey === panels.about.key) return;
           if (activePanelKey) {
@@ -3217,12 +4805,24 @@
         const data = event && event.data;
         if (!data || data.type !== 'vmTestingRouteSync') return;
         const nextRoute =
-          data.route === panels.about.route
+          data.route === panels.library.route
+            ? panels.library.route
+            : data.route === panels.about.route
             ? panels.about.route
             : data.route === panels.pricing.route
               ? panels.pricing.route
               : ROUTE_HOME;
         shellRoutePath = nextRoute;
+        if (nextRoute === panels.library.route) {
+          if (activePanelKey !== panels.library.key) {
+            if (activePanelKey) {
+              applyPanelStateImmediately(panels.library);
+            } else {
+              openPanelSequence(panels.library, { updateBrowserRoute: false });
+            }
+          }
+          return;
+        }
         if (nextRoute === panels.about.route) {
           if (activePanelKey !== panels.about.key) {
             if (activePanelKey) {
