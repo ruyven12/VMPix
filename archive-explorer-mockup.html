@@ -3149,6 +3149,7 @@
       position: relative;
       display: flex;
       align-items: center;
+      gap: 6px;
       right: auto;
       top: auto;
       grid-column: 3;
@@ -3156,7 +3157,7 @@
       align-self: end;
       justify-self: end;
       width: auto;
-      transform: translate(-2px, var(--music-staging-y-shift));
+      transform: translate(-2px, 8px);
       padding: 0;
       border: 0;
       min-width: 0;
@@ -3171,7 +3172,22 @@
       text-shadow:
         0 0 7px rgba(255, 160, 92, 0.3),
         0 0 14px rgba(255, 122, 54, 0.1);
-      animation: mockup-library-staging-flicker 5.8s steps(2, end) infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-state-prefix {
+      color: rgba(255, 255, 255, 0.5);
+      text-shadow: none;
+      letter-spacing: 0.12em;
+      font-size: calc(var(--music-label-size) - 1px);
+      line-height: 1;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-state-value {
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 8px rgba(255, 160, 92, 0.34),
+        0 0 18px rgba(255, 122, 54, 0.14);
+      animation: mockup-library-staging-flicker 3.8s steps(3, end) infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual {
@@ -3179,30 +3195,23 @@
       width: auto;
       clip-path: none;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.08), transparent 26%),
-        linear-gradient(90deg, rgba(5, 10, 18, 0.8) 0%, rgba(5, 10, 18, 0.16) 22%, rgba(5, 10, 18, 0.08) 78%, rgba(5, 10, 18, 0.76) 100%),
-        linear-gradient(180deg, rgba(17, 38, 50, 0.42), rgba(9, 18, 28, 0.68));
-      box-shadow: inset 0 0 0 1px rgba(132, 227, 255, 0.04);
+      background: transparent;
+      box-shadow: none;
       animation: mockup-library-staging-bay 6.4s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual::before {
       inset: 0;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.12), transparent 18%),
-        linear-gradient(90deg, rgba(255, 122, 162, 0.02), rgba(132, 227, 255, 0.07), rgba(255, 186, 92, 0.03));
-      filter: blur(10px) saturate(1.04);
-      opacity: 0.72;
+      background: radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.07), transparent 20%);
+      filter: blur(12px) saturate(1.02);
+      opacity: 0.32;
       animation: mockup-library-bay-shimmer 10.6s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual::after {
       inset: 0;
-      background:
-        linear-gradient(180deg, rgba(3, 5, 10, 0.82), rgba(3, 5, 10, 0.08) 34%, rgba(3, 5, 10, 0.08) 66%, rgba(3, 5, 10, 0.82)),
-        linear-gradient(90deg, rgba(3, 5, 10, 0.88), rgba(3, 5, 10, 0.06) 18%, rgba(3, 5, 10, 0.06) 82%, rgba(3, 5, 10, 0.86));
-      opacity: 0.8;
+      background: none;
+      opacity: 0;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-signal-canvas,
@@ -3222,9 +3231,7 @@
     .mockup-library-status-node.is-music-card .mockup-library-status-signal-overlay {
       z-index: 1;
       background:
-        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.07), transparent 16%),
-        linear-gradient(90deg, rgba(4, 8, 14, 0.84), rgba(4, 8, 14, 0) 22%, rgba(4, 8, 14, 0) 78%, rgba(4, 8, 14, 0.84)),
-        linear-gradient(180deg, rgba(4, 8, 14, 0.78), rgba(4, 8, 14, 0.1) 34%, rgba(4, 8, 14, 0.1) 66%, rgba(4, 8, 14, 0.78));
+        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.04), transparent 18%);
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline,
@@ -4963,6 +4970,10 @@
         padding: 14px 12px;
       }
 
+      .mockup-library-status-board {
+        grid-template-columns: 1fr;
+      }
+
       .mockup-library-status-value {
         font-size: 13px;
       }
@@ -4992,6 +5003,12 @@
         --music-band-midline-shift: 0px;
         --music-staging-y-shift: 0px;
         --music-staging-size-adjust: 1px;
+        min-height: 90px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
+        min-height: 68px;
+        padding: 8px 8px 8px 12px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -5011,6 +5028,7 @@
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
         width: auto;
+        transform: translate(-1px, 6px);
       }
 
       .mockup-library-module,
@@ -5105,6 +5123,12 @@
         --music-band-midline-shift: 0px;
         --music-staging-y-shift: 0px;
         --music-staging-size-adjust: 1px;
+        min-height: 84px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
+        min-height: 62px;
+        padding: 8px 6px 7px 10px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -5127,7 +5151,15 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
         width: auto;
         right: auto;
-        font-size: calc(var(--music-label-size) + 3px);
+        transform: translate(0, 5px);
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-state-prefix {
+        font-size: calc(var(--music-label-size) - 2px);
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-state-value {
+        font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
       }
 
       .mockup-library-main-side {
@@ -5533,7 +5565,7 @@
                         <div class="mockup-library-status-node-rail">
                           <div class="mockup-library-status-node-name">Music</div>
                         </div>
-                        <div class="mockup-library-status-node-state">Staging</div>
+                        <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Staging</span></div>
                       </div>
                   </div>
                   <div class="mockup-library-status-node is-staging is-lower-third is-wrestling-card">
@@ -5976,16 +6008,24 @@
       let pricingMenuDelayTimer = 0;
       let shellRoutePath = '';
       const musicRowCanvasCleanups = [];
+      let hasInitializedMusicStatusSignals = false;
+      let hasPreloadedLibraryGlassImages = false;
 
       const initMusicStatusSignals = () => {
+        if (hasInitializedMusicStatusSignals) return;
         const cards = Array.from(document.querySelectorAll('.mockup-library-status-node.is-music-card'));
         if (!cards.length) return;
+        hasInitializedMusicStatusSignals = true;
         const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const mobileSignalMode = (window.matchMedia && window.matchMedia('(max-width: 720px)').matches)
+          || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
 
         cards.forEach((card, cardIndex) => {
+          if (card.dataset.musicSignalReady === 'true') return;
+          card.dataset.musicSignalReady = 'true';
           const canvas = card.querySelector('.mockup-library-status-signal-canvas');
           if (!canvas) return;
-          const context = canvas.getContext('2d');
+          const context = canvas.getContext('2d', { alpha: true, desynchronized: true });
           if (!context) return;
 
           let width = 0;
@@ -5994,7 +6034,7 @@
           let animationFrameId = 0;
           let lastTime = 0;
           let tick = Math.random() * 1000;
-          const particles = Array.from({ length: 20 }, (_, index) => {
+          const particles = Array.from({ length: mobileSignalMode ? 20 : 34 }, (_, index) => {
             const direction = index % 2 === 0 ? 1 : -1;
             return {
               x: Math.random(),
@@ -6012,7 +6052,7 @@
             const bounds = canvas.getBoundingClientRect();
             width = Math.max(1, Math.round(bounds.width));
             height = Math.max(1, Math.round(bounds.height));
-            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            dpr = Math.min(window.devicePixelRatio || 1, mobileSignalMode ? 1.5 : 2);
             canvas.width = Math.round(width * dpr);
             canvas.height = Math.round(height * dpr);
             context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -6116,8 +6156,8 @@
               context.stroke();
             }
 
-            const barCount = Math.max(18, Math.round(width / 14));
-            const usableWidth = width * 0.54;
+            const barCount = Math.max(mobileSignalMode ? 14 : 18, Math.round(width / (mobileSignalMode ? 16 : 14)));
+            const usableWidth = width * (mobileSignalMode ? 0.5 : 0.54);
             const startX = (width - usableWidth) / 2;
             const gap = 2;
             const barWidth = Math.max(2, (usableWidth - gap * (barCount - 1)) / barCount);
@@ -6228,6 +6268,7 @@
       };
 
       const randomBetween = (min, max) => min + (Math.random() * (max - min));
+      const isMobileOptimizedViewport = () => window.innerWidth <= 720;
 
       const getNextLibraryGlassImage = () => {
         if (!LIBRARY_GLASS_IMAGES.length) return '';
@@ -6244,16 +6285,34 @@
         if (!pane) return;
         const imageUrl = getNextLibraryGlassImage();
         if (!imageUrl) return;
+        const mobileViewport = isMobileOptimizedViewport();
         pane.style.backgroundImage = `
-          linear-gradient(135deg, rgba(255, 98, 146, 0.12), rgba(132, 227, 255, 0.08)),
+          linear-gradient(135deg, rgba(255, 98, 146, ${mobileViewport ? '0.08' : '0.12'}), rgba(132, 227, 255, ${mobileViewport ? '0.05' : '0.08'})),
           url("${imageUrl}")
         `;
-        pane.style.setProperty('--library-photo-scale', randomBetween(1.12, 1.3).toFixed(3));
-        pane.style.setProperty('--library-photo-shift-x', `${randomBetween(-26, 26).toFixed(1)}px`);
-        pane.style.setProperty('--library-photo-shift-y', `${randomBetween(-18, 18).toFixed(1)}px`);
-        pane.style.setProperty('--library-photo-rotate', `${randomBetween(-2.6, 2.6).toFixed(2)}deg`);
+        pane.style.setProperty('--library-photo-scale', mobileViewport ? '1.08' : randomBetween(1.12, 1.3).toFixed(3));
+        pane.style.setProperty('--library-photo-shift-x', `${mobileViewport ? 0 : randomBetween(-26, 26).toFixed(1)}px`);
+        pane.style.setProperty('--library-photo-shift-y', `${mobileViewport ? 0 : randomBetween(-18, 18).toFixed(1)}px`);
+        pane.style.setProperty('--library-photo-rotate', `${mobileViewport ? 0 : randomBetween(-2.6, 2.6).toFixed(2)}deg`);
         if (immediate) {
           pane.classList.add('is-active');
+        }
+      };
+
+      const preloadLibraryGlassImages = () => {
+        if (hasPreloadedLibraryGlassImages || !LIBRARY_GLASS_IMAGES.length) return;
+        hasPreloadedLibraryGlassImages = true;
+        const preload = () => {
+          LIBRARY_GLASS_IMAGES.slice(0, isMobileOptimizedViewport() ? 3 : LIBRARY_GLASS_IMAGES.length).forEach((src) => {
+            const image = new Image();
+            image.decoding = 'async';
+            image.src = src;
+          });
+        };
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(preload, { timeout: 1200 });
+        } else {
+          window.setTimeout(preload, 300);
         }
       };
 
@@ -6282,6 +6341,7 @@
         libraryGlassState.activePaneIndex = 0;
         libraryGlassState.activeImageIndex = -1;
         cycleLibraryGlass(true);
+        if (isMobileOptimizedViewport()) return;
         libraryGlassState.timer = window.setInterval(() => {
           if (activePanelKey !== 'library') return;
           cycleLibraryGlass(false);
@@ -6682,6 +6742,7 @@
         panel.overlay.setAttribute('aria-hidden', 'false');
         activePanelKey = panel.key;
         if (panel.key === 'library') {
+          initMusicStatusSignals();
           startLibraryGlass();
         } else {
           stopLibraryGlass();
@@ -6770,6 +6831,7 @@
         panel.overlay.setAttribute('aria-hidden', 'false');
         activePanelKey = panel.key;
         if (panel.key === 'library') {
+          initMusicStatusSignals();
           startLibraryGlass();
         } else {
           stopLibraryGlass();
@@ -6789,7 +6851,7 @@
         }, 240);
         queuePanelStage(() => {
           panel.overlay.classList.add('is-content-visible');
-        }, 980);
+        }, isMobileOptimizedViewport() ? 680 : 980);
         startPanelLoopWatcher(panel);
         if (updateBrowserRoute) {
           updateRoute(panel.route);
@@ -7027,7 +7089,7 @@
       }
 
       syncMobileShellMode();
-      initMusicStatusSignals();
+      preloadLibraryGlassImages();
 
       if (getPathname() !== getCurrentRoute()) {
         updateRoute(getCurrentRoute(), 'replaceState');
