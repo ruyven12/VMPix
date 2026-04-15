@@ -4700,7 +4700,7 @@ music: {
         m.innerHTML = `
           <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
             <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
-              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r4&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
+              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r5&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
