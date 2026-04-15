@@ -2840,17 +2840,13 @@
     }
 
     .mockup-library-status-node.is-music-card::before {
-      background:
-        linear-gradient(90deg, rgba(255, 132, 168, 0.16), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 52px 1px no-repeat,
-        linear-gradient(180deg, rgba(255, 132, 168, 0.18), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 1px 18px no-repeat;
+      background: none;
       animation: mockup-library-panel-edge-breathe 6.4s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card::after {
-      background:
-        linear-gradient(90deg, transparent 0 64%, rgba(132, 227, 255, 0.045) 64% 100%),
-        linear-gradient(90deg, rgba(255,255,255,0.024), rgba(255,255,255,0)) top right / 30% 100% no-repeat;
-      opacity: 0.82;
+      background: none;
+      opacity: 0;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
@@ -3341,7 +3337,7 @@
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
       padding-left: 0;
-      padding-top: 40px;
+      padding-top: 56px;
       min-width: 0;
       width: 100%;
       grid-column: 1 / -1;
@@ -5264,7 +5260,7 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 35px;
+        padding-top: 50px;
         width: 100%;
         grid-column: 1 / -1;
         align-self: start;
@@ -5419,7 +5415,7 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 33px;
+        padding-top: 48px;
         width: 100%;
         grid-column: 1 / -1;
         align-self: start;
@@ -6454,11 +6450,11 @@
           let animationFrameId = 0;
           let lastTime = 0;
           let tick = Math.random() * 1000;
-          const particles = Array.from({ length: mobileSignalMode ? 40 : 68 }, (_, index) => {
+          const particles = Array.from({ length: mobileSignalMode ? 160 : 272 }, (_, index) => {
             const direction = index % 2 === 0 ? 1 : -1;
             return {
               x: Math.random(),
-              y: 0.34 + Math.random() * 0.32,
+              y: 0.16 + Math.random() * 0.66,
               drift: (Math.random() * 0.12 + 0.04) * direction,
               speed: 0.18 + Math.random() * 0.36,
               radius: 0.8 + Math.random() * 1.8,
@@ -6480,7 +6476,7 @@
 
           const resetParticle = (particle) => {
             particle.x = Math.random();
-            particle.y = 0.3 + Math.random() * 0.4;
+            particle.y = 0.14 + Math.random() * 0.68;
             particle.drift = (Math.random() * 0.12 + 0.04) * (Math.random() > 0.5 ? 1 : -1);
             particle.speed = 0.18 + Math.random() * 0.36;
             particle.radius = 0.8 + Math.random() * 1.8;
@@ -6551,7 +6547,7 @@
             context.lineTo(width * 0.83, midY);
             context.stroke();
 
-            const waveformOpacity = prefersReducedMotion ? 0.12 : 0.2;
+            const waveformOpacity = prefersReducedMotion ? 0.16 : 0.28;
             for (let lineIndex = 0; lineIndex < 2; lineIndex += 1) {
               const amplitude = height * (lineIndex === 0 ? 0.1 : 0.065);
               const phase = lineIndex === 0 ? 0 : 1.4;
@@ -6576,11 +6572,11 @@
               context.stroke();
             }
 
-            const barCount = Math.max(mobileSignalMode ? 14 : 18, Math.round(width / (mobileSignalMode ? 16 : 14)));
-            const usableWidth = width * (mobileSignalMode ? 0.58 : 0.62);
+            const barCount = Math.max(mobileSignalMode ? 18 : 24, Math.round(width / (mobileSignalMode ? 13 : 11)));
+            const usableWidth = width * (mobileSignalMode ? 0.76 : 0.8);
             const startX = (width - usableWidth) / 2;
-            const gap = 2;
-            const barWidth = Math.max(2, (usableWidth - gap * (barCount - 1)) / barCount);
+            const gap = mobileSignalMode ? 2 : 2.25;
+            const barWidth = Math.max(4, (usableWidth - gap * (barCount - 1)) / barCount);
             for (let barIndex = 0; barIndex < barCount; barIndex += 1) {
               const ratio = barCount <= 1 ? 0.5 : barIndex / (barCount - 1);
               const centered = Math.abs(ratio - 0.5) / 0.5;
@@ -6591,7 +6587,7 @@
                 0.16 * Math.sin(tick * 9.6 - barIndex * 0.78);
               const randomPeak = 0.12 * (Math.sin(tick * 2.7 + barIndex * 1.9) + 1);
               const heightFactor = Math.max(0.14, envelope * (pulse + randomPeak));
-              const barHeight = Math.min(height * 0.34, height * 0.08 + height * 0.26 * heightFactor);
+              const barHeight = Math.min(height * 0.56, height * 0.12 + height * 0.42 * heightFactor);
               const x = startX + barIndex * (barWidth + gap);
               const y = midY - barHeight / 2;
               const barGradient = context.createLinearGradient(x, y, x, y + barHeight);
