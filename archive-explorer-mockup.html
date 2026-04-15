@@ -2707,13 +2707,13 @@
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
       position: absolute;
-      right: 10px;
+      right: 8px;
       top: 50%;
       z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 92px;
+      width: 112px;
       min-width: 0;
       min-height: 0;
       padding: 0;
@@ -2731,7 +2731,7 @@
       font-size: 9px;
       text-align: center;
       transform: translateY(-50%);
-      animation: mockup-library-staging-flicker 3.2s steps(2, end) infinite;
+      animation: mockup-library-staging-flicker 4.8s steps(2, end) infinite;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
@@ -2754,13 +2754,13 @@
         inset 0 0 0 1px rgba(132, 227, 255, 0.06),
         inset 0 -18px 28px rgba(4, 10, 18, 0.32);
       overflow: hidden;
-      animation: mockup-library-staging-bay 3.2s ease-in-out infinite;
+      animation: mockup-library-staging-bay 5.4s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-kicker {
       color: rgba(166, 241, 255, 0.84);
       text-shadow: 0 0 10px rgba(132, 227, 255, 0.14);
-      animation: mockup-library-line-pulse 2.8s ease-in-out infinite;
+      animation: mockup-library-line-pulse 5.2s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
@@ -2769,29 +2769,30 @@
       line-height: 1;
       text-shadow:
         0 0 8px rgba(132, 227, 255, 0.05);
-      animation: mockup-library-music-label 3.4s ease-in-out infinite;
+      animation: mockup-library-music-label 6.2s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
-      max-width: 46%;
-      padding-left: 16px;
-      padding-top: 12px;
-      line-height: 1.2;
+      max-width: 44%;
+      padding-left: 18px;
+      padding-top: 13px;
+      line-height: 1.24;
       font-size: 9px;
       color: rgba(214, 228, 236, 0.74);
+      position: relative;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
       position: relative;
       padding-right: 0;
-      min-height: 42px;
+      min-height: 40px;
       align-items: start;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
-      padding-left: 16px;
-      padding-top: 12px;
-      min-width: 144px;
+      padding-left: 18px;
+      padding-top: 11px;
+      min-width: 140px;
       gap: 0;
     }
 
@@ -2813,10 +2814,90 @@
 
     .mockup-library-status-node.is-music-card::before {
       background:
-        linear-gradient(90deg, rgba(255, 170, 196, 0.48), rgba(132, 227, 255, 0.08)) top 12px left 12px / 102px 1px no-repeat,
-        linear-gradient(180deg, rgba(132, 227, 255, 0.24), rgba(132, 227, 255, 0.02)) top 12px left 12px / 1px 66px no-repeat,
-        linear-gradient(90deg, rgba(255, 170, 196, 0.12), rgba(255, 170, 196, 0.02)) bottom 14px right 12px / 52px 1px no-repeat,
-        linear-gradient(180deg, rgba(255, 170, 196, 0.18), rgba(255, 170, 196, 0.02)) bottom 14px right 12px / 1px 18px no-repeat;
+        linear-gradient(90deg, rgba(255, 132, 168, 0.58), rgba(132, 227, 255, 0.1)) top 12px left 12px / 96px 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 132, 168, 0.18), rgba(132, 227, 255, 0.02)) top 12px left 12px / 1px 66px no-repeat,
+        linear-gradient(90deg, rgba(255, 132, 168, 0.16), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 52px 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 132, 168, 0.18), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 1px 18px no-repeat;
+      animation: mockup-library-panel-edge-breathe 6.4s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card::after {
+      background:
+        linear-gradient(135deg, rgba(255, 132, 168, 0.09), transparent 22%) top left / 46% 52% no-repeat,
+        linear-gradient(90deg, transparent 0 64%, rgba(132, 227, 255, 0.045) 64% 100%),
+        linear-gradient(90deg, rgba(255,255,255,0.024), rgba(255,255,255,0)) top right / 30% 100% no-repeat;
+      opacity: 0.82;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      bottom: -12px;
+      width: 116px;
+      height: 8px;
+      background:
+        linear-gradient(90deg,
+          rgba(255, 132, 168, 0) 0,
+          rgba(255, 132, 168, 0.5) 10%,
+          rgba(255, 132, 168, 0.12) 22%,
+          rgba(132, 227, 255, 0.4) 34%,
+          rgba(255, 132, 168, 0.18) 46%,
+          rgba(255, 132, 168, 0.5) 58%,
+          rgba(132, 227, 255, 0.16) 70%,
+          rgba(255, 132, 168, 0.4) 84%,
+          rgba(255, 132, 168, 0) 100%);
+      clip-path: polygon(0 72%, 6% 72%, 12% 24%, 18% 72%, 26% 72%, 32% 38%, 38% 72%, 46% 72%, 52% 20%, 58% 72%, 68% 72%, 74% 44%, 80% 72%, 88% 72%, 94% 32%, 100% 72%, 100% 100%, 0 100%);
+      opacity: 0.78;
+      filter: drop-shadow(0 0 6px rgba(255, 132, 168, 0.16));
+      animation: mockup-library-waveform-idle 4.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual::after {
+      content: "";
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.045), rgba(255,255,255,0)) top 12px right 12px / 54px 1px no-repeat,
+        linear-gradient(180deg, rgba(132, 227, 255, 0.14), rgba(132, 227, 255, 0.02)) top 12px right 12px / 1px 44px no-repeat,
+        linear-gradient(180deg, rgba(4, 10, 18, 0), rgba(4, 10, 18, 0.36)) bottom / 100% 42% no-repeat;
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual > * {
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-music-card {
+      isolation: isolate;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
+      content: "";
+      position: absolute;
+      left: 116px;
+      right: 124px;
+      top: 22px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 132, 168, 0.18), rgba(132, 227, 255, 0.06), rgba(132, 227, 255, 0));
+      opacity: 0.74;
+      animation: mockup-library-divider-pulse 5.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual {
+      position: absolute;
+      inset: 8px 8px 8px auto;
+      width: 112px;
+      clip-path: polygon(0 8px, 12px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 12px) 100%, 0 100%);
+    }
+
+    .mockup-library-status-node.is-music-card > .mockup-library-status-visual::before {
+      animation: mockup-library-bay-shimmer 9.4s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
@@ -2978,6 +3059,134 @@
         linear-gradient(180deg, rgba(4, 10, 18, 0), rgba(4, 10, 18, 0.42)) bottom / 100% 46% no-repeat,
         linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
       opacity: 0.9;
+    }
+
+    /* Final music panel polish override: keep this block late so it wins over earlier mockup passes */
+    .mockup-library-status-node.is-music-card {
+      border-color: rgba(255, 116, 156, 0.18);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 116, 156, 0.04),
+        0 0 14px rgba(255, 116, 156, 0.05);
+      isolation: isolate;
+    }
+
+    .mockup-library-status-node.is-music-card::before {
+      background:
+        linear-gradient(90deg, rgba(255, 122, 162, 0.64), rgba(132, 227, 255, 0.06)) top 12px left 14px / 92px 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 122, 162, 0.2), rgba(132, 227, 255, 0.02)) top 12px left 14px / 1px 64px no-repeat,
+        linear-gradient(90deg, rgba(255, 122, 162, 0.14), rgba(255, 122, 162, 0.02)) bottom 14px right 14px / 44px 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 122, 162, 0.14), rgba(255, 122, 162, 0.02)) bottom 14px right 14px / 1px 16px no-repeat;
+      opacity: 0.92;
+      animation: mockup-library-panel-edge-breathe 7.2s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card::after {
+      background:
+        linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.055) 46%, rgba(255,255,255,0) 62%) left -26% top 0 / 40% 100% no-repeat,
+        linear-gradient(135deg, rgba(255, 122, 162, 0.06), transparent 22%) top left / 42% 52% no-repeat,
+        linear-gradient(90deg, transparent 0 64%, rgba(132, 227, 255, 0.04) 64% 100%);
+      opacity: 0.78;
+      animation: mockup-library-panel-sheen 10.8s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
+      min-height: 38px;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
+      left: 118px;
+      right: 126px;
+      top: 21px;
+      opacity: 0.58;
+      background: linear-gradient(90deg, rgba(255, 122, 162, 0.18), rgba(132, 227, 255, 0.05), rgba(132, 227, 255, 0));
+      animation: mockup-library-divider-pulse 6.2s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
+      padding-left: 16px;
+      padding-top: 10px;
+      min-width: 138px;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-rail::before {
+      width: 4px;
+      height: 16px;
+      top: 9px;
+      border-color: rgba(132, 227, 255, 0.1);
+      background: linear-gradient(180deg, rgba(132, 227, 255, 0.1), rgba(132, 227, 255, 0.02));
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
+      font-size: 13px;
+      letter-spacing: 0.105em;
+      text-shadow: 0 0 7px rgba(255,255,255,0.03);
+      animation: mockup-library-music-label 6.8s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
+      max-width: 43%;
+      padding-left: 18px;
+      padding-top: 14px;
+      line-height: 1.22;
+      font-size: 9px;
+      color: rgba(216, 228, 235, 0.76);
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
+      left: 18px;
+      bottom: -10px;
+      width: 104px;
+      height: 7px;
+      opacity: 0.68;
+      filter: drop-shadow(0 0 5px rgba(255, 122, 162, 0.14));
+      animation: mockup-library-waveform-idle 5.8s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
+      right: 8px;
+      width: 112px;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+      letter-spacing: 0.16em;
+      font-size: 9px;
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
+      animation: mockup-library-staging-flicker 5.8s steps(2, end) infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual {
+      inset: 8px 8px 8px auto;
+      width: 112px;
+      background:
+        radial-gradient(circle at 30% 34%, rgba(132, 227, 255, 0.14), transparent 16%),
+        radial-gradient(circle at 70% 58%, rgba(132, 227, 255, 0.06), transparent 22%),
+        linear-gradient(115deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 34%),
+        linear-gradient(135deg, rgba(17, 38, 50, 0.68), rgba(9, 18, 28, 0.88));
+      box-shadow:
+        inset 0 0 0 1px rgba(132, 227, 255, 0.05),
+        inset 0 -16px 24px rgba(4, 10, 18, 0.28);
+      animation: mockup-library-staging-bay 6.4s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual::before {
+      background:
+        radial-gradient(circle at 50% 22px, rgba(132, 227, 255, 0.36) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 22px, rgba(132, 227, 255, 0.1) 0 13px, transparent 14px),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 42%);
+      filter: blur(8px) saturate(1.02);
+      opacity: 0.8;
+      animation: mockup-library-bay-shimmer 10.6s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-visual::after {
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0)) top 12px right 12px / 52px 1px no-repeat,
+        linear-gradient(180deg, rgba(132, 227, 255, 0.12), rgba(132, 227, 255, 0.02)) top 12px right 12px / 1px 42px no-repeat,
+        linear-gradient(180deg, rgba(4, 10, 18, 0), rgba(4, 10, 18, 0.34)) bottom / 100% 40% no-repeat;
+      opacity: 0.68;
     }
 
     .mockup-library-status-visual.is-wrestling::before {
@@ -3279,6 +3488,58 @@
           inset -18px 0 24px rgba(132, 227, 255, 0.06),
           inset 0 0 40px rgba(255, 168, 72, 0.08);
         filter: saturate(1.08) brightness(1.06);
+      }
+    }
+
+    @keyframes mockup-library-panel-edge-breathe {
+      0%, 100% {
+        opacity: 0.9;
+        filter: brightness(0.98);
+      }
+      50% {
+        opacity: 1;
+        filter: brightness(1.08);
+      }
+    }
+
+    @keyframes mockup-library-divider-pulse {
+      0%, 100% {
+        opacity: 0.42;
+        transform: scaleX(0.98);
+      }
+      50% {
+        opacity: 0.82;
+        transform: scaleX(1);
+      }
+    }
+
+    @keyframes mockup-library-waveform-idle {
+      0%, 100% {
+        opacity: 0.62;
+        transform: translateY(0);
+      }
+      50% {
+        opacity: 0.94;
+        transform: translateY(-1px);
+      }
+    }
+
+    @keyframes mockup-library-bay-shimmer {
+      0%, 100% {
+        opacity: 0.78;
+        transform: translateX(0);
+      }
+      48% {
+        opacity: 0.84;
+        transform: translateX(0);
+      }
+      58% {
+        opacity: 0.96;
+        transform: translateX(2px);
+      }
+      70% {
+        opacity: 0.8;
+        transform: translateX(0);
       }
     }
 
@@ -4674,6 +4935,35 @@
         width: 96px;
       }
 
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
+        min-width: 124px;
+        padding-left: 15px;
+        padding-top: 10px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
+        font-size: 12px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
+        max-width: 46%;
+        padding-left: 15px;
+        padding-top: 11px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
+        width: 90px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
+        left: 104px;
+        right: 110px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
+        width: 96px;
+      }
+
       .mockup-library-module,
       .mockup-library-entry-card,
       .mockup-library-scope-card,
@@ -4753,6 +5043,39 @@
       .mockup-library-status-visual {
         width: 84px;
         right: 8px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
+        min-width: 110px;
+        padding-left: 13px;
+        padding-top: 9px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
+        font-size: 11px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
+        max-width: 48%;
+        padding-left: 13px;
+        padding-top: 10px;
+        font-size: 8px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
+        width: 78px;
+        bottom: -8px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
+        left: 92px;
+        right: 98px;
+      }
+
+      .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
+        width: 84px;
+        right: 8px;
+        font-size: 8px;
       }
 
       .mockup-library-main-side {
