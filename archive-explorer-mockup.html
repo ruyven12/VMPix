@@ -2341,16 +2341,15 @@
       filter: blur(4px);
     }
 
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 252ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 288ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 324ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 360ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 396ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 432ms; }
-    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(7) { animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 468ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 260ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 320ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 380ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 440ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 500ms; }
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-copy-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 560ms; }
 
     .mockup-library-overlay.is-content-visible .mockup-library-status-readout {
-      animation: mockup-library-copy-rise 280ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 510ms;
+      animation: mockup-library-copy-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 640ms;
     }
 
     .mockup-library-status-readout {
@@ -3085,7 +3084,10 @@
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
-      align-self: start;
+      grid-column: 1 / -1;
+      grid-row: 1 / -1;
+      align-self: center;
+      justify-self: center;
       transform: translateY(0);
       font-size: calc(var(--music-label-size) + 14px);
       line-height: 1;
@@ -3113,7 +3115,10 @@
     }
 
     .mockup-library-status-node.is-skies-card .mockup-library-status-node-topline,
-    .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline {
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-topline {
+      min-height: 104px;
+      padding: 8px 10px 8px 14px;
       display: grid;
       grid-template-columns: auto 1fr auto;
       grid-template-rows: 1fr 1fr;
@@ -3121,31 +3126,14 @@
       gap: 0;
     }
 
-    .mockup-library-status-node.is-skies-card .mockup-library-status-node-name {
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-name,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-name,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-name {
       grid-column: 1 / -1;
-      grid-row: 1;
-      align-self: start;
+      grid-row: 1 / -1;
+      align-self: center;
       justify-self: center;
-      width: auto;
-      font-size: calc(var(--music-label-size) + 12px);
-      line-height: 1;
-      letter-spacing: 0.105em;
-      text-align: center;
-      color: rgba(255, 214, 214, 0.98);
-      text-shadow:
-        0 0 10px rgba(255, 144, 144, 0.42),
-        0 0 20px rgba(255, 88, 88, 0.28),
-        0 0 34px rgba(255, 62, 62, 0.14);
-      animation: mockup-library-music-text-shimmer 3.2s ease-in-out infinite;
-      position: relative;
-      z-index: 10;
-    }
-
-    .mockup-library-status-node.is-astro-card .mockup-library-status-node-name {
-      grid-column: 1 / -1;
-      grid-row: 1;
-      align-self: start;
-      justify-self: center;
+      transform: translateY(0);
       width: auto;
       font-size: calc(var(--music-label-size) + 14px);
       line-height: 1;
@@ -3161,16 +3149,18 @@
       z-index: 10;
     }
 
-    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state {
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-state {
       display: flex;
       align-items: center;
       gap: 6px;
       grid-column: 1 / -1;
-      grid-row: 2;
-      align-self: start;
+      grid-row: 1 / -1;
+      align-self: center;
       justify-self: center;
       width: auto;
-      transform: translateY(-1px);
+      transform: translateY(calc(var(--music-label-size) + 10px));
       padding: 0;
       border: 0;
       min-width: 0;
@@ -3185,37 +3175,44 @@
       text-shadow:
         0 0 7px rgba(255, 160, 92, 0.3),
         0 0 14px rgba(255, 122, 54, 0.1);
-      animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
+      position: relative;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state-prefix,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state-prefix,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-state-prefix {
+      color: rgba(255, 255, 255, 0.5);
+      text-shadow: none;
+      letter-spacing: 0.12em;
+      font-size: calc(var(--music-label-size) - 1px);
+      line-height: 1;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state-value,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state-value,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-state-value {
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
+    }
+
+    .mockup-library-status-node.is-archive-offline-card {
+      --music-label-size: 13px;
+      --music-staging-size-adjust: 1px;
+      min-height: 120px;
+    }
+
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-copy {
       position: relative;
       z-index: 10;
     }
 
-    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      grid-column: 1 / -1;
-      grid-row: 2;
-      align-self: start;
-      justify-self: center;
-      width: auto;
-      transform: translateY(2px);
-      padding: 0;
-      border: 0;
-      min-width: 0;
-      background: transparent;
-      box-shadow: none;
-      clip-path: none;
-      text-align: right;
-      letter-spacing: 0.16em;
-      font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
-      line-height: 1;
-      color: rgba(255, 208, 144, 0.96);
-      text-shadow:
-        0 0 7px rgba(255, 160, 92, 0.3),
-        0 0 14px rgba(255, 122, 54, 0.1);
-      position: relative;
-      z-index: 10;
+    .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-copy {
+      display: none;
     }
 
     .mockup-library-status-node.is-skies-card .mockup-library-status-node-copy,
@@ -3261,10 +3258,11 @@
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-value {
-      color: rgba(255, 208, 144, 0.96);
+      color: rgba(182, 194, 208, 0.9);
       text-shadow:
-        0 0 7px rgba(255, 160, 92, 0.3),
-        0 0 14px rgba(255, 122, 54, 0.1);
+        0 0 8px rgba(166, 182, 198, 0.22),
+        0 0 18px rgba(110, 126, 148, 0.12);
+      animation: none;
     }
 
     .mockup-library-status-node-topline {
@@ -3549,7 +3547,22 @@
       animation: none;
     }
 
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state-value,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state-value {
+      color: rgba(182, 194, 208, 0.9);
+      text-shadow:
+        0 0 8px rgba(166, 182, 198, 0.22),
+        0 0 18px rgba(110, 126, 148, 0.12);
+      animation: none;
+    }
+
     .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-music-card .mockup-library-status-node-state-value {
+      animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-value,
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-skies-card .mockup-library-status-node-state-value,
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-astro-card .mockup-library-status-node-state-value {
       animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
     }
 
@@ -3614,6 +3627,9 @@
     }
 
     .mockup-library-status-node.is-skies-card {
+      --music-label-size: 13px;
+      --music-staging-size-adjust: 1px;
+      min-height: 120px;
       position: relative;
       overflow: hidden;
     }
@@ -3732,6 +3748,9 @@
     }
 
     .mockup-library-status-node.is-astro-card {
+      --music-label-size: 13px;
+      --music-staging-size-adjust: 1px;
+      min-height: 120px;
       position: relative;
       overflow: hidden;
       isolation: isolate;
@@ -5819,6 +5838,21 @@
         opacity: 0.46;
       }
 
+      .mockup-library-status-node.is-skies-card,
+      .mockup-library-status-node.is-astro-card,
+      .mockup-library-status-node.is-archive-offline-card {
+        --music-label-size: 12px;
+        --music-staging-size-adjust: 1px;
+        min-height: 114px;
+      }
+
+      .mockup-library-status-node.is-skies-card .mockup-library-status-node-topline,
+      .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline,
+      .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-topline {
+        min-height: 98px;
+        padding: 8px 8px 8px 12px;
+      }
+
       .mockup-library-status-node.is-astro-card .astroCardMoonWrap {
         width: clamp(58px, 24%, 74px);
       }
@@ -5998,6 +6032,21 @@
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-prefix {
         font-size: calc(var(--music-label-size) - 1px);
+      }
+
+      .mockup-library-status-node.is-skies-card,
+      .mockup-library-status-node.is-astro-card,
+      .mockup-library-status-node.is-archive-offline-card {
+        --music-label-size: 11px;
+        --music-staging-size-adjust: 1px;
+        min-height: 110px;
+      }
+
+      .mockup-library-status-node.is-skies-card .mockup-library-status-node-topline,
+      .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline,
+      .mockup-library-status-node.is-archive-offline-card .mockup-library-status-node-topline {
+        min-height: 94px;
+        padding: 8px 6px 7px 10px;
       }
 
       .mockup-library-status-visual.is-wrestling::before {
@@ -6333,13 +6382,12 @@
       animation: mockup-library-sci-fi-rise 220ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 660ms !important;
     }
 
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 780ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 860ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 940ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1020ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1100ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1180ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(7) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1260ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 760ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 850ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 940ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1030ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1120ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-sci-fi-rise 170ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1210ms !important; }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-readout {
       animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1360ms !important;
@@ -6505,7 +6553,7 @@
                         <div class="mockup-library-status-node-kicker">Next Performance Layer</div>
                       <div class="mockup-library-status-node-name">Wrestling</div>
                       </div>
-                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Staging</span></div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Offline</span></div>
                     </div>
                     <div class="mockup-library-status-node-copy">Ring-energy and belt-glow language for the next performance archive.</div>
                   </div>
@@ -6521,7 +6569,7 @@
                     </div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Skies Above</div>
-                      <div class="mockup-library-status-node-state">Staging</div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Offline</span></div>
                     </div>
                     <div class="mockup-library-status-node-copy">Slow sunset atmosphere for the umbrella branch holding the visual worlds.</div>
                   </div>
@@ -6543,33 +6591,23 @@
                     <div class="astroCardBgOverlay" aria-hidden="true"></div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Astrophotography</div>
-                      <div class="mockup-library-status-node-state">Offline</div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Offline</span></div>
                     </div>
                     <div class="mockup-library-status-node-copy">Deep-space signal with a comet pass and starfield pulse.</div>
                   </div>
-                  <div class="mockup-library-status-node is-offline">
+                  <div class="mockup-library-status-node is-offline is-archive-offline-card">
                     <div class="mockup-library-status-visual is-wildlife"></div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Wildlife</div>
-                      <div class="mockup-library-status-node-state">Offline</div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Offline</span></div>
                     </div>
-                    <div class="mockup-library-status-node-copy">A restrained wildlife signature with bird-like motion, not a literal photo tile.</div>
                   </div>
-                  <div class="mockup-library-status-node is-offline">
-                    <div class="mockup-library-status-visual is-lunar"></div>
-                    <div class="mockup-library-status-node-topline">
-                      <div class="mockup-library-status-node-name">Lunar</div>
-                      <div class="mockup-library-status-node-state">Offline</div>
-                    </div>
-                    <div class="mockup-library-status-node-copy">Moon-led identity with a slow floating body and dim orbital haze.</div>
-                  </div>
-                  <div class="mockup-library-status-node is-offline">
+                  <div class="mockup-library-status-node is-offline is-archive-offline-card">
                     <div class="mockup-library-status-visual is-scenery"></div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Scenery</div>
-                      <div class="mockup-library-status-node-state">Offline</div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Offline</span></div>
                     </div>
-                    <div class="mockup-library-status-node-copy">Mountain-form silhouette and soft horizon light for landscape work.</div>
                   </div>
                 </div>
                 <div class="mockup-library-status-readout">
