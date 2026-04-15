@@ -3145,7 +3145,7 @@
       --music-staging-y-shift: 0px;
       --music-staging-size-adjust: 1px;
       border-color: rgba(255, 116, 156, 0.18);
-      min-height: 96px;
+      min-height: 116px;
       padding: 10px 14px 11px;
       box-shadow:
         inset 0 0 0 1px rgba(255, 116, 156, 0.04),
@@ -3173,7 +3173,7 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
-      min-height: 74px;
+      min-height: 94px;
       padding: 8px 10px 8px 14px;
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -3265,6 +3265,10 @@
         0 0 8px rgba(255, 160, 92, 0.34),
         0 0 18px rgba(255, 122, 54, 0.14);
       animation: none;
+    }
+
+    .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-music-card .mockup-library-status-node-state-value {
+      animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual {
@@ -4645,6 +4649,24 @@
       }
     }
 
+    @keyframes mockup-library-staging-enter {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+        filter: brightness(0.86);
+      }
+      65% {
+        opacity: 1;
+        transform: translate3d(0, -1px, 0);
+        filter: brightness(1.06);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: brightness(1);
+      }
+    }
+
     @keyframes mockup-library-module-sweep {
       0% { transform: translateX(-180%); }
       100% { transform: translateX(340%); }
@@ -5097,11 +5119,11 @@
         --music-band-midline-shift: 0px;
         --music-staging-y-shift: 0px;
         --music-staging-size-adjust: 1px;
-        min-height: 90px;
+        min-height: 110px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
-        min-height: 68px;
+        min-height: 88px;
         padding: 8px 8px 8px 12px;
       }
 
@@ -5260,11 +5282,11 @@
         --music-band-midline-shift: 0px;
         --music-staging-y-shift: 0px;
         --music-staging-size-adjust: 1px;
-        min-height: 84px;
+        min-height: 104px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
-        min-height: 62px;
+        min-height: 82px;
         padding: 8px 6px 7px 10px;
       }
 
@@ -6285,7 +6307,7 @@
             const direction = index % 2 === 0 ? 1 : -1;
             return {
               x: Math.random(),
-              y: 0.44 + Math.random() * 0.12,
+              y: 0.34 + Math.random() * 0.32,
               drift: (Math.random() * 0.12 + 0.04) * direction,
               speed: 0.18 + Math.random() * 0.36,
               radius: 0.8 + Math.random() * 1.8,
@@ -6307,7 +6329,7 @@
 
           const resetParticle = (particle) => {
             particle.x = Math.random();
-            particle.y = 0.42 + Math.random() * 0.16;
+            particle.y = 0.3 + Math.random() * 0.4;
             particle.drift = (Math.random() * 0.12 + 0.04) * (Math.random() > 0.5 ? 1 : -1);
             particle.speed = 0.18 + Math.random() * 0.36;
             particle.radius = 0.8 + Math.random() * 1.8;
@@ -6435,10 +6457,10 @@
               drawParticle(particle, index);
               if (prefersReducedMotion) return;
               particle.x += particle.drift * 0.0014;
-              particle.y -= particle.speed * 0.0017;
-              if (particle.y < 0.22 || particle.x < -0.08 || particle.x > 1.08) {
+              particle.y -= particle.speed * 0.00145;
+              if (particle.y < 0.14 || particle.x < -0.08 || particle.x > 1.08) {
                 resetParticle(particle);
-                particle.y = 0.64 + Math.random() * 0.12;
+                particle.y = 0.72 + Math.random() * 0.18;
               }
             });
 
