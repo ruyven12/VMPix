@@ -4700,22 +4700,50 @@ music: {
         m.innerHTML = `
           <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
             <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
-              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260408-testing-ui-r2&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
+              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
         testingFrame = document.getElementById('vmTestingRouteFrame');
+        const testingPanelRoot = document.getElementById('vmTestingPanelRoot');
+        const syncTestingFrameViewport = () => {
+          if (!testingFrame || !testingPanelRoot) return;
+          const topbar = document.querySelector('.hudTopbar');
+          const topbarHeight = topbar ? Math.ceil(topbar.getBoundingClientRect().height) : 0;
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+          const minFrameHeight = Math.max(viewportHeight - topbarHeight - 16, 320);
+          testingPanelRoot.style.minHeight = `${minFrameHeight}px`;
+          const frameWrap = testingPanelRoot.firstElementChild;
+          if (frameWrap) {
+            frameWrap.style.minHeight = `${minFrameHeight}px`;
+            frameWrap.style.height = `${minFrameHeight}px`;
+          }
+          testingFrame.style.minHeight = `${minFrameHeight}px`;
+          testingFrame.style.height = `${minFrameHeight}px`;
+        };
+        syncTestingFrameViewport();
         if (testingFrame) {
           testingFrame.addEventListener('load', () => {
+            syncTestingFrameViewport();
             syncTestingFrameRoute();
           }, { once: true });
         }
+        window.requestAnimationFrame(() => {
+          syncTestingFrameViewport();
+        });
+        window.addEventListener('resize', syncTestingFrameViewport, { passive: true });
+        m.__vmTestingViewportSync = syncTestingFrameViewport;
       },
       onEnter(){
         setDocumentTitle('Testing');
         syncTestingFrameRoute();
       },
       onLeave(){
+        const m = mount();
+        if (m && typeof m.__vmTestingViewportSync === 'function') {
+          window.removeEventListener('resize', m.__vmTestingViewportSync);
+          delete m.__vmTestingViewportSync;
+        }
         testingFrame = null;
       }
     },

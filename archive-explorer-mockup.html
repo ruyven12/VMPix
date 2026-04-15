@@ -4814,10 +4814,18 @@
       let panelStageTimerIds = [];
       let pricingMenuDelayTimer = 0;
       let shellRoutePath = '';
+      let hasAppliedInitialShellState = false;
       const libraryPhotoAtmos = libraryOverlay ? libraryOverlay.querySelector('.mockup-library-photo-atmos') : null;
       const libraryPhotoPanes = libraryPhotoAtmos ? Array.from(libraryPhotoAtmos.querySelectorAll('.mockup-library-photo-pane')) : [];
       const LIBRARY_GLASS_IMAGES = [
-        'assets/voodoo-doll-center.png'
+        'assets/testing-portfolio/glass-photo-1.jpg',
+        'assets/testing-portfolio/glass-photo-2.jpg',
+        'assets/testing-portfolio/glass-photo-3.jpg',
+        'assets/testing-portfolio/glass-photo-4.jpg',
+        'assets/testing-portfolio/glass-photo-5.jpg',
+        'assets/testing-portfolio/glass-photo-6.jpg',
+        'assets/testing-portfolio/glass-photo-7.jpg',
+        'assets/testing-portfolio/glass-photo-8.jpg'
       ];
       const libraryGlassState = {
         timer: 0,
@@ -5080,6 +5088,24 @@
         if (pathname === panels.about.route) return panels.about.route;
         if (pathname === panels.pricing.route) return panels.pricing.route;
         return ROUTE_HOME;
+      };
+
+      const applyInitialShellState = () => {
+        if (hasAppliedInitialShellState) return;
+        hasAppliedInitialShellState = true;
+        if (getCurrentRoute() === panels.library.route) {
+          applyPanelStateImmediately(panels.library);
+          return;
+        }
+        if (getCurrentRoute() === panels.about.route) {
+          applyPanelStateImmediately(panels.about);
+          return;
+        }
+        if (getCurrentRoute() === panels.pricing.route) {
+          applyPanelStateImmediately(panels.pricing);
+          return;
+        }
+        applyHomeStateImmediately();
       };
 
       const updateRoute = (route, mode = 'pushState') => {
@@ -5457,19 +5483,7 @@
       }, 760);
 
       window.setTimeout(() => {
-        if (getCurrentRoute() === panels.library.route) {
-          applyPanelStateImmediately(panels.library);
-          return;
-        }
-        if (getCurrentRoute() === panels.about.route) {
-          applyPanelStateImmediately(panels.about);
-          return;
-        }
-        if (getCurrentRoute() === panels.pricing.route) {
-          applyPanelStateImmediately(panels.pricing);
-          return;
-        }
-        applyHomeStateImmediately();
+        applyInitialShellState();
       }, 900);
 
       aboutHitbox.addEventListener('click', () => {
@@ -5573,6 +5587,10 @@
               ? panels.pricing.route
               : ROUTE_HOME;
         shellRoutePath = nextRoute;
+        if (!hasAppliedInitialShellState) {
+          applyInitialShellState();
+          return;
+        }
         if (nextRoute === panels.library.route) {
           if (activePanelKey !== panels.library.key) {
             if (activePanelKey) {
@@ -5614,6 +5632,12 @@
         if (!activePanelKey) return;
         resetPanelTransforms(getActivePanel());
       });
+
+      if (getCurrentRoute() !== ROUTE_HOME) {
+        window.requestAnimationFrame(() => {
+          applyInitialShellState();
+        });
+      }
 
       if (getPathname() !== getCurrentRoute()) {
         updateRoute(getCurrentRoute(), 'replaceState');

@@ -1074,15 +1074,20 @@
     padding: 0;
     text-align: initial;
     background: transparent;
-    touch-action: none;
+    min-height: 100%;
+    overflow: visible;
+    touch-action: pan-y;
   }
 
   body.route-testing .hudStub.hudMain{
+    display: block;
     padding: 0;
     border: 0;
     background: transparent;
     box-shadow: none;
-    touch-action: none;
+    min-height: 100%;
+    overflow: visible;
+    touch-action: pan-y;
   }
 
   body.route-testing .hudStub.hudMain::before{
@@ -1092,8 +1097,8 @@
   body.route-testing,
   body.route-testing #hudMainMount,
   body.route-testing iframe{
-    touch-action: none;
-    overscroll-behavior: none;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
 
   body.route-testing #hudEmbers,
@@ -1117,6 +1122,21 @@
 
   body.route-testing .hudTopbar::after{
     display: none;
+  }
+
+  @media (max-width: 760px){
+    body.route-testing .hudMainPlain,
+    body.route-testing #hudMainMount,
+    body.route-testing .hudStub.hudMain{
+      width: 100%;
+      min-width: 0;
+      min-height: 100%;
+    }
+
+    body.route-testing .hudStub.hudMain{
+      align-self: stretch;
+      justify-self: stretch;
+    }
   }
 
 
