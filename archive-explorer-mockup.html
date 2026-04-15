@@ -2283,7 +2283,8 @@
 
     .mockup-library-status {
       min-width: 232px;
-      width: min(100%, 980px);
+      width: calc(100% - 20px);
+      max-width: none;
       padding: 14px 16px;
       border: 1px solid rgba(96, 222, 255, 0.18);
       border-radius: 18px;
@@ -2291,7 +2292,7 @@
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.04),
         0 0 26px rgba(96, 222, 255, 0.08);
-      text-align: left;
+      text-align: center;
       opacity: 0;
       transform: translateY(6px);
       filter: blur(4px);
@@ -2443,6 +2444,7 @@
       position: relative;
       padding-bottom: 11px;
       margin-bottom: 0;
+      text-align: center;
     }
 
     .mockup-library-status-value::after {
@@ -5825,7 +5827,7 @@
               </div>
               <div class="mockup-library-status">
                 <div class="mockup-library-status-label">Portfolio Status</div>
-                <div class="mockup-library-status-value">One live archive branch is online now, with the rest of the portfolio staged as the next layers of the system come online.</div>
+                <div class="mockup-library-status-value">UI Build - Nothing Connected</div>
                 <div class="mockup-library-status-board">
                   <div class="mockup-library-status-node is-staging is-lower-third is-music-card">
                       <div class="mockup-library-status-visual is-music" aria-hidden="true">
