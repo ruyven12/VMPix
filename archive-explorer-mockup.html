@@ -2720,7 +2720,6 @@
 
     .mockup-library-status-node.is-wrestling-card::after {
       background:
-        linear-gradient(135deg, rgba(255, 170, 196, 0.08), transparent 24%) top left / 54% 56% no-repeat,
         linear-gradient(90deg, transparent 0 64%, rgba(255, 170, 196, 0.055) 64% 100%),
         linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)) top right / 30% 100% no-repeat;
     }
@@ -2842,8 +2841,6 @@
 
     .mockup-library-status-node.is-music-card::before {
       background:
-        linear-gradient(90deg, rgba(255, 132, 168, 0.58), rgba(132, 227, 255, 0.1)) top 12px left 12px / 96px 1px no-repeat,
-        linear-gradient(180deg, rgba(255, 132, 168, 0.18), rgba(132, 227, 255, 0.02)) top 12px left 12px / 1px 66px no-repeat,
         linear-gradient(90deg, rgba(255, 132, 168, 0.16), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 52px 1px no-repeat,
         linear-gradient(180deg, rgba(255, 132, 168, 0.18), rgba(255, 132, 168, 0.02)) bottom 14px right 12px / 1px 18px no-repeat;
       animation: mockup-library-panel-edge-breathe 6.4s ease-in-out infinite;
@@ -2851,7 +2848,6 @@
 
     .mockup-library-status-node.is-music-card::after {
       background:
-        linear-gradient(135deg, rgba(255, 132, 168, 0.09), transparent 22%) top left / 46% 52% no-repeat,
         linear-gradient(90deg, transparent 0 64%, rgba(132, 227, 255, 0.045) 64% 100%),
         linear-gradient(90deg, rgba(255,255,255,0.024), rgba(255,255,255,0)) top right / 30% 100% no-repeat;
       opacity: 0.82;
@@ -3045,7 +3041,6 @@
       inset: 6px;
       border-radius: 12px;
       background:
-        linear-gradient(90deg, rgba(255, 176, 122, 0.05), transparent 22%, transparent 78%, rgba(255, 176, 122, 0.04)),
         linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 30%, rgba(0, 0, 0, 0.16) 100%);
       opacity: 0.72;
       pointer-events: none;
@@ -3065,9 +3060,10 @@
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
       grid-column: 1;
       grid-row: 1;
-      min-width: 0;
+      min-width: 128px;
       max-width: none;
       align-self: start;
+      justify-items: center;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline::after {
@@ -3098,6 +3094,9 @@
       letter-spacing: 0.105em;
       text-shadow: 0 0 7px rgba(255,255,255,0.03);
       animation: none;
+      text-align: center;
+      justify-self: center;
+      width: 100%;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
@@ -3312,8 +3311,6 @@
 
     .mockup-library-status-node.is-music-card::before {
       background:
-        linear-gradient(90deg, rgba(255, 122, 162, 0.64), rgba(132, 227, 255, 0.06)) top 12px left 14px / 92px 1px no-repeat,
-        linear-gradient(180deg, rgba(255, 122, 162, 0.2), rgba(132, 227, 255, 0.02)) top 12px left 14px / 1px 64px no-repeat,
         linear-gradient(90deg, rgba(255, 122, 162, 0.14), rgba(255, 122, 162, 0.02)) bottom 14px right 14px / 44px 1px no-repeat,
         linear-gradient(180deg, rgba(255, 122, 162, 0.14), rgba(255, 122, 162, 0.02)) bottom 14px right 14px / 1px 16px no-repeat;
       opacity: 0.92;
@@ -3323,7 +3320,6 @@
     .mockup-library-status-node.is-music-card::after {
       background:
         linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.055) 46%, rgba(255,255,255,0) 62%) left -26% top 0 / 40% 100% no-repeat,
-        linear-gradient(135deg, rgba(255, 122, 162, 0.06), transparent 22%) top left / 42% 52% no-repeat,
         linear-gradient(90deg, transparent 0 64%, rgba(132, 227, 255, 0.04) 64% 100%);
       opacity: 0.78;
       animation: mockup-library-panel-sheen 10.8s ease-in-out infinite;
@@ -3346,10 +3342,11 @@
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
       padding-left: 0;
       padding-top: 0;
-      min-width: 0;
+      min-width: 108px;
       grid-column: 1;
       grid-row: 1;
       align-self: start;
+      justify-items: center;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail::before {
@@ -3362,6 +3359,9 @@
       line-height: 1;
       text-shadow: 0 0 7px rgba(255,255,255,0.03);
       animation: none;
+      text-align: center;
+      justify-self: center;
+      width: 100%;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -6650,19 +6650,19 @@
             alpha: 0.12 + Math.random() * 0.16,
             hue: Math.random() > 0.58 ? 'gold' : 'ember'
           }));
-          const bursts = Array.from({ length: mobileSignalMode ? 12 : 18 }, (_, index) => ({
+          const bursts = Array.from({ length: mobileSignalMode ? 4 : 6 }, (_, index) => ({
             anchorX: 0.24 + (index / Math.max(1, (mobileSignalMode ? 2 : 4))) * 0.52 + (Math.random() - 0.5) * 0.06,
             anchorY: 0.56 + Math.random() * 0.18,
             radius: mobileSignalMode ? 16 + Math.random() * 10 : 20 + Math.random() * 16,
             spokeCount: mobileSignalMode ? 8 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 6),
             life: Math.random(),
-            speed: 0.56 + Math.random() * 0.54,
+            speed: 0.32 + Math.random() * 0.28,
             alpha: 0.28 + Math.random() * 0.2
           }));
-          const streaks = Array.from({ length: mobileSignalMode ? 120 : 180 }, (_, index) => ({
+          const streaks = Array.from({ length: mobileSignalMode ? 36 : 54 }, (_, index) => ({
             side: index % 2 === 0 ? -1 : 1,
             t: Math.random(),
-            speed: 0.5 + Math.random() * 0.42,
+            speed: 0.24 + Math.random() * 0.2,
             length: 10 + Math.random() * 12,
             alpha: 0.2 + Math.random() * 0.18
           }));
@@ -6700,13 +6700,13 @@
             burst.radius = mobileSignalMode ? 16 + Math.random() * 10 : 20 + Math.random() * 16;
             burst.spokeCount = mobileSignalMode ? 8 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 6);
             burst.life = 0;
-            burst.speed = 0.56 + Math.random() * 0.54;
+            burst.speed = 0.32 + Math.random() * 0.28;
             burst.alpha = 0.28 + Math.random() * 0.2;
           };
 
           const resetStreak = (streak) => {
             streak.t = 0;
-            streak.speed = 0.5 + Math.random() * 0.42;
+            streak.speed = 0.24 + Math.random() * 0.2;
             streak.length = 10 + Math.random() * 12;
             streak.alpha = 0.2 + Math.random() * 0.18;
           };
@@ -6739,8 +6739,8 @@
               context.fill();
 
               if (!prefersReducedMotion) {
-                particle.x += particle.dx * 0.0034;
-                particle.y -= particle.dy * 0.0042;
+                particle.x += particle.dx * 0.0022;
+                particle.y -= particle.dy * 0.0028;
                 if (particle.y < 0.08 || particle.x < -0.06 || particle.x > 1.06) {
                   resetParticle(particle);
                 }
@@ -6783,7 +6783,7 @@
               }
 
               if (!prefersReducedMotion) {
-                burst.life += burst.speed * 0.018;
+                burst.life += burst.speed * 0.012;
                 if (burst.life >= 1) resetBurst(burst, index);
               }
             });
@@ -6793,20 +6793,27 @@
               const progress = streak.t;
               const x = launchX + streak.side * width * 0.08 * progress;
               const y = height * 0.9 - height * 0.46 * progress + Math.sin((progress * Math.PI) + index) * 2.2;
-              const trailX = x - streak.side * streak.length;
-              const gradient = context.createLinearGradient(trailX, y + streak.length * 0.14, x, y);
+              const rotationPhase = (Math.sin(tick * 2.2 + index * 0.31) + 1) * 0.5;
+              const angle = rotationPhase * (Math.PI / 2);
+              const dx = Math.cos(angle) * streak.length;
+              const dy = Math.sin(angle) * streak.length;
+              const startX = x - dx * 0.5;
+              const startY = y + dy * 0.5;
+              const endX = x + dx * 0.5;
+              const endY = y - dy * 0.5;
+              const gradient = context.createLinearGradient(startX, startY, endX, endY);
               gradient.addColorStop(0, 'rgba(255, 112, 88, 0)');
               gradient.addColorStop(0.44, `rgba(255, 176, 98, ${streak.alpha * 0.7})`);
               gradient.addColorStop(1, `rgba(255, 238, 186, ${streak.alpha})`);
               context.strokeStyle = gradient;
               context.lineWidth = mobileSignalMode ? 1 : 1.2;
               context.beginPath();
-              context.moveTo(trailX, y + streak.length * 0.16);
-              context.lineTo(x, y);
+              context.moveTo(startX, startY);
+              context.lineTo(endX, endY);
               context.stroke();
 
               if (!prefersReducedMotion) {
-                streak.t += streak.speed * 0.022;
+                streak.t += streak.speed * 0.014;
                 if (streak.t >= 1) resetStreak(streak);
               }
             });
