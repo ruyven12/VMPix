@@ -3341,12 +3341,15 @@
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
       padding-left: 0;
-      padding-top: 0;
-      min-width: 108px;
-      grid-column: 1;
+      padding-top: 40px;
+      min-width: 0;
+      width: 100%;
+      grid-column: 1 / -1;
       grid-row: 1;
       align-self: start;
+      justify-self: center;
       justify-items: center;
+      display: grid;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail::before {
@@ -3354,14 +3357,18 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
-      font-size: var(--music-label-size);
+      font-size: calc(var(--music-label-size) + 14px);
       letter-spacing: 0.105em;
       line-height: 1;
-      text-shadow: 0 0 7px rgba(255,255,255,0.03);
-      animation: none;
+      text-shadow:
+        0 0 10px rgba(255, 144, 144, 0.42),
+        0 0 20px rgba(255, 88, 88, 0.28),
+        0 0 34px rgba(255, 62, 62, 0.14);
+      animation: mockup-library-music-text-shimmer 3.2s ease-in-out infinite;
       text-align: center;
       justify-self: center;
-      width: 100%;
+      width: auto;
+      color: rgba(255, 214, 214, 0.98);
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -4784,6 +4791,17 @@
       }
     }
 
+    @keyframes mockup-library-music-text-shimmer {
+      0%, 100% {
+        opacity: 0.92;
+        filter: brightness(0.98) saturate(1);
+      }
+      50% {
+        opacity: 1;
+        filter: brightness(1.1) saturate(1.08);
+      }
+    }
+
     @keyframes mockup-library-wrestling-shimmer {
       0%,
       100% {
@@ -5246,7 +5264,11 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 0;
+        padding-top: 35px;
+        width: 100%;
+        grid-column: 1 / -1;
+        align-self: start;
+        justify-self: center;
       }
 
       .mockup-library-status-node.is-music-card {
@@ -5397,7 +5419,11 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 0;
+        padding-top: 33px;
+        width: 100%;
+        grid-column: 1 / -1;
+        align-self: start;
+        justify-self: center;
       }
 
       .mockup-library-status-node.is-music-card {
@@ -6569,12 +6595,12 @@
               const x = startX + barIndex * (barWidth + gap);
               const y = midY - barHeight / 2;
               const barGradient = context.createLinearGradient(x, y, x, y + barHeight);
-              barGradient.addColorStop(0, 'rgba(255, 210, 146, 0.92)');
-              barGradient.addColorStop(0.44, 'rgba(255, 142, 186, 0.84)');
-              barGradient.addColorStop(1, 'rgba(122, 228, 255, 0.74)');
+              barGradient.addColorStop(0, 'rgba(255, 210, 146, 0.48)');
+              barGradient.addColorStop(0.44, 'rgba(255, 142, 186, 0.44)');
+              barGradient.addColorStop(1, 'rgba(122, 228, 255, 0.39)');
               context.fillStyle = barGradient;
               context.fillRect(x, y, barWidth, barHeight);
-              context.fillStyle = 'rgba(122, 228, 255, 0.1)';
+              context.fillStyle = 'rgba(122, 228, 255, 0.052)';
               context.fillRect(x, midY - 0.5, barWidth, 1);
             }
 
