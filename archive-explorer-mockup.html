@@ -3027,6 +3027,8 @@
     }
 
     .mockup-library-status-node.is-wrestling-card {
+      --music-label-size: 13px;
+      --music-staging-size-adjust: 1px;
       isolation: isolate;
       overflow: hidden;
     }
@@ -3085,28 +3087,90 @@
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
       align-self: start;
       transform: translateY(0);
-      font-size: 11px;
+      font-size: calc(var(--music-label-size) + 14px);
       line-height: 1;
       letter-spacing: 0.105em;
-      text-shadow: 0 0 7px rgba(255,255,255,0.03);
-      animation: none;
+      text-shadow:
+        0 0 10px rgba(255, 144, 144, 0.42),
+        0 0 20px rgba(255, 88, 88, 0.28),
+        0 0 34px rgba(255, 62, 62, 0.14);
+      animation: mockup-library-music-text-shimmer 3.2s ease-in-out infinite;
       text-align: center;
       justify-self: center;
-      width: 100%;
+      width: auto;
+      color: rgba(255, 214, 214, 0.98);
     }
 
-    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
+      grid-column: 1 / -1;
+      grid-row: 1 / -1;
+      width: 100%;
+      align-self: stretch;
+      justify-self: center;
+      justify-items: center;
+      display: grid;
+      place-items: center;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: 1fr 1fr;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-name {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      align-self: start;
+      justify-self: center;
+      width: auto;
+      font-size: calc(var(--music-label-size) + 12px);
+      line-height: 1;
+      letter-spacing: 0.105em;
+      text-align: center;
+      color: rgba(255, 214, 214, 0.98);
+      text-shadow:
+        0 0 10px rgba(255, 144, 144, 0.42),
+        0 0 20px rgba(255, 88, 88, 0.28),
+        0 0 34px rgba(255, 62, 62, 0.14);
+      animation: mockup-library-music-text-shimmer 3.2s ease-in-out infinite;
       position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-name {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      align-self: start;
+      justify-self: center;
+      width: auto;
+      font-size: calc(var(--music-label-size) + 14px);
+      line-height: 1;
+      letter-spacing: 0.105em;
+      text-align: center;
+      color: rgba(255, 214, 214, 0.98);
+      text-shadow:
+        0 0 10px rgba(255, 144, 144, 0.42),
+        0 0 20px rgba(255, 88, 88, 0.28),
+        0 0 34px rgba(255, 62, 62, 0.14);
+      animation: mockup-library-music-text-shimmer 3.2s ease-in-out infinite;
+      position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-state {
       display: flex;
       align-items: center;
-      gap: 5px;
-      grid-column: 3;
+      gap: 6px;
+      grid-column: 1 / -1;
       grid-row: 2;
-      align-self: end;
-      justify-self: end;
+      align-self: start;
+      justify-self: center;
       width: auto;
-      margin: 0;
-      transform: translate(-2px, 8px);
+      transform: translateY(-1px);
       padding: 0;
       border: 0;
       min-width: 0;
@@ -3115,7 +3179,71 @@
       clip-path: none;
       text-align: right;
       letter-spacing: 0.16em;
-      font-size: 11px;
+      font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
+      line-height: 1;
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
+      animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
+      position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-state {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      align-self: start;
+      justify-self: center;
+      width: auto;
+      transform: translateY(2px);
+      padding: 0;
+      border: 0;
+      min-width: 0;
+      background: transparent;
+      box-shadow: none;
+      clip-path: none;
+      text-align: right;
+      letter-spacing: 0.16em;
+      font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
+      line-height: 1;
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
+      position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-copy,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-copy {
+      display: none;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      grid-column: 1 / -1;
+      grid-row: 1 / -1;
+      align-self: center;
+      justify-self: center;
+      width: auto;
+      margin: 0;
+      transform: translateY(calc(var(--music-label-size) + 10px));
+      padding: 0;
+      border: 0;
+      min-width: 0;
+      background: transparent;
+      box-shadow: none;
+      clip-path: none;
+      text-align: right;
+      letter-spacing: 0.16em;
+      font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
       line-height: 1;
       color: rgba(255, 204, 146, 0.94);
       text-shadow:
@@ -3128,7 +3256,7 @@
       color: rgba(255, 255, 255, 0.5);
       text-shadow: none;
       letter-spacing: 0.12em;
-      font-size: 10px;
+      font-size: calc(var(--music-label-size) - 1px);
       line-height: 1;
     }
 
@@ -3337,15 +3465,16 @@
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
       padding-left: 0;
-      padding-top: 50px;
+      padding-top: 0;
       min-width: 0;
       width: 100%;
       grid-column: 1 / -1;
-      grid-row: 1;
-      align-self: start;
+      grid-row: 1 / -1;
+      align-self: stretch;
       justify-self: center;
       justify-items: center;
       display: grid;
+      place-items: center;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail::before {
@@ -3383,11 +3512,11 @@
       right: auto;
       top: auto;
       grid-column: 1 / -1;
-      grid-row: 2;
-      align-self: start;
+      grid-row: 1 / -1;
+      align-self: center;
       justify-self: center;
       width: auto;
-      transform: translateY(-2px);
+      transform: translateY(calc(var(--music-label-size) + 10px));
       padding: 0;
       border: 0;
       min-width: 0;
@@ -3484,28 +3613,310 @@
       content: none;
     }
 
-    .mockup-library-status-visual.is-skies::before {
-      left: 12px;
-      right: 10px;
-      top: 14px;
-      bottom: 16px;
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at 30% 30%, rgba(255, 180, 120, 0.3) 0 12%, transparent 13%),
-        linear-gradient(180deg, rgba(255, 124, 142, 0.24) 0%, rgba(255, 175, 122, 0.2) 34%, rgba(132, 227, 255, 0.14) 70%, rgba(12, 24, 34, 0) 100%);
-      animation: mockup-library-sunset-drift 8s ease-in-out infinite;
+    .mockup-library-status-node.is-skies-card {
+      position: relative;
+      overflow: hidden;
     }
 
-    .mockup-library-status-visual.is-skies::after {
-      left: 12px;
-      right: 10px;
-      bottom: 18px;
-      height: 26px;
+    .mockup-library-status-node.is-skies-card .skies-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      filter: brightness(0.85) saturate(0.9);
+    }
+
+    .mockup-library-status-node.is-skies-card .skies-bg,
+    .mockup-library-status-node.is-skies-card .skies-bg * {
+      will-change: transform, opacity;
+    }
+
+    .mockup-library-status-node.is-skies-card .skies-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to right,
+        rgba(10, 10, 15, 0.75),
+        rgba(10, 10, 15, 0.35),
+        rgba(10, 10, 15, 0.75)
+      );
+      z-index: 8;
+    }
+
+    .mockup-library-status-node.is-skies-card .sky-day,
+    .mockup-library-status-node.is-skies-card .sky-night,
+    .mockup-library-status-node.is-skies-card .sun-glow,
+    .mockup-library-status-node.is-skies-card .sun-core,
+    .mockup-library-status-node.is-skies-card .stars,
+    .mockup-library-status-node.is-skies-card .mountain-back,
+    .mockup-library-status-node.is-skies-card .mountain-front {
+      position: absolute;
+      inset: 0;
+    }
+
+    .mockup-library-status-node.is-skies-card .sky-day {
       background:
-        radial-gradient(circle at 24% 64%, rgba(255, 224, 186, 0.18) 0 5%, transparent 6%),
-        linear-gradient(90deg, rgba(20, 34, 42, 0.2) 0%, rgba(20, 34, 42, 0.7) 30%, rgba(28, 46, 58, 0.84) 58%, rgba(20, 34, 42, 0.34) 100%);
-      clip-path: polygon(0 100%, 0 62%, 12% 66%, 24% 58%, 38% 70%, 52% 52%, 66% 62%, 80% 40%, 100% 58%, 100% 100%);
-      animation: mockup-library-horizon-shift 6.4s ease-in-out infinite;
+        radial-gradient(circle at 24% 34%, rgba(255, 202, 140, 0.26), transparent 20%),
+        linear-gradient(180deg, rgba(255, 148, 132, 0.44) 0%, rgba(255, 189, 120, 0.34) 38%, rgba(124, 210, 255, 0.18) 100%);
+      animation: mockup-skies-day-fade 18s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    .mockup-library-status-node.is-skies-card .sky-night {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(126, 170, 255, 0.12), transparent 16%),
+        linear-gradient(180deg, rgba(20, 30, 64, 0.16) 0%, rgba(9, 14, 28, 0.54) 36%, rgba(4, 8, 16, 0.82) 100%);
+      animation: mockup-skies-night-fade 18s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    .mockup-library-status-node.is-skies-card .stars {
+      inset: 8% 6% 28%;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(255,255,255,0.72) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 18% 54%, rgba(180, 214, 255, 0.68) 0 1.1px, transparent 2px),
+        radial-gradient(circle at 28% 24%, rgba(255,255,255,0.62) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 42% 14%, rgba(255,244,214,0.74) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 58% 36%, rgba(210, 230, 255, 0.6) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 66% 18%, rgba(255,255,255,0.76) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 74% 46%, rgba(176, 218, 255, 0.64) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 88% 20%, rgba(255,248,226,0.72) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 92% 56%, rgba(255,255,255,0.62) 0 1px, transparent 1.8px);
+      opacity: 0;
+      animation: mockup-skies-stars-fade 18s ease-in-out infinite;
+      z-index: 3;
+    }
+
+    .mockup-library-status-node.is-skies-card .sun-glow {
+      width: 140px;
+      height: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 208, 146, 0.42) 0%, rgba(255, 168, 110, 0.18) 44%, rgba(255, 144, 92, 0) 74%);
+      animation: mockup-skies-sun-glow 18s ease-in-out infinite;
+      z-index: 4;
+    }
+
+    .mockup-library-status-node.is-skies-card .sun-core {
+      width: 80px;
+      height: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 36% 34%, rgba(255,255,255,0.72), rgba(255, 212, 144, 0.88) 36%, rgba(255, 154, 96, 0.92) 72%);
+      box-shadow: 0 0 22px rgba(255, 184, 122, 0.22);
+      animation: mockup-skies-sun-core 18s ease-in-out infinite;
+      z-index: 5;
+    }
+
+    .mockup-library-status-node.is-skies-card .mountain-back {
+      background: linear-gradient(180deg, rgba(24, 34, 46, 0.18), rgba(12, 20, 30, 0.74));
+      clip-path: polygon(0% 100%, 0% 76%, 18% 62%, 34% 70%, 52% 56%, 70% 68%, 84% 58%, 100% 72%, 100% 100%);
+      opacity: 0.84;
+      z-index: 6;
+    }
+
+    .mockup-library-status-node.is-skies-card .mountain-front {
+      background: linear-gradient(180deg, rgba(18, 24, 34, 0.26), rgba(9, 14, 22, 0.92));
+      clip-path: polygon(0% 85%, 20% 75%, 40% 80%, 60% 72%, 80% 78%, 100% 74%, 100% 100%, 0% 100%);
+      z-index: 7;
+    }
+
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-skies-card .mockup-library-status-node-copy {
+      position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-astro-card {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardBg,
+    .mockup-library-status-node.is-astro-card .astroCardBgScene,
+    .mockup-library-status-node.is-astro-card .astroCardBgOverlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardBg {
+      z-index: 0;
+      overflow: hidden;
+      border-radius: inherit;
+      contain: layout paint;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardBgScene {
+      overflow: hidden;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(112, 176, 255, 0.1), transparent 18%),
+        linear-gradient(180deg, rgba(12, 18, 36, 0.88) 0%, rgba(7, 12, 24, 0.96) 54%, rgba(4, 8, 18, 0.98) 100%);
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardBgOverlay {
+      z-index: 7;
+      background: linear-gradient(90deg, rgba(8, 12, 18, 0.7), rgba(8, 12, 18, 0.28) 45%, rgba(8, 12, 18, 0.72));
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardStars,
+    .mockup-library-status-node.is-astro-card .astroCardMicroStars,
+    .mockup-library-status-node.is-astro-card .astroCardAurora,
+    .mockup-library-status-node.is-astro-card .astroCardMoonWrap,
+    .mockup-library-status-node.is-astro-card .astroCardComet,
+    .mockup-library-status-node.is-astro-card .astroCardVignette {
+      position: absolute;
+      inset: 0;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardStars {
+      inset: 10% 8% 14%;
+      background:
+        radial-gradient(circle at 8% 22%, rgba(255,255,255,0.78) 0 1px, transparent 1.9px),
+        radial-gradient(circle at 18% 68%, rgba(194, 220, 255, 0.68) 0 1px, transparent 1.9px),
+        radial-gradient(circle at 24% 30%, rgba(255,255,255,0.56) 0 0.9px, transparent 1.7px),
+        radial-gradient(circle at 36% 18%, rgba(176, 224, 255, 0.64) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 48% 62%, rgba(255,255,255,0.62) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 60% 28%, rgba(216, 236, 255, 0.7) 0 1.1px, transparent 2px),
+        radial-gradient(circle at 72% 16%, rgba(255,255,255,0.74) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 82% 58%, rgba(172, 214, 255, 0.66) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 92% 26%, rgba(255,255,255,0.72) 0 1.1px, transparent 2px);
+      opacity: 0.7;
+      animation: mockup-astro-stars-twinkle 14s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardMicroStars {
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 24%, rgba(255,255,255,0.28) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 28% 46%, rgba(255,255,255,0.22) 0 0.7px, transparent 1.2px),
+        radial-gradient(circle at 44% 22%, rgba(188, 220, 255, 0.26) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 56% 58%, rgba(255,255,255,0.22) 0 0.7px, transparent 1.2px),
+        radial-gradient(circle at 68% 34%, rgba(164, 208, 255, 0.24) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 84% 48%, rgba(255,255,255,0.22) 0 0.7px, transparent 1.2px);
+      opacity: 0.42;
+      animation: mockup-astro-micro-drift 18s linear infinite;
+      z-index: 1;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardAurora {
+      inset: -6% -10% 18%;
+      background:
+        radial-gradient(ellipse at 30% 10%, rgba(120, 255, 212, 0.2), transparent 44%),
+        radial-gradient(ellipse at 62% 6%, rgba(102, 196, 255, 0.16), transparent 42%),
+        radial-gradient(ellipse at 82% 12%, rgba(168, 132, 255, 0.12), transparent 38%);
+      filter: blur(18px);
+      mix-blend-mode: screen;
+      opacity: 0.6;
+      animation: mockup-astro-aurora-sweep 16s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardMoonWrap {
+      left: 50%;
+      top: 50%;
+      width: clamp(66px, 26%, 88px);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardMoon {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, rgba(255,255,255,0.88), rgba(232, 240, 255, 0.9) 24%, rgba(176, 196, 224, 0.84) 64%, rgba(96, 118, 154, 0.94) 100%);
+      box-shadow:
+        0 0 24px rgba(176, 208, 255, 0.18),
+        0 0 48px rgba(98, 142, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardMoon::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 58% 34%, rgba(106, 126, 160, 0.22) 0 10%, transparent 11%),
+        radial-gradient(circle at 32% 56%, rgba(120, 136, 168, 0.18) 0 8%, transparent 9%),
+        radial-gradient(circle at 62% 68%, rgba(110, 126, 152, 0.16) 0 6%, transparent 7%);
+      opacity: 0.9;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardEclipse {
+      position: absolute;
+      top: -8%;
+      left: -56%;
+      width: 112%;
+      height: 112%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 70% 50%, rgba(148, 18, 28, 0.5), transparent 24%),
+        radial-gradient(circle, rgba(6, 8, 16, 0.94) 0%, rgba(8, 10, 18, 0.98) 72%);
+      box-shadow: 0 0 16px rgba(255, 82, 82, 0.08);
+      animation: mockup-astro-eclipse-pass 15s ease-in-out infinite;
+      mix-blend-mode: multiply;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardComet {
+      z-index: 4;
+      opacity: 0;
+      animation: mockup-astro-comet-pass 15s ease-in-out infinite;
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardComet::before {
+      content: "";
+      position: absolute;
+      left: 34%;
+      top: 30%;
+      width: 26%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.96), rgba(182, 224, 255, 0.86) 30%, rgba(132, 227, 255, 0.34) 64%, rgba(132, 227, 255, 0) 100%);
+      box-shadow: 0 0 12px rgba(176, 222, 255, 0.24);
+      transform-origin: left center;
+      transform: rotate(-18deg);
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardComet::after {
+      content: "";
+      position: absolute;
+      left: calc(34% + 25%);
+      top: calc(30% - 2px);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(174, 222, 255, 0.88) 58%, rgba(132, 227, 255, 0.2) 100%);
+      box-shadow: 0 0 12px rgba(192, 232, 255, 0.36);
+      transform: rotate(-18deg);
+    }
+
+    .mockup-library-status-node.is-astro-card .astroCardVignette {
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 44%, rgba(0,0,0,0.24) 84%),
+        linear-gradient(180deg, rgba(2, 6, 12, 0.08), rgba(2, 6, 12, 0.24));
+      z-index: 6;
+    }
+
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-copy {
+      position: relative;
+      z-index: 10;
+    }
+
+    .mockup-library-status-node.is-astro-card .mockup-library-status-node-copy {
+      max-width: 62%;
     }
 
     .mockup-library-status-visual.is-astro::before {
@@ -4798,6 +5209,77 @@
       }
     }
 
+    @keyframes mockup-skies-day-fade {
+      0%, 16%, 100% { opacity: 0.96; }
+      42%, 58% { opacity: 0.14; }
+      78% { opacity: 0.82; }
+    }
+
+    @keyframes mockup-skies-night-fade {
+      0%, 18%, 100% { opacity: 0.08; }
+      46%, 60% { opacity: 0.96; }
+      80% { opacity: 0.16; }
+    }
+
+    @keyframes mockup-skies-stars-fade {
+      0%, 20%, 100% { opacity: 0; }
+      46%, 62% { opacity: 0.82; }
+      80% { opacity: 0.08; }
+    }
+
+    @keyframes mockup-skies-sun-core {
+      0%   { bottom: 30%; opacity: 0.96; }
+      50%  { bottom: -12%; opacity: 0.2; }
+      100% { bottom: 30%; opacity: 0.96; }
+    }
+
+    @keyframes mockup-skies-sun-glow {
+      0%   { bottom: 24%; opacity: 0.82; transform: translateX(-50%) scale(1); }
+      50%  { bottom: -22%; opacity: 0.14; transform: translateX(-50%) scale(0.92); }
+      100% { bottom: 24%; opacity: 0.82; transform: translateX(-50%) scale(1); }
+    }
+
+    @keyframes mockup-astro-stars-twinkle {
+      0%, 100% { opacity: 0.66; }
+      50% { opacity: 0.92; }
+    }
+
+    @keyframes mockup-astro-micro-drift {
+      0% { transform: translate3d(0, 0, 0); opacity: 0.34; }
+      50% { transform: translate3d(-1.5%, 1%, 0); opacity: 0.52; }
+      100% { transform: translate3d(0, 0, 0); opacity: 0.34; }
+    }
+
+    @keyframes mockup-astro-aurora-sweep {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+      50% { transform: translate3d(1.6%, -2%, 0) scale(1.04); opacity: 0.72; }
+    }
+
+    @keyframes mockup-astro-eclipse-pass {
+      0%, 14% { transform: translateX(-8%) scale(0.94); opacity: 0.96; }
+      46%, 54% { transform: translateX(54%) scale(1); opacity: 1; }
+      86%, 100% { transform: translateX(116%) scale(1.04); opacity: 0.94; }
+    }
+
+    @keyframes mockup-astro-comet-pass {
+      0%, 30% {
+        opacity: 0;
+        transform: translate3d(-16%, 16%, 0) scale(0.96);
+      }
+      42% {
+        opacity: 1;
+        transform: translate3d(4%, 2%, 0) scale(1);
+      }
+      58% {
+        opacity: 0.96;
+        transform: translate3d(16%, -8%, 0) scale(1.02);
+      }
+      72%, 100% {
+        opacity: 0;
+        transform: translate3d(28%, -18%, 0) scale(1.04);
+      }
+    }
+
     @keyframes mockup-library-wrestling-shimmer {
       0%,
       100% {
@@ -5260,11 +5742,13 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 46px;
+        padding-top: 0;
         width: 100%;
         grid-column: 1 / -1;
-        align-self: start;
+        grid-row: 1 / -1;
+        align-self: stretch;
         justify-self: center;
+        place-items: center;
       }
 
       .mockup-library-status-node.is-music-card {
@@ -5297,12 +5781,14 @@
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
         width: auto;
-        align-self: start;
+        align-self: center;
         justify-self: center;
-        transform: translateY(0);
+        transform: translateY(calc(var(--music-label-size) + 10px));
       }
 
       .mockup-library-status-node.is-wrestling-card {
+        --music-label-size: 12px;
+        --music-staging-size-adjust: 1px;
         min-height: 94px;
       }
 
@@ -5331,6 +5817,15 @@
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-shimmer {
         opacity: 0.46;
+      }
+
+      .mockup-library-status-node.is-astro-card .astroCardMoonWrap {
+        width: clamp(58px, 24%, 74px);
+      }
+
+      .mockup-library-status-node.is-astro-card .astroCardAurora {
+        filter: blur(14px);
+        opacity: 0.5;
       }
 
       .mockup-library-module,
@@ -5417,11 +5912,13 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
         min-width: 0;
         padding-left: 0;
-        padding-top: 44px;
+        padding-top: 0;
         width: 100%;
         grid-column: 1 / -1;
-        align-self: start;
+        grid-row: 1 / -1;
+        align-self: stretch;
         justify-self: center;
+        place-items: center;
       }
 
       .mockup-library-status-node.is-music-card {
@@ -5457,9 +5954,9 @@
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
         width: auto;
         right: auto;
-        align-self: start;
+        align-self: center;
         justify-self: center;
-        transform: translateY(-1px);
+        transform: translateY(calc(var(--music-label-size) + 10px));
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state-prefix {
@@ -5471,6 +5968,8 @@
       }
 
       .mockup-library-status-node.is-wrestling-card {
+        --music-label-size: 11px;
+        --music-staging-size-adjust: 1px;
         min-height: 90px;
       }
 
@@ -5486,16 +5985,19 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
-        font-size: 11px;
+        font-size: calc(var(--music-label-size) + 14px);
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
-        gap: 4px;
-        font-size: 10px;
+        gap: 6px;
+        font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
+        align-self: center;
+        justify-self: center;
+        transform: translateY(calc(var(--music-label-size) + 10px));
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-prefix {
-        font-size: 8px;
+        font-size: calc(var(--music-label-size) - 1px);
       }
 
       .mockup-library-status-visual.is-wrestling::before {
@@ -5515,6 +6017,15 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-shimmer {
+        opacity: 0.42;
+      }
+
+      .mockup-library-status-node.is-astro-card .astroCardMoonWrap {
+        width: clamp(52px, 23%, 68px);
+      }
+
+      .mockup-library-status-node.is-astro-card .astroCardAurora {
+        filter: blur(12px);
         opacity: 0.42;
       }
 
@@ -5998,16 +6509,38 @@
                     </div>
                     <div class="mockup-library-status-node-copy">Ring-energy and belt-glow language for the next performance archive.</div>
                   </div>
-                  <div class="mockup-library-status-node is-staging">
-                    <div class="mockup-library-status-visual is-skies"></div>
+                  <div class="mockup-library-status-node is-staging is-skies-card">
+                    <div class="skies-bg" aria-hidden="true">
+                      <div class="sky-day"></div>
+                      <div class="sky-night"></div>
+                      <div class="stars"></div>
+                      <div class="sun-glow"></div>
+                      <div class="sun-core"></div>
+                      <div class="mountain-back"></div>
+                      <div class="mountain-front"></div>
+                    </div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Skies Above</div>
                       <div class="mockup-library-status-node-state">Staging</div>
                     </div>
                     <div class="mockup-library-status-node-copy">Slow sunset atmosphere for the umbrella branch holding the visual worlds.</div>
                   </div>
-                  <div class="mockup-library-status-node is-offline">
-                    <div class="mockup-library-status-visual is-astro"></div>
+                  <div class="mockup-library-status-node is-offline is-astro-card">
+                    <div class="astroCardBg" aria-hidden="true">
+                      <div class="astroCardBgScene">
+                        <div class="astroCardStars"></div>
+                        <div class="astroCardMicroStars"></div>
+                        <div class="astroCardAurora"></div>
+                        <div class="astroCardMoonWrap">
+                          <div class="astroCardMoon">
+                            <div class="astroCardEclipse"></div>
+                          </div>
+                        </div>
+                        <div class="astroCardComet"></div>
+                        <div class="astroCardVignette"></div>
+                      </div>
+                    </div>
+                    <div class="astroCardBgOverlay" aria-hidden="true"></div>
                     <div class="mockup-library-status-node-topline">
                       <div class="mockup-library-status-node-name">Astrophotography</div>
                       <div class="mockup-library-status-node-state">Offline</div>
