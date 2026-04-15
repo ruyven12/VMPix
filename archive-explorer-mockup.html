@@ -2306,6 +2306,21 @@
       filter: blur(4px);
     }
 
+    .mockup-library-title-kicker,
+    .mockup-library-title-main,
+    .mockup-library-title-sub,
+    .mockup-library-status,
+    .mockup-library-status-label,
+    .mockup-library-status-value,
+    .mockup-library-status-board,
+    .mockup-library-status-readout,
+    .mockup-library-status-node {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: translateZ(0);
+      will-change: opacity, transform;
+    }
+
     .mockup-library-overlay.is-content-visible .mockup-library-status-label {
       animation: mockup-library-copy-rise 280ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 120ms;
     }
@@ -2446,6 +2461,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 7px 9px;
+      contain: layout paint;
     }
 
     .mockup-library-status-node {
@@ -2463,6 +2479,7 @@
         inset 0 0 0 1px rgba(255, 255, 255, 0.025),
         0 0 14px rgba(96, 222, 255, 0.04);
       overflow: hidden;
+      contain: layout paint;
     }
 
     .mockup-library-status-node::after {
@@ -4613,6 +4630,21 @@
       }
     }
 
+    @keyframes mockup-library-sci-fi-rise {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0) scale(0.988);
+      }
+      60% {
+        opacity: 1;
+        transform: translate3d(0, -1px, 0) scale(1.003);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
     @keyframes mockup-library-module-sweep {
       0% { transform: translateX(-180%); }
       100% { transform: translateX(340%); }
@@ -5586,6 +5618,61 @@
       transform: none !important;
       filter: none !important;
       animation: none !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-kicker,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-main,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-sub,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status-label,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status-value,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status-board,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status-readout,
+    body.mockup-mobile-shell .mockup-library-overlay .mockup-library-status-node {
+      filter: none !important;
+      transform: translate3d(0, 4px, 0);
+      opacity: 0;
+      will-change: opacity, transform;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-kicker {
+      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 10ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-main {
+      animation: mockup-library-sci-fi-rise 210ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 30ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-sub {
+      animation: mockup-library-sci-fi-rise 210ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 50ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status {
+      animation: mockup-library-sci-fi-rise 220ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 70ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-label {
+      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 90ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-value {
+      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 110ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-board {
+      animation: mockup-library-sci-fi-rise 200ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 130ms !important;
+    }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 150ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 172ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 194ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 216ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 238ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 260ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(7) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 282ms !important; }
+
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-readout {
+      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 304ms !important;
     }
   </style>
 </head>
