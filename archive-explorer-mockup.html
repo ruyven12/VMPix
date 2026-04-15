@@ -2914,6 +2914,16 @@
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      bottom: 8px;
+      width: clamp(94px, 28%, 112px);
+      min-width: 94px;
+      max-width: 112px;
+      overflow: hidden;
+      contain: layout paint;
+      isolation: isolate;
       background:
         radial-gradient(circle at 26% 44%, rgba(255, 170, 196, 0.12), transparent 34%),
         radial-gradient(circle at 80% 52%, rgba(132, 227, 255, 0.06), transparent 26%),
@@ -2921,6 +2931,43 @@
       box-shadow:
         inset 0 0 0 1px rgba(255, 170, 196, 0.12),
         inset 0 0 0 2px rgba(255, 255, 255, 0.015);
+    }
+
+    .mockup-library-status-node.is-wrestling-card {
+      isolation: isolate;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
+      min-height: 40px;
+      padding-right: 116px;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
+      min-width: 0;
+      max-width: calc(100% - 62px);
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-kicker {
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
+      max-width: calc(100% - 124px);
+      padding-right: 4px;
+      line-height: 1.18;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
+      position: relative;
+      z-index: 2;
+      align-self: start;
+      margin-top: 1px;
+      white-space: nowrap;
     }
 
     .mockup-library-status-node-topline {
@@ -3256,10 +3303,10 @@
     }
 
     .mockup-library-status-visual.is-wrestling::before {
-      left: 10px;
-      right: 12px;
-      top: 12px;
-      height: 54px;
+      left: 10%;
+      right: 11%;
+      top: 14%;
+      height: 58%;
       background:
         linear-gradient(135deg, transparent 0 14px, rgba(255, 170, 196, 0.22) 14px 15px, transparent 15px),
         repeating-linear-gradient(135deg, rgba(255, 170, 196, 0.1) 0 1px, transparent 1px 6px),
@@ -3272,10 +3319,10 @@
     }
 
     .mockup-library-status-visual.is-wrestling::after {
-      left: 18px;
-      top: 16px;
-      width: 72px;
-      height: 40px;
+      left: 18%;
+      top: 22%;
+      width: 58%;
+      height: 42%;
       background:
         linear-gradient(135deg,
           transparent 0 6px,
@@ -5046,6 +5093,49 @@
         transform: translate(-1px, 6px);
       }
 
+      .mockup-library-status-node.is-wrestling-card {
+        min-height: 94px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
+        top: 9px;
+        right: 8px;
+        bottom: 9px;
+        width: clamp(86px, 26vw, 98px);
+        min-width: 86px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
+        min-height: 38px;
+        padding-right: 102px;
+        gap: 7px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
+        max-width: calc(100% - 108px);
+        font-size: 8px;
+      }
+
+      .mockup-library-status-visual.is-wrestling::before {
+        left: 12%;
+        right: 12%;
+        top: 16%;
+        height: 54%;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 208, 126, 0.1),
+          0 0 10px rgba(255, 98, 146, 0.05);
+      }
+
+      .mockup-library-status-visual.is-wrestling::after {
+        left: 20%;
+        top: 24%;
+        width: 52%;
+        height: 38%;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 170, 196, 0.05),
+          0 0 10px rgba(255, 200, 118, 0.1);
+      }
+
       .mockup-library-module,
       .mockup-library-entry-card,
       .mockup-library-scope-card,
@@ -5175,6 +5265,67 @@
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state-value {
         font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
+      }
+
+      .mockup-library-status-node.is-wrestling-card {
+        min-height: 90px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
+        top: 10px;
+        right: 8px;
+        bottom: 10px;
+        width: clamp(74px, 25vw, 84px);
+        min-width: 74px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
+        min-height: 34px;
+        padding-right: 88px;
+        gap: 6px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
+        max-width: calc(100% - 54px);
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-kicker {
+        font-size: 7px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
+        font-size: 10px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
+        font-size: 7px;
+        padding: 3px 5px;
+      }
+
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
+        max-width: calc(100% - 92px);
+        font-size: 7px;
+        line-height: 1.16;
+      }
+
+      .mockup-library-status-visual.is-wrestling::before {
+        left: 13%;
+        right: 13%;
+        top: 18%;
+        height: 50%;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 208, 126, 0.08),
+          0 0 8px rgba(255, 98, 146, 0.04);
+      }
+
+      .mockup-library-status-visual.is-wrestling::after {
+        left: 22%;
+        top: 26%;
+        width: 48%;
+        height: 34%;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 170, 196, 0.05),
+          0 0 8px rgba(255, 200, 118, 0.08);
       }
 
       .mockup-library-main-side {
