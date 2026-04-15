@@ -2252,8 +2252,9 @@
         0 0 18px rgba(96, 222, 255, 0.12),
         0 0 28px rgba(96, 222, 255, 0.08);
       opacity: 0;
-      clip-path: inset(0 100% 0 0);
-      transform: translateY(8px);
+      clip-path: inset(0 0 0 0);
+      transform: translate3d(0, 6px, 0);
+      filter: blur(2px);
     }
 
     .mockup-library-title-sub {
@@ -2273,7 +2274,7 @@
     }
 
     .mockup-library-overlay.is-content-visible .mockup-library-title-main {
-      animation: mockup-library-title-reveal 360ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 72ms;
+      animation: mockup-library-sci-fi-rise 380ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 110ms;
     }
 
     .mockup-library-overlay.is-content-visible .mockup-library-title-sub {
@@ -5654,47 +5655,48 @@
       filter: none !important;
       transform: translate3d(0, 4px, 0);
       opacity: 0;
+      clip-path: inset(0 0 0 0) !important;
       will-change: opacity, transform;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-kicker {
-      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 12ms !important;
+      animation: mockup-library-sci-fi-rise 220ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 40ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-main {
-      animation: mockup-library-sci-fi-rise 210ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 34ms !important;
+      animation: mockup-library-sci-fi-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 110ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-title-sub {
-      animation: mockup-library-sci-fi-rise 210ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 58ms !important;
+      animation: mockup-library-sci-fi-rise 240ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status {
-      animation: mockup-library-sci-fi-rise 220ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 82ms !important;
+      animation: mockup-library-sci-fi-rise 260ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 340ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-label {
-      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 104ms !important;
+      animation: mockup-library-sci-fi-rise 200ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 470ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-value {
-      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 128ms !important;
+      animation: mockup-library-sci-fi-rise 200ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 560ms !important;
     }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-board {
-      animation: mockup-library-sci-fi-rise 200ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 154ms !important;
+      animation: mockup-library-sci-fi-rise 220ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 660ms !important;
     }
 
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 178ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 206ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 234ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 262ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 290ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 318ms !important; }
-    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(7) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 346ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(1) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 780ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(2) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 860ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(3) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 940ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(4) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1020ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(5) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1100ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(6) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1180ms !important; }
+    body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-node:nth-child(7) { animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1260ms !important; }
 
     body.mockup-mobile-shell .mockup-library-overlay.is-content-visible .mockup-library-status-readout {
-      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 378ms !important;
+      animation: mockup-library-sci-fi-rise 180ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 1360ms !important;
     }
   </style>
 </head>
