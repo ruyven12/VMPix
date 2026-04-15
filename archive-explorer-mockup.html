@@ -2726,12 +2726,7 @@
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail::before {
-      border-color: rgba(255, 170, 196, 0.34);
-      background:
-        linear-gradient(135deg, rgba(255, 170, 196, 0.18), rgba(255, 170, 196, 0.03));
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.02),
-        0 0 10px rgba(255, 170, 196, 0.08);
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-kicker {
@@ -2910,16 +2905,7 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
-      content: "";
-      position: absolute;
-      left: 116px;
-      right: 124px;
-      top: 22px;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 132, 168, 0.18), rgba(132, 227, 255, 0.06), rgba(132, 227, 255, 0));
-      opacity: 0.74;
-      animation: mockup-library-divider-pulse 5.6s ease-in-out infinite;
-      pointer-events: none;
+      display: none;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual {
@@ -2935,22 +2921,16 @@
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      bottom: 8px;
-      width: clamp(94px, 28%, 112px);
-      min-width: 94px;
-      max-width: 112px;
+      inset: 0;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
       overflow: hidden;
       contain: layout paint;
       isolation: isolate;
-      background:
-        radial-gradient(circle at 26% 44%, rgba(255, 170, 196, 0.12), transparent 34%),
-        radial-gradient(circle at 80% 52%, rgba(132, 227, 255, 0.06), transparent 26%),
-        linear-gradient(135deg, rgba(26, 14, 24, 0.84), rgba(10, 14, 22, 0.8));
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 170, 196, 0.12),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.015);
+      background: transparent;
+      box-shadow: none;
+      clip-path: polygon(0 8px, 12px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 12px) 100%, 0 100%);
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-scene,
@@ -2973,9 +2953,12 @@
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-bg {
       background:
-        radial-gradient(circle at 50% 18%, rgba(255, 206, 150, 0.16), transparent 20%),
-        radial-gradient(circle at 50% 40%, rgba(176, 40, 64, 0.2), transparent 34%),
-        linear-gradient(180deg, rgba(54, 10, 18, 0.94) 0%, rgba(18, 8, 16, 0.92) 38%, rgba(8, 10, 18, 0.96) 100%);
+        radial-gradient(circle at 50% 18%, rgba(255, 214, 162, 0.16), transparent 14%),
+        radial-gradient(circle at 24% 48%, rgba(255, 124, 92, 0.16), transparent 18%),
+        radial-gradient(circle at 76% 48%, rgba(255, 136, 104, 0.15), transparent 18%),
+        radial-gradient(circle at 50% 56%, rgba(176, 40, 64, 0.14), transparent 28%),
+        linear-gradient(90deg, rgba(6, 10, 18, 0.84) 0%, rgba(18, 10, 18, 0.42) 20%, rgba(18, 10, 18, 0.2) 80%, rgba(6, 10, 18, 0.82) 100%),
+        linear-gradient(180deg, rgba(36, 10, 18, 0.42) 0%, rgba(10, 14, 22, 0.26) 36%, rgba(8, 10, 18, 0.5) 100%);
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-bg::before,
@@ -2988,112 +2971,61 @@
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-bg::before {
       background:
-        radial-gradient(circle at 50% 32%, rgba(255, 154, 154, 0.12), transparent 16%),
+        radial-gradient(circle at 50% 28%, rgba(255, 218, 172, 0.18), transparent 12%),
+        radial-gradient(circle at 26% 42%, rgba(255, 120, 86, 0.16), transparent 11%),
+        radial-gradient(circle at 74% 42%, rgba(255, 120, 86, 0.16), transparent 11%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 32%, rgba(0, 0, 0, 0.2) 100%);
       mix-blend-mode: screen;
-      opacity: 0.76;
+      opacity: 0.84;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-bg::after {
       background:
+        radial-gradient(circle at 24% 50%, rgba(255, 186, 120, 0.08), transparent 16%),
+        radial-gradient(circle at 76% 50%, rgba(255, 186, 120, 0.08), transparent 16%),
         linear-gradient(90deg, rgba(5, 8, 14, 0.44), transparent 18%, transparent 82%, rgba(5, 8, 14, 0.5)),
         linear-gradient(180deg, rgba(5, 8, 14, 0.4), transparent 20%, transparent 78%, rgba(5, 8, 14, 0.58));
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt {
-      position: absolute;
-      left: 10%;
-      right: 10%;
-      top: 34%;
-      height: 32%;
-      display: grid;
-      grid-template-columns: 1fr minmax(0, 1.08fr) 1fr;
-      align-items: center;
-      gap: 4%;
-      z-index: 2;
-      filter: drop-shadow(0 0 10px rgba(255, 150, 118, 0.12));
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt-side,
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt-center {
-      position: relative;
-      height: 100%;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 211, 160, 0.18);
-      background:
-        linear-gradient(180deg, rgba(94, 22, 34, 0.92), rgba(42, 10, 18, 0.96)),
-        linear-gradient(90deg, rgba(255, 176, 122, 0.12), rgba(132, 227, 255, 0.04));
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 -10px 16px rgba(0, 0, 0, 0.28);
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt-side::before,
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt-center::before {
-      content: "";
-      position: absolute;
-      inset: 16% 12%;
-      border-radius: inherit;
-      background:
-        radial-gradient(circle at 50% 40%, rgba(255, 222, 176, 0.72), rgba(255, 176, 120, 0.2) 38%, rgba(64, 16, 24, 0.08) 68%),
-        linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0) 40%);
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 238, 214, 0.18),
-        0 0 8px rgba(255, 184, 120, 0.08);
-      opacity: 0.92;
+      content: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt-center {
-      aspect-ratio: 1.1 / 1;
-      height: 100%;
-      border-radius: 999px;
-      background:
-        radial-gradient(circle at 50% 36%, rgba(255, 223, 184, 0.28), transparent 40%),
-        linear-gradient(180deg, rgba(110, 24, 38, 0.96), rgba(46, 12, 20, 0.98));
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 238, 214, 0.18),
-        inset 0 -12px 18px rgba(0, 0, 0, 0.32),
-        0 0 10px rgba(255, 174, 120, 0.12);
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-center-ring {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 58%;
-      aspect-ratio: 1;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      border: 1px solid rgba(255, 228, 196, 0.24);
-      background:
-        radial-gradient(circle at 38% 34%, rgba(255, 255, 255, 0.34), transparent 18%),
-        radial-gradient(circle at 50% 50%, rgba(255, 216, 176, 0.86) 0%, rgba(255, 174, 114, 0.44) 42%, rgba(80, 18, 28, 0.18) 70%, rgba(80, 18, 28, 0) 76%);
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 246, 230, 0.16),
-        0 0 10px rgba(255, 198, 126, 0.14);
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-center-ring::before,
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-center-ring::after {
-      content: "";
-      position: absolute;
-      inset: 14%;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 235, 214, 0.14);
+      content: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-center-ring::after {
-      inset: 28%;
-      border-color: rgba(132, 227, 255, 0.12);
+      content: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-shimmer {
       z-index: 3;
       background:
-        linear-gradient(115deg, rgba(255,255,255,0) 18%, rgba(255, 240, 220, 0.28) 40%, rgba(255,255,255,0.04) 52%, rgba(255,255,255,0) 70%);
+        radial-gradient(circle at 24% 48%, rgba(255, 208, 142, 0.12), transparent 18%),
+        radial-gradient(circle at 76% 48%, rgba(255, 208, 142, 0.12), transparent 18%),
+        linear-gradient(115deg, rgba(255,255,255,0) 18%, rgba(255, 240, 220, 0.24) 40%, rgba(255,255,255,0.04) 52%, rgba(255,255,255,0) 70%);
       transform: translateX(-130%);
-      opacity: 0.56;
+      opacity: 0.68;
       animation: mockup-library-wrestling-shimmer 4.4s ease-in-out infinite;
     }
 
@@ -3104,39 +3036,112 @@
 
     .mockup-library-status-node.is-wrestling-card {
       isolation: isolate;
+      overflow: hidden;
+    }
+
+    .mockup-library-status-node.is-wrestling-card::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 12px;
+      background:
+        linear-gradient(90deg, rgba(255, 176, 122, 0.05), transparent 22%, transparent 78%, rgba(255, 176, 122, 0.04)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 30%, rgba(0, 0, 0, 0.16) 100%);
+      opacity: 0.72;
+      pointer-events: none;
+      z-index: 1;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
-      min-height: 40px;
-      padding-right: 116px;
-      align-items: flex-start;
-      gap: 8px;
+      min-height: 76px;
+      padding: 9px 11px 9px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: 1fr 1fr;
+      align-items: stretch;
+      gap: 0;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
+      grid-column: 1;
+      grid-row: 1;
       min-width: 0;
-      max-width: calc(100% - 62px);
+      max-width: none;
+      align-self: start;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline::after {
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-kicker {
-      max-width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
-      max-width: calc(100% - 124px);
-      padding-right: 4px;
-      line-height: 1.18;
+      display: none;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name,
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state,
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
+      position: relative;
+      z-index: 5;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
+      align-self: start;
+      transform: translateY(0);
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.105em;
+      text-shadow: 0 0 7px rgba(255,255,255,0.03);
+      animation: none;
     }
 
     .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
       position: relative;
-      z-index: 2;
-      align-self: start;
-      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      grid-column: 3;
+      grid-row: 2;
+      align-self: end;
+      justify-self: end;
+      width: auto;
+      margin: 0;
+      transform: translate(-2px, 8px);
+      padding: 0;
+      border: 0;
+      min-width: 0;
+      background: transparent;
+      box-shadow: none;
+      clip-path: none;
+      text-align: right;
+      letter-spacing: 0.16em;
+      font-size: 11px;
+      line-height: 1;
+      color: rgba(255, 204, 146, 0.94);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
       white-space: nowrap;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-prefix {
+      color: rgba(255, 255, 255, 0.5);
+      text-shadow: none;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-value {
+      color: rgba(255, 208, 144, 0.96);
+      text-shadow:
+        0 0 7px rgba(255, 160, 92, 0.3),
+        0 0 14px rgba(255, 122, 54, 0.1);
     }
 
     .mockup-library-status-node-topline {
@@ -3335,14 +3340,7 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
-      left: 118px;
-      right: 122px;
-      top: 50%;
-      height: 1px;
-      transform: translateY(-50%);
-      opacity: 0.26;
-      background: linear-gradient(90deg, rgba(255, 122, 162, 0.1), rgba(132, 227, 255, 0.03), rgba(132, 227, 255, 0));
-      animation: mockup-library-divider-pulse 6.2s ease-in-out infinite;
+      display: none;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
@@ -5289,22 +5287,14 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
-        top: 9px;
-        right: 8px;
-        bottom: 9px;
-        width: clamp(86px, 26vw, 98px);
-        min-width: 86px;
+        inset: 0;
+        width: 100%;
+        min-width: 0;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
-        min-height: 38px;
-        padding-right: 102px;
-        gap: 7px;
-      }
-
-      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
-        max-width: calc(100% - 108px);
-        font-size: 8px;
+        min-height: 78px;
+        padding: 8px 9px 8px 12px;
       }
 
       .mockup-library-status-visual.is-wrestling::before {
@@ -5316,10 +5306,7 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt {
-        left: 8%;
-        right: 8%;
-        top: 35%;
-        height: 28%;
+        display: none;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-shimmer {
@@ -5462,40 +5449,27 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-visual {
-        top: 10px;
-        right: 8px;
-        bottom: 10px;
-        width: clamp(74px, 25vw, 84px);
-        min-width: 74px;
+        inset: 0;
+        width: 100%;
+        min-width: 0;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-topline {
-        min-height: 34px;
-        padding-right: 88px;
-        gap: 6px;
-      }
-
-      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-rail {
-        max-width: calc(100% - 54px);
-      }
-
-      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-kicker {
-        font-size: 7px;
+        min-height: 74px;
+        padding: 8px 8px 8px 11px;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-name {
-        font-size: 10px;
+        font-size: 11px;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state {
-        font-size: 7px;
-        padding: 3px 5px;
+        gap: 4px;
+        font-size: 10px;
       }
 
-      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-copy {
-        max-width: calc(100% - 92px);
-        font-size: 7px;
-        line-height: 1.16;
+      .mockup-library-status-node.is-wrestling-card .mockup-library-status-node-state-prefix {
+        font-size: 8px;
       }
 
       .mockup-library-status-visual.is-wrestling::before {
@@ -5507,11 +5481,7 @@
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-belt {
-        left: 7%;
-        right: 7%;
-        top: 36%;
-        height: 26%;
-        gap: 3%;
+        display: none;
       }
 
       .mockup-library-status-node.is-wrestling-card .mockup-library-wrestling-center-ring {
@@ -5998,7 +5968,7 @@
                         <div class="mockup-library-status-node-kicker">Next Performance Layer</div>
                       <div class="mockup-library-status-node-name">Wrestling</div>
                       </div>
-                      <div class="mockup-library-status-node-state">Staging</div>
+                      <div class="mockup-library-status-node-state"><span class="mockup-library-status-node-state-prefix">Status:</span><span class="mockup-library-status-node-state-value">Staging</span></div>
                     </div>
                     <div class="mockup-library-status-node-copy">Ring-energy and belt-glow language for the next performance archive.</div>
                   </div>
@@ -6671,21 +6641,38 @@
           let animationFrameId = 0;
           let lastTime = 0;
           let tick = Math.random() * 1000;
-          const particles = Array.from({ length: mobileSignalMode ? 9 : 14 }, () => ({
+          const particles = Array.from({ length: mobileSignalMode ? 120 : 180 }, () => ({
             x: 0.12 + Math.random() * 0.76,
-            y: 0.24 + Math.random() * 0.48,
-            dx: (Math.random() - 0.5) * 0.08,
-            dy: 0.06 + Math.random() * 0.12,
+            y: 0.5 + Math.random() * 0.38,
+            dx: (Math.random() - 0.5) * 0.12,
+            dy: 0.08 + Math.random() * 0.16,
             radius: 0.8 + Math.random() * 1.6,
-            alpha: 0.14 + Math.random() * 0.18
+            alpha: 0.12 + Math.random() * 0.16,
+            hue: Math.random() > 0.58 ? 'gold' : 'ember'
           }));
-          const sparks = Array.from({ length: mobileSignalMode ? 10 : 16 }, (_, index) => ({
+          const bursts = Array.from({ length: mobileSignalMode ? 12 : 18 }, (_, index) => ({
+            anchorX: 0.24 + (index / Math.max(1, (mobileSignalMode ? 2 : 4))) * 0.52 + (Math.random() - 0.5) * 0.06,
+            anchorY: 0.56 + Math.random() * 0.18,
+            radius: mobileSignalMode ? 16 + Math.random() * 10 : 20 + Math.random() * 16,
+            spokeCount: mobileSignalMode ? 8 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 6),
+            life: Math.random(),
+            speed: 0.56 + Math.random() * 0.54,
+            alpha: 0.28 + Math.random() * 0.2
+          }));
+          const streaks = Array.from({ length: mobileSignalMode ? 120 : 180 }, (_, index) => ({
             side: index % 2 === 0 ? -1 : 1,
             t: Math.random(),
-            speed: 0.18 + Math.random() * 0.24,
-            length: 7 + Math.random() * 7,
-            alpha: 0.22 + Math.random() * 0.18
+            speed: 0.5 + Math.random() * 0.42,
+            length: 10 + Math.random() * 12,
+            alpha: 0.2 + Math.random() * 0.18
           }));
+
+          const particleColor = (particle, alphaScale = 1) => {
+            const alpha = Math.min(1, particle.alpha * alphaScale);
+            return particle.hue === 'gold'
+              ? `rgba(255, 208, 132, ${alpha})`
+              : `rgba(255, 130, 96, ${alpha})`;
+          };
 
           const resize = () => {
             const bounds = canvas.getBoundingClientRect();
@@ -6698,19 +6685,30 @@
           };
 
           const resetParticle = (particle) => {
-            particle.x = 0.14 + Math.random() * 0.72;
-            particle.y = 0.42 + Math.random() * 0.34;
-            particle.dx = (Math.random() - 0.5) * 0.08;
-            particle.dy = 0.06 + Math.random() * 0.12;
+            particle.x = 0.12 + Math.random() * 0.76;
+            particle.y = 0.62 + Math.random() * 0.26;
+            particle.dx = (Math.random() - 0.5) * 0.12;
+            particle.dy = 0.08 + Math.random() * 0.16;
             particle.radius = 0.8 + Math.random() * 1.6;
-            particle.alpha = 0.14 + Math.random() * 0.18;
+            particle.alpha = 0.12 + Math.random() * 0.16;
+            particle.hue = Math.random() > 0.58 ? 'gold' : 'ember';
           };
 
-          const resetSpark = (spark) => {
-            spark.t = 0;
-            spark.speed = 0.18 + Math.random() * 0.24;
-            spark.length = 7 + Math.random() * 7;
-            spark.alpha = 0.22 + Math.random() * 0.18;
+          const resetBurst = (burst, index) => {
+            burst.anchorX = 0.22 + (index / Math.max(1, (mobileSignalMode ? 2 : 4))) * 0.56 + (Math.random() - 0.5) * 0.08;
+            burst.anchorY = 0.58 + Math.random() * 0.18;
+            burst.radius = mobileSignalMode ? 16 + Math.random() * 10 : 20 + Math.random() * 16;
+            burst.spokeCount = mobileSignalMode ? 8 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 6);
+            burst.life = 0;
+            burst.speed = 0.56 + Math.random() * 0.54;
+            burst.alpha = 0.28 + Math.random() * 0.2;
+          };
+
+          const resetStreak = (streak) => {
+            streak.t = 0;
+            streak.speed = 0.5 + Math.random() * 0.42;
+            streak.length = 10 + Math.random() * 12;
+            streak.alpha = 0.2 + Math.random() * 0.18;
           };
 
           const draw = (timestamp) => {
@@ -6731,44 +6729,85 @@
             particles.forEach((particle) => {
               const x = particle.x * width;
               const y = particle.y * height;
-              context.fillStyle = `rgba(255, 198, 122, ${particle.alpha})`;
+              context.fillStyle = particleColor(particle);
               context.beginPath();
               context.arc(x, y, particle.radius, 0, Math.PI * 2);
               context.fill();
-              context.fillStyle = `rgba(255, 126, 94, ${particle.alpha * 0.28})`;
+              context.fillStyle = particleColor(particle, 0.26);
               context.beginPath();
               context.arc(x, y, particle.radius * 2.8, 0, Math.PI * 2);
               context.fill();
 
               if (!prefersReducedMotion) {
-                particle.x += particle.dx * 0.0018;
-                particle.y -= particle.dy * 0.0016;
-                if (particle.y < 0.14 || particle.x < 0.04 || particle.x > 0.96) {
+                particle.x += particle.dx * 0.0034;
+                particle.y -= particle.dy * 0.0042;
+                if (particle.y < 0.08 || particle.x < -0.06 || particle.x > 1.06) {
                   resetParticle(particle);
                 }
               }
             });
 
-            sparks.forEach((spark, index) => {
-              const launchX = centerX + spark.side * width * 0.18;
-              const progress = spark.t;
-              const x = launchX + spark.side * width * 0.18 * progress;
-              const y = centerY - height * 0.08 - height * 0.24 * progress + Math.sin((progress * Math.PI) + index) * 2;
-              const trailX = x - spark.side * spark.length;
-              const gradient = context.createLinearGradient(trailX, y + spark.length * 0.14, x, y);
-              gradient.addColorStop(0, `rgba(255, 112, 88, 0)`);
-              gradient.addColorStop(0.44, `rgba(255, 176, 98, ${spark.alpha * 0.7})`);
-              gradient.addColorStop(1, `rgba(255, 238, 186, ${spark.alpha})`);
+            bursts.forEach((burst, index) => {
+              const burstX = burst.anchorX * width;
+              const burstY = burst.anchorY * height;
+              const progress = burst.life;
+              const bloomStrength = Math.sin(progress * Math.PI);
+              const bloomRadius = burst.radius * (0.24 + bloomStrength * 0.72);
+              const bloomGradient = context.createRadialGradient(burstX, burstY, 0, burstX, burstY, bloomRadius);
+              bloomGradient.addColorStop(0, `rgba(255, 236, 190, ${burst.alpha * bloomStrength * 0.42})`);
+              bloomGradient.addColorStop(0.42, `rgba(255, 172, 110, ${burst.alpha * bloomStrength * 0.22})`);
+              bloomGradient.addColorStop(1, 'rgba(255, 96, 68, 0)');
+              context.fillStyle = bloomGradient;
+              context.beginPath();
+              context.arc(burstX, burstY, bloomRadius, 0, Math.PI * 2);
+              context.fill();
+
+              for (let spokeIndex = 0; spokeIndex < burst.spokeCount; spokeIndex += 1) {
+                const angle = ((Math.PI * 2) / burst.spokeCount) * spokeIndex;
+                const inner = burst.radius * 0.08;
+                const outer = burst.radius * (0.24 + bloomStrength * 0.98);
+                const startX = burstX + Math.cos(angle) * inner;
+                const startY = burstY + Math.sin(angle) * inner;
+                const endX = burstX + Math.cos(angle) * outer;
+                const endY = burstY + Math.sin(angle) * outer;
+                const gradient = context.createLinearGradient(startX, startY, endX, endY);
+                gradient.addColorStop(0, `rgba(255, 255, 220, ${burst.alpha * bloomStrength * 0.22})`);
+                gradient.addColorStop(0.6, `rgba(255, 188, 118, ${burst.alpha * bloomStrength * 0.86})`);
+                gradient.addColorStop(1, 'rgba(255, 116, 78, 0)');
+                context.strokeStyle = gradient;
+                context.lineWidth = mobileSignalMode ? 1.1 : 1.35;
+                context.beginPath();
+                context.moveTo(startX, startY);
+                context.lineTo(endX, endY);
+                context.stroke();
+              }
+
+              if (!prefersReducedMotion) {
+                burst.life += burst.speed * 0.018;
+                if (burst.life >= 1) resetBurst(burst, index);
+              }
+            });
+
+            streaks.forEach((streak, index) => {
+              const launchX = centerX + streak.side * width * 0.08 + (Math.random() - 0.5) * width * 0.54;
+              const progress = streak.t;
+              const x = launchX + streak.side * width * 0.08 * progress;
+              const y = height * 0.9 - height * 0.46 * progress + Math.sin((progress * Math.PI) + index) * 2.2;
+              const trailX = x - streak.side * streak.length;
+              const gradient = context.createLinearGradient(trailX, y + streak.length * 0.14, x, y);
+              gradient.addColorStop(0, 'rgba(255, 112, 88, 0)');
+              gradient.addColorStop(0.44, `rgba(255, 176, 98, ${streak.alpha * 0.7})`);
+              gradient.addColorStop(1, `rgba(255, 238, 186, ${streak.alpha})`);
               context.strokeStyle = gradient;
               context.lineWidth = mobileSignalMode ? 1 : 1.2;
               context.beginPath();
-              context.moveTo(trailX, y + spark.length * 0.16);
+              context.moveTo(trailX, y + streak.length * 0.16);
               context.lineTo(x, y);
               context.stroke();
 
               if (!prefersReducedMotion) {
-                spark.t += spark.speed * 0.012;
-                if (spark.t >= 1) resetSpark(spark);
+                streak.t += streak.speed * 0.022;
+                if (streak.t >= 1) resetStreak(streak);
               }
             });
 
