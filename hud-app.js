@@ -4700,7 +4700,7 @@ music: {
         m.innerHTML = `
           <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
             <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
-              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r3&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
+              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r4&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
@@ -6054,6 +6054,7 @@ function navigate(route){
     if (top === 'testing') {
       const trail = ['/', '/testing/home'];
       const sub = String(parts[1] || '').toLowerCase();
+      if (sub === 'portfolio') trail.push('/testing/portfolio');
       if (sub === 'about') trail.push('/testing/about');
       if (sub === 'pricing') trail.push('/testing/pricing');
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
@@ -6064,6 +6065,7 @@ function navigate(route){
 
   function currentTestingShellPath(){
     const path = String(location.pathname || '').trim().toLowerCase();
+    if (path === '/testing/portfolio') return '/testing/portfolio';
     if (path === '/testing/about') return '/testing/about';
     if (path === '/testing/pricing') return '/testing/pricing';
     return '/testing/home';
@@ -6129,7 +6131,9 @@ function navigate(route){
     const data = event && event.data;
     if (!data || data.type !== 'vmTestingRoute') return;
     const nextPath =
-      data.route === '/testing/about'
+      data.route === '/testing/portfolio'
+        ? '/testing/portfolio'
+        : data.route === '/testing/about'
         ? '/testing/about'
         : data.route === '/testing/pricing'
           ? '/testing/pricing'
