@@ -3063,7 +3063,13 @@
 
     /* Final music panel polish override: keep this block late so it wins over earlier mockup passes */
     .mockup-library-status-node.is-music-card {
+      --music-label-size: 13px;
+      --music-band-midline-shift: 0px;
+      --music-staging-y-shift: 0px;
+      --music-staging-size-adjust: 1px;
       border-color: rgba(255, 116, 156, 0.18);
+      min-height: 96px;
+      padding: 10px 14px 11px;
       box-shadow:
         inset 0 0 0 1px rgba(255, 116, 156, 0.04),
         0 0 14px rgba(255, 116, 156, 0.05);
@@ -3090,66 +3096,77 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline {
-      min-height: 38px;
+      min-height: 74px;
+      padding: 8px 10px 8px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: 1fr 1fr;
+      align-items: stretch;
+      gap: 0;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
       left: 118px;
-      right: 126px;
-      top: 21px;
-      opacity: 0.58;
-      background: linear-gradient(90deg, rgba(255, 122, 162, 0.18), rgba(132, 227, 255, 0.05), rgba(132, 227, 255, 0));
+      right: 122px;
+      top: 50%;
+      height: 1px;
+      transform: translateY(-50%);
+      opacity: 0.26;
+      background: linear-gradient(90deg, rgba(255, 122, 162, 0.1), rgba(132, 227, 255, 0.03), rgba(132, 227, 255, 0));
       animation: mockup-library-divider-pulse 6.2s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
-      padding-left: 16px;
-      padding-top: 10px;
-      min-width: 138px;
+      padding-left: 0;
+      padding-top: 0;
+      min-width: 0;
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-rail::before {
-      width: 4px;
-      height: 16px;
-      top: 9px;
-      border-color: rgba(132, 227, 255, 0.1);
-      background: linear-gradient(180deg, rgba(132, 227, 255, 0.1), rgba(132, 227, 255, 0.02));
+      display: none;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
-      font-size: 13px;
+      font-size: var(--music-label-size);
       letter-spacing: 0.105em;
+      line-height: 1;
       text-shadow: 0 0 7px rgba(255,255,255,0.03);
       animation: mockup-library-music-label 6.8s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
-      max-width: 43%;
-      padding-left: 18px;
-      padding-top: 14px;
-      line-height: 1.22;
-      font-size: 9px;
-      color: rgba(216, 228, 235, 0.76);
+      display: none;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-copy::after {
-      left: 18px;
-      bottom: -10px;
-      width: 104px;
-      height: 7px;
-      opacity: 0.68;
-      filter: drop-shadow(0 0 5px rgba(255, 122, 162, 0.14));
-      animation: mockup-library-waveform-idle 5.8s ease-in-out infinite;
+      display: none;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
-      right: 8px;
-      width: 112px;
-      top: 50%;
-      transform: translateY(-50%);
-      text-align: center;
+      position: relative;
+      display: flex;
+      align-items: center;
+      right: auto;
+      top: auto;
+      grid-column: 3;
+      grid-row: 2;
+      align-self: end;
+      justify-self: end;
+      width: auto;
+      transform: translate(-2px, var(--music-staging-y-shift));
+      padding: 0;
+      border: 0;
+      min-width: 0;
+      background: transparent;
+      box-shadow: none;
+      clip-path: none;
+      text-align: right;
       letter-spacing: 0.16em;
-      font-size: 9px;
+      font-size: calc(var(--music-label-size) + var(--music-staging-size-adjust));
+      line-height: 1;
       color: rgba(255, 208, 144, 0.96);
       text-shadow:
         0 0 7px rgba(255, 160, 92, 0.3),
@@ -3158,35 +3175,64 @@
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual {
-      inset: 8px 8px 8px auto;
-      width: 112px;
+      inset: 0;
+      width: auto;
+      clip-path: none;
+      overflow: hidden;
       background:
-        radial-gradient(circle at 30% 34%, rgba(132, 227, 255, 0.14), transparent 16%),
-        radial-gradient(circle at 70% 58%, rgba(132, 227, 255, 0.06), transparent 22%),
-        linear-gradient(115deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 34%),
-        linear-gradient(135deg, rgba(17, 38, 50, 0.68), rgba(9, 18, 28, 0.88));
-      box-shadow:
-        inset 0 0 0 1px rgba(132, 227, 255, 0.05),
-        inset 0 -16px 24px rgba(4, 10, 18, 0.28);
+        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.08), transparent 26%),
+        linear-gradient(90deg, rgba(5, 10, 18, 0.8) 0%, rgba(5, 10, 18, 0.16) 22%, rgba(5, 10, 18, 0.08) 78%, rgba(5, 10, 18, 0.76) 100%),
+        linear-gradient(180deg, rgba(17, 38, 50, 0.42), rgba(9, 18, 28, 0.68));
+      box-shadow: inset 0 0 0 1px rgba(132, 227, 255, 0.04);
       animation: mockup-library-staging-bay 6.4s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual::before {
+      inset: 0;
       background:
-        radial-gradient(circle at 50% 22px, rgba(132, 227, 255, 0.36) 0 2px, transparent 3px),
-        radial-gradient(circle at 50% 22px, rgba(132, 227, 255, 0.1) 0 13px, transparent 14px),
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 42%);
-      filter: blur(8px) saturate(1.02);
-      opacity: 0.8;
+        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.12), transparent 18%),
+        linear-gradient(90deg, rgba(255, 122, 162, 0.02), rgba(132, 227, 255, 0.07), rgba(255, 186, 92, 0.03));
+      filter: blur(10px) saturate(1.04);
+      opacity: 0.72;
       animation: mockup-library-bay-shimmer 10.6s ease-in-out infinite;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual::after {
+      inset: 0;
       background:
-        linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0)) top 12px right 12px / 52px 1px no-repeat,
-        linear-gradient(180deg, rgba(132, 227, 255, 0.12), rgba(132, 227, 255, 0.02)) top 12px right 12px / 1px 42px no-repeat,
-        linear-gradient(180deg, rgba(4, 10, 18, 0), rgba(4, 10, 18, 0.34)) bottom / 100% 40% no-repeat;
-      opacity: 0.68;
+        linear-gradient(180deg, rgba(3, 5, 10, 0.82), rgba(3, 5, 10, 0.08) 34%, rgba(3, 5, 10, 0.08) 66%, rgba(3, 5, 10, 0.82)),
+        linear-gradient(90deg, rgba(3, 5, 10, 0.88), rgba(3, 5, 10, 0.06) 18%, rgba(3, 5, 10, 0.06) 82%, rgba(3, 5, 10, 0.86));
+      opacity: 0.8;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-signal-canvas,
+    .mockup-library-status-node.is-music-card .mockup-library-status-signal-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-signal-canvas {
+      z-index: 0;
+      display: block;
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-signal-overlay {
+      z-index: 1;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(132, 227, 255, 0.07), transparent 16%),
+        linear-gradient(90deg, rgba(4, 8, 14, 0.84), rgba(4, 8, 14, 0) 22%, rgba(4, 8, 14, 0) 78%, rgba(4, 8, 14, 0.84)),
+        linear-gradient(180deg, rgba(4, 8, 14, 0.78), rgba(4, 8, 14, 0.1) 34%, rgba(4, 8, 14, 0.1) 66%, rgba(4, 8, 14, 0.78));
+    }
+
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-topline,
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-rail,
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-name,
+    .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
+      position: relative;
+      z-index: 2;
     }
 
     .mockup-library-status-visual.is-wrestling::before {
@@ -4936,13 +4982,16 @@
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
-        min-width: 124px;
-        padding-left: 15px;
-        padding-top: 10px;
+        min-width: 0;
+        padding-left: 0;
+        padding-top: 0;
       }
 
-      .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
-        font-size: 12px;
+      .mockup-library-status-node.is-music-card {
+        --music-label-size: 12px;
+        --music-band-midline-shift: 0px;
+        --music-staging-y-shift: 0px;
+        --music-staging-size-adjust: 1px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -4957,11 +5006,11 @@
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
         left: 104px;
-        right: 110px;
+        right: 106px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
-        width: 96px;
+        width: auto;
       }
 
       .mockup-library-module,
@@ -5046,13 +5095,16 @@
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-rail {
-        min-width: 110px;
-        padding-left: 13px;
-        padding-top: 9px;
+        min-width: 0;
+        padding-left: 0;
+        padding-top: 0;
       }
 
-      .mockup-library-status-node.is-music-card .mockup-library-status-node-name {
-        font-size: 11px;
+      .mockup-library-status-node.is-music-card {
+        --music-label-size: 11px;
+        --music-band-midline-shift: 0px;
+        --music-staging-y-shift: 0px;
+        --music-staging-size-adjust: 1px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-copy {
@@ -5069,13 +5121,13 @@
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-topline::after {
         left: 92px;
-        right: 98px;
+        right: 94px;
       }
 
       .mockup-library-status-node.is-music-card .mockup-library-status-node-state {
-        width: 84px;
-        right: 8px;
-        font-size: 8px;
+        width: auto;
+        right: auto;
+        font-size: calc(var(--music-label-size) + 3px);
       }
 
       .mockup-library-main-side {
@@ -5473,14 +5525,16 @@
                 <div class="mockup-library-status-value">One live archive branch is online now, with the rest of the portfolio staged as the next layers of the system come online.</div>
                 <div class="mockup-library-status-board">
                   <div class="mockup-library-status-node is-staging is-lower-third is-music-card">
-                      <div class="mockup-library-status-visual is-music"></div>
+                      <div class="mockup-library-status-visual is-music" aria-hidden="true">
+                        <canvas class="mockup-library-status-signal-canvas"></canvas>
+                        <div class="mockup-library-status-signal-overlay"></div>
+                      </div>
                       <div class="mockup-library-status-node-topline">
                         <div class="mockup-library-status-node-rail">
-                        <div class="mockup-library-status-node-name">Music</div>
+                          <div class="mockup-library-status-node-name">Music</div>
                         </div>
                         <div class="mockup-library-status-node-state">Staging</div>
                       </div>
-                    <div class="mockup-library-status-node-copy">Module in progress.</div>
                   </div>
                   <div class="mockup-library-status-node is-staging is-lower-third is-wrestling-card">
                     <div class="mockup-library-status-visual is-wrestling"></div>
@@ -5921,6 +5975,214 @@
       let panelStageTimerIds = [];
       let pricingMenuDelayTimer = 0;
       let shellRoutePath = '';
+      const musicRowCanvasCleanups = [];
+
+      const initMusicStatusSignals = () => {
+        const cards = Array.from(document.querySelectorAll('.mockup-library-status-node.is-music-card'));
+        if (!cards.length) return;
+        const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        cards.forEach((card, cardIndex) => {
+          const canvas = card.querySelector('.mockup-library-status-signal-canvas');
+          if (!canvas) return;
+          const context = canvas.getContext('2d');
+          if (!context) return;
+
+          let width = 0;
+          let height = 0;
+          let dpr = 1;
+          let animationFrameId = 0;
+          let lastTime = 0;
+          let tick = Math.random() * 1000;
+          const particles = Array.from({ length: 20 }, (_, index) => {
+            const direction = index % 2 === 0 ? 1 : -1;
+            return {
+              x: Math.random(),
+              y: 0.44 + Math.random() * 0.12,
+              drift: (Math.random() * 0.12 + 0.04) * direction,
+              speed: 0.18 + Math.random() * 0.36,
+              radius: 0.8 + Math.random() * 1.8,
+              alpha: 0.16 + Math.random() * 0.26,
+              hue: Math.random() > 0.72 ? 'gold' : Math.random() > 0.46 ? 'pink' : 'cyan',
+              mode: Math.random() > 0.76 ? 'sigil' : 'ember'
+            };
+          });
+
+          const resize = () => {
+            const bounds = canvas.getBoundingClientRect();
+            width = Math.max(1, Math.round(bounds.width));
+            height = Math.max(1, Math.round(bounds.height));
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            context.setTransform(dpr, 0, 0, dpr, 0, 0);
+          };
+
+          const resetParticle = (particle) => {
+            particle.x = Math.random();
+            particle.y = 0.42 + Math.random() * 0.16;
+            particle.drift = (Math.random() * 0.12 + 0.04) * (Math.random() > 0.5 ? 1 : -1);
+            particle.speed = 0.18 + Math.random() * 0.36;
+            particle.radius = 0.8 + Math.random() * 1.8;
+            particle.alpha = 0.16 + Math.random() * 0.26;
+            particle.hue = Math.random() > 0.72 ? 'gold' : Math.random() > 0.46 ? 'pink' : 'cyan';
+            particle.mode = Math.random() > 0.76 ? 'sigil' : 'ember';
+          };
+
+          const particleColor = (particle, alphaScale = 1) => {
+            const alpha = Math.min(1, particle.alpha * alphaScale);
+            if (particle.hue === 'gold') return `rgba(255, 205, 122, ${alpha})`;
+            if (particle.hue === 'pink') return `rgba(255, 138, 192, ${alpha})`;
+            return `rgba(122, 228, 255, ${alpha})`;
+          };
+
+          const drawParticle = (particle, index) => {
+            const x = particle.x * width;
+            const y = particle.y * height;
+            const flicker = 0.82 + 0.18 * Math.sin(tick * 3.6 + index * 1.7);
+            const radius = particle.radius * flicker;
+
+            if (particle.mode === 'sigil') {
+              context.strokeStyle = particleColor(particle, 0.88 * flicker);
+              context.lineWidth = 1;
+              context.beginPath();
+              context.moveTo(x - radius * 1.6, y);
+              context.lineTo(x + radius * 1.6, y);
+              context.moveTo(x, y - radius * 1.6);
+              context.lineTo(x, y + radius * 1.6);
+              context.stroke();
+              return;
+            }
+
+            context.fillStyle = particleColor(particle, flicker);
+            context.beginPath();
+            context.arc(x, y, radius, 0, Math.PI * 2);
+            context.fill();
+
+            context.fillStyle = particleColor(particle, 0.22 * flicker);
+            context.beginPath();
+            context.arc(x, y, radius * 3.1, 0, Math.PI * 2);
+            context.fill();
+          };
+
+          const draw = (timestamp) => {
+            if (!width || !height) resize();
+            if (prefersReducedMotion) {
+              tick = 0;
+            } else {
+              const delta = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.05) : 0.016;
+              lastTime = timestamp;
+              tick += delta;
+            }
+
+            context.clearRect(0, 0, width, height);
+
+            const midY = height * 0.5;
+            const bandGradient = context.createLinearGradient(0, 0, width, 0);
+            bandGradient.addColorStop(0, 'rgba(255, 126, 172, 0)');
+            bandGradient.addColorStop(0.2, 'rgba(255, 126, 172, 0.1)');
+            bandGradient.addColorStop(0.5, 'rgba(132, 227, 255, 0.22)');
+            bandGradient.addColorStop(0.8, 'rgba(255, 188, 112, 0.1)');
+            bandGradient.addColorStop(1, 'rgba(255, 188, 112, 0)');
+            context.strokeStyle = bandGradient;
+            context.lineWidth = 1;
+            context.beginPath();
+            context.moveTo(width * 0.17, midY);
+            context.lineTo(width * 0.83, midY);
+            context.stroke();
+
+            const waveformOpacity = prefersReducedMotion ? 0.12 : 0.2;
+            for (let lineIndex = 0; lineIndex < 2; lineIndex += 1) {
+              const amplitude = height * (lineIndex === 0 ? 0.1 : 0.065);
+              const phase = lineIndex === 0 ? 0 : 1.4;
+              const verticalOffset = lineIndex === 0 ? -1.5 : 2.5;
+              context.strokeStyle = lineIndex === 0
+                ? `rgba(122, 228, 255, ${waveformOpacity})`
+                : `rgba(255, 146, 194, ${waveformOpacity * 0.8})`;
+              context.lineWidth = lineIndex === 0 ? 1.2 : 1;
+              context.beginPath();
+              const samples = 72;
+              for (let step = 0; step <= samples; step += 1) {
+                const ratio = step / samples;
+                const x = width * ratio;
+                const edgeFade = Math.max(0, Math.min(1, ratio < 0.14 ? ratio / 0.14 : ratio > 0.86 ? (1 - ratio) / 0.14 : 1));
+                const wave =
+                  Math.sin(ratio * 20 + tick * 3.4 + phase) * amplitude * 0.48 +
+                  Math.sin(ratio * 44 - tick * 2.6 + phase * 0.7) * amplitude * 0.22;
+                const y = midY + verticalOffset + wave * edgeFade;
+                if (step === 0) context.moveTo(x, y);
+                else context.lineTo(x, y);
+              }
+              context.stroke();
+            }
+
+            const barCount = Math.max(18, Math.round(width / 14));
+            const usableWidth = width * 0.54;
+            const startX = (width - usableWidth) / 2;
+            const gap = 2;
+            const barWidth = Math.max(2, (usableWidth - gap * (barCount - 1)) / barCount);
+            for (let barIndex = 0; barIndex < barCount; barIndex += 1) {
+              const ratio = barCount <= 1 ? 0.5 : barIndex / (barCount - 1);
+              const centered = Math.abs(ratio - 0.5) / 0.5;
+              const envelope = 1 - centered * 0.36;
+              const pulse =
+                0.48 +
+                0.28 * Math.sin(tick * 5.1 + barIndex * 0.42 + cardIndex) +
+                0.16 * Math.sin(tick * 9.6 - barIndex * 0.78);
+              const randomPeak = 0.12 * (Math.sin(tick * 2.7 + barIndex * 1.9) + 1);
+              const heightFactor = Math.max(0.14, envelope * (pulse + randomPeak));
+              const barHeight = Math.min(height * 0.34, height * 0.08 + height * 0.26 * heightFactor);
+              const x = startX + barIndex * (barWidth + gap);
+              const y = midY - barHeight / 2;
+              const barGradient = context.createLinearGradient(x, y, x, y + barHeight);
+              barGradient.addColorStop(0, 'rgba(255, 210, 146, 0.92)');
+              barGradient.addColorStop(0.44, 'rgba(255, 142, 186, 0.84)');
+              barGradient.addColorStop(1, 'rgba(122, 228, 255, 0.74)');
+              context.fillStyle = barGradient;
+              context.fillRect(x, y, barWidth, barHeight);
+              context.fillStyle = 'rgba(122, 228, 255, 0.1)';
+              context.fillRect(x, midY - 0.5, barWidth, 1);
+            }
+
+            particles.forEach((particle, index) => {
+              drawParticle(particle, index);
+              if (prefersReducedMotion) return;
+              particle.x += particle.drift * 0.0014;
+              particle.y -= particle.speed * 0.0017;
+              if (particle.y < 0.22 || particle.x < -0.08 || particle.x > 1.08) {
+                resetParticle(particle);
+                particle.y = 0.64 + Math.random() * 0.12;
+              }
+            });
+
+            if (!prefersReducedMotion) {
+              animationFrameId = window.requestAnimationFrame(draw);
+            }
+          };
+
+          resize();
+          draw(0);
+
+          let resizeObserver = null;
+          if (typeof ResizeObserver === 'function') {
+            resizeObserver = new ResizeObserver(() => {
+              resize();
+            });
+            resizeObserver.observe(card);
+          } else {
+            window.addEventListener('resize', resize);
+          }
+
+          musicRowCanvasCleanups.push(() => {
+            if (animationFrameId) window.cancelAnimationFrame(animationFrameId);
+            if (resizeObserver) {
+              resizeObserver.disconnect();
+            } else {
+              window.removeEventListener('resize', resize);
+            }
+          });
+        });
+      };
       let hasAppliedInitialShellState = false;
       const libraryPhotoAtmos = libraryOverlay ? libraryOverlay.querySelector('.mockup-library-photo-atmos') : null;
       const libraryPhotoPanes = libraryPhotoAtmos ? Array.from(libraryPhotoAtmos.querySelectorAll('.mockup-library-photo-pane')) : [];
@@ -6696,6 +6958,7 @@
         stopPanelLoopWatcher();
         clearPanelStageTimers();
         clearPricingMenuDelay();
+        musicRowCanvasCleanups.forEach((cleanup) => cleanup());
       });
 
       window.addEventListener('message', (event) => {
@@ -6764,6 +7027,7 @@
       }
 
       syncMobileShellMode();
+      initMusicStatusSignals();
 
       if (getPathname() !== getCurrentRoute()) {
         updateRoute(getCurrentRoute(), 'replaceState');
