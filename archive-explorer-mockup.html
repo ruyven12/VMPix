@@ -3422,7 +3422,6 @@
       --music-band-midline-shift: 0px;
       --music-staging-y-shift: 0px;
       --music-staging-size-adjust: 1px;
-      cursor: pointer;
       border-color: rgba(255, 116, 156, 0.18);
       min-height: 120px;
       padding: 10px 14px 11px;
@@ -3430,13 +3429,6 @@
         inset 0 0 0 1px rgba(255, 116, 156, 0.04),
         0 0 14px rgba(255, 116, 156, 0.05);
       isolation: isolate;
-    }
-
-    .mockup-library-status-node.is-music-card:focus-visible,
-    .mockup-library-scope-card.is-primary:focus-visible,
-    .mockup-library-entry-card.is-active.is-music-active:focus-visible {
-      outline: 2px solid rgba(255, 142, 186, 0.72);
-      outline-offset: 3px;
     }
 
     .mockup-library-status-node.is-music-card::before {
@@ -3572,583 +3564,6 @@
     .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-skies-card .mockup-library-status-node-state-value,
     .mockup-library-overlay.is-content-visible .mockup-library-status-node.is-astro-card .mockup-library-status-node-state-value {
       animation: mockup-library-staging-enter 300ms cubic-bezier(0.19, 0.82, 0.22, 1) forwards 210ms;
-    }
-
-    .mockup-music-overlay .mockup-about-copy {
-      width: min(1320px, calc(100vw - 72px));
-      max-width: none;
-      padding: 34px 34px 28px;
-      border-radius: 30px;
-      border-color: rgba(255, 112, 156, 0.2);
-      background:
-        linear-gradient(180deg, rgba(19, 7, 13, 0.9), rgba(8, 4, 8, 0.78)),
-        radial-gradient(circle at top center, rgba(255, 112, 156, 0.12), transparent 48%);
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.035),
-        inset 0 0 120px rgba(255, 72, 118, 0.06),
-        0 0 32px rgba(255, 72, 118, 0.14);
-      overflow: hidden;
-    }
-
-    .mockup-music-shell {
-      display: grid;
-      gap: 18px;
-      width: 100%;
-      min-width: 0;
-      color: rgba(255, 234, 242, 0.9);
-    }
-
-    .mockup-music-titlebar {
-      display: grid;
-      justify-items: center;
-      gap: 10px;
-      text-align: center;
-      padding-top: 4px;
-    }
-
-    .mockup-music-kicker {
-      font-size: 10px;
-      letter-spacing: 0.34em;
-      text-transform: uppercase;
-      color: rgba(255, 176, 198, 0.72);
-    }
-
-    .mockup-music-title-frame {
-      display: grid;
-      grid-template-columns: minmax(36px, 1fr) auto minmax(36px, 1fr);
-      align-items: center;
-      gap: 14px;
-      width: min(100%, 920px);
-    }
-
-    .mockup-music-title-rail {
-      position: relative;
-      display: block;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 128, 170, 0), rgba(255, 128, 170, 0.55), rgba(132, 227, 255, 0.14));
-      box-shadow: 0 0 16px rgba(255, 106, 154, 0.14);
-    }
-
-    .mockup-music-title-rail::after {
-      content: "";
-      position: absolute;
-      top: -3px;
-      right: 0;
-      width: 8px;
-      height: 8px;
-      border-top: 1px solid rgba(255, 156, 196, 0.6);
-      border-right: 1px solid rgba(255, 156, 196, 0.6);
-      transform: rotate(45deg);
-    }
-
-    .mockup-music-title-rail.is-left::after {
-      right: auto;
-      left: 0;
-      border-right: 0;
-      border-left: 1px solid rgba(255, 156, 196, 0.6);
-      transform: rotate(-45deg);
-    }
-
-    .mockup-music-title {
-      margin: 0;
-      font: 700 clamp(34px, 4vw, 54px)/1 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255, 236, 242, 0.98);
-      text-shadow:
-        0 0 14px rgba(255, 152, 182, 0.32),
-        0 0 28px rgba(255, 88, 132, 0.12);
-      animation: mockup-music-title-float 4.8s ease-in-out infinite;
-    }
-
-    .mockup-music-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin: 0 auto;
-      width: min(100%, 760px);
-    }
-
-    .mockup-music-tab {
-      appearance: none;
-      border: 1px solid rgba(255, 116, 156, 0.2);
-      border-radius: 999px;
-      min-height: 40px;
-      padding: 0 16px;
-      background: linear-gradient(180deg, rgba(25, 11, 18, 0.92), rgba(12, 6, 10, 0.78));
-      color: rgba(255, 220, 230, 0.74);
-      font: 700 12px/1 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-    }
-
-    .mockup-music-tab.is-active {
-      color: rgba(255, 244, 248, 0.96);
-      border-color: rgba(255, 138, 180, 0.42);
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        0 0 18px rgba(255, 92, 142, 0.14);
-    }
-
-    .mockup-music-shell-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.78fr);
-      align-items: stretch;
-      gap: 16px;
-      min-width: 0;
-    }
-
-    .mockup-music-shell-left {
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 16px;
-      min-width: 0;
-    }
-
-    .mockup-music-shell-right {
-      display: flex;
-      min-width: 0;
-    }
-
-    .mockup-music-panel {
-      position: relative;
-      border: 1px solid rgba(255, 92, 142, 0.16);
-      border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(18, 8, 13, 0.86), rgba(8, 4, 8, 0.66)),
-        linear-gradient(135deg, rgba(255, 110, 150, 0.06), rgba(132, 227, 255, 0.03));
-      box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.02),
-        inset 0 0 84px rgba(255, 66, 122, 0.05),
-        0 0 22px rgba(255, 66, 122, 0.06);
-      overflow: hidden;
-    }
-
-    .mockup-music-panel::before {
-      content: "";
-      position: absolute;
-      inset: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.025);
-      border-radius: 14px;
-      pointer-events: none;
-    }
-
-    .mockup-music-hero {
-      padding: 20px 22px 18px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .mockup-music-hero-title {
-      margin: 0;
-      color: rgba(255, 240, 244, 0.95);
-      font: 700 24px/1.15 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.06em;
-      text-align: left;
-    }
-
-    .mockup-music-hero-copy {
-      margin: 0;
-      max-width: 720px;
-      color: rgba(255, 218, 228, 0.72);
-      font-size: 12px;
-      line-height: 1.55;
-    }
-
-    .mockup-music-pill-row,
-    .mockup-music-letter-row,
-    .mockup-music-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .mockup-music-pill,
-    .mockup-music-letter {
-      appearance: none;
-      border: 1px solid rgba(255, 112, 156, 0.16);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.018);
-      color: rgba(255, 232, 238, 0.82);
-      font: 700 11px/1 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.12em;
-      min-height: 40px;
-      padding: 0 14px;
-    }
-
-    .mockup-music-pill.is-active,
-    .mockup-music-letter.is-active {
-      border-color: rgba(255, 142, 184, 0.34);
-      box-shadow: 0 0 14px rgba(255, 92, 142, 0.1);
-      color: rgba(255, 246, 249, 0.98);
-    }
-
-    .mockup-music-groups {
-      padding: 16px 18px 18px;
-      display: grid;
-      gap: 12px;
-      align-content: start;
-    }
-
-    .mockup-music-groups-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .mockup-music-groups-label {
-      color: rgba(255, 176, 198, 0.86);
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .mockup-music-legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: rgba(255, 228, 236, 0.68);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .mockup-music-legend-item::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      box-shadow: 0 0 10px currentColor;
-      background: currentColor;
-    }
-
-    .mockup-music-legend-item.is-done { color: #62ff9d; }
-    .mockup-music-legend-item.is-progress { color: #ffd260; }
-    .mockup-music-legend-item.is-idle { color: #93a0b4; }
-
-    .mockup-music-region-panel {
-      flex: 1 1 auto;
-      padding: 18px 18px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 12px;
-      min-height: 100%;
-    }
-
-    .mockup-music-region-title {
-      color: rgba(255, 176, 198, 0.86);
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .mockup-music-region-list {
-      display: grid;
-      gap: 10px;
-      flex: 1 1 auto;
-    }
-
-    .mockup-music-region-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 0;
-      border-top: 1px solid rgba(255, 104, 148, 0.08);
-      color: rgba(255, 236, 240, 0.84);
-      font-size: 12px;
-    }
-
-    .mockup-music-region-item:first-child {
-      border-top: 0;
-      padding-top: 0;
-    }
-
-    .mockup-music-region-item::after {
-      content: "";
-      width: 36%;
-      height: 3px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255, 102, 144, 0), rgba(255, 120, 168, 0.92));
-      opacity: 0.9;
-    }
-
-    .mockup-music-bottom {
-      padding: 18px 20px 20px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .mockup-music-bottom-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .mockup-music-bottom-title {
-      color: rgba(255, 240, 244, 0.95);
-      font: 700 20px/1.1 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.06em;
-    }
-
-    .mockup-music-bottom-route {
-      color: rgba(255, 184, 204, 0.72);
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .mockup-music-bottom-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
-      gap: 16px;
-      align-items: stretch;
-      min-width: 0;
-    }
-
-    .mockup-music-bottom-copy {
-      display: grid;
-      gap: 12px;
-    }
-
-    .mockup-music-bottom-card {
-      border: 1px solid rgba(255, 104, 148, 0.12);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.02);
-      padding: 14px 15px;
-    }
-
-    .mockup-music-bottom-card strong {
-      display: block;
-      margin-bottom: 6px;
-      color: rgba(255, 242, 246, 0.94);
-      font-size: 15px;
-      letter-spacing: 0.05em;
-    }
-
-    .mockup-music-bottom-card p {
-      margin: 0;
-      color: rgba(255, 220, 228, 0.68);
-      font-size: 12px;
-      line-height: 1.55;
-    }
-
-    .mockup-music-core {
-      position: relative;
-      display: grid;
-      place-items: center;
-      min-height: 240px;
-      border: 1px solid rgba(255, 104, 148, 0.12);
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at center, rgba(255, 92, 142, 0.16), rgba(255, 92, 142, 0.03) 34%, transparent 58%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-      overflow: hidden;
-    }
-
-    .mockup-music-core::before,
-    .mockup-music-core::after {
-      content: "";
-      position: absolute;
-      inset: 50%;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 154, 196, 0.2);
-      transform: translate(-50%, -50%);
-    }
-
-    .mockup-music-core::before {
-      width: 126px;
-      height: 126px;
-      box-shadow: 0 0 22px rgba(255, 104, 148, 0.1);
-      animation: mockup-music-core-pulse 4.2s ease-in-out infinite;
-    }
-
-    .mockup-music-core::after {
-      width: 186px;
-      height: 186px;
-      border-color: rgba(132, 227, 255, 0.16);
-      animation: mockup-music-core-pulse 4.2s ease-in-out infinite 0.7s;
-    }
-
-    .mockup-music-core-ring {
-      position: absolute;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 136, 180, 0.22);
-    }
-
-    .mockup-music-core-ring.is-a {
-      width: 82px;
-      height: 82px;
-    }
-
-    .mockup-music-core-ring.is-b {
-      width: 142px;
-      height: 142px;
-      border-color: rgba(132, 227, 255, 0.16);
-    }
-
-    .mockup-music-core-ring.is-c {
-      width: 214px;
-      height: 214px;
-      border-color: rgba(255, 162, 198, 0.12);
-    }
-
-    .mockup-music-core-dot {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 32% 32%, rgba(255, 255, 255, 0.95), rgba(255, 148, 186, 0.88) 42%, rgba(255, 72, 118, 0.7) 100%);
-      box-shadow:
-        0 0 18px rgba(255, 134, 176, 0.5),
-        0 0 34px rgba(132, 227, 255, 0.12);
-      z-index: 2;
-    }
-
-    .mockup-music-back {
-      display: flex;
-      justify-content: center;
-      padding-top: 4px;
-    }
-
-    .mockup-music-back-btn {
-      appearance: none;
-      border: 1px solid rgba(255, 126, 168, 0.2);
-      border-radius: 999px;
-      min-height: 40px;
-      padding: 0 18px;
-      background: linear-gradient(180deg, rgba(20, 9, 15, 0.92), rgba(10, 5, 9, 0.82));
-      color: rgba(255, 226, 234, 0.84);
-      font: 700 11px/1 "Orbitron", Arial, sans-serif;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-    }
-
-    .mockup-music-back-btn:focus-visible,
-    .mockup-music-pill:focus-visible,
-    .mockup-music-letter:focus-visible,
-    .mockup-music-tab:focus-visible {
-      outline: 2px solid rgba(255, 146, 188, 0.72);
-      outline-offset: 3px;
-    }
-
-    @keyframes mockup-music-title-float {
-      0%, 100% {
-        transform: translateY(0);
-        filter: saturate(1);
-      }
-      50% {
-        transform: translateY(-2px);
-        filter: saturate(1.06);
-      }
-    }
-
-    @keyframes mockup-music-core-pulse {
-      0%, 100% {
-        opacity: 0.72;
-        transform: translate(-50%, -50%) scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.04);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .mockup-music-title,
-      .mockup-music-core::before,
-      .mockup-music-core::after {
-        animation: none !important;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .mockup-music-shell-grid,
-      .mockup-music-bottom-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .mockup-music-shell-right {
-        min-height: 0;
-      }
-    }
-
-    body.mockup-mobile-shell .mockup-music-overlay .mockup-about-copy {
-      width: calc(100vw - 20px) !important;
-      max-width: none !important;
-      max-height: none !important;
-      min-height: 0 !important;
-      padding:
-        max(18px, env(safe-area-inset-top))
-        10px
-        max(14px, env(safe-area-inset-bottom))
-        10px !important;
-      border-radius: 18px !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-shell {
-      gap: 12px !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-title-frame {
-      gap: 8px !important;
-      width: 100% !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-title {
-      font-size: clamp(24px, 8vw, 34px) !important;
-      letter-spacing: 0.08em !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-tabs,
-    body.mockup-mobile-shell .mockup-music-pill-row,
-    body.mockup-mobile-shell .mockup-music-letter-row,
-    body.mockup-mobile-shell .mockup-music-legend {
-      gap: 8px !important;
-      justify-content: center !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-tab,
-    body.mockup-mobile-shell .mockup-music-pill,
-    body.mockup-mobile-shell .mockup-music-letter,
-    body.mockup-mobile-shell .mockup-music-back-btn {
-      flex: 1 1 calc(50% - 8px);
-      min-width: 0;
-      padding-inline: 10px !important;
-      font-size: 10px !important;
-      letter-spacing: 0.1em !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-groups-head,
-    body.mockup-mobile-shell .mockup-music-bottom-head {
-      justify-content: center !important;
-      text-align: center !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-hero,
-    body.mockup-mobile-shell .mockup-music-groups,
-    body.mockup-mobile-shell .mockup-music-region-panel,
-    body.mockup-mobile-shell .mockup-music-bottom {
-      padding: 14px 12px !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-hero-title,
-    body.mockup-mobile-shell .mockup-music-hero-copy,
-    body.mockup-mobile-shell .mockup-music-bottom-title,
-    body.mockup-mobile-shell .mockup-music-bottom-route {
-      text-align: center !important;
-    }
-
-    body.mockup-mobile-shell .mockup-music-core {
-      min-height: 180px !important;
     }
 
     .mockup-library-status-node.is-music-card .mockup-library-status-visual {
@@ -7319,109 +6734,6 @@
         </div>
       </div>
     </section>
-    <section class="mockup-music-overlay mockup-about-overlay" aria-hidden="true">
-      <div class="mockup-about-panel">
-        <div class="mockup-about-crt-flash" aria-hidden="true"></div>
-        <video
-          class="mockup-about-section-video"
-          src="assets/main/background-fire.mp4"
-          muted
-          playsinline
-          preload="auto"
-        ></video>
-        <div class="mockup-about-copy">
-          <div class="mockup-about-copy-chrome" aria-hidden="true"></div>
-          <div class="mockup-about-copy-corners" aria-hidden="true"></div>
-          <div class="mockup-about-copy-shimmer" aria-hidden="true"></div>
-          <div class="mockup-about-copy-scan" aria-hidden="true"></div>
-          <div class="mockup-music-shell">
-            <div class="mockup-music-titlebar mockup-about-title">
-              <div class="mockup-music-kicker">Approved Shell Direction</div>
-              <div class="mockup-music-title-frame" aria-label="Music Nexus title frame">
-                <span class="mockup-music-title-rail is-left" aria-hidden="true"></span>
-                <h2 class="mockup-music-title">The Music Nexus</h2>
-                <span class="mockup-music-title-rail" aria-hidden="true"></span>
-              </div>
-              <div class="mockup-music-tabs" role="tablist" aria-label="Music modes">
-                <button class="mockup-music-tab is-active" type="button" role="tab" aria-selected="true">Bands</button>
-                <button class="mockup-music-tab" type="button" role="tab" aria-selected="false">People</button>
-                <button class="mockup-music-tab" type="button" role="tab" aria-selected="false">Shows</button>
-              </div>
-            </div>
-            <div class="mockup-music-shell-grid">
-              <div class="mockup-music-shell-left">
-                <section class="mockup-music-panel mockup-music-hero">
-                  <h3 class="mockup-music-hero-title">Archive · Filter By Band</h3>
-                  <p class="mockup-music-hero-copy">Welcome to the archives, sorted by band. The current shell keeps the region-first archive structure and letter grouping flow, but recasts it inside the approved Music Nexus HUD.</p>
-                  <div class="mockup-music-pill-row" aria-label="Band regions">
-                    <button class="mockup-music-pill is-active" type="button">Local</button>
-                    <button class="mockup-music-pill" type="button">Regional</button>
-                    <button class="mockup-music-pill" type="button">National</button>
-                    <button class="mockup-music-pill" type="button">International</button>
-                  </div>
-                </section>
-                <section class="mockup-music-panel mockup-music-groups">
-                  <div class="mockup-music-groups-head">
-                    <span class="mockup-music-groups-label">Letter Groupings</span>
-                    <div class="mockup-music-legend" aria-label="Archive status legend">
-                      <span class="mockup-music-legend-item is-done">Done</span>
-                      <span class="mockup-music-legend-item is-progress">In Progress</span>
-                      <span class="mockup-music-legend-item is-idle">Not Touched</span>
-                    </div>
-                  </div>
-                  <div class="mockup-music-letter-row" aria-label="Band letter groups">
-                    <button class="mockup-music-letter is-active" type="button">0-C</button>
-                    <button class="mockup-music-letter" type="button">D-G</button>
-                    <button class="mockup-music-letter" type="button">H-K</button>
-                    <button class="mockup-music-letter" type="button">L-O</button>
-                    <button class="mockup-music-letter" type="button">P-S</button>
-                    <button class="mockup-music-letter" type="button">T-Z</button>
-                  </div>
-                </section>
-              </div>
-              <div class="mockup-music-shell-right">
-                <section class="mockup-music-panel mockup-music-region-panel">
-                  <div class="mockup-music-region-title">Region Snapshot</div>
-                  <div class="mockup-music-region-list">
-                    <div class="mockup-music-region-item"><span>Local</span><span>Primary Live</span></div>
-                    <div class="mockup-music-region-item"><span>Regional</span><span>Mapped</span></div>
-                    <div class="mockup-music-region-item"><span>National</span><span>Queued</span></div>
-                    <div class="mockup-music-region-item"><span>International</span><span>Future Layer</span></div>
-                  </div>
-                </section>
-              </div>
-            </div>
-            <section class="mockup-music-panel mockup-music-bottom">
-              <div class="mockup-music-bottom-head">
-                <div class="mockup-music-bottom-title">Bands / Current Route</div>
-                <div class="mockup-music-bottom-route">/testing/music</div>
-              </div>
-              <div class="mockup-music-bottom-grid">
-                <div class="mockup-music-bottom-copy">
-                  <div class="mockup-music-bottom-card">
-                    <strong>Bands</strong>
-                    <p>Artist-first archive access with local, regional, national, and international band groupings held inside one clean shell.</p>
-                  </div>
-                  <div class="mockup-music-bottom-card">
-                    <strong>Current Route</strong>
-                    <p>The Music click target now opens its own dedicated panel instead of trying to spotlight content back inside the Interactive Portfolio layer.</p>
-                  </div>
-                </div>
-                <div class="mockup-music-core" aria-hidden="true">
-                  <span class="mockup-music-core-ring is-c"></span>
-                  <span class="mockup-music-core-ring is-b"></span>
-                  <span class="mockup-music-core-ring is-a"></span>
-                  <span class="mockup-music-core-dot"></span>
-                </div>
-              </div>
-            </section>
-            <div class="mockup-music-back">
-              <button class="mockup-music-back-btn" type="button">Back To Interactive Portfolio</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
     <section class="mockup-about-overlay" aria-hidden="true">
       <div class="mockup-about-panel">
         <div class="mockup-about-crt-flash" aria-hidden="true"></div>
@@ -7590,8 +6902,7 @@
       const welcomeCopy = document.querySelector('.mockup-welcome-copy');
       const mockupStage = document.querySelector('.mockup-stage');
       const libraryOverlay = document.querySelector('.mockup-library-overlay');
-      const musicOverlay = document.querySelector('.mockup-music-overlay');
-      const aboutOverlay = document.querySelector('section.mockup-about-overlay:not(.mockup-library-overlay):not(.mockup-pricing-overlay):not(.mockup-music-overlay)');
+      const aboutOverlay = document.querySelector('section.mockup-about-overlay:not(.mockup-library-overlay):not(.mockup-pricing-overlay)');
       const pricingOverlay = document.querySelector('.mockup-pricing-overlay');
       const aboutSlot = document.querySelector('.mockup-about-slot');
       const pricingSlot = document.querySelector('.mockup-pricing-slot');
@@ -7607,15 +6918,11 @@
       const pricingTransferScan = pricingOverlay.querySelector('.mockup-pricing-transfer-scan');
       const pricingTitle = pricingOverlay.querySelector('.mockup-pricing-title');
       const pricingContent = pricingOverlay.querySelector('.mockup-pricing-content');
-      const libraryMusicStatusCard = libraryOverlay.querySelector('.mockup-library-status-node.is-music-card');
-      const libraryMusicScopeCard = libraryOverlay.querySelector('.mockup-library-scope-card.is-primary');
-      const libraryMusicEntryCard = libraryOverlay.querySelector('.mockup-library-entry-card.is-active.is-music-active');
-      const musicBackButton = musicOverlay ? musicOverlay.querySelector('.mockup-music-back-btn') : null;
       const pricingArrowWraps = {
         prev: document.querySelector('[data-pricing-arrow-wrap="prev"]'),
         next: document.querySelector('[data-pricing-arrow-wrap="next"]')
       };
-      if (!topbar || !topbarLogoButton || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !libraryOverlay || !musicOverlay || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
+      if (!topbar || !topbarLogoButton || !backgroundVideo || !dollReveal || !welcomeCopy || !mockupStage || !libraryOverlay || !aboutOverlay || !pricingOverlay || !aboutSlot || !pricingSlot || !aboutHitbox || !pricingHitbox || !aboutMenu || !aboutMenuReverse || !pricingMenu || !pricingMenuReverse) return;
 
       const createPanel = ({ key, route, slot, hitbox, menu, reverseMenu, overlay }) => {
         const copy = overlay.querySelector('.mockup-about-copy');
@@ -7636,15 +6943,6 @@
           reverseMenu: null,
           overlay: libraryOverlay
         }),
-        music: createPanel({
-          key: 'music',
-          route: '/testing/music',
-          slot: libraryMusicStatusCard || topbarLogoButton,
-          hitbox: libraryMusicStatusCard || topbarLogoButton,
-          menu: null,
-          reverseMenu: null,
-          overlay: musicOverlay
-        }),
         about: createPanel({
           key: 'about',
           route: '/testing/about',
@@ -7664,7 +6962,7 @@
           overlay: pricingOverlay
         })
       };
-      if (!panels.library || !panels.music || !panels.about || !panels.pricing) return;
+      if (!panels.library || !panels.about || !panels.pricing) return;
 
       const PANEL_LOOP_START = 1.52;
       const PANEL_LOOP_END = 4.92;
@@ -8143,7 +7441,7 @@
 
       try {
         const initialShellRoute = new URLSearchParams(window.location.search).get('shellRoute');
-        if (initialShellRoute === ROUTE_HOME || initialShellRoute === panels.library.route || initialShellRoute === panels.music.route || initialShellRoute === panels.about.route || initialShellRoute === panels.pricing.route) {
+        if (initialShellRoute === ROUTE_HOME || initialShellRoute === panels.library.route || initialShellRoute === panels.about.route || initialShellRoute === panels.pricing.route) {
           shellRoutePath = initialShellRoute;
         }
       } catch (_) {}
@@ -8429,41 +7727,9 @@
       const getCurrentRoute = () => {
         const pathname = getPathname();
         if (pathname === panels.library.route) return panels.library.route;
-        if (pathname === panels.music.route) return panels.music.route;
         if (pathname === panels.about.route) return panels.about.route;
         if (pathname === panels.pricing.route) return panels.pricing.route;
         return ROUTE_HOME;
-      };
-
-      const openMusicPanelTrigger = () => {
-        if (isTransitioning || activePanelKey === panels.music.key) return;
-        if (!activePanelKey) {
-          openPanelSequence(panels.music);
-          return;
-        }
-        applyPanelStateImmediately(panels.music);
-        updateRoute(panels.music.route);
-      };
-
-      const returnToLibraryPanel = () => {
-        if (isTransitioning || activePanelKey !== panels.music.key) return;
-        applyPanelStateImmediately(panels.library);
-        updateRoute(panels.library.route);
-      };
-
-      const bindLibraryMusicTrigger = (node) => {
-        if (!node) return;
-        node.setAttribute('role', 'button');
-        node.setAttribute('tabindex', '0');
-        node.setAttribute('aria-label', 'Open the Music Nexus panel');
-        node.addEventListener('click', () => {
-          openMusicPanelTrigger();
-        });
-        node.addEventListener('keydown', (event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          openMusicPanelTrigger();
-        });
       };
 
       const applyInitialShellState = () => {
@@ -8471,10 +7737,6 @@
         hasAppliedInitialShellState = true;
         if (getCurrentRoute() === panels.library.route) {
           applyPanelStateImmediately(panels.library);
-          return;
-        }
-        if (getCurrentRoute() === panels.music.route) {
-          applyPanelStateImmediately(panels.music);
           return;
         }
         if (getCurrentRoute() === panels.about.route) {
@@ -8885,15 +8147,6 @@
         openPanelSequence(panels.pricing);
       });
 
-      bindLibraryMusicTrigger(libraryMusicStatusCard);
-      bindLibraryMusicTrigger(libraryMusicScopeCard);
-      bindLibraryMusicTrigger(libraryMusicEntryCard);
-      if (musicBackButton) {
-        musicBackButton.addEventListener('click', () => {
-          returnToLibraryPanel();
-        });
-      }
-
       pricingNavButtons.forEach((button) => {
         button.addEventListener('click', () => {
           if (activePanelKey !== panels.pricing.key || isTransitioning) return;
@@ -8940,15 +8193,6 @@
           openPanelSequence(panels.library, { updateBrowserRoute: false });
           return;
         }
-        if (route === panels.music.route) {
-          if (activePanelKey === panels.music.key) return;
-          if (activePanelKey) {
-            applyPanelStateImmediately(panels.music);
-            return;
-          }
-          openPanelSequence(panels.music, { updateBrowserRoute: false });
-          return;
-        }
         if (route === panels.about.route) {
           if (activePanelKey === panels.about.key) return;
           if (activePanelKey) {
@@ -8984,8 +8228,6 @@
         const nextRoute =
           data.route === panels.library.route
             ? panels.library.route
-            : data.route === panels.music.route
-            ? panels.music.route
             : data.route === panels.about.route
             ? panels.about.route
             : data.route === panels.pricing.route
@@ -9002,16 +8244,6 @@
               applyPanelStateImmediately(panels.library);
             } else {
               openPanelSequence(panels.library, { updateBrowserRoute: false });
-            }
-          }
-          return;
-        }
-        if (nextRoute === panels.music.route) {
-          if (activePanelKey !== panels.music.key) {
-            if (activePanelKey) {
-              applyPanelStateImmediately(panels.music);
-            } else {
-              openPanelSequence(panels.music, { updateBrowserRoute: false });
             }
           }
           return;
