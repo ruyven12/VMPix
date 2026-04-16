@@ -14,6 +14,7 @@
       --line: rgba(255, 128, 176, 0.16);
       --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
       --radius-xl: 28px;
+      --mockup-vh: 1vh;
       --menu-hitbox-left: 34%;
       --menu-hitbox-right: 34%;
       --menu-hitbox-top: 28%;
@@ -78,7 +79,8 @@
     .mockup-stage {
       position: relative;
       width: min(100%, calc(100% - 8px));
-      height: calc(100dvh - 8px);
+      height: calc((var(--mockup-vh, 1vh) * 100) - 8px);
+      min-height: calc((var(--mockup-vh, 1vh) * 100) - 8px);
       margin: 4px auto;
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
@@ -12198,8 +12200,64 @@
 }
 </style>
 
+<style id="musicNexusMobileLoadFixFinal">
+body.mockup-mobile-shell .mockup-stage{
+  height:calc(var(--mockup-vh, 1vh) * 100) !important;
+  min-height:calc(var(--mockup-vh, 1vh) * 100) !important;
+}
+
+.mockup-music-nexus-visual{
+  height:auto !important;
+}
+
+@media (max-width: 900px){
+  .mockup-music-nexus-hero{
+    min-height:max(820px, calc(var(--mockup-vh, 1vh) * 100)) !important;
+  }
+
+  .mockup-music-nexus-visual{
+    top:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    left:0 !important;
+    min-height:0 !important;
+  }
+}
+
+@media (max-width: 640px){
+  .mockup-music-nexus-hero{
+    min-height:max(680px, calc(var(--mockup-vh, 1vh) * 100)) !important;
+  }
+}
+</style>
+
 <script id="mockup-music-click-script">
 (function () {
+  const root = document.documentElement;
+  const setMockupViewportHeight = () => {
+    const viewport = window.visualViewport;
+    const height = viewport && viewport.height ? viewport.height : (window.innerHeight || document.documentElement.clientHeight || 0);
+    if (!height) return;
+    root.style.setProperty('--mockup-vh', `${height * 0.01}px`);
+  };
+  let viewportRaf = 0;
+  const queueMockupViewportHeight = () => {
+    if (viewportRaf) window.cancelAnimationFrame(viewportRaf);
+    viewportRaf = window.requestAnimationFrame(() => {
+      viewportRaf = 0;
+      setMockupViewportHeight();
+    });
+  };
+
+  setMockupViewportHeight();
+  window.addEventListener('resize', queueMockupViewportHeight, { passive: true });
+  window.addEventListener('orientationchange', queueMockupViewportHeight, { passive: true });
+  window.addEventListener('pageshow', queueMockupViewportHeight, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', queueMockupViewportHeight, { passive: true });
+    window.visualViewport.addEventListener('scroll', queueMockupViewportHeight, { passive: true });
+  }
+
   const libraryOverlay = document.querySelector('.mockup-library-overlay');
   if (!libraryOverlay) return;
 
@@ -12241,7 +12299,7 @@
                 <span class="mockup-music-nexus-title-rail right" aria-hidden="true"></span>
                 <span class="mockup-music-nexus-title-chevron right" aria-hidden="true"></span>
               </div>
-              <p class="mockup-music-branch-subtitle">Welcome to the Music Nexus, a central hub to (for now) my journey through my life attending music shows and capturing memories along the way. This is one of the longest-running projects that I have going in my arsenal.</div></p>
+              <p class="mockup-music-branch-subtitle">Welcome to the Music Nexus, a central hub to (for now) my journey through my life attending music shows and capturing memories along the way. This is one of the longest-running projects that I have going in my arsenal.</p>
             </div>
 
             <div class="mockup-music-nexus-visual" aria-hidden="true">
