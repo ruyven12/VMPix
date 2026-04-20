@@ -1294,7 +1294,11 @@
   libraryOverlay.addEventListener('click', function (event) {
     const trigger = event.target.closest(musicSelectors);
     if (!trigger || !libraryOverlay.contains(trigger)) return;
-    if (!libraryOverlay.classList.contains('is-expanded') && !libraryOverlay.classList.contains('is-visible')) return;
+    if (
+      !libraryOverlay.classList.contains('is-expanded') &&
+      !libraryOverlay.classList.contains('is-visible') &&
+      !libraryOverlay.classList.contains('is-content-visible')
+    ) return;
     event.preventDefault();
     event.stopPropagation();
     if (libraryOverlay.classList.contains('is-music-branch-open')) {
