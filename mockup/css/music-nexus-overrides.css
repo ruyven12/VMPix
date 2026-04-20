@@ -88,6 +88,32 @@
     inset: 12px 16px 18px;
   }
 
+  body.mockup-route-music .mockup-stage,
+  body.mockup-route-portfolio .mockup-stage {
+    min-height: calc(100dvh - 8px);
+  }
+
+  .mockup-library-overlay.is-music-branch-open .mockup-about-copy {
+    width: min(1280px, calc(100% - 28px));
+    max-height: calc(100% - 28px);
+    padding: 10px 12px 12px;
+  }
+
+  .mockup-library-overlay.is-music-branch-open .mockup-about-copy-text {
+    min-height: 100%;
+  }
+
+  .mockup-library-overlay.is-music-branch-open .mockup-music-branch-overlay {
+    inset: 8px;
+  }
+
+  .mockup-library-overlay.is-music-branch-open .mockup-music-branch-panel,
+  .mockup-library-overlay.is-music-branch-open .mockup-music-branch-content,
+  .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host {
+    min-height: 100%;
+    height: 100%;
+  }
+
   @keyframes mockupV14HeaderBandHumOverride {
     0%, 100% {
       box-shadow:
@@ -143,6 +169,16 @@
   }
 
   @media (max-width: 900px) {
+    .mockup-library-overlay.is-music-branch-open .mockup-about-copy {
+      width: calc(100% - 18px);
+      max-height: calc(100% - 18px);
+      padding: 8px 9px 10px;
+    }
+
+    .mockup-library-overlay.is-music-branch-open .mockup-music-branch-overlay {
+      inset: 4px;
+    }
+
     .mockup-nexus-v14-host .placeholder {
       min-height: clamp(500px, 58vh, 700px);
     }

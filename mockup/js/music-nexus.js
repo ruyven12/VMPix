@@ -740,6 +740,7 @@
   let overlayPhase = 'idle';
   let overlayTimers = [];
   let localRoutePath = '';
+  let deferredRoutePath = '';
   let releaseFootprintTimer = 0;
   let lockedFootprintHeight = '';
 
@@ -758,9 +759,19 @@
   function syncTestingRoute(route, mode, options = {}) {
     const deferHistory = !!options.deferHistory;
     const previousPath = getShellPathname();
-    localRoutePath = route || '';
-    if (!route || previousPath === route) return;
-    if (deferHistory) return;
+    if (!route) {
+      localRoutePath = '';
+      deferredRoutePath = '';
+      return;
+    }
+    localRoutePath = route;
+    if (deferHistory) {
+      deferredRoutePath = route;
+      return;
+    }
+    const shouldCommit = previousPath !== route || deferredRoutePath === route;
+    deferredRoutePath = '';
+    if (!shouldCommit) return;
     if (window.parent && window.parent !== window) {
       try {
         window.parent.postMessage({ type: 'vmTestingRoute', route }, '*');
