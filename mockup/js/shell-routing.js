@@ -77,6 +77,12 @@
       const PRICING_REVEAL_DELAY_MS = 180;
       const ROUTE_HOME = '/testing/home';
       const ROUTE_MUSIC = '/testing/music';
+      const musicRouteSelectors = [
+        '.mockup-library-status-node.is-music-card',
+        '.mockup-library-scope-card.is-primary',
+        '.mockup-library-entry-card.is-music-active',
+        '.mockup-library-utility-value.is-music-active'
+      ].join(',');
       let isTransitioning = false;
       let activePanelKey = '';
       let panelLoopTimer = 0;
@@ -1297,6 +1303,21 @@
           setPricingMode('prints', { animate: true, direction: 'prev' });
         });
       });
+
+      libraryOverlay.addEventListener('click', (event) => {
+        const trigger = event.target.closest(musicRouteSelectors);
+        if (!trigger || !libraryOverlay.contains(trigger)) return;
+        if (activePanelKey !== panels.library.key) return;
+        if (getCurrentRoute() === ROUTE_MUSIC) return;
+        event.preventDefault();
+        event.stopPropagation();
+        shellRoutePath = ROUTE_MUSIC;
+        syncMockupRouteClasses(ROUTE_MUSIC);
+        try {
+          window.postMessage({ type: 'vmTestingRouteSync', route: ROUTE_MUSIC }, '*');
+        } catch (_) {}
+        updateRoute(ROUTE_MUSIC);
+      }, true);
 
       Object.values(panels).forEach((panel) => {
         panel.overlay.addEventListener('click', (event) => {
