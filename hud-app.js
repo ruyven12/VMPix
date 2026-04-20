@@ -4705,9 +4705,9 @@ music: {
         if (!m) return;
         const shellRoute = currentTestingShellPath();
         m.innerHTML = `
-          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:calc(100dvh - 120px);">
-            <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:calc(100dvh - 120px); height:calc(100dvh - 120px); box-shadow:none;">
-              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r5&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:calc(100dvh - 120px); border:0; background:transparent;"></iframe>
+          <div id="vmTestingPanelRoot" style="width:100%; max-width:none; margin:0; padding:0; min-height:100dvh; height:100dvh;">
+            <div style="border:0; border-radius:0; overflow:hidden; background:transparent; min-height:100dvh; height:100dvh; box-shadow:none;">
+              <iframe id="vmTestingRouteFrame" src="/archive-explorer-mockup.html?v=20260414-testing-mobile-fix-r5&shellRoute=${encodeURIComponent(shellRoute)}" title="Archive Explorer Mockup" style="display:block; width:100%; min-width:0; height:100%; min-height:100dvh; border:0; background:transparent;"></iframe>
             </div>
           </div>
         `;
@@ -4715,11 +4715,10 @@ music: {
         const testingPanelRoot = document.getElementById('vmTestingPanelRoot');
         const syncTestingFrameViewport = () => {
           if (!testingFrame || !testingPanelRoot) return;
-          const topbar = document.querySelector('.hudTopbar');
-          const topbarHeight = topbar ? Math.ceil(topbar.getBoundingClientRect().height) : 0;
           const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-          const minFrameHeight = Math.max(viewportHeight - topbarHeight - 16, 320);
+          const minFrameHeight = Math.max(viewportHeight, 320);
           testingPanelRoot.style.minHeight = `${minFrameHeight}px`;
+          testingPanelRoot.style.height = `${minFrameHeight}px`;
           const frameWrap = testingPanelRoot.firstElementChild;
           if (frameWrap) {
             frameWrap.style.minHeight = `${minFrameHeight}px`;
@@ -6062,6 +6061,8 @@ function navigate(route){
       const trail = ['/', '/testing/home'];
       const sub = String(parts[1] || '').toLowerCase();
       if (sub === 'portfolio') trail.push('/testing/portfolio');
+      if (sub === 'music') trail.push('/testing/music');
+      if (sub === 'wrestling') trail.push('/testing/wrestling');
       if (sub === 'about') trail.push('/testing/about');
       if (sub === 'pricing') trail.push('/testing/pricing');
       return trail.filter((value, index, arr) => arr.indexOf(value) === index);
@@ -6073,6 +6074,8 @@ function navigate(route){
   function currentTestingShellPath(){
     const path = String(location.pathname || '').trim().toLowerCase();
     if (path === '/testing/portfolio') return '/testing/portfolio';
+    if (path === '/testing/music') return '/testing/music';
+    if (path === '/testing/wrestling') return '/testing/wrestling';
     if (path === '/testing/about') return '/testing/about';
     if (path === '/testing/pricing') return '/testing/pricing';
     return '/testing/home';
@@ -6140,6 +6143,10 @@ function navigate(route){
     const nextPath =
       data.route === '/testing/portfolio'
         ? '/testing/portfolio'
+        : data.route === '/testing/music'
+        ? '/testing/music'
+        : data.route === '/testing/wrestling'
+        ? '/testing/wrestling'
         : data.route === '/testing/about'
         ? '/testing/about'
         : data.route === '/testing/pricing'

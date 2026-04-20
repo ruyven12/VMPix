@@ -1068,6 +1068,48 @@
     max-width: none;
   }
 
+  body.route-testing,
+  body.route-testing #app,
+  body.route-testing #view-home,
+  body.route-testing #view-home > main,
+  body.route-testing .hudStage,
+  body.route-testing .hud,
+  body.route-testing .hudContent,
+  body.route-testing .hudMainPlain,
+  body.route-testing #hudMainMount{
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+
+  body.route-testing #app,
+  body.route-testing #view-home,
+  body.route-testing #view-home > main{
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.route-testing .hudStage{
+    width: 100%;
+    justify-items: stretch;
+    align-items: stretch;
+  }
+
+  body.route-testing .hud{
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  body.route-testing .hudContent{
+    grid-template-rows: minmax(0, 1fr);
+    padding: 0;
+    gap: 0;
+  }
+
   body.route-testing .hudMainPlain{
     margin: 0;
     place-items: stretch;
@@ -1116,15 +1158,31 @@
   }
 
   body.route-testing .hudTopbar{
-    background: rgba(16, 9, 18, 0.82);
-    box-shadow: none;
+    display: none !important;
   }
 
   body.route-testing .hudTopbar::after{
     display: none;
   }
 
+  body.route-testing .hudMenuOverlay{
+    display: none !important;
+  }
+
   @media (max-width: 760px){
+    body.route-testing,
+    body.route-testing #app,
+    body.route-testing #view-home,
+    body.route-testing #view-home > main,
+    body.route-testing .hudStage,
+    body.route-testing .hud,
+    body.route-testing .hudContent,
+    body.route-testing .hudMainPlain,
+    body.route-testing #hudMainMount{
+      min-height: 100dvh;
+      height: 100dvh;
+    }
+
     body.route-testing .hudMainPlain,
     body.route-testing #hudMainMount,
     body.route-testing .hudStub.hudMain{
