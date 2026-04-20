@@ -743,6 +743,14 @@
   let releaseFootprintTimer = 0;
   let lockedFootprintHeight = '';
 
+  function setPortfolioSuppressed(isSuppressed) {
+    libraryOverlay.classList.toggle('is-music-source-suppressed', Boolean(isSuppressed));
+    if (hostCopyText) {
+      hostCopyText.toggleAttribute('inert', Boolean(isSuppressed));
+      hostCopyText.setAttribute('aria-hidden', isSuppressed ? 'true' : 'false');
+    }
+  }
+
   function getShellPathname() {
     return localRoutePath || window.location.pathname || '';
   }
@@ -1204,6 +1212,7 @@
     overlay.classList.remove('is-closing');
     overlay.classList.add('is-mounted');
     overlayPhase = 'portfolio-exiting';
+    setPortfolioSuppressed(true);
     libraryOverlay.classList.add('is-music-branch-transitioning');
     void overlay.offsetWidth;
     window.requestAnimationFrame(function () {
@@ -1229,6 +1238,7 @@
     syncTestingRoute(PORTFOLIO_ROUTE, routeMode, { deferHistory: true });
     lockMusicFootprint();
     overlayPhase = 'closing';
+    setPortfolioSuppressed(false);
     libraryOverlay.classList.remove('is-music-branch-open');
     libraryOverlay.classList.remove('is-music-branch-transitioning');
     musicOverlay.classList.remove('is-visible');
@@ -1267,11 +1277,17 @@
           { routeMode: 'replaceState' }
         );
       }
+      setPortfolioSuppressed(true);
       return;
     }
 
     if (wantsPortfolio && libraryOverlay.classList.contains('is-music-branch-open')) {
       closeMusicOverlay({ routeMode: 'replaceState' });
+      return;
+    }
+
+    if (!wantsMusic && overlayPhase === 'idle') {
+      setPortfolioSuppressed(false);
     }
   }
 

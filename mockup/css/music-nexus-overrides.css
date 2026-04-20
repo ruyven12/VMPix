@@ -1,0 +1,160 @@
+  .mockup-library-overlay.is-music-source-suppressed .mockup-about-copy-text {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .mockup-library-overlay.is-music-source-suppressed .mockup-library-grid,
+  .mockup-library-overlay.is-music-source-suppressed .mockup-library-title,
+  .mockup-library-overlay.is-music-source-suppressed .mockup-library-status,
+  .mockup-library-overlay.is-music-source-suppressed .mockup-library-signal-strip,
+  .mockup-library-overlay.is-music-source-suppressed .mockup-library-hud {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: none;
+    filter: none;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+  }
+
+  .mockup-nexus-v14-host {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mockup-nexus-v14-host .top-module {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .mockup-nexus-v14-host .top-module::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(118deg, transparent 12%, rgba(255, 160, 160, 0.08) 28%, rgba(255, 110, 110, 0.16) 38%, rgba(255, 144, 144, 0.08) 52%, transparent 68%),
+      linear-gradient(180deg, rgba(255, 122, 122, 0.04), transparent 42%);
+    background-size: 220% 100%, 100% 100%;
+    mix-blend-mode: screen;
+    opacity: 0.52;
+    animation: mockupV14HeaderEnergyDriftOverride 8.4s linear infinite;
+  }
+
+  .mockup-nexus-v14-host .header-band {
+    animation:
+      mockupV14HeaderBandReveal 720ms cubic-bezier(.18,.84,.22,1) both,
+      mockupV14HeaderBandHumOverride 6.6s ease-in-out infinite 820ms;
+  }
+
+  .mockup-nexus-v14-host .title-zone::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 210, 210, 0.14) 46%, transparent 100%);
+    opacity: 0;
+    transform: translateX(-115%);
+    animation: mockupV14TitleSweepLoopOverride 6.8s cubic-bezier(.22,.61,.36,1) infinite 1.4s;
+  }
+
+  .mockup-nexus-v14-host .intro {
+    position: relative;
+    z-index: 1;
+    animation:
+      mockupV14IntroReveal 760ms cubic-bezier(.18,.84,.22,1) both,
+      mockupV14IntroHumOverride 7.4s ease-in-out infinite 980ms;
+  }
+
+  .mockup-nexus-v14-host .mode-indicator {
+    display: none;
+  }
+
+  .mockup-nexus-v14-host .mode-indicator.is-active {
+    display: inline-flex;
+  }
+
+  .mockup-nexus-v14-host .placeholder {
+    flex: 1 1 auto;
+    min-height: clamp(520px, 56vh, 760px);
+    height: auto;
+    margin-top: 12px;
+  }
+
+  .mockup-nexus-v14-host .placeholder .aperture {
+    inset: 12px 16px 18px;
+  }
+
+  @keyframes mockupV14HeaderBandHumOverride {
+    0%, 100% {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        inset 0 0 72px rgba(255, 102, 102, 0.08),
+        0 0 26px rgba(255, 88, 88, 0.08);
+      filter: brightness(1);
+    }
+    50% {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 0 86px rgba(255, 124, 124, 0.12),
+        0 0 34px rgba(255, 96, 96, 0.12);
+      filter: brightness(1.03);
+    }
+  }
+
+  @keyframes mockupV14HeaderEnergyDriftOverride {
+    0% {
+      background-position: 0% 0, 0 0;
+    }
+    100% {
+      background-position: 220% 0, 0 0;
+    }
+  }
+
+  @keyframes mockupV14TitleSweepLoopOverride {
+    0% {
+      opacity: 0;
+      transform: translateX(-115%);
+    }
+    12% {
+      opacity: 0.7;
+    }
+    36% {
+      opacity: 0.28;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(115%);
+    }
+  }
+
+  @keyframes mockupV14IntroHumOverride {
+    0%, 100% {
+      opacity: 1;
+      text-shadow: 0 0 0 rgba(255, 168, 168, 0);
+    }
+    50% {
+      opacity: 0.96;
+      text-shadow: 0 0 12px rgba(255, 156, 156, 0.12);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .mockup-nexus-v14-host .placeholder {
+      min-height: clamp(500px, 58vh, 700px);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .mockup-nexus-v14-host .placeholder {
+      min-height: clamp(460px, 54vh, 620px);
+      margin-top: 12px;
+    }
+
+    .mockup-nexus-v14-host .placeholder .aperture {
+      inset: 10px 10px 14px;
+    }
+  }

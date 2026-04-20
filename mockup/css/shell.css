@@ -6328,6 +6328,12 @@
       animation: none !important;
     }
 
+    .mockup-library-grid > .mockup-library-stack.is-docked:only-child {
+      grid-column: 1 / -1;
+      width: 100%;
+      max-width: none;
+    }
+
     body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-kicker,
     body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-main,
     body.mockup-mobile-shell .mockup-library-overlay .mockup-library-title-sub,
