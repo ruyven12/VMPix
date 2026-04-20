@@ -6684,13 +6684,43 @@ body.mockup-route-music .mockup-library-overlay .mockup-about-copy{
   width: calc(100% - clamp(24px, 4vw, 56px));
   max-width: none;
   max-height: calc(100% - clamp(24px, 4vw, 56px));
+  min-height: calc(100% - clamp(24px, 4vw, 56px));
+  height: calc(100% - clamp(24px, 4vw, 56px));
   padding: clamp(24px, 3vw, 42px);
   border-radius: 28px;
+  display: flex;
+  flex-direction: column;
 }
 
 body.mockup-route-portfolio .mockup-library-overlay .mockup-about-title,
 body.mockup-route-music .mockup-library-overlay .mockup-about-title{
   width: min(1120px, 100%);
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-about-copy-text,
+body.mockup-route-music .mockup-library-overlay .mockup-about-copy-text{
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-grid{
+  min-height: 100%;
+  height: 100%;
+  align-content: stretch;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack{
+  min-height: 100%;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack.is-docked:only-child{
+  display: flex;
+  flex-direction: column;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack.is-docked:only-child .mockup-library-module.is-tall{
+  flex: 1 1 auto;
 }
 
 @media (max-width: 760px){
@@ -6706,6 +6736,8 @@ body.mockup-route-music .mockup-library-overlay .mockup-about-title{
   body.mockup-route-music .mockup-library-overlay .mockup-about-copy{
     width: calc(100% - 20px);
     max-height: calc(100% - 20px);
+    min-height: calc(100% - 20px);
+    height: calc(100% - 20px);
     padding: 18px 16px 20px;
     border-radius: 22px;
   }
