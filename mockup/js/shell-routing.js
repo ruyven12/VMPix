@@ -842,9 +842,30 @@
         return ROUTE_HOME;
       };
 
+      const syncMockupRouteClasses = (route = getCurrentRoute()) => {
+        const body = document.body;
+        const stage = mockupStage;
+        if (!body || !stage) return;
+        const isPortfolioRoute = route === panels.library.route;
+        const isMusicRoute = route === ROUTE_MUSIC;
+        const isAboutRoute = route === panels.about.route;
+        const isPricingRoute = route === panels.pricing.route;
+        const isHomeRoute = route === ROUTE_HOME;
+
+        body.classList.toggle('mockup-route-home', isHomeRoute);
+        body.classList.toggle('mockup-route-portfolio', isPortfolioRoute);
+        body.classList.toggle('mockup-route-music', isMusicRoute);
+        body.classList.toggle('mockup-route-about', isAboutRoute);
+        body.classList.toggle('mockup-route-pricing', isPricingRoute);
+
+        stage.classList.toggle('is-portfolio-route', isPortfolioRoute);
+        stage.classList.toggle('is-music-route', isMusicRoute);
+      };
+
       const applyInitialShellState = () => {
         if (hasAppliedInitialShellState) return;
         hasAppliedInitialShellState = true;
+        syncMockupRouteClasses();
         if (getCurrentRoute() === panels.library.route || getCurrentRoute() === ROUTE_MUSIC) {
           applyPanelStateImmediately(panels.library);
           return;
@@ -863,6 +884,7 @@
       const updateRoute = (route, mode = 'pushState') => {
         if (getPathname() === route) return;
         shellRoutePath = route;
+        syncMockupRouteClasses(route);
         if (window.parent && window.parent !== window) {
           try {
             window.parent.postMessage({ type: 'vmTestingRoute', route }, '*');
@@ -1022,6 +1044,7 @@
 
       const applyPanelStateImmediately = (panel) => {
         if (!panel) return;
+        syncMockupRouteClasses(panel.route === panels.library.route && getCurrentRoute() === ROUTE_MUSIC ? ROUTE_MUSIC : panel.route);
         clearPanelStageTimers();
         stopPanelLoopWatcher();
         Object.values(panels).forEach((entry) => {
@@ -1076,6 +1099,7 @@
       };
 
       const applyHomeStateImmediately = () => {
+        syncMockupRouteClasses(ROUTE_HOME);
         clearPanelStageTimers();
         stopPanelLoopWatcher();
         Object.values(panels).forEach((panel) => {
