@@ -11,6 +11,11 @@
 
 const TEMP_ALWAYS_SHOW_TESTING = false;
 
+  function isPublicTestingPath(pathname){
+    const path = String(pathname || '').trim().toLowerCase();
+    return path === '/testing' || path.startsWith('/testing/');
+  }
+
   // =============================
   // GLOBAL "DING" (tiny audible cue)
   // =============================
@@ -254,7 +259,8 @@ const TEMP_ALWAYS_SHOW_TESTING = false;
         adminPill.setAttribute('aria-expanded', 'false');
       }
       adminOnlyPills.forEach((pill) => {
-        const showAdminOnly = TEMP_ALWAYS_SHOW_TESTING || !!(unlocked && adminVerifiedMemory);
+        const href = String(pill.getAttribute('href') || '').trim();
+        const showAdminOnly = isPublicTestingPath(href) || TEMP_ALWAYS_SHOW_TESTING || !!(unlocked && adminVerifiedMemory);
         pill.hidden = !showAdminOnly;
         pill.style.display = showAdminOnly ? '' : 'none';
         pill.setAttribute('aria-hidden', showAdminOnly ? 'false' : 'true');
@@ -761,6 +767,7 @@ function pulseFrame(){
 
   async function canAccessProtectedRoute(route){
     const key = sanitizeRouteKey(route) || 'home';
+    if (key === 'testing' || isPublicTestingPath(location.pathname || '')) return true;
     if (key !== 'testing') return true;
     if (TEMP_ALWAYS_SHOW_TESTING) return true;
     try {
