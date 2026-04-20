@@ -12626,11 +12626,27 @@
   .mockup-library-overlay.is-music-branch-open .mockup-library-status,
   .mockup-library-overlay.is-music-branch-open .mockup-library-signal-strip,
   .mockup-library-overlay.is-music-branch-open .mockup-library-hud {
-    filter: blur(10px) saturate(0.82);
-    opacity: 0.16;
-    transform: scale(0.985);
+    filter: blur(4px) saturate(0.92);
+    opacity: 0.52;
+    transform: scale(0.995);
     pointer-events: none;
     transition: filter 300ms ease, opacity 300ms ease, transform 300ms ease;
+  }
+
+  .mockup-library-overlay.is-music-branch-open .mockup-library-grid,
+  .mockup-library-overlay.is-music-branch-open .mockup-library-title,
+  .mockup-library-overlay.is-music-branch-open .mockup-library-status,
+  .mockup-library-overlay.is-music-branch-open .mockup-library-signal-strip,
+  .mockup-library-overlay.is-music-branch-open .mockup-library-hud {
+    filter: blur(6px) saturate(0.88);
+    opacity: 0.34;
+  }
+
+  .mockup-library-overlay.is-music-footprint-locked .mockup-about-copy,
+  .mockup-library-overlay.is-music-footprint-locked .mockup-about-copy-text {
+    min-height: var(--music-lock-height, auto);
+    max-height: var(--music-lock-height, none);
+    height: var(--music-lock-height, auto);
   }
 
   .mockup-music-branch-panel {
@@ -15430,6 +15446,7 @@
   if (!libraryOverlay) return;
   const host = libraryOverlay.querySelector('.mockup-about-copy');
   if (!host) return;
+  const hostCopyText = libraryOverlay.querySelector('.mockup-about-copy-text');
 
   const musicSelectors = [
     '.mockup-library-status-node.is-music-card',
@@ -15442,13 +15459,20 @@
   let lastTrigger = null;
   let overlayPhase = 'idle';
   let overlayTimers = [];
+  let localRoutePath = '';
+  let releaseFootprintTimer = 0;
+  let lockedFootprintHeight = '';
 
   function getShellPathname() {
-    return window.location.pathname || '';
+    return localRoutePath || window.location.pathname || '';
   }
 
-  function syncTestingRoute(route, mode) {
-    if (!route || getShellPathname() === route) return;
+  function syncTestingRoute(route, mode, options = {}) {
+    const deferHistory = !!options.deferHistory;
+    const previousPath = getShellPathname();
+    localRoutePath = route || '';
+    if (!route || previousPath === route) return;
+    if (deferHistory) return;
     if (window.parent && window.parent !== window) {
       try {
         window.parent.postMessage({ type: 'vmTestingRoute', route }, '*');
@@ -15459,6 +15483,42 @@
     try {
       window.history[mode]({ route }, '', route);
     } catch (_) {}
+  }
+
+  function clearReleaseFootprintTimer() {
+    if (releaseFootprintTimer) {
+      window.clearTimeout(releaseFootprintTimer);
+      releaseFootprintTimer = 0;
+    }
+  }
+
+  function lockMusicFootprint() {
+    clearReleaseFootprintTimer();
+    const sourceRect = host.getBoundingClientRect();
+    if (!sourceRect.height) return;
+    lockedFootprintHeight = Math.ceil(sourceRect.height) + 'px';
+    libraryOverlay.style.setProperty('--music-lock-height', lockedFootprintHeight);
+    libraryOverlay.classList.add('is-music-footprint-locked');
+    host.style.minHeight = lockedFootprintHeight;
+    host.style.height = lockedFootprintHeight;
+    if (hostCopyText) {
+      hostCopyText.style.minHeight = lockedFootprintHeight;
+    }
+  }
+
+  function releaseMusicFootprint(delay) {
+    clearReleaseFootprintTimer();
+    releaseFootprintTimer = window.setTimeout(function () {
+      libraryOverlay.classList.remove('is-music-footprint-locked');
+      libraryOverlay.style.removeProperty('--music-lock-height');
+      host.style.removeProperty('min-height');
+      host.style.removeProperty('height');
+      if (hostCopyText) {
+        hostCopyText.style.removeProperty('min-height');
+      }
+      lockedFootprintHeight = '';
+      releaseFootprintTimer = 0;
+    }, delay);
   }
 
   function clearOverlayTimers() {
@@ -15854,6 +15914,8 @@
     if (overlayPhase !== 'idle') return;
     const overlay = ensureMusicOverlay();
     clearOverlayTimers();
+    syncTestingRoute(MUSIC_ROUTE, routeMode, { deferHistory: true });
+    lockMusicFootprint();
     armTrigger(trigger);
     setOriginFromTrigger(trigger);
     if (typeof overlay.__resetMusicNexusSequence === 'function') {
@@ -15874,6 +15936,7 @@
           libraryOverlay.classList.remove('is-music-branch-transitioning');
           overlayPhase = 'music-nexus-active';
           syncTestingRoute(MUSIC_ROUTE, routeMode);
+          releaseMusicFootprint(220);
         }, 620);
       });
     });
@@ -15883,6 +15946,8 @@
     const routeMode = options.routeMode || 'pushState';
     if (!musicOverlay || overlayPhase === 'idle') return;
     clearOverlayTimers();
+    syncTestingRoute(PORTFOLIO_ROUTE, routeMode, { deferHistory: true });
+    lockMusicFootprint();
     overlayPhase = 'closing';
     libraryOverlay.classList.remove('is-music-branch-open');
     libraryOverlay.classList.remove('is-music-branch-transitioning');
@@ -15900,6 +15965,7 @@
       }
       overlayPhase = 'idle';
       syncTestingRoute(PORTFOLIO_ROUTE, routeMode);
+      releaseMusicFootprint(120);
     }, 220);
   }
 
@@ -15955,6 +16021,7 @@
   window.addEventListener('message', function (event) {
     const data = event && event.data;
     if (!data || data.type !== 'vmTestingRouteSync') return;
+    localRoutePath = data.route || '';
     window.requestAnimationFrame(syncOverlayToTestingRoute);
   });
 
