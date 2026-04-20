@@ -6721,6 +6721,24 @@ body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack.is-doc
 
 body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack.is-docked:only-child .mockup-library-module.is-tall{
   flex: 1 1 auto;
+  min-height: 100%;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-status{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-status-board{
+  flex: 1 1 auto;
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+}
+
+body.mockup-route-portfolio .mockup-library-overlay .mockup-library-status-node{
+  min-height: clamp(104px, 14vh, 148px);
 }
 
 @media (max-width: 760px){
@@ -6740,5 +6758,9 @@ body.mockup-route-portfolio .mockup-library-overlay .mockup-library-stack.is-doc
     height: calc(100% - 20px);
     padding: 18px 16px 20px;
     border-radius: 22px;
+  }
+
+  body.mockup-route-portfolio .mockup-library-overlay .mockup-library-status-node{
+    min-height: clamp(92px, 12vh, 122px);
   }
 }

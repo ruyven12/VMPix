@@ -70,16 +70,26 @@
   }
 
   .mockup-nexus-v14-host .mode-indicator {
-    display: none;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
   }
 
   .mockup-nexus-v14-host .mode-indicator.is-active {
-    display: inline-flex;
+    display: none !important;
   }
 
   .mockup-nexus-v14-host .placeholder {
-    flex: 1 1 auto;
-    min-height: clamp(520px, 56vh, 760px);
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
     height: auto;
     margin-top: 12px;
   }
@@ -116,6 +126,7 @@
   .mockup-library-overlay.is-music-branch-open .mockup-music-branch-panel,
   .mockup-library-overlay.is-music-branch-open .mockup-music-branch-content,
   .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host {
+    flex: 1 1 auto;
     min-height: 100%;
     height: 100%;
   }
@@ -188,13 +199,13 @@
     }
 
     .mockup-nexus-v14-host .placeholder {
-      min-height: clamp(500px, 58vh, 700px);
+      min-height: 0;
     }
   }
 
   @media (max-width: 720px) {
     .mockup-nexus-v14-host .placeholder {
-      min-height: clamp(460px, 54vh, 620px);
+      min-height: 0;
       margin-top: 12px;
     }
 
