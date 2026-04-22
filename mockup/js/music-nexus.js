@@ -1649,7 +1649,6 @@
     const intro = overlay.querySelector('.intro');
     const titleWrap = overlay.querySelector('.title-wrap');
     const titleZone = overlay.querySelector('.title-zone');
-    const chamber = overlay.querySelector('.header-band');
     const filterButtons = Array.from(overlay.querySelectorAll('.nexus-filter-btn'));
     const filterChamber = overlay.querySelector('.placeholder');
     const filterDeploy = overlay.querySelector('.nexus-filter-deploy');
@@ -1658,8 +1657,25 @@
     const modeIndicatorText = overlay.querySelector('.mode-indicator-text');
     const dashboard = overlay.querySelector('.mockup-music-dashboard');
 
-    if (!root || !startButton || !startStack || !intro || !titleWrap || !titleZone || !chamber || !filterButtons.length || !filterChamber || !filterDeploy || !filterPrompt || !modeIndicator || !modeIndicatorText) {
+    if (!root || !startButton || !startStack || !intro || !titleWrap || !titleZone || !filterButtons.length || !filterChamber || !filterDeploy || !filterPrompt || !modeIndicator || !modeIndicatorText) {
       return;
+    }
+
+    if (titleZone.parentElement !== filterChamber) {
+      filterChamber.insertBefore(titleZone, filterChamber.firstChild);
+    }
+    let introStack = filterChamber.querySelector('.mockup-music-intro-stack');
+    if (!introStack) {
+      introStack = document.createElement('div');
+      introStack.className = 'mockup-music-intro-stack';
+      filterChamber.insertBefore(introStack, filterChamber.firstChild);
+    }
+    if (titleZone.parentElement !== introStack) {
+      introStack.appendChild(titleZone);
+    }
+    const startWrap = overlay.querySelector('.chamber-start-wrap');
+    if (startWrap && startWrap.parentElement !== introStack) {
+      introStack.appendChild(startWrap);
     }
 
     const state = {
@@ -1741,97 +1757,43 @@
       root.classList.add('is-dashboard-handoff');
     }
 
-    function transferFilterSelection(button) {
-      if (state.hasTransferredFilter || !button) return;
+    function handoffToDashboard(mode) {
+      if (state.hasTransferredFilter) return;
       state.hasTransferredFilter = true;
+      const selectedMode = mode || 'bands';
+      const selectedButton = filterButtons.find(function (button) {
+        return button.getAttribute('data-mode') === selectedMode;
+      }) || filterButtons[0];
+      const selectedLabelEl = selectedButton && selectedButton.querySelector('.filter-label');
+      const selectedLabel = selectedLabelEl ? selectedLabelEl.textContent.trim() : 'Bands';
 
-      const selectedMode = button.getAttribute('data-mode');
-      const selectedLabelEl = button.querySelector('.filter-label');
-      const selectedLabel = selectedLabelEl ? selectedLabelEl.textContent.trim() : button.textContent.trim();
-
-      filterDeploy.classList.add('is-locked');
-
-      filterButtons.forEach(function (item) {
-        if (item !== button) {
-          item.classList.remove('is-selected', 'is-confirming');
-          item.classList.add('is-fading');
-        }
-      });
-
+      positionFilterRow();
+      filterDeploy.classList.add('is-locked', 'is-complete');
       filterPrompt.classList.remove('is-active');
       filterPrompt.classList.add('is-hidden');
-
+      filterChamber.classList.add('mode-transfer');
       setFilterMode(selectedMode);
 
-      schedule(function () {
-        pulseChamber();
-        button.classList.remove('is-confirming');
-        button.classList.add('is-selected', 'is-blinking');
-        filterChamber.classList.add('mode-transfer');
-      }, 560);
+      filterButtons.forEach(function (button) {
+        const isSelected = button === selectedButton;
+        button.classList.remove('is-deploying', 'is-ready', 'is-confirming', 'is-blinking', 'is-transferring');
+        button.classList.toggle('is-selected', isSelected);
+        button.classList.toggle('is-fading', !isSelected);
+      });
+
+      pulseChamber();
+      activateModeIndicator(selectedLabel);
 
       schedule(function () {
         revealDashboard(selectedMode);
-      }, 720);
-
-      schedule(function () {
-        button.classList.remove('is-blinking');
-        button.classList.add('is-transferring');
-      }, 2300);
-
-      schedule(function () {
-        filterDeploy.classList.add('is-complete');
-        activateModeIndicator(selectedLabel);
-      }, 2740);
-    }
-
-    function deployFilters() {
-      const useOffsets = getDeployOffsets();
-      const deployDelays = getDeployDelays();
-      positionFilterRow();
-      state.hasTransferredFilter = false;
-      clearTransferStates();
-      filterPrompt.classList.remove('is-active', 'is-hidden');
-
-      filterButtons.forEach(function (button, index) {
-        button.style.setProperty('--deploy-x', useOffsets[index] + 'px');
-        button.style.setProperty('--deploy-delay', deployDelays[index] + 'ms');
-        button.classList.remove('is-deploying', 'is-ready');
-        void button.offsetWidth;
-        button.classList.add('is-deploying');
-        schedule(function () {
-          button.classList.add('is-ready');
-        }, deployDelays[index] + 720);
-      });
-
-      schedule(function () {
-        filterPrompt.classList.add('is-active');
-      }, 240);
-    }
-
-    function launchTitleToCenter() {
-      const titleRect = titleWrap.getBoundingClientRect();
-      const chamberRect = chamber.getBoundingClientRect();
-      const titleCenterX = titleRect.left + (titleRect.width / 2);
-      const titleCenterY = titleRect.top + (titleRect.height / 2);
-      const targetCenterX = chamberRect.left + (chamberRect.width / 2);
-      const targetCenterY = chamberRect.top + (chamberRect.height / 2);
-      titleWrap.style.setProperty('--title-dock-x', (targetCenterX - titleCenterX) + 'px');
-      titleWrap.style.setProperty('--title-dock-y', (targetCenterY - titleCenterY) + 'px');
-      titleZone.classList.remove('is-title-launched');
-      void titleWrap.offsetWidth;
-      titleZone.classList.add('is-title-launched');
-      schedule(function () {
-        deployFilters();
-      }, 760);
+      }, 180);
     }
 
     function resetSequence() {
       clearTimers();
       state.hasTransferredFilter = false;
       startStack.classList.remove('is-launching');
-      titleZone.classList.remove('is-title-launched');
-      intro.classList.remove('fade-out');
+      root.classList.remove('is-intro-fading');
       setFilterMode('');
       root.classList.remove('is-dashboard-handoff');
       overlay.classList.remove('is-dashboard-revealed');
@@ -1851,7 +1813,7 @@
     filterButtons.forEach(function (button) {
       button.addEventListener('mouseenter', function () {
         const selected = getSelectedButton();
-        if (selected) return;
+        if (selected || state.hasTransferredFilter) return;
         setFilterMode(button.getAttribute('data-mode'));
       });
 
@@ -1859,47 +1821,24 @@
         const selected = getSelectedButton();
         if (selected) {
           setFilterMode(selected.getAttribute('data-mode'));
-        } else {
+        } else if (!state.hasTransferredFilter) {
           setFilterMode('');
         }
-      });
-
-      button.addEventListener('click', function () {
-        if (state.hasTransferredFilter) return;
-        const selectedMode = button.getAttribute('data-mode');
-        filterButtons.forEach(function (item) {
-          item.classList.remove('is-selected', 'is-confirming', 'is-fading', 'is-blinking', 'is-transferring');
-        });
-        button.classList.add('is-selected', 'is-confirming');
-        setFilterMode(selectedMode);
-        pulseChamber();
-        schedule(function () {
-          transferFilterSelection(button);
-        }, 620);
       });
     });
 
     startButton.addEventListener('click', function () {
       if (startStack.classList.contains('is-launching')) return;
       startStack.classList.add('is-launching');
+      root.classList.add('is-intro-fading');
       schedule(function () {
-        intro.classList.add('fade-out');
-      }, 760);
-      schedule(function () {
-        launchTitleToCenter();
-      }, 820);
+        handoffToDashboard('bands');
+      }, 220);
     });
 
     window.addEventListener('resize', function () {
       if (overlay.getAttribute('aria-hidden') === 'true') return;
       positionFilterRow();
-      const useOffsets = getDeployOffsets();
-      if (!state.hasTransferredFilter) {
-        filterPrompt.classList.remove('is-active');
-      }
-      filterButtons.forEach(function (button, index) {
-        button.style.setProperty('--deploy-x', useOffsets[index] + 'px');
-      });
     });
 
     overlay.__resetMusicNexusSequence = resetSequence;
