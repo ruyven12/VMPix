@@ -262,3 +262,33 @@
   top:72px !important;
   bottom:12px !important;
 }
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-branch-content{
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:100% !important;
+  height:100% !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host{
+  display:grid !important;
+  grid-template-rows:auto minmax(0, 1fr) !important;
+  flex:1 1 auto !important;
+  min-height:100% !important;
+  height:100% !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .top-module{
+  min-height:fit-content !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .placeholder{
+  align-self:stretch !important;
+  min-height:520px !important;
+  height:calc(100% - 10px) !important;
+  margin-top:10px !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .placeholder .aperture{
+  inset:12px 16px 28px !important;
+}
