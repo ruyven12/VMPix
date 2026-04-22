@@ -8116,6 +8116,202 @@ body.mode-people .explore{
   .people-detail h2{font-size:24px;}
 }
 
+
+
+/* v-desktop-stack pass: keep the mobile composition on desktop */
+@media (min-width: 981px){
+  .ui{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+    align-items: start !important;
+    align-content: start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .topbar{
+    order: 1;
+    min-height: auto !important;
+    padding: 0 0 6px !important;
+    gap: 4px !important;
+  }
+
+  .left-panel,
+  .center-panel,
+  .right-panel,
+  .footer{
+    grid-column: 1 / -1 !important;
+  }
+
+  .left-panel{
+    order: 2;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+  }
+
+  .left-panel > div:first-child{
+    width: 100% !important;
+  }
+
+  .section-kicker{
+    margin: 0 auto 6px !important;
+    text-align: center !important;
+  }
+
+  .mode-smartmenu{
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 0 !important;
+  }
+
+  .mode-smartcard{
+    min-height: 58px !important;
+    padding: 10px 12px !important;
+  }
+
+  .center-panel{
+    order: 3;
+    width: 100% !important;
+    min-height: 620px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    padding: 14px 10px !important;
+  }
+
+  .radar{
+    width: min(100%, 820px) !important;
+  }
+
+  .right-panel{
+    order: 4;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+  }
+
+  .footer{
+    order: 5;
+  }
+}
+
+
+
+/* v62 desktop stack pass: move View Mode above content and let main panes stretch */
+@media (min-width: 981px){
+  .ui{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+    align-items: stretch !important;
+    align-content: stretch !important;
+    min-height: calc(100dvh - 40px) !important;
+    height: calc(100dvh - 40px) !important;
+    gap: 12px !important;
+  }
+
+  .topbar,
+  .left-panel,
+  .center-panel,
+  .right-panel,
+  .footer{
+    grid-column: 1 / -1 !important;
+  }
+
+  .topbar{
+    grid-row: 1 !important;
+    min-height: auto !important;
+    padding: 0 8px 2px !important;
+    margin: 0 !important;
+  }
+
+  .left-panel{
+    grid-row: 2 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 10px 14px 4px !important;
+    margin: 0 !important;
+    gap: 6px !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+    border-radius: 16px !important;
+  }
+
+  .left-panel > div:first-child{
+    width: 100% !important;
+  }
+
+  .section-kicker{
+    margin: 0 auto 6px !important;
+  }
+
+  .mode-smartmenu{
+    width: 100% !important;
+    margin: 0 !important;
+    gap: 10px !important;
+  }
+
+  .mode-smartcard{
+    min-height: 48px !important;
+    padding: 10px 12px !important;
+  }
+
+  .mode-smart-label{
+    font-size: 12px !important;
+  }
+
+  .center-panel{
+    grid-row: 3 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    margin: 0 !important;
+    padding: 14px !important;
+  }
+
+  .mode-pane[data-pane="bands"],
+  .mode-pane[data-pane="shows"],
+  .mode-pane[data-pane="people"]{
+    height: 100% !important;
+  }
+
+  .radar,
+  .shows-stage,
+  .people-stage{
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .shows-stage,
+  .people-stage{
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .right-panel{
+    grid-row: 4 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    min-height: 220px !important;
+    max-height: 30dvh !important;
+    overflow: auto !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+  }
+
+  .footer{
+    grid-row: 5 !important;
+    padding-top: 4px !important;
+  }
+}
+
 </style>
 
 <style>
@@ -8658,6 +8854,92 @@ body.mode-people .explore{
   }
 }
 
+
+
+/* v-desktop-stack pass: keep the mobile composition on desktop */
+@media (min-width: 981px){
+  .ui{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+    align-items: start !important;
+    align-content: start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .topbar{
+    order: 1;
+    min-height: auto !important;
+    padding: 0 0 6px !important;
+    gap: 4px !important;
+  }
+
+  .left-panel,
+  .center-panel,
+  .right-panel,
+  .footer{
+    grid-column: 1 / -1 !important;
+  }
+
+  .left-panel{
+    order: 2;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+  }
+
+  .left-panel > div:first-child{
+    width: 100% !important;
+  }
+
+  .section-kicker{
+    margin: 0 auto 6px !important;
+    text-align: center !important;
+  }
+
+  .mode-smartmenu{
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 0 !important;
+  }
+
+  .mode-smartcard{
+    min-height: 58px !important;
+    padding: 10px 12px !important;
+  }
+
+  .center-panel{
+    order: 3;
+    width: 100% !important;
+    min-height: 620px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    padding: 14px 10px !important;
+  }
+
+  .radar{
+    width: min(100%, 820px) !important;
+  }
+
+  .right-panel{
+    order: 4;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+  }
+
+  .footer{
+    order: 5;
+  }
+}
+
 </style>
 
 <style>
@@ -8815,6 +9097,118 @@ body.mode-shows .right-panel{ padding:16px; border-color:rgba(255,77,87,.16); }
   .shows-detail-poster{height:132px;}
   .shows-detail h2{font-size:24px;}
 }
+
+
+/* v-desktop-stack pass: keep the mobile composition on desktop */
+@media (min-width: 981px){
+  .ui{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+    align-items: start !important;
+    align-content: start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .topbar{
+    order: 1;
+    min-height: auto !important;
+    padding: 0 0 6px !important;
+    gap: 4px !important;
+  }
+
+  .left-panel,
+  .center-panel,
+  .right-panel,
+  .footer{
+    grid-column: 1 / -1 !important;
+  }
+
+  .left-panel{
+    order: 2;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+  }
+
+  .left-panel > div:first-child{
+    width: 100% !important;
+  }
+
+  .section-kicker{
+    margin: 0 auto 6px !important;
+    text-align: center !important;
+  }
+
+  .mode-smartmenu{
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 0 !important;
+  }
+
+  .mode-smartcard{
+    min-height: 58px !important;
+    padding: 10px 12px !important;
+  }
+
+  .center-panel{
+    order: 3;
+    width: 100% !important;
+    min-height: 620px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    padding: 14px 10px !important;
+  }
+
+  .radar{
+    width: min(100%, 820px) !important;
+  }
+
+  .right-panel{
+    order: 4;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+  }
+
+  .footer{
+    order: 5;
+  }
+}
+
+
+
+/* v65 surgical radar centering pass */
+.center-panel{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+.center-panel > .radar{
+  margin:0 auto !important;
+  justify-self:center !important;
+  align-self:center !important;
+  left:auto !important;
+  right:auto !important;
+}
+
+@media (max-width: 980px){
+  .center-panel{
+    padding-left:0 !important;
+    padding-right:0 !important;
+  }
+}
+
 </style>
 
 </head>
@@ -9609,5 +10003,53 @@ body.mode-shows .right-panel{ padding:16px; border-color:rgba(255,77,87,.16); }
 })();
 
 </script>
+
+
+<style>
+/* v66b surgical center/stretch pass for bands, shows, and people */
+@media (min-width: 981px){
+  .mode-pane.is-visible{
+    width:100% !important;
+    height:100% !important;
+  }
+
+  .mode-pane-bands.is-visible,
+  .mode-pane-shows.is-visible,
+  .mode-pane-people.is-visible{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+
+  .center-panel{
+    padding:18px !important;
+  }
+
+  .mode-pane-bands .radar{
+    width:min(100%, 980px) !important;
+    max-width:none !important;
+    margin:0 auto !important;
+  }
+
+  .shows-stage,
+  .shows-stage-premium,
+  .people-stage{
+    width:100% !important;
+    max-width:1100px !important;
+    margin:0 auto !important;
+    align-self:stretch !important;
+  }
+
+  .shows-stage-premium,
+  .people-stage{
+    min-height:100% !important;
+  }
+
+  .people-grid{
+    grid-template-columns:repeat(3, minmax(220px, 1fr)) !important;
+  }
+}
+</style>
+
 </body>
 </html>
