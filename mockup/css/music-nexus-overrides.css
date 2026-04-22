@@ -272,21 +272,22 @@
 
 .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host{
   display:grid !important;
-  grid-template-rows:auto minmax(0, 1fr) !important;
+  grid-template-rows:minmax(0, 1fr) !important;
   flex:1 1 auto !important;
   min-height:100% !important;
   height:100% !important;
 }
 
 .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .top-module{
-  min-height:fit-content !important;
+  min-height:0 !important;
+  height:0 !important;
 }
 
 .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .placeholder{
   align-self:stretch !important;
-  min-height:520px !important;
-  height:calc(100% - 10px) !important;
-  margin-top:10px !important;
+  min-height:100% !important;
+  height:100% !important;
+  margin-top:0 !important;
 }
 
 .mockup-library-overlay.is-music-branch-open .mockup-nexus-v14-host .placeholder .aperture{
@@ -304,7 +305,7 @@
   display:flex;
   align-items:stretch;
   justify-content:center;
-  padding:20px;
+  padding:14px;
   opacity:0;
   visibility:hidden;
   pointer-events:none;
@@ -335,7 +336,7 @@
   min-height:100% !important;
   height:100% !important;
   margin-top:0 !important;
-  padding:22px !important;
+  padding:16px !important;
 }
 
 .mockup-nexus-v14-host .placeholder::before,
@@ -354,13 +355,13 @@
 .mockup-nexus-v14-host .mockup-music-intro-stack{
   width:100%;
   max-width:none;
-  min-height:100%;
-  height:100%;
+  min-height:auto;
+  height:auto;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:20px;
+  gap:100px;
   padding:clamp(24px, 3vw, 40px);
 }
 
@@ -368,7 +369,7 @@
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:20px;
+  gap:5px;
   width:100%;
   max-width:1180px;
   text-align:center;
@@ -378,7 +379,7 @@
 }
 
 .mockup-nexus-v14-host .placeholder .title-wrap{
-  width:min(100%, 860px);
+  width:min(100%, 980px);
   padding:clamp(22px, 3vw, 34px) clamp(20px, 3vw, 32px);
   border-radius:22px;
   border:1px solid rgba(255, 126, 138, .18);
@@ -400,25 +401,35 @@
 }
 
 .mockup-nexus-v14-host .placeholder .intro{
-  width:min(100%, 980px);
+  width:min(100%, 1040px);
   margin:0;
-  font-size:clamp(18px, 1.2vw, 28px);
-  line-height:1.5;
+  font-size:clamp(18px, 1.15vw, 26px);
+  line-height:1.45;
   letter-spacing:.04em;
   text-wrap:balance;
 }
 
 .mockup-nexus-v14-host .chamber-start-wrap{
-  margin-top:0 !important;
+  position:relative !important;
+  inset:auto !important;
+  z-index:2 !important;
+  pointer-events:auto !important;
+  padding:0 !important;
+  margin:0 !important;
   width:100% !important;
   display:flex;
+  align-items:center;
   justify-content:center;
+  flex:0 0 auto;
 }
 
 .mockup-nexus-v14-host .chamber-start-stack{
   width:min(100%, 320px) !important;
   height:min(100%, 320px) !important;
+  max-width:320px !important;
+  max-height:320px !important;
   transform:none !important;
+  animation:none !important;
 }
 
 .mockup-nexus-v14-host .hud-start-orbit{
@@ -453,12 +464,13 @@
 
 .mockup-music-dashboard .mockup-music-dashboard-shell{
   position:relative;
-  width:min(100%, 1320px);
+  width:100%;
+  max-width:1680px;
   min-height:100%;
   display:grid;
   grid-template-rows:auto auto minmax(0, 1fr);
   gap:18px;
-  padding:18px;
+  padding:20px;
   border-radius:26px;
   border:1px solid rgba(255, 126, 138, .16);
   background:
@@ -609,8 +621,8 @@
 
 .mockup-music-dashboard .mockup-music-dashboard-content{
   display:grid;
-  grid-template-columns:minmax(0, 1fr) 340px;
-  gap:18px;
+  grid-template-columns:minmax(0, 1.18fr) minmax(320px, 400px);
+  gap:20px;
   min-height:0;
   flex:1 1 auto;
 }
@@ -621,6 +633,7 @@
   border-radius:18px;
   background:linear-gradient(180deg, rgba(8,12,18,.88), rgba(5,8,13,.84));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.015);
+  min-width:0;
   min-height:0;
 }
 
@@ -663,10 +676,36 @@
   flex-direction:column;
 }
 
+@media (min-width: 1280px){
+  .mockup-music-dashboard{
+    padding:12px;
+  }
+
+  .mockup-music-dashboard .mockup-music-dashboard-shell{
+    gap:20px;
+    padding:22px;
+  }
+
+  .mockup-music-dashboard .mockup-music-dashboard-content{
+    grid-template-columns:minmax(0, 1.24fr) minmax(340px, 420px);
+    gap:22px;
+  }
+
+  .mockup-music-dashboard .center-panel{
+    padding:22px;
+  }
+
+  .mockup-music-dashboard .right-panel{
+    padding:18px;
+  }
+}
+
 .mockup-music-dashboard .mode-pane{
   display:none;
   width:100%;
   height:100%;
+  min-width:0;
+  min-height:0;
 }
 
 .mockup-music-dashboard .mode-pane.is-visible{
@@ -678,6 +717,12 @@
 .mockup-music-dashboard .mode-pane-people.is-visible{
   align-items:center;
   justify-content:center;
+}
+
+.mockup-music-dashboard .mode-pane-shows.is-visible,
+.mockup-music-dashboard .mode-pane-people.is-visible{
+  align-items:stretch;
+  justify-content:flex-start;
 }
 
 .mockup-music-dashboard [data-dashboard-side-pane].is-visible{
@@ -692,6 +737,7 @@
 .mockup-music-dashboard .radar{
   position:relative;
   width:min(100%, 980px);
+  max-width:100%;
   aspect-ratio:1/1;
   display:grid;
   place-items:center;
@@ -894,7 +940,8 @@
 .mockup-music-dashboard .shows-stage-premium,
 .mockup-music-dashboard .people-stage{
   width:100%;
-  max-width:1100px;
+  max-width:none;
+  min-width:0;
   margin:0 auto;
 }
 
@@ -972,6 +1019,7 @@
   gap:12px;
   padding-left:98px;
   padding-top:4px;
+  min-width:0;
 }
 
 .mockup-music-dashboard .shows-timeline::before{
@@ -1012,6 +1060,17 @@
   text-align:left;
 }
 
+.mockup-music-dashboard .shows-timeline-name,
+.mockup-music-dashboard .shows-timeline-meta,
+.mockup-music-dashboard .people-card-name,
+.mockup-music-dashboard .people-card-role,
+.mockup-music-dashboard .people-card-count,
+.mockup-music-dashboard .card-name,
+.mockup-music-dashboard .card-sub{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
 .mockup-music-dashboard .shows-timeline-item::before{
   content:"";
   position:absolute;
@@ -1040,12 +1099,14 @@
   display:grid;
   grid-template-columns:repeat(3, minmax(220px, 1fr));
   gap:12px;
+  min-width:0;
 }
 
 .mockup-music-dashboard .people-card{
   position:relative;
   display:grid;
   gap:6px;
+  min-width:0;
   min-height:128px;
   padding:16px;
   border-radius:18px;
@@ -1106,6 +1167,7 @@
   flex-direction:column;
   gap:14px;
   width:100%;
+  min-width:0;
 }
 
 .mockup-music-dashboard .people-detail.is-visible,
@@ -1265,16 +1327,16 @@
 
   .mockup-nexus-v14-host .mockup-music-intro-stack{
     width:100%;
-    min-height:100%;
+    min-height:auto;
     padding:20px 16px;
   }
 
   .mockup-nexus-v14-host .placeholder .title-wrap{
-    width:min(100%, 760px);
+    width:min(100%, 820px);
   }
 
   .mockup-nexus-v14-host .placeholder .intro{
-    width:min(100%, 760px);
+    width:min(100%, 860px);
     font-size:clamp(16px, 2.2vw, 22px);
   }
 
@@ -1292,6 +1354,7 @@
 
   .mockup-music-dashboard .center-panel{
     min-height:420px;
+    padding:16px;
   }
 
   .mockup-music-dashboard .right-panel{
@@ -1303,6 +1366,150 @@
   }
 }
 
+@media (max-width: 820px){
+  .mockup-music-dashboard{
+    padding:10px;
+  }
+
+  .mockup-music-dashboard .mockup-music-dashboard-shell{
+    gap:16px;
+    padding:14px;
+  }
+
+  .mockup-music-dashboard .center-panel{
+    min-height:340px;
+    padding:14px;
+  }
+
+  .mockup-music-dashboard .right-panel{
+    padding:14px;
+  }
+
+  .mockup-music-dashboard .radar{
+    width:min(100%, 480px);
+  }
+
+  .mockup-music-dashboard .core .big{
+    font-size:clamp(38px, 10vw, 52px);
+  }
+
+  .mockup-music-dashboard .core .small{
+    bottom:16%;
+    font-size:9px;
+    letter-spacing:.12em;
+  }
+
+  .mockup-music-dashboard .radar-letter-ring .letter{
+    font-size:10px;
+    letter-spacing:.06em;
+  }
+
+  .mockup-music-dashboard .radar-node-ring .node{
+    width:8px;
+    height:8px;
+  }
+
+  .mockup-music-dashboard .radar-quadrant-mark{
+    width:14px;
+    height:14px;
+  }
+
+  .mockup-music-dashboard .radar-target-bracket{
+    width:24px;
+    height:24px;
+  }
+
+  .mockup-music-dashboard .shows-stage-header,
+  .mockup-music-dashboard .people-stage-header{
+    padding-bottom:10px;
+    margin-bottom:6px;
+  }
+
+  .mockup-music-dashboard .shows-stage-title,
+  .mockup-music-dashboard .people-stage-title{
+    font-size:17px;
+    letter-spacing:.1em;
+  }
+
+  .mockup-music-dashboard .shows-stage-subline,
+  .mockup-music-dashboard .people-stage-subline{
+    font-size:10px;
+    letter-spacing:.05em;
+    line-height:1.45;
+  }
+
+  .mockup-music-dashboard .shows-timeline{
+    padding-left:30px;
+    gap:10px;
+  }
+
+  .mockup-music-dashboard .shows-timeline::before{
+    left:12px;
+  }
+
+  .mockup-music-dashboard .shows-year{
+    position:relative;
+    left:auto;
+    width:auto;
+    top:auto !important;
+    margin:4px 0 2px 4px;
+    font-size:10px;
+    letter-spacing:.12em;
+  }
+
+  .mockup-music-dashboard .shows-timeline-item{
+    grid-template-columns:1fr;
+    gap:8px;
+    min-height:0;
+    padding:14px 12px 14px 14px;
+  }
+
+  .mockup-music-dashboard .shows-timeline-node{
+    margin-left:-18px;
+    width:10px;
+    height:10px;
+  }
+
+  .mockup-music-dashboard .shows-timeline-date strong{
+    font-size:26px;
+  }
+
+  .mockup-music-dashboard .shows-timeline-name{
+    font-size:14px;
+    letter-spacing:.08em;
+  }
+
+  .mockup-music-dashboard .shows-timeline-meta{
+    font-size:10px;
+    line-height:1.45;
+  }
+
+  .mockup-music-dashboard .shows-timeline-badge{
+    justify-self:start;
+  }
+
+  .mockup-music-dashboard .people-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  .mockup-music-dashboard .people-card{
+    min-height:0;
+    padding:14px;
+  }
+
+  .mockup-music-dashboard .people-detail h2,
+  .mockup-music-dashboard .shows-detail h2,
+  .mockup-music-dashboard .mode-pane[data-dashboard-side-pane="bands"] h2{
+    font-size:22px;
+  }
+
+  .mockup-music-dashboard .people-detail-meta,
+  .mockup-music-dashboard .shows-detail-meta{
+    grid-template-columns:1fr;
+  }
+}
+
 @media (max-width: 640px){
   .mockup-nexus-v14-host .placeholder{
     padding:10px !important;
@@ -1310,13 +1517,13 @@
 
   .mockup-nexus-v14-host .mockup-music-intro-stack{
     width:100%;
-    gap:16px;
+    gap:100px;
     padding:16px 8px 10px;
     justify-content:center;
   }
 
   .mockup-nexus-v14-host .placeholder .title-zone{
-    gap:16px;
+    gap:5px;
     width:100%;
   }
 
@@ -1364,12 +1571,40 @@
   }
 
   .mockup-music-dashboard .center-panel{
-    min-height:360px;
+    min-height:320px;
     padding:12px;
   }
 
   .mockup-music-dashboard .radar{
     width:min(100%, 330px);
+  }
+
+  .mockup-music-dashboard .core .big{
+    font-size:34px;
+  }
+
+  .mockup-music-dashboard .core .small{
+    font-size:8px;
+    letter-spacing:.1em;
+  }
+
+  .mockup-music-dashboard .radar-letter-ring .letter{
+    font-size:9px;
+  }
+
+  .mockup-music-dashboard .radar-node-ring .node{
+    width:7px;
+    height:7px;
+  }
+
+  .mockup-music-dashboard .radar-quadrant-mark{
+    width:12px;
+    height:12px;
+  }
+
+  .mockup-music-dashboard .radar-target-bracket{
+    width:20px;
+    height:20px;
   }
 
   .mockup-music-dashboard .people-grid{
