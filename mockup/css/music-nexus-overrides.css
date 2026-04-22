@@ -1,4 +1,4 @@
-  .mockup-library-overlay.is-music-source-suppressed .mockup-about-copy-text {
+.mockup-library-overlay.is-music-source-suppressed .mockup-about-copy-text {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -15,6 +15,19 @@
     transform: none;
     filter: none;
     transition: opacity 180ms ease, visibility 0s linear 180ms;
+  }
+
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-transitioning .mockup-library-grid,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-transitioning .mockup-library-title,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-transitioning .mockup-library-status,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-transitioning .mockup-library-signal-strip,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-transitioning .mockup-library-hud,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-open .mockup-library-grid,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-open .mockup-library-title,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-open .mockup-library-status,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-open .mockup-library-signal-strip,
+  .mockup-library-overlay.is-music-source-suppressed.is-music-branch-open .mockup-library-hud {
+    transition: opacity 180ms ease, visibility 0s linear 180ms !important;
   }
 
   .mockup-nexus-v14-host {
@@ -312,6 +325,27 @@
   transform:translateY(28px) scale(.985);
   transition:opacity 360ms ease, transform 480ms cubic-bezier(.18,.84,.22,1), visibility 0s linear 360ms;
   z-index:3;
+}
+
+@media (max-width: 720px), (pointer: coarse){
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-panel::after,
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-scan,
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-rail span{
+    animation:none !important;
+    opacity:0 !important;
+  }
+
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-panel,
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-music-dashboard{
+    transition-duration:220ms !important;
+  }
+
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host,
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host .title-zone,
+  .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host .chamber-start-wrap{
+    transition-duration:200ms !important;
+    filter:none !important;
+  }
 }
 
 .mockup-music-branch-overlay.is-dashboard-revealed .mockup-music-dashboard{

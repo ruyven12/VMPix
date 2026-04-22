@@ -1964,6 +1964,7 @@
   }
 
   libraryOverlay.addEventListener('click', function (event) {
+    if (event.defaultPrevented) return;
     const trigger = event.target.closest(musicSelectors);
     if (!trigger || !libraryOverlay.contains(trigger)) return;
     if (
