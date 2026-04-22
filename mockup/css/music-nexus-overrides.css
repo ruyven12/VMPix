@@ -213,3 +213,52 @@
       inset: 10px 10px 14px;
     }
   }
+
+.mockup-library-overlay.is-music-branch-open .mockup-about-copy,
+.mockup-library-overlay.is-music-branch-open .mockup-about-copy-text,
+.mockup-library-overlay.is-music-branch-open .mockup-music-branch-overlay,
+.mockup-library-overlay.is-music-branch-open .mockup-music-branch-panel,
+.mockup-library-overlay.is-music-branch-open .mockup-music-branch-content.mockup-music-nexus,
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-hero{
+  max-height:none !important;
+  min-height:100dvh !important;
+  height:100dvh !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-branch-content.mockup-music-nexus,
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-hero{
+  overflow:visible !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-topband,
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-bottomband{
+  display:none !important;
+  height:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-visual{
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:none !important;
+  margin:0 !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-shell{
+  top:100px !important;
+  bottom:16px !important;
+  left:24px !important;
+  right:24px !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-shell-header{
+  position:relative !important;
+  top:0 !important;
+}
+
+.mockup-library-overlay.is-music-branch-open .mockup-music-nexus-shell-body{
+  top:72px !important;
+  bottom:12px !important;
+}

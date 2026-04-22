@@ -31,7 +31,6 @@
           <span></span><span></span><span></span>
         </div>
         <div class="mockup-music-branch-content mockup-music-nexus">
-          <button class="mockup-music-branch-close is-visually-hidden" type="button" aria-label="Close music panel">×</button>
 
           <div class="mockup-music-nexus-hero">
             <div class="mockup-music-nexus-copy">
@@ -189,13 +188,6 @@
     overlay.addEventListener('click', function (event) {
       if (event.target === overlay) closeMusicOverlay();
     });
-    const closeButton = overlay.querySelector('.mockup-music-branch-close');
-    if (closeButton) {
-      closeButton.addEventListener('click', function () {
-        closeMusicOverlay();
-      });
-    }
-
     musicOverlay = overlay;
     return overlay;
   }
@@ -381,7 +373,6 @@
     overlay.innerHTML = `
       <div class="mockup-music-branch-panel">
         <div class="mockup-music-branch-content">
-          <button class="mockup-music-branch-close is-visually-hidden" type="button" aria-label="Close music panel">×</button>
           <section class="mockup-nexus-v8" data-sequence-state="idle">
             <div class="mockup-nexus-v8-header">
               <div class="mockup-nexus-v8-header-band">
@@ -443,13 +434,6 @@
         closeMusicOverlay();
       }
     });
-
-    const closeButton = overlay.querySelector('.mockup-music-branch-close');
-    if (closeButton) {
-      closeButton.addEventListener('click', function () {
-        closeMusicOverlay();
-      });
-    }
 
     musicOverlay = overlay;
     return overlay;
@@ -842,7 +826,6 @@
     overlay.innerHTML = `
       <div class="mockup-music-branch-panel">
         <div class="mockup-music-branch-content">
-          <button class="mockup-music-branch-close is-visually-hidden" type="button" aria-label="Close music panel">×</button>
           <div class="mockup-nexus-v14-host">
             <div class="top-module">
               <div class="header-band is-booting">
@@ -923,13 +906,6 @@
         closeMusicOverlay();
       }
     });
-
-    const closeButton = overlay.querySelector('.mockup-music-branch-close');
-    if (closeButton) {
-      closeButton.addEventListener('click', function () {
-        closeMusicOverlay();
-      });
-    }
 
     musicOverlay = overlay;
     return overlay;
