@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VMPix Wrestling Sheet Reader</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b11;
+      --panel: rgba(19, 23, 32, 0.88);
+      --panel-soft: rgba(255, 255, 255, 0.045);
+      --line: rgba(255, 255, 255, 0.12);
+      --text: rgba(245, 248, 252, 0.94);
+      --muted: rgba(206, 216, 226, 0.68);
+      --accent: #ff4f84;
+      --accent-2: #67e8c9;
+      --danger: #ff7b7b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(255, 79, 132, 0.18), transparent 32%),
+        radial-gradient(circle at 78% 12%, rgba(103, 232, 201, 0.11), transparent 34%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .topbar {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(23, 27, 39, 0.92), rgba(10, 12, 19, 0.9));
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.36);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 840px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.28);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(103, 232, 201, 0.64);
+      box-shadow: 0 0 0 3px rgba(103, 232, 201, 0.12);
+    }
+
+    button {
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(255, 79, 132, 0.42);
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(255, 79, 132, 0.96), rgba(196, 43, 90, 0.92));
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chip {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chip strong {
+      color: var(--text);
+    }
+
+    .status {
+      margin-top: 16px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status[data-tone="ok"] {
+      color: var(--accent-2);
+    }
+
+    .status[data-tone="error"] {
+      color: var(--danger);
+    }
+
+    .tableShell {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .tableScroll {
+      overflow: auto;
+      max-height: calc(100vh - 250px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: rgba(12, 15, 23, 0.98);
+      color: var(--accent-2);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--panel-soft);
+    }
+
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 18px, 1180px);
+        padding-top: 12px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="topbar">
+      <div>
+        <h1>Wrestling Sheet Reader</h1>
+        <p class="lede">Browser-side test reader for a published Google Sheet CSV. It renders the current headers and rows without changing the existing archive app or backend. If Google blocks local browser access, it falls back to a public CORS proxy for this test page.</p>
+      </div>
+
+      <div class="controls">
+        <input id="csvUrl" type="url" spellcheck="false" aria-label="Published CSV URL" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vR9eB4uyDNgfQ7Jqydfe-nfTM0PJ4PGt85AI7BcIR7k1c708VMcVXnmxK0_0JCHI1ukAQT_B6xp1ntA/pub?gid=0&amp;single=true&amp;output=csv">
+        <button id="loadBtn" type="button">Load Sheet</button>
+      </div>
+
+      <div class="meta" aria-live="polite">
+        <span class="chip">Rows <strong id="rowCount">0</strong></span>
+        <span class="chip">Columns <strong id="colCount">0</strong></span>
+        <span class="chip">Header <strong id="headerRow">Auto</strong></span>
+        <span class="chip">Method <strong id="loadMethod">Ready</strong></span>
+      </div>
+    </section>
+
+    <div id="status" class="status">Ready to load the published CSV.</div>
+
+    <section class="tableShell" aria-label="CSV preview">
+      <div id="tableMount" class="tableScroll">
+        <div class="empty">No sheet loaded yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var els = {
+        input: document.getElementById("csvUrl"),
+        button: document.getElementById("loadBtn"),
+        status: document.getElementById("status"),
+        table: document.getElementById("tableMount"),
+        rowCount: document.getElementById("rowCount"),
+        colCount: document.getElementById("colCount"),
+        headerRow: document.getElementById("headerRow"),
+        loadMethod: document.getElementById("loadMethod")
+      };
+
+      function setStatus(message, tone) {
+        els.status.textContent = message || "";
+        if (tone) els.status.setAttribute("data-tone", tone);
+        else els.status.removeAttribute("data-tone");
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+          return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+          }[ch];
+        });
+      }
+
+      function parseCsv(text) {
+        var rows = [];
+        var row = [];
+        var cell = "";
+        var quoted = false;
+        var source = String(text || "").replace(/^\uFEFF/, "");
+
+        for (var i = 0; i < source.length; i += 1) {
+          var ch = source[i];
+          var next = source[i + 1];
+
+          if (ch === '"') {
+            if (quoted && next === '"') {
+              cell += '"';
+              i += 1;
+            } else {
+              quoted = !quoted;
+            }
+            continue;
+          }
+
+          if (ch === "," && !quoted) {
+            row.push(cell);
+            cell = "";
+            continue;
+          }
+
+          if ((ch === "\n" || ch === "\r") && !quoted) {
+            if (ch === "\r" && next === "\n") i += 1;
+            row.push(cell);
+            if (row.some(function (value) { return String(value || "").trim() !== ""; })) {
+              rows.push(row);
+            }
+            row = [];
+            cell = "";
+            continue;
+          }
+
+          cell += ch;
+        }
+
+        row.push(cell);
+        if (row.some(function (value) { return String(value || "").trim() !== ""; })) rows.push(row);
+
+        return rows;
+      }
+
+      function headerScore(row) {
+        var known = {
+          band: true,
+          band_id: true,
+          smug_folder: true,
+          logo_url: true,
+          region: true,
+          location: true,
+          state: true,
+          country: true,
+          members: true,
+          past_members: true,
+          tags: true,
+          status: true,
+          notes: true,
+          archived_sets: true,
+          total_sets: true,
+          show_date: true,
+          show_name: true,
+          show_poster: true,
+          show_venue: true,
+          show_city: true,
+          show_state: true,
+          company: true,
+          name: true,
+          category: true,
+          aliases: true,
+          teams: true
+        };
+        return (Array.isArray(row) ? row : []).reduce(function (score, value) {
+          var key = String(value || "").trim().toLowerCase();
+          if (known[key]) return score + 2;
+          if (/^(match[-_]\d+|part_\d+)[-_](type|stip|title|people|url)$/i.test(key)) return score + 1;
+          return score;
+        }, 0);
+      }
+
+      function findHeaderIndex(rows) {
+        var list = Array.isArray(rows) ? rows : [];
+        var bestIndex = 0;
+        var bestScore = headerScore(list[0]);
+
+        for (var i = 1; i < list.length; i += 1) {
+          var score = headerScore(list[i]);
+          if (score > bestScore) {
+            bestIndex = i;
+            bestScore = score;
+          }
+        }
+
+        return bestScore >= 4 ? bestIndex : 0;
+      }
+
+      function normalizeRows(rows) {
+        var list = Array.isArray(rows) ? rows : [];
+        if (!list.length) return { headers: [], records: [], headerIndex: 0 };
+
+        var headerIndex = findHeaderIndex(list);
+        var headers = (list[headerIndex] || []).map(function (value, index) {
+          var clean = String(value || "").trim();
+          return clean || "Column " + (index + 1);
+        });
+
+        var records = list.slice(headerIndex + 1).map(function (row) {
+          var record = {};
+          headers.forEach(function (header, index) {
+            record[header] = String((row && row[index]) || "").trim();
+          });
+          return record;
+        });
+
+        return { headers: headers, records: records, headerIndex: headerIndex };
+      }
+
+      function renderTable(headers, records, headerIndex) {
+        els.rowCount.textContent = String(records.length);
+        els.colCount.textContent = String(headers.length);
+        els.headerRow.textContent = headers.length ? String((Number(headerIndex) || 0) + 1) : "Auto";
+
+        if (!headers.length) {
+          els.table.innerHTML = '<div class="empty">The sheet loaded, but no columns were found.</div>';
+          return;
+        }
+
+        var head = headers.map(function (header) {
+          return "<th>" + escapeHtml(header) + "</th>";
+        }).join("");
+
+        var body = records.map(function (record) {
+          return "<tr>" + headers.map(function (header) {
+            return "<td>" + escapeHtml(record[header]) + "</td>";
+          }).join("") + "</tr>";
+        }).join("");
+
+        els.table.innerHTML = "<table><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table>";
+      }
+
+      function getPublishedSheetParts(csvUrl) {
+        var url = new URL(csvUrl);
+        var match = url.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/pub/i);
+        return {
+          id: match ? match[1] : "",
+          gid: url.searchParams.get("gid") || "0"
+        };
+      }
+
+      async function fetchCsvDirect(csvUrl) {
+        var res = await fetch(csvUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("CSV fetch returned HTTP " + res.status);
+        return await res.text();
+      }
+
+      async function fetchCsvViaProxy(csvUrl) {
+        var proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(csvUrl);
+        var res = await fetch(proxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("Proxy CSV fetch returned HTTP " + res.status);
+        return await res.text();
+      }
+
+      function loadViaGviz(csvUrl) {
+        return new Promise(function (resolve, reject) {
+          var parts;
+          try {
+            parts = getPublishedSheetParts(csvUrl);
+          } catch (err) {
+            reject(err);
+            return;
+          }
+
+          if (!parts.id) {
+            reject(new Error("This URL is not a published Google Sheets /d/e/... CSV URL."));
+            return;
+          }
+
+          var callbackName = "__vmPixSheetReader" + Date.now() + Math.floor(Math.random() * 100000);
+          var script = document.createElement("script");
+          var timeout = window.setTimeout(function () {
+            cleanup();
+            reject(new Error("Google Sheets script read timed out."));
+          }, 15000);
+
+          function cleanup() {
+            window.clearTimeout(timeout);
+            try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+            if (script && script.parentNode) script.parentNode.removeChild(script);
+          }
+
+          window[callbackName] = function (payload) {
+            cleanup();
+            try {
+              var table = payload && payload.table ? payload.table : {};
+              var cols = Array.isArray(table.cols) ? table.cols : [];
+              var rows = Array.isArray(table.rows) ? table.rows : [];
+              var headers = cols.map(function (col, index) {
+                return String((col && (col.label || col.id)) || "").trim() || "Column " + (index + 1);
+              });
+              var parsed = rows.map(function (row) {
+                var cells = Array.isArray(row && row.c) ? row.c : [];
+                return headers.map(function (_, index) {
+                  var cell = cells[index] || {};
+                  if (cell.f != null) return String(cell.f);
+                  if (cell.v != null) return String(cell.v);
+                  return "";
+                });
+              });
+              resolve([headers].concat(parsed));
+            } catch (err) {
+              reject(err);
+            }
+          };
+
+          var params = new URLSearchParams();
+          params.set("gid", parts.gid);
+          params.set("tqx", "out:json;responseHandler:" + callbackName);
+          script.onerror = function () {
+            cleanup();
+            reject(new Error("Google Sheets script read failed."));
+          };
+          script.src = "https://docs.google.com/spreadsheets/d/e/" + encodeURIComponent(parts.id) + "/gviz/tq?" + params.toString();
+          document.head.appendChild(script);
+        });
+      }
+
+      async function loadSheet() {
+        var url = String(els.input.value || "").trim();
+        if (!url) {
+          setStatus("Paste a published CSV URL first.", "error");
+          return;
+        }
+
+        els.button.disabled = true;
+        els.loadMethod.textContent = "Loading";
+        setStatus("Loading sheet...", "");
+
+        try {
+          var rows;
+          var method = "CSV";
+          try {
+            rows = parseCsv(await fetchCsvDirect(url));
+          } catch (csvErr) {
+            try {
+              method = "Proxy";
+              rows = parseCsv(await fetchCsvViaProxy(url));
+            } catch (proxyErr) {
+              method = "GViz";
+              rows = await loadViaGviz(url);
+            }
+          }
+
+          var normalized = normalizeRows(rows);
+          renderTable(normalized.headers, normalized.records, normalized.headerIndex);
+          els.loadMethod.textContent = method;
+          setStatus("Loaded " + normalized.records.length + " rows from the published sheet using row " + (normalized.headerIndex + 1) + " as headers.", "ok");
+        } catch (err) {
+          els.rowCount.textContent = "0";
+          els.colCount.textContent = "0";
+          els.headerRow.textContent = "Auto";
+          els.loadMethod.textContent = "Failed";
+          els.table.innerHTML = '<div class="empty">Sheet could not be loaded.</div>';
+          setStatus((err && err.message) ? err.message : "Sheet could not be loaded.", "error");
+        } finally {
+          els.button.disabled = false;
+        }
+      }
+
+      els.button.addEventListener("click", loadSheet);
+      els.input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") loadSheet();
+      });
+      loadSheet();
+    })();
+  </script>
+</body>
+</html>
