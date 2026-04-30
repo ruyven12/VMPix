@@ -1,0 +1,3774 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Shows Rolodex Timeline</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#030406;
+      --red:#ff2f46;
+      --red2:#ff6b76;
+      --cyan:#60e7ff;
+      --txt:rgba(245,245,255,.92);
+      --muted:rgba(245,245,255,.58);
+      --line:rgba(255,80,96,.30);
+      --panel:rgba(10,6,10,.58);
+      --vh:1vh;
+      --safeTop:env(safe-area-inset-top,0px);
+      --safeBottom:env(safe-area-inset-bottom,0px);
+      --pad:clamp(10px,2.4vmin,22px);
+      --gap:clamp(8px,1.55vmin,16px);
+      --yearH:clamp(126px,19vh,205px);
+      --timelineH:clamp(34px,4.8vh,52px);
+      --cardW:clamp(300px,54vw,560px);
+      --cardH:clamp(390px,56vh,640px);
+      --sideScale:.52;
+      --sideX:76%;
+      --glass:rgba(255,255,255,.055);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt)}
+    body{
+      font-family:Orbitron,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(920px 560px at 50% 42%,rgba(255,47,70,.18),transparent 64%),
+        radial-gradient(620px 420px at 82% 18%,rgba(96,231,255,.12),transparent 60%),
+        radial-gradient(760px 420px at 12% 78%,rgba(255,107,118,.09),transparent 58%),
+        linear-gradient(180deg,#06070b 0%,#030406 58%,#010102 100%);
+    }
+    body:before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+      background-size:42px 42px;
+      mask-image:radial-gradient(circle at center,#000 0%,transparent 78%);
+      animation:gridDrift 18s linear infinite;
+    }
+    body:after{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.06;
+      background:repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,transparent 1px 5px);
+      mix-blend-mode:screen;
+    }
+
+    .module{
+      height:calc(var(--vh) * 100);
+      min-height:320px;
+      width:100vw;
+      padding:calc(var(--pad) + var(--safeTop)) var(--pad) calc(var(--pad) + var(--safeBottom));
+      display:grid;
+      grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) clamp(54px,7vh,76px);
+      overflow:hidden;
+      position:relative;
+      isolation:isolate;
+    }
+    .module:before{
+      content:"";position:absolute;inset:var(--pad);border-radius:22px;pointer-events:none;
+      border:1px solid rgba(255,80,96,.24);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.035),inset 0 0 55px rgba(255,47,70,.045),0 0 54px rgba(255,47,70,.16),0 0 0 1px rgba(96,231,255,.03);
+      z-index:-1;
+    }
+    .module:after{
+      content:"";position:absolute;inset:calc(var(--pad) + 8px);border-radius:18px;pointer-events:none;z-index:-1;opacity:.7;
+      background:
+        linear-gradient(90deg,rgba(255,47,70,.45),transparent 14%,transparent 86%,rgba(255,47,70,.45)) top/100% 1px no-repeat,
+        linear-gradient(90deg,rgba(96,231,255,.22),transparent 18%,transparent 82%,rgba(96,231,255,.22)) bottom/100% 1px no-repeat;
+    }
+
+    .years{
+      grid-row:1;min-height:0;height:100%;display:flex;align-content:flex-start;align-items:flex-start;justify-content:flex-start;
+      flex-wrap:wrap;gap:clamp(7px,1.25vw,12px);padding:clamp(11px,2vmin,18px) clamp(10px,2vw,18px);overflow:hidden;
+      border:1px solid rgba(255,80,96,.18);border-radius:20px;
+      background:
+        linear-gradient(90deg,rgba(255,47,70,.10),transparent 16%,transparent 84%,rgba(96,231,255,.07)),
+        linear-gradient(180deg,rgba(20,8,12,.66),rgba(0,0,0,.30));
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.035), inset 0 -22px 45px rgba(0,0,0,.24), 0 0 26px rgba(255,47,70,.08);
+      scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;
+    }
+    .years::-webkit-scrollbar{display:none}
+    .yearBtn{
+      appearance:none;border:1px solid rgba(255,80,96,.34);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.22));color:var(--muted);
+      border-radius:999px;min-width:clamp(72px,10.1vw,118px);height:clamp(36px,5.2vh,48px);padding:0 clamp(8px,1.9vmin,15px);display:inline-grid;place-items:center;
+      font:700 clamp(12px,2.2vmin,18px)/1 Orbitron,system-ui,sans-serif;letter-spacing:.12em;
+      cursor:pointer;white-space:nowrap;flex:0 0 auto;position:relative;transition:transform .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+    }
+    .yearBtn:hover,.yearBtn.active{color:var(--txt);border-color:rgba(255,107,118,.72);box-shadow:0 0 18px rgba(255,47,70,.18),inset 0 0 14px rgba(255,47,70,.08);background:linear-gradient(180deg,rgba(255,47,70,.13),rgba(0,0,0,.26))}
+    .yearBtn.active:after{content:"";position:absolute;left:18%;right:18%;bottom:3px;height:2px;border-radius:999px;background:var(--cyan);box-shadow:0 0 10px rgba(96,231,255,.55)}
+    .yearBtn:active{transform:translateY(1px)}
+
+
+    
+    
+    
+    
+
+    .carouselZone{
+      grid-row:3;min-height:0;height:100%;width:100%;position:relative;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;border-radius:20px;
+      border:1px solid rgba(255,80,96,.10);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.025), inset 0 0 55px rgba(0,0,0,.55);
+      background:
+        radial-gradient(60% 72% at 50% 45%,rgba(255,47,70,.14),transparent 62%),
+        radial-gradient(90% 140% at 50% 86%,rgba(255,47,70,.08),transparent 58%),
+        rgba(0,0,0,.18);
+    }
+    .carouselZone:before{
+      content:"";position:absolute;inset:8px;border-radius:16px;pointer-events:none;
+      border:1px dashed rgba(255,80,96,.17);opacity:.72;box-shadow:inset 0 0 35px rgba(255,47,70,.05);
+    }
+    .carouselZone:after{content:"";position:absolute;left:9%;right:9%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,47,70,.34),rgba(96,231,255,.18),transparent);opacity:.5;pointer-events:none}
+    .deck{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:1450px;transform-style:preserve-3d}
+    .card{
+      position:absolute;width:min(var(--cardW),calc(100vw - 76px));height:min(var(--cardH),calc(100% - 20px));
+      min-height:190px;max-height:100%;border-radius:20px;padding:clamp(14px,2.4vmin,24px);
+      display:grid;grid-template-rows:auto auto minmax(112px,1fr) auto;gap:clamp(8px,1.4vmin,14px);
+      border:1px solid rgba(255,80,96,.34);
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.08),transparent 28%),
+        radial-gradient(120% 100% at 50% 0%,rgba(255,47,70,.22),transparent 48%),
+        rgba(7,7,12,.80);
+      box-shadow:0 28px 80px rgba(0,0,0,.64),inset 0 0 0 1px rgba(255,255,255,.055),0 0 42px rgba(255,47,70,.18);
+      transform-origin:center;transition:transform .45s cubic-bezier(.2,.85,.2,1),opacity .35s ease,filter .35s ease;
+      overflow:hidden;backface-visibility:hidden;isolation:isolate;
+    }
+    .card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(96,231,255,.075),transparent);transform:translateX(-120%);animation:sweep 4.6s ease-in-out infinite}
+    .card:after{content:"";position:absolute;inset:10px;border-radius:14px;pointer-events:none;border:1px solid rgba(255,255,255,.055);box-shadow:inset 0 0 22px rgba(255,47,70,.035)}
+    .card.active{opacity:1;filter:none;z-index:5;transform:translate3d(0,0,60px) rotateY(0) scale(1)}
+    .card.prev{opacity:.62;filter:saturate(.78) brightness(.75);z-index:3;transform:translate3d(calc(-1 * var(--sideX)),0,-130px) rotateY(34deg) scale(var(--sideScale))}
+    .card.next{opacity:.62;filter:saturate(.78) brightness(.75);z-index:3;transform:translate3d(var(--sideX),0,-130px) rotateY(-34deg) scale(var(--sideScale))}
+    .card.hidden{opacity:0;pointer-events:none;transform:translate3d(0,0,-180px) scale(.5)}
+
+    .date{font-size:clamp(11px,2.3vmin,14px);letter-spacing:.18em;color:var(--red2);text-transform:uppercase;text-shadow:0 0 14px rgba(255,47,70,.35);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .title{font-size:clamp(18px,4.2vmin,34px);line-height:1.05;font-weight:800;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+
+
+    .desc{
+      max-width:28em;
+      color:rgba(245,245,255,.64);
+      font-size:clamp(11px,1.9vmin,14px);
+      line-height:1.45;
+      letter-spacing:.015em;
+      margin-top:clamp(6px,1.2vmin,10px);
+    }
+    .titleMark{
+      width:clamp(22px,4.6vmin,38px);
+      height:3px;
+      margin-top:clamp(8px,1.3vmin,12px);
+      border-radius:999px;
+      background:var(--red);
+      box-shadow:0 0 16px rgba(255,47,70,.55);
+    }
+    .locationLine{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-width:0;
+      width:100%;
+      max-width:100%;
+      margin:0 auto;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,80,96,.20);
+      background:
+        linear-gradient(90deg,rgba(255,47,70,.04),rgba(0,0,0,.24),rgba(96,231,255,.035));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.025),
+        0 0 14px rgba(255,47,70,.08);
+      overflow:hidden;
+      white-space:nowrap;
+      text-align:center;
+      line-height:1;
+    }
+    .pinIcon{
+      position:relative;
+      width:24px;
+      height:24px;
+      border-radius:50%;
+      border:1px solid rgba(255,80,96,.52);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      background:
+        radial-gradient(circle at 50% 50%,rgba(255,107,118,.30) 0 22%,rgba(255,47,70,.10) 42%,rgba(0,0,0,.34) 72%),
+        rgba(0,0,0,.30);
+      box-shadow:
+        0 0 14px rgba(255,47,70,.24),
+        0 0 28px rgba(255,47,70,.10),
+        inset 0 0 10px rgba(255,47,70,.10);
+    }
+    .pinIcon::before{
+      content:"";
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:rgba(255,107,118,.96);
+      box-shadow:
+        0 0 9px rgba(255,47,70,.95),
+        0 0 18px rgba(255,47,70,.44);
+      animation:locNodePulse 2.4s ease-in-out infinite;
+    }
+    .pinIcon::after{
+      content:"";
+      position:absolute;
+      inset:4px;
+      border-radius:50%;
+      border:1px solid rgba(96,231,255,.18);
+      opacity:.72;
+      box-shadow:0 0 10px rgba(96,231,255,.10);
+    }
+    @keyframes locNodePulse{
+      0%,100%{transform:scale(.92);opacity:.84;}
+      50%{transform:scale(1.15);opacity:1;}
+    }
+    .locMoniker{display:none !important;}
+    .locationText{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      min-width:0;
+      flex:0 1 auto;
+      white-space:nowrap;
+      overflow:hidden;
+      line-height:1;
+    }
+    .venueName{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:rgba(255,255,255,.95);
+      font-weight:900;
+      letter-spacing:.02em;
+      text-shadow:0 0 12px rgba(255,47,70,.16);
+      white-space:nowrap !important;
+      display:inline-block !important;
+    }
+    .locSep{
+      flex:0 0 auto;
+      width:4px;
+      height:4px;
+      border-radius:999px;
+      background:rgba(255,80,96,.72);
+      box-shadow:0 0 9px rgba(255,47,70,.44);
+      transform:translateY(0);
+    }
+    .cityState{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:rgba(245,245,255,.68);
+      font-weight:750;
+      letter-spacing:.01em;
+      white-space:nowrap !important;
+      display:inline-block !important;
+    }
+
+    .locationLine .pinIcon,
+    .locationLine .locationText{
+      position:relative;
+      z-index:1;
+    }
+    .locationLine .locationText{
+      max-width:calc(100% - 34px);
+    }
+
+    .showStatus{justify-self:end;margin-top:-2px;border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 10px;font-size:13px;letter-spacing:.14em;color:rgba(245,245,255,.64);background:rgba(0,0,0,.24)}
+    .posterGlow{
+      min-height:clamp(126px,21vh,245px);border-radius:16px;border:1px solid rgba(255,255,255,.065);overflow:hidden;position:relative;
+      background:
+        radial-gradient(circle at 50% 52%,rgba(255,47,70,.72) 0 3%,rgba(255,47,70,.32) 8%,transparent 18%),
+        radial-gradient(ellipse at 50% 85%,rgba(255,47,70,.45),transparent 34%),
+        linear-gradient(180deg,rgba(255,47,70,.07),rgba(0,0,0,.26)),
+        repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 9px);
+      box-shadow:inset 0 0 50px rgba(255,47,70,.12),0 0 24px rgba(255,47,70,.08);
+    }
+    .posterGlow:before{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.75));}
+    .posterGlow:after{content:"";position:absolute;left:18%;right:18%;bottom:20%;height:10px;border-radius:50%;background:rgba(255,47,70,.58);filter:blur(10px);box-shadow:0 0 34px rgba(255,47,70,.6)}
+
+    .meta{align-self:end;display:grid;gap:7px;font-size:clamp(10px,2vmin,13px);line-height:1.35;color:rgba(245,245,255,.72);min-width:0}
+    .meta > span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .badgeRow{display:flex;gap:8px;flex-wrap:wrap;min-height:0;overflow:hidden}
+    .badge{font-size:clamp(9px,1.8vmin,11px);letter-spacing:.11em;color:rgba(245,245,255,.76);border:1px solid rgba(96,231,255,.22);border-radius:999px;padding:5px 8px;background:rgba(96,231,255,.06);white-space:nowrap}
+
+    .nav{
+      position:absolute;top:50%;translate:0 -50%;z-index:8;width:clamp(34px,7vmin,52px);height:clamp(34px,7vmin,52px);
+      border-radius:50%;border:1px solid rgba(255,80,96,.34);background:rgba(0,0,0,.35);color:rgba(245,245,255,.88);
+      display:grid;place-items:center;cursor:pointer;box-shadow:0 0 24px rgba(255,47,70,.14),inset 0 0 0 1px rgba(255,255,255,.04);
+      font-size:clamp(18px,4vmin,28px);line-height:1;transition:transform .16s ease,filter .18s ease;
+    }
+    .nav:hover{filter:brightness(1.2)}.nav:active{transform:scale(.96)}
+    .nav.prevBtn{left:clamp(9px,2.4vw,30px)}.nav.nextBtn{right:clamp(9px,2.4vw,30px)}
+
+    .stats{
+      display:none !important;
+      grid-row:5;min-height:0;height:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(6px,1.3vmin,12px);
+      padding:clamp(7px,1.4vmin,12px);border-radius:18px;border:1px solid rgba(255,80,96,.20);
+      background:linear-gradient(180deg,rgba(20,8,12,.55),rgba(0,0,0,.28));overflow:hidden;
+    }
+    .stat{min-width:0;display:grid;align-content:center;justify-items:center;gap:3px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.16);padding:4px}
+    .stat strong{font-size:clamp(14px,3vmin,24px);line-height:1;color:var(--txt);text-shadow:0 0 16px rgba(255,47,70,.22)}
+    .stat span{font-size:clamp(8px,1.75vmin,11px);letter-spacing:.13em;color:var(--muted);text-align:center;white-space:nowrap}
+
+    .details{
+      position:absolute;right:var(--pad);top:calc(var(--pad) + var(--safeTop));bottom:calc(var(--pad) + var(--safeBottom));width:min(360px,calc(100vw - (var(--pad) * 2)));
+      z-index:20;border-radius:20px;border:1px solid rgba(255,80,96,.28);background:rgba(5,5,9,.92);backdrop-filter:blur(14px);
+      transform:translateX(calc(100% + var(--pad)));transition:transform .34s cubic-bezier(.2,.85,.2,1);padding:18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;overflow:hidden;
+      box-shadow:-28px 0 70px rgba(0,0,0,.42),0 0 28px rgba(255,47,70,.12);
+    }
+    .details.open{transform:translateX(0)}
+    .detailBody{min-height:0;overflow:hidden;color:rgba(245,245,255,.72);font-size:16px;line-height:1.55}
+    .close,.detailToggle{appearance:none;border:1px solid rgba(255,80,96,.32);background:rgba(0,0,0,.26);color:var(--txt);border-radius:999px;padding:10px 18px;font:700 12px/1 Orbitron,sans-serif;letter-spacing:.14em;cursor:pointer}
+    .detailToggle{grid-row:4;position:relative;left:auto;bottom:auto;translate:none;z-index:10;justify-self:center;align-self:center;background:rgba(0,0,0,.48);box-shadow:0 0 22px rgba(255,47,70,.14), inset 0 0 0 1px rgba(255,255,255,.035)}
+
+    @keyframes sweep{0%,66%{transform:translateX(-130%);opacity:0}72%{opacity:.8}100%{transform:translateX(130%);opacity:0}}
+    @keyframes gridDrift{to{background-position:42px 42px,42px 42px}}
+
+
+
+    /* Desktop-only card fit pass:
+       Stretch the active card vertically inside the carousel zone while keeping
+       the lower live-data/meta strip compact and readable. Mobile rules below
+       remain untouched. */
+    @media (min-width: 761px){
+      :root{
+        --cardH: clamp(500px, 68vh, 760px);
+      }
+      .card{
+        height: min(var(--cardH), calc(100% - 18px));
+        grid-template-rows: auto auto minmax(168px, 1fr) auto;
+        gap: clamp(8px, 1.15vmin, 13px);
+      }
+      .posterGlow{
+        min-height: clamp(170px, 28vh, 330px);
+      }
+      .meta{
+        gap: 6px;
+        font-size: clamp(10px, 1.45vmin, 12px);
+        line-height: 1.28;
+      }
+      .badgeRow{
+        gap: 6px;
+      }
+      .badge{
+        font-size: clamp(9px, 1.25vmin, 10px);
+        padding: 4px 7px;
+      }
+    }
+
+    @media (max-width:760px){
+      :root{--pad:9px;--gap:7px;--yearH:clamp(122px,22vh,170px);--timelineH:28px;--cardW:76vw;--cardH:clamp(330px,58vh,530px);--sideScale:.40;--sideX:58%}
+      .years{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;padding-inline:8px}.yearBtn{flex:0 0 auto}
+      .card.prev,.card.next{opacity:.34;filter:blur(.3px) saturate(.65) brightness(.58)}
+      .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .details{left:var(--pad);right:var(--pad);width:auto}
+    }
+
+    @media (max-width:480px){
+      :root{--cardW:78vw;--sideScale:.38;--sideX:54%}
+      .nav{opacity:.88}.nav.prevBtn{left:6px}.nav.nextBtn{right:6px}
+      .badgeRow{display:none}
+      .locationLine{padding:6px 8px;gap:5px;}
+      .pinIcon{width:21px;height:21px;}
+      .pinIcon::before{width:6px;height:6px;}
+      .locationText{gap:5px;}
+      .venueName,.cityState{font-size:10.5px;}
+      .meta span{white-space:nowrap;display:inline-block;overflow:hidden;text-overflow:ellipsis;}
+    }
+
+
+    @media (max-width:390px){
+      .locationLine{gap:4px;padding-inline:7px;}
+      .locationText{gap:5px;}
+      .venueName,.cityState{font-size:13px;}
+      .pinIcon{width:20px;height:20px;}
+    }
+
+    @media (max-height:650px){
+      :root{--pad:7px;--gap:5px;--yearH:88px;--timelineH:16px;--cardH:calc((var(--vh) * 100) - 160px);--sideScale:.30;--sideX:52%}
+      .module{min-height:300px}
+      .years{border-radius:12px;padding:6px;gap:5px}.yearBtn{min-width:54px;height:24px;padding:0 6px;font-size:12px;letter-spacing:.08em}
+  
+    
+    
+    
+    
+
+    .carouselZone{border-radius:15px}.carouselZone:before{inset:5px;border-radius:12px}
+      .card{min-height:164px;padding:11px;border-radius:15px;gap:6px;width:min(68vw,360px)}
+      .card.prev,.card.next{opacity:.22;filter:blur(.5px) brightness(.50)}
+      .title{font-size:clamp(15px,5vh,24px)}.date{font-size:13px}.meta{font-size:13px;gap:4px}.badge{display:none}
+      .stats{padding:5px;gap:5px;border-radius:13px}.stat{border-radius:10px}.stat strong{font-size:16px}.stat span{font-size:11px;letter-spacing:.08em}
+      .detailToggle{padding:8px 14px;font-size:13px}
+      .nav{width:32px;height:32px;font-size:21px}
+    }
+
+    @media (max-height:460px){
+      :root{--yearH:60px;--timelineH:12px;--gap:4px;--cardH:calc((var(--vh) * 100) - 132px);--sideScale:.24;--sideX:48%}
+      .card{width:min(58vw,330px);min-height:140px;padding:9px}.meta{display:none}.date{font-size:12px}.title{font-size:clamp(14px,6vh,21px)}
+      .stats{grid-template-columns:repeat(4,minmax(0,1fr))}.stat span{display:none}.stat strong{font-size:15px}
+      .card.prev,.card.next{opacity:.16}
+    }
+
+
+    /* PASS 4: closer screenshot match, stats hidden, stronger HUD frame/card polish */
+    :root{
+      --yearH:clamp(150px,19vh,210px);
+      --timelineH:clamp(36px,5vh,56px);
+      --cardW:clamp(330px,52vw,590px);
+      --cardH:clamp(430px,58vh,675px);
+      --sideScale:.50;
+      --sideX:79%;
+    }
+    body{
+      background:
+        radial-gradient(900px 620px at 50% 43%,rgba(255,47,70,.20),transparent 64%),
+        radial-gradient(580px 420px at 78% 16%,rgba(96,231,255,.08),transparent 60%),
+        radial-gradient(780px 520px at 14% 82%,rgba(255,47,70,.10),transparent 58%),
+        linear-gradient(180deg,#07080d 0%,#030406 55%,#010102 100%);
+    }
+    .module{
+      grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) clamp(58px,7.2vh,82px);
+      padding:calc(var(--pad) + var(--safeTop)) clamp(14px,2.6vmin,26px) calc(var(--pad) + var(--safeBottom));
+    }
+    .module:before{
+      inset:clamp(7px,1.4vmin,14px);
+      border-radius:26px;
+      border-color:rgba(255,80,96,.30);
+      background:
+        linear-gradient(135deg,rgba(255,80,96,.38) 0 18px,transparent 18px) top left/54px 54px no-repeat,
+        linear-gradient(225deg,rgba(255,80,96,.30) 0 18px,transparent 18px) top right/54px 54px no-repeat,
+        linear-gradient(45deg,rgba(255,80,96,.32) 0 18px,transparent 18px) bottom left/54px 54px no-repeat,
+        linear-gradient(315deg,rgba(255,80,96,.28) 0 18px,transparent 18px) bottom right/54px 54px no-repeat,
+        linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.12));
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),inset 0 0 70px rgba(255,47,70,.04),0 0 70px rgba(255,47,70,.17);
+    }
+    .module:after{
+      inset:clamp(17px,2.2vmin,26px);
+      border-radius:20px;
+      opacity:.9;
+      background:
+        linear-gradient(90deg,rgba(255,47,70,.72),transparent 10%,transparent 90%,rgba(255,47,70,.72)) top/100% 1px no-repeat,
+        linear-gradient(90deg,rgba(255,47,70,.55),transparent 18%,transparent 82%,rgba(255,47,70,.55)) bottom/100% 1px no-repeat,
+        linear-gradient(180deg,rgba(255,47,70,.45),transparent 12%,transparent 88%,rgba(255,47,70,.45)) left/1px 100% no-repeat,
+        linear-gradient(180deg,rgba(255,47,70,.45),transparent 12%,transparent 88%,rgba(255,47,70,.45)) right/1px 100% no-repeat;
+      filter:drop-shadow(0 0 8px rgba(255,47,70,.22));
+    }
+    .years{
+      position:relative;
+      display:grid;
+      grid-template-columns:repeat(8,minmax(0,1fr));
+      align-content:start;
+      align-items:stretch;
+      justify-content:stretch;
+      gap:clamp(8px,1.25vw,14px);
+      padding:clamp(16px,2.2vmin,22px) clamp(18px,2.5vw,28px);
+      overflow:hidden;
+      border-radius:22px;
+      border-color:rgba(255,80,96,.14);
+      background:
+        radial-gradient(70% 70% at 18% 0%,rgba(255,47,70,.12),transparent 60%),
+        linear-gradient(180deg,rgba(9,11,17,.74),rgba(0,0,0,.22));
+    }
+    .years:before{content:"";position:absolute;left:16px;right:16px;top:8px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,80,96,.45),transparent);opacity:.7;}
+    .years:after{content:"";position:absolute;left:18px;top:10px;width:42px;height:8px;border-radius:999px;background:linear-gradient(90deg,rgba(255,47,70,.85),rgba(255,47,70,.08));box-shadow:0 0 18px rgba(255,47,70,.42);opacity:.75;}
+    .yearBtn{
+      min-width:0;width:100%;
+      height:clamp(36px,5vh,47px);
+      border-radius:14px;
+      border-color:rgba(255,255,255,.07);
+      background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.24));
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.018),0 10px 22px rgba(0,0,0,.18);
+    }
+    .yearBtn.active{
+      border-color:rgba(255,80,96,.78);
+      color:rgba(255,226,230,.98);
+      text-shadow:0 0 14px rgba(255,47,70,.55);
+      box-shadow:0 0 22px rgba(255,47,70,.28),inset 0 0 22px rgba(255,47,70,.10);
+    }
+    
+    
+    
+    
+    .timelineCore:before,.timelineCore:after{content:"";position:absolute;top:50%;width:34px;height:1px;background:rgba(255,47,70,.7);box-shadow:0 0 12px rgba(255,47,70,.45);}
+    .timelineCore:before{right:100%;transform:translateY(-50%) skewX(-28deg);}
+    .timelineCore:after{left:100%;transform:translateY(-50%) skewX(28deg);}
+    .carouselZone{
+      border-radius:24px;
+      margin-inline:clamp(0px,1.2vw,18px);
+      border-color:rgba(255,80,96,.075);
+      background:
+        radial-gradient(60% 80% at 50% 45%,rgba(255,47,70,.15),transparent 62%),
+        radial-gradient(120% 90% at 50% 100%,rgba(255,47,70,.075),transparent 65%),
+        linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.22));
+    }
+    .carouselZone:before{inset:12px;border-radius:18px;border-style:solid;border-color:rgba(255,80,96,.10);}
+    .carouselZone:after{display:none;}
+    
+    
+    .card{
+      border-radius:24px;
+      padding:clamp(18px,2.8vmin,30px);
+      gap:clamp(10px,1.55vmin,16px);
+      border-color:rgba(255,80,96,.38);
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.075),transparent 24%),
+        radial-gradient(100% 86% at 50% 0%,rgba(255,47,70,.20),transparent 50%),
+        linear-gradient(180deg,rgba(8,9,15,.90),rgba(2,2,5,.94));
+      box-shadow:
+        0 32px 90px rgba(0,0,0,.68),
+        inset 0 0 0 1px rgba(255,255,255,.055),
+        inset 0 -40px 70px rgba(0,0,0,.32),
+        0 0 46px rgba(255,47,70,.18);
+    }
+    .card.active{transform:translate3d(0,0,70px) rotateY(0) scale(1);}
+    .card.prev{opacity:.48;transform:translate3d(calc(-1 * var(--sideX)),0,-155px) rotateY(38deg) scale(var(--sideScale));}
+    .card.next{opacity:.48;transform:translate3d(var(--sideX),0,-155px) rotateY(-38deg) scale(var(--sideScale));}
+    .date{align-items:flex-start;}
+    .showStatus{position:relative;padding-right:20px;}
+    .showStatus:after{content:"";position:absolute;right:8px;top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);background:var(--red);box-shadow:0 0 13px rgba(255,47,70,.9);}
+    .title{font-size:clamp(24px,4.8vmin,46px);max-width:10.8em;}
+    .desc{font-size:clamp(12px,1.85vmin,15px);max-width:25em;}
+    .posterGlow{
+      min-height:clamp(150px,23vh,275px);
+      background:
+        radial-gradient(circle at 50% 45%,rgba(255,47,70,.95) 0 2%,rgba(255,47,70,.42) 8%,transparent 18%),
+        radial-gradient(ellipse at 50% 85%,rgba(255,47,70,.56),transparent 36%),
+        radial-gradient(ellipse at 50% 100%,rgba(0,0,0,.72),transparent 44%),
+        linear-gradient(180deg,rgba(255,47,70,.10),rgba(0,0,0,.36)),
+        repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 8px),
+        repeating-linear-gradient(0deg,rgba(255,47,70,.04) 0 2px,transparent 2px 12px);
+    }
+    .locationLine{font-size:clamp(11px,1.85vmin,14px);}
+    .badge{border-color:rgba(255,80,96,.42);color:rgba(255,218,222,.82);background:rgba(255,47,70,.045);padding:6px 12px;}
+    .nav{border-color:rgba(255,80,96,.48);background:rgba(0,0,0,.52);box-shadow:0 0 30px rgba(255,47,70,.18),inset 0 0 0 1px rgba(255,255,255,.045);}
+    .nav.prevBtn{left:clamp(16px,4.8vw,68px)}
+    .nav.nextBtn{right:clamp(16px,4.8vw,68px)}
+    .detailToggle{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      border-color:rgba(255,80,96,.46);
+      padding:12px 22px;
+      background:linear-gradient(180deg,rgba(255,47,70,.085),rgba(0,0,0,.42));
+      box-shadow:0 0 28px rgba(255,47,70,.20), inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .feedIcon{font-size:19px;line-height:1;color:rgba(255,230,232,.9);}
+    .stats{display:none!important;}
+
+    @media (max-width:760px){
+      :root{
+        --yearH:clamp(120px,20vh,160px);
+        --cardW:78vw;
+        --cardH:clamp(350px,58vh,540px);
+        --sideScale:.38;
+        --sideX:57%;
+      }
+      .years{grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:14px 10px;overflow:hidden;}
+      .yearBtn{height:32px;font-size:clamp(10px,2.8vw,13px);border-radius:12px;letter-spacing:.08em;}
+      .nav.prevBtn{left:7px}.nav.nextBtn{right:7px}
+      .card.prev,.card.next{opacity:.24;filter:blur(.4px) saturate(.55) brightness(.55)}
+      .posterGlow{min-height:clamp(118px,20vh,205px)}
+    }
+    @media (max-width:480px){
+      :root{--cardW:82vw;--sideScale:.32;--sideX:50%;}
+      .years{grid-template-columns:repeat(6,minmax(0,1fr));}
+      .title{font-size:clamp(22px,7vw,32px)}
+      .desc{font-size:15px;}
+    }
+    @media (max-height:650px){
+      :root{
+        --pad:7px;--gap:5px;--yearH:70px;--timelineH:16px;
+        --cardH:calc((var(--vh) * 100) - 150px);
+        --sideScale:.26;--sideX:49%;
+      }
+      .module{grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) 44px;}
+      .years{grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;padding:7px 8px;border-radius:13px;}
+      .yearBtn{height:25px;min-width:0;font-size:12px;padding:0 4px;letter-spacing:.06em;border-radius:9px;}
+      
+      .carouselZone{border-radius:16px;}
+      .carouselZone:before{inset:6px;border-radius:12px;}
+      .card{width:min(66vw,360px);min-height:162px;padding:12px;border-radius:16px;grid-template-rows:auto auto minmax(72px,1fr) auto;}
+      .posterGlow{min-height:72px;}
+      .desc{display:none;}
+      .badge{display:none;}
+      .showStatus{display:none;}
+      .detailToggle{padding:8px 14px;font-size:13px;}
+    }
+    @media (max-height:460px){
+      :root{--yearH:52px;--timelineH:10px;--cardH:calc((var(--vh) * 100) - 110px);--sideScale:.20;--sideX:45%;}
+      .module{grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) 34px;}
+      .years{grid-template-columns:repeat(9,minmax(0,1fr));gap:3px;padding:5px 7px;}
+      .yearBtn{height:20px;font-size:11px;}
+      .posterGlow,.meta{display:none;}
+      .card{width:min(58vw,330px);}
+      .detailToggle{display:none;}
+    }
+
+
+
+    /* YEAR CONTROL PASS: smarter responsive year deck */
+    .yearDeck{position:relative;display:grid!important;grid-template-rows:auto 1fr;grid-template-columns:1fr;gap:clamp(8px,1.1vmin,12px);overflow:visible!important;padding:clamp(15px,2.1vmin,22px) clamp(18px,2.5vw,28px) clamp(13px,1.8vmin,20px)!important;}
+    .yearDeckTop{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:18px;pointer-events:none;}
+    .yearDeckKicker,.yearDeckRange{font:800 clamp(9px,1.3vmin,11px)/1 Orbitron,system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,214,219,.58);text-shadow:0 0 10px rgba(255,47,70,.20);white-space:nowrap;}
+    .yearDeckRange{color:rgba(96,231,255,.58);}
+    .yearGrid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:clamp(8px,1.1vw,13px);width:100%;min-height:0;align-content:start;}
+    .yearCompact{display:none;}
+    .yearBtn{display:flex;align-items:center;justify-content:center;}
+    .yearBtn.active{background:radial-gradient(80% 100% at 50% 0%,rgba(255,47,70,.34),rgba(255,47,70,.05) 72%,rgba(0,0,0,.30)),linear-gradient(180deg,rgba(255,70,88,.18),rgba(0,0,0,.24));}
+    .yearBtn.active:before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;border:1px solid rgba(255,80,96,.42);filter:drop-shadow(0 0 10px rgba(255,47,70,.30));}
+    .yearStep,.yearAllToggle{appearance:none;border:1px solid rgba(255,80,96,.34);background:linear-gradient(180deg,rgba(255,47,70,.10),rgba(0,0,0,.32));color:rgba(255,236,238,.92);border-radius:999px;font:800 12px/1 Orbitron,system-ui,sans-serif;letter-spacing:.12em;cursor:pointer;box-shadow:0 0 18px rgba(255,47,70,.12),inset 0 0 0 1px rgba(255,255,255,.035);}
+    .yearStep{width:36px;height:36px;font-size:25px;display:grid;place-items:center;padding-bottom:2px;}
+    .yearAllToggle{height:36px;padding:0 13px;text-transform:uppercase;color:rgba(255,214,219,.72);}
+    .yearReadout{min-width:96px;height:44px;border-radius:16px;border:1px solid rgba(255,80,96,.50);background:radial-gradient(80% 100% at 50% 0%,rgba(255,47,70,.28),rgba(0,0,0,.26));display:grid;place-items:center;align-content:center;gap:3px;color:rgba(255,236,238,.98);box-shadow:0 0 22px rgba(255,47,70,.22),inset 0 0 18px rgba(255,47,70,.08);}
+    .yearReadout span{font:900 18px/1 Orbitron,system-ui,sans-serif;letter-spacing:.10em;text-shadow:0 0 14px rgba(255,47,70,.45);}
+    .yearReadout small{font:700 8px/1 Orbitron,system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(96,231,255,.60);}
+    @media (max-width:760px){.yearDeck{grid-template-rows:auto auto 1fr;padding:12px 10px!important;gap:8px;}.yearDeckTop{padding:0 3px;}.yearGrid{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;}.yearCompact{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:4;}.yearBtn{height:28px!important;font-size:13px!important;border-radius:10px!important;letter-spacing:.08em!important;}}
+    @media (max-width:520px){.yearDeckKicker{display:none;}.yearDeckTop{justify-content:center;}.yearCompact{display:grid;grid-template-columns:36px minmax(90px,1fr) 36px auto;width:100%;}.yearReadout{width:100%;min-width:0;}.yearAllToggle{font-size:12px;padding:0 10px;}.yearGrid{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.yearDeck.yearsOpen{z-index:25;}.yearDeck.yearsOpen .yearGrid{display:grid;position:absolute;left:10px;right:10px;top:calc(100% - 8px);padding:10px;border-radius:16px;border:1px solid rgba(255,80,96,.28);background:rgba(4,5,9,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.55),0 0 32px rgba(255,47,70,.18);}}
+    @media (max-height:650px){.yearDeck{grid-template-rows:1fr!important;padding:6px 8px!important;gap:0;}.yearDeckTop{display:none;}.yearCompact{display:flex;align-items:center;justify-content:center;gap:6px;height:100%;}.yearReadout{height:34px;min-width:88px;border-radius:12px;}.yearReadout span{font-size:18px;}.yearReadout small{display:none;}.yearStep{width:32px;height:32px;font-size:23px;}.yearAllToggle{height:32px;font-size:12px;padding:0 10px;}.yearGrid{display:none;grid-template-columns:repeat(6,minmax(0,1fr));}.yearDeck.yearsOpen{z-index:25;}.yearDeck.yearsOpen .yearGrid{display:grid;position:absolute;left:8px;right:8px;top:calc(100% + 5px);padding:8px;gap:5px;border-radius:14px;border:1px solid rgba(255,80,96,.28);background:rgba(4,5,9,.96);box-shadow:0 18px 42px rgba(0,0,0,.55),0 0 28px rgba(255,47,70,.16);}}
+
+
+    /* YEAR SHUFFLE MOTION PASS: make year control move like the rolodex without changing layout */
+    .yearDeck{perspective:950px;transform-style:preserve-3d;}
+    .yearGrid{perspective:900px;transform-style:preserve-3d;transition:filter .22s ease, transform .32s cubic-bezier(.2,.85,.2,1);}
+    .yearBtn{transform-style:preserve-3d;will-change:transform,opacity,filter;transition:transform .36s cubic-bezier(.2,.85,.2,1),opacity .26s ease,filter .26s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;}
+    .yearBtn.year-near{opacity:.82;filter:brightness(.92);}
+    .yearBtn.year-far{opacity:.50;filter:brightness(.65) saturate(.74);}
+    .yearBtn.year-prev{transform:translate3d(-3px,0,-22px) rotateY(12deg) scale(.96);}
+    .yearBtn.year-next{transform:translate3d(3px,0,-22px) rotateY(-12deg) scale(.96);}
+    .yearBtn.year-distant-left{transform:translate3d(-2px,0,-34px) rotateY(8deg) scale(.92);}
+    .yearBtn.year-distant-right{transform:translate3d(2px,0,-34px) rotateY(-8deg) scale(.92);}
+    .yearBtn.active{transform:translate3d(0,0,28px) scale(1.06);}
+    .yearDeck.isYearShuffle .yearGrid{animation:yearGridShuffle 430ms cubic-bezier(.2,.85,.2,1) both;}
+    .yearDeck.isYearShuffle[data-dir="next"] .yearGrid{animation-name:yearGridShuffleNext;}
+    .yearDeck.isYearShuffle[data-dir="prev"] .yearGrid{animation-name:yearGridShufflePrev;}
+    .yearDeck.isYearShuffle .yearBtn.active{animation:yearActiveLock 430ms cubic-bezier(.2,.85,.2,1) both;}
+    .yearDeck.isYearShuffle .yearReadout{animation:yearReadoutShuffle 430ms cubic-bezier(.2,.85,.2,1) both;}
+    .yearDeck.isYearShuffle[data-dir="next"] .yearReadout span{animation:yearReadoutTextNext 300ms ease both;}
+    .yearDeck.isYearShuffle[data-dir="prev"] .yearReadout span{animation:yearReadoutTextPrev 300ms ease both;}
+    .yearDeck.isYearShuffle:before{animation:yearDeckScan 430ms ease both;}
+    @keyframes yearGridShuffleNext{0%{transform:translate3d(0,0,0);filter:brightness(1)}42%{transform:translate3d(-18px,0,-18px) rotateY(7deg);filter:brightness(1.22)}100%{transform:translate3d(0,0,0);filter:brightness(1)}}
+    @keyframes yearGridShufflePrev{0%{transform:translate3d(0,0,0);filter:brightness(1)}42%{transform:translate3d(18px,0,-18px) rotateY(-7deg);filter:brightness(1.22)}100%{transform:translate3d(0,0,0);filter:brightness(1)}}
+    @keyframes yearGridShuffle{0%{transform:translate3d(0,0,0);filter:brightness(1)}45%{transform:translate3d(0,-2px,-16px);filter:brightness(1.18)}100%{transform:translate3d(0,0,0);filter:brightness(1)}}
+    @keyframes yearActiveLock{0%{filter:brightness(1);box-shadow:0 0 18px rgba(255,47,70,.18),inset 0 0 14px rgba(255,47,70,.08)}45%{filter:brightness(1.35);box-shadow:0 0 30px rgba(255,47,70,.35),0 0 18px rgba(96,231,255,.12),inset 0 0 22px rgba(255,47,70,.16)}100%{filter:brightness(1);}}
+    @keyframes yearReadoutShuffle{0%{transform:translate3d(0,0,0) scale(1);filter:brightness(1)}42%{transform:translate3d(0,-1px,22px) scale(1.06);filter:brightness(1.28)}100%{transform:translate3d(0,0,0) scale(1);filter:brightness(1)}}
+    @keyframes yearReadoutTextNext{0%{opacity:0;transform:translateX(16px);filter:blur(5px)}100%{opacity:1;transform:translateX(0);filter:blur(0)}}
+    @keyframes yearReadoutTextPrev{0%{opacity:0;transform:translateX(-16px);filter:blur(5px)}100%{opacity:1;transform:translateX(0);filter:blur(0)}}
+    @keyframes yearDeckScan{0%{opacity:.7}50%{opacity:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.055),0 0 34px rgba(255,47,70,.18)}100%{opacity:.7}}
+    @media (max-width:520px), (max-height:650px){.yearBtn.year-prev,.yearBtn.year-next,.yearBtn.year-distant-left,.yearBtn.year-distant-right,.yearBtn.active{transform:none;}.yearDeck.isYearShuffle .yearGrid{animation:yearGridShuffle 320ms cubic-bezier(.2,.85,.2,1) both;}}
+
+
+
+    /* YEAR CONTROL ANIMATION/POLISH PASS: less clunky compact control + All Years below */
+    .yearDeck{
+      overflow:hidden!important;
+    }
+    .yearCompact{
+      isolation:isolate;
+    }
+    .yearCompact:before{
+      content:"";
+      position:absolute;
+      inset:-8px -10px;
+      z-index:-1;
+      pointer-events:none;
+      border-radius:22px;
+      opacity:.78;
+      background:
+        radial-gradient(90% 150% at 50% 0%,rgba(255,47,70,.18),transparent 54%),
+        linear-gradient(90deg,transparent,rgba(255,80,96,.12),transparent);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.035),0 0 28px rgba(255,47,70,.10);
+    }
+    .yearCompact:after{
+      content:"";
+      position:absolute;
+      left:12%;right:12%;top:50%;height:1px;
+      z-index:-1;
+      pointer-events:none;
+      background:linear-gradient(90deg,transparent,rgba(255,80,96,.42),rgba(96,231,255,.20),rgba(255,80,96,.42),transparent);
+      opacity:.40;
+      animation:yearControlRailPulse 3.6s ease-in-out infinite;
+    }
+    .yearStep,
+    .yearAllToggle,
+    .yearReadout{
+      position:relative;
+      overflow:hidden;
+    }
+    .yearStep:before,
+    .yearAllToggle:before,
+    .yearReadout:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.16) 42%,transparent 70%);
+      transform:translateX(-120%);
+      opacity:0;
+      pointer-events:none;
+    }
+    .yearStep:hover:before,
+    .yearAllToggle:hover:before,
+    .yearReadout:hover:before{
+      animation:yearControlSweep 760ms ease both;
+    }
+    .yearStep{
+      transition:transform .18s ease,filter .18s ease,box-shadow .24s ease,border-color .24s ease;
+    }
+    .yearStep:hover{
+      transform:translateY(-1px) scale(1.04);
+      filter:brightness(1.18);
+      border-color:rgba(255,107,118,.62);
+      box-shadow:0 0 22px rgba(255,47,70,.24),inset 0 0 14px rgba(255,47,70,.08);
+    }
+    .yearReadout{
+      min-width:clamp(132px,26vw,230px);
+      height:46px;
+      border-radius:18px;
+      transform-style:preserve-3d;
+    }
+    .yearReadout:after{
+      content:"";
+      position:absolute;
+      left:18%;right:18%;bottom:7px;height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg,transparent,rgba(96,231,255,.72),transparent);
+      box-shadow:0 0 10px rgba(96,231,255,.36);
+      opacity:.78;
+      animation:yearLockLine 2.4s ease-in-out infinite;
+    }
+    .yearAllToggle{
+      transition:transform .18s ease,filter .18s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease;
+    }
+    .yearAllToggle:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.14);
+      border-color:rgba(255,107,118,.58);
+      box-shadow:0 0 24px rgba(255,47,70,.22),inset 0 0 14px rgba(255,47,70,.08);
+    }
+    .yearDeck.yearsOpen .yearAllToggle{
+      color:rgba(255,236,238,.96);
+      border-color:rgba(96,231,255,.36);
+      box-shadow:0 0 24px rgba(96,231,255,.14),0 0 22px rgba(255,47,70,.18),inset 0 0 16px rgba(255,47,70,.08);
+    }
+    .yearDeck.isYearShuffle .yearCompact:before{
+      animation:yearCompactPulse 430ms cubic-bezier(.2,.85,.2,1) both;
+    }
+    .yearDeck.isYearShuffle .yearStep{
+      animation:yearStepBump 430ms cubic-bezier(.2,.85,.2,1) both;
+    }
+    @keyframes yearControlSweep{0%{opacity:0;transform:translateX(-120%)}20%{opacity:.8}100%{opacity:0;transform:translateX(120%)}}
+    @keyframes yearControlRailPulse{0%,100%{opacity:.24;filter:brightness(.85)}50%{opacity:.58;filter:brightness(1.22)}}
+    @keyframes yearLockLine{0%,100%{opacity:.44;transform:scaleX(.78)}50%{opacity:.90;transform:scaleX(1)}}
+    @keyframes yearCompactPulse{0%{filter:brightness(1);opacity:.70}48%{filter:brightness(1.36);opacity:1}100%{filter:brightness(1);opacity:.78}}
+    @keyframes yearStepBump{0%,100%{filter:brightness(1)}45%{filter:brightness(1.25)}}
+
+    @media (max-width:760px){
+      .yearCompact{
+        display:grid;
+        grid-template-columns:36px minmax(128px,1fr) 36px;
+        grid-template-rows:auto auto;
+        grid-template-areas:
+          "prev readout next"
+          ". all .";
+        align-items:center;
+        justify-content:center;
+        gap:8px 9px;
+        width:min(430px,100%);
+        margin:0 auto;
+      }
+      #yearPrev{grid-area:prev;}
+      #yearNext{grid-area:next;}
+      .yearReadout{grid-area:readout;width:100%;min-width:0;}
+      .yearAllToggle{
+        grid-area:all;
+        justify-self:center;
+        min-width:128px;
+        height:30px;
+        padding:0 16px;
+        font-size:12px;
+        letter-spacing:.15em;
+      }
+    }
+    @media (max-width:520px){
+      .yearCompact{
+        grid-template-columns:34px minmax(126px,1fr) 34px!important;
+        grid-template-rows:auto auto!important;
+        grid-template-areas:"prev readout next" ". all ."!important;
+        gap:7px 8px;
+      }
+      .yearStep{width:34px;height:34px;}
+      .yearReadout{height:42px;}
+      .yearAllToggle{height:28px;min-width:120px;}
+      .yearDeck.yearsOpen .yearGrid{top:calc(100% + 6px)!important;}
+    }
+    @media (max-height:650px){
+      .yearDeck{padding:6px 8px!important;}
+      .yearCompact{
+        display:grid!important;
+        grid-template-columns:32px minmax(110px,1fr) 32px!important;
+        grid-template-rows:32px 24px!important;
+        grid-template-areas:"prev readout next" ". all ."!important;
+        gap:4px 6px!important;
+        height:100%;
+        width:min(390px,100%);
+      }
+      .yearReadout{grid-area:readout;height:32px;min-width:0;border-radius:12px;}
+      .yearReadout span{font-size:17px;}
+      .yearReadout:after{bottom:4px;height:1px;}
+      #yearPrev{grid-area:prev;}
+      #yearNext{grid-area:next;}
+      .yearStep{width:32px;height:32px;}
+      .yearAllToggle{grid-area:all;height:24px;min-width:108px;padding:0 12px;font-size:11px;justify-self:center;}
+      .yearCompact:before{inset:-5px -7px;border-radius:16px;}
+      .yearCompact:after{display:none;}
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+    }
+  
+\.yearControlWrap{display:flex;justify-content:center;align-items:center;padding-top:5px;}
+\.yearControlInner{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:680px;margin:0 auto;}
+\.yearRowMain{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;}
+\.yearLabelBig{text-align:center;margin:0 auto;}
+
+/* Pass 3 tweak: remove year sub text + blue line */
+.year-sub, .yearSub, .yearLock, .year-line, .yearLine { display:none !important; }
+.yearControlInner *::after, .yearControlInner *::before { 
+  /* only if used for the blue line under year */
+}
+
+/* hide any remaining year lock labels */
+.year-lock, .yearLock, [data-label="year-lock"]{display:none!important;}
+
+/* =========================================================
+   Unified Year Control Pass
+   Desktop now matches mobile: arrows + active year shuffle + All Years
+   Scoped only to the year control area.
+   ========================================================= */
+.yearControlWrap,
+.yearControlInner{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 auto !important;
+  padding-top:5px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:8px !important;
+}
+
+.yearDeck,
+.yearShuffle,
+.yearRowMain,
+.yearCompact,
+.yearPicker{
+  width:min(520px, 92vw) !important;
+  margin:0 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:12px !important;
+}
+
+/* Hide the old desktop grid/list while keeping the compact controls alive */
+.yearGrid,
+.yearGridDesktop,
+.yearsGrid,
+.yearsFull,
+.yearDesktopGrid,
+.archiveYearGrid,
+.yearBtnGrid{
+  display:none !important;
+}
+
+/* Main active-year pill */
+.yearLabelBig,
+.yearDisplay,
+.yearActive,
+.yearCurrent,
+.yearPillMain{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:320px !important;
+  height:44px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  margin:0 !important;
+  border-radius:16px !important;
+  border:1px solid rgba(255,70,90,.70) !important;
+  background:
+    radial-gradient(120% 160% at 50% 0%, rgba(255,50,74,.26), rgba(20,0,8,.44) 62%, rgba(0,0,0,.28)) !important;
+  box-shadow:
+    0 0 20px rgba(255,47,70,.18),
+    inset 0 0 0 1px rgba(255,255,255,.045),
+    inset 0 -14px 24px rgba(0,0,0,.20) !important;
+  color:rgba(255,245,250,.96) !important;
+  font-size:21px !important;
+  font-weight:900 !important;
+  letter-spacing:.12em !important;
+  line-height:1 !important;
+  text-transform:none !important;
+  position:relative !important;
+  overflow:hidden !important;
+}
+
+/* Remove leftover sublabel/blue line from active year */
+.yearLabelBig::before,
+.yearLabelBig::after,
+.yearDisplay::before,
+.yearDisplay::after,
+.yearActive::before,
+.yearActive::after,
+.yearCurrent::before,
+.yearCurrent::after,
+.yearPillMain::before,
+.yearPillMain::after{
+  content:none !important;
+  display:none !important;
+}
+.year-lock,
+.yearLock,
+.yearSub,
+.year-sub,
+.yearLine,
+.year-line,
+[data-label="year-lock"]{
+  display:none !important;
+}
+
+/* Arrow buttons */
+.yearArrow,
+.yearNav,
+.yearPrev,
+.yearNext,
+.yearShuffleBtn{
+  flex:0 0 auto !important;
+  width:38px !important;
+  height:38px !important;
+  border-radius:999px !important;
+  border:1px solid rgba(255,80,96,.42) !important;
+  background:rgba(0,0,0,.34) !important;
+  color:rgba(255,245,250,.94) !important;
+  display:grid !important;
+  place-items:center !important;
+  box-shadow:0 0 18px rgba(255,47,70,.13), inset 0 0 0 1px rgba(255,255,255,.04) !important;
+  cursor:pointer !important;
+}
+
+/* All Years button below */
+.allYearsBtn,
+.yearAllBtn,
+.allYears,
+.yearAllYears{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:min(170px, 55vw) !important;
+  min-height:34px !important;
+  margin:0 auto !important;
+  border-radius:999px !important;
+  border:1px solid rgba(255,80,96,.42) !important;
+  background:rgba(35,5,12,.48) !important;
+  color:rgba(255,230,236,.88) !important;
+  font-size:14px !important;
+  font-weight:800 !important;
+  letter-spacing:.13em !important;
+  text-transform:uppercase !important;
+}
+
+/* Range label stays small and centered */
+.yearRange,
+.yearRangeLabel,
+.archiveYearRange{
+  text-align:center !important;
+  color:rgba(96,231,255,.78) !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  letter-spacing:.14em !important;
+  line-height:1 !important;
+  margin:0 auto 2px !important;
+}
+
+/* Motion polish: compact shuffle feel */
+.yearControlInner.is-shuffling .yearLabelBig,
+.yearControlInner.is-shuffling .yearDisplay,
+.yearControlInner.is-shuffling .yearActive,
+.yearControlInner.is-shuffling .yearCurrent,
+.yearControlInner.is-shuffling .yearPillMain{
+  animation: yearCompactShuffle 260ms cubic-bezier(.2,.85,.2,1);
+}
+@keyframes yearCompactShuffle{
+  0%{ transform:translateX(0) scale(1); filter:brightness(1); }
+  42%{ transform:translateX(var(--year-shift, -10px)) scale(.985); filter:brightness(1.25); }
+  100%{ transform:translateX(0) scale(1); filter:brightness(1); }
+}
+
+/* Short-height safety */
+@media (min-width: 761px){
+  .yearControlWrap,
+  .yearControlInner{
+    padding-top:5px !important;
+  }
+}
+
+@media (max-height:650px){
+  .yearControlWrap,
+  .yearControlInner{
+    gap:6px !important;
+  }
+  .yearDeck,
+  .yearShuffle,
+  .yearRowMain,
+  .yearCompact,
+  .yearPicker{
+    width:min(460px, 92vw) !important;
+    gap:9px !important;
+  }
+  .yearLabelBig,
+  .yearDisplay,
+  .yearActive,
+  .yearCurrent,
+  .yearPillMain{
+    height:38px !important;
+    font-size:18px !important;
+  }
+  .yearArrow,
+  .yearNav,
+  .yearPrev,
+  .yearNext,
+  .yearShuffleBtn{
+    width:34px !important;
+    height:34px !important;
+  }
+  .allYearsBtn,
+  .yearAllBtn,
+  .allYears,
+  .yearAllYears{
+    min-height:30px !important;
+    font-size:13px !important;
+  }
+}
+
+
+/* Keep original wired year buttons present for JS, but hide visually under unified control */
+.yearOriginalHidden{
+  display:none !important;
+}
+.years:has(.yearUnifiedControl) > .yearBtn,
+.yearControlWrap:has(.yearUnifiedControl) .yearBtn,
+.yearControlInner:has(.yearUnifiedControl) .yearBtn{
+  display:none !important;
+}
+
+
+/* =========================================================
+   Year Control Animation Pass
+   Scoped only to the unified year controller.
+   ========================================================= */
+.yearUnifiedControl{
+  position:relative !important;
+  isolation:isolate !important;
+}
+
+.yearUnifiedControl::before{
+  content:"" !important;
+  position:absolute !important;
+  left:50% !important;
+  top:-7px !important;
+  width:min(420px, 82vw) !important;
+  height:1px !important;
+  transform:translateX(-50%) !important;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(255,47,70,.18),
+    rgba(96,231,255,.62),
+    rgba(255,47,70,.18),
+    transparent
+  ) !important;
+  opacity:.72 !important;
+  box-shadow:0 0 16px rgba(96,231,255,.20) !important;
+  animation: yearRangePulse 2.8s ease-in-out infinite !important;
+}
+
+.yearUnifiedControl::after{
+  content:"" !important;
+  position:absolute !important;
+  left:50% !important;
+  top:47px !important;
+  width:min(320px, 68vw) !important;
+  height:24px !important;
+  transform:translateX(-50%) !important;
+  pointer-events:none !important;
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(255,47,70,.22), transparent 72%),
+    linear-gradient(90deg, transparent, rgba(255,47,70,.22), transparent) !important;
+  opacity:.38 !important;
+  filter:blur(10px) !important;
+  animation: yearGlowBreathe 2.6s ease-in-out infinite !important;
+  z-index:-1 !important;
+}
+
+.yearRangeLabel{
+  animation: yearTinyBoot 720ms cubic-bezier(.2,.85,.2,1) both, yearCyanPulse 2.4s ease-in-out infinite 800ms !important;
+}
+
+.yearRowMain{
+  position:relative !important;
+  animation: yearControlBoot 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.yearRowMain::before{
+  content:"" !important;
+  position:absolute !important;
+  left:58px !important;
+  right:58px !important;
+  top:50% !important;
+  height:1px !important;
+  transform:translateY(-50%) scaleX(.25) !important;
+  transform-origin:center !important;
+  background:linear-gradient(90deg, transparent, rgba(255,47,70,.30), rgba(96,231,255,.26), rgba(255,47,70,.30), transparent) !important;
+  opacity:.0 !important;
+  pointer-events:none !important;
+  animation: yearRailCharge 3.1s ease-in-out infinite .3s !important;
+}
+
+.yearLabelBig{
+  animation: yearMainBreath 3.4s ease-in-out infinite !important;
+}
+
+.yearLabelBig .yearDigit,
+.yearLabelBig span{
+  display:inline-block !important;
+}
+
+.yearLabelBig.is-digit-pulse .yearDigit{
+  animation: yearDigitFlip 360ms cubic-bezier(.2,.85,.2,1) both !important;
+  animation-delay:calc(var(--digit-i, 0) * 38ms) !important;
+}
+
+.yearLabelBig.is-year-next{
+  animation: yearSlideNext 320ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.yearLabelBig.is-year-prev{
+  animation: yearSlidePrev 320ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.yearArrow{
+  position:relative !important;
+  overflow:hidden !important;
+  transition:transform 160ms ease, filter 180ms ease, box-shadow 180ms ease !important;
+}
+
+.yearArrow::after{
+  content:"" !important;
+  position:absolute !important;
+  inset:-18% !important;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent) !important;
+  transform:translateX(-135%) rotate(-18deg) !important;
+  opacity:0 !important;
+}
+
+.yearArrow:hover{
+  transform:translateY(-1px) scale(1.04) !important;
+  filter:brightness(1.18) !important;
+  box-shadow:0 0 24px rgba(255,47,70,.22), inset 0 0 0 1px rgba(255,255,255,.06) !important;
+}
+
+.yearArrow:hover::after{
+  animation: yearArrowSweep 720ms ease !important;
+}
+
+.yearArrow.is-tap{
+  animation: yearArrowTap 220ms ease !important;
+}
+
+.allYearsBtn{
+  position:relative !important;
+  overflow:hidden !important;
+  animation: allYearsBoot 660ms cubic-bezier(.2,.85,.2,1) both 120ms, allYearsIdle 3.6s ease-in-out infinite 900ms !important;
+  transition:transform 160ms ease, filter 180ms ease, box-shadow 180ms ease !important;
+}
+
+.allYearsBtn::before{
+  content:"" !important;
+  position:absolute !important;
+  left:16% !important;
+  right:16% !important;
+  top:0 !important;
+  height:1px !important;
+  background:linear-gradient(90deg, transparent, rgba(255,80,96,.72), transparent) !important;
+  opacity:.72 !important;
+}
+
+.allYearsBtn::after{
+  content:"" !important;
+  position:absolute !important;
+  inset:-30% !important;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent) !important;
+  transform:translateX(-130%) rotate(-13deg) !important;
+  opacity:0 !important;
+}
+
+.allYearsBtn:hover{
+  transform:translateY(-1px) !important;
+  filter:brightness(1.15) !important;
+  box-shadow:0 0 22px rgba(255,47,70,.18), inset 0 0 12px rgba(255,47,70,.08) !important;
+}
+
+.allYearsBtn:hover::after{
+  animation: allYearsSweep 850ms ease !important;
+}
+
+.yearUnifiedList{
+  animation: yearListOpen 240ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.yearUnifiedList button{
+  transition:transform 150ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease !important;
+  animation: yearChoiceIn 260ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.yearUnifiedList button:hover{
+  transform:translateY(-1px) scale(1.04) !important;
+  filter:brightness(1.15) !important;
+  border-color:rgba(255,80,96,.68) !important;
+  box-shadow:0 0 14px rgba(255,47,70,.16) !important;
+}
+
+@keyframes yearRangePulse{
+  0%,100%{ opacity:.48; filter:brightness(.9); }
+  50%{ opacity:.92; filter:brightness(1.25); }
+}
+
+@keyframes yearGlowBreathe{
+  0%,100%{ opacity:.24; transform:translateX(-50%) scaleX(.78); }
+  50%{ opacity:.50; transform:translateX(-50%) scaleX(1); }
+}
+
+@keyframes yearTinyBoot{
+  0%{ opacity:0; transform:translateY(-5px); filter:blur(6px); }
+  100%{ opacity:1; transform:translateY(0); filter:blur(0); }
+}
+
+@keyframes yearCyanPulse{
+  0%,100%{ text-shadow:0 0 8px rgba(96,231,255,.16); }
+  50%{ text-shadow:0 0 15px rgba(96,231,255,.36); }
+}
+
+@keyframes yearControlBoot{
+  0%{ opacity:0; transform:translateY(7px) scale(.985); filter:blur(8px); }
+  100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+}
+
+@keyframes yearRailCharge{
+  0%,72%,100%{ opacity:0; transform:translateY(-50%) scaleX(.22); }
+  82%{ opacity:.82; transform:translateY(-50%) scaleX(.96); }
+  90%{ opacity:.38; transform:translateY(-50%) scaleX(.55); }
+}
+
+@keyframes yearMainBreath{
+  0%,100%{ box-shadow:0 0 20px rgba(255,47,70,.16), inset 0 0 0 1px rgba(255,255,255,.045), inset 0 -14px 24px rgba(0,0,0,.20); }
+  50%{ box-shadow:0 0 30px rgba(255,47,70,.25), inset 0 0 0 1px rgba(255,255,255,.06), inset 0 -16px 26px rgba(0,0,0,.22); }
+}
+
+@keyframes yearSlideNext{
+  0%{ opacity:.35; transform:translateX(18px) scale(.98); filter:blur(8px); }
+  100%{ opacity:1; transform:translateX(0) scale(1); filter:blur(0); }
+}
+
+@keyframes yearSlidePrev{
+  0%{ opacity:.35; transform:translateX(-18px) scale(.98); filter:blur(8px); }
+  100%{ opacity:1; transform:translateX(0) scale(1); filter:blur(0); }
+}
+
+@keyframes yearDigitFlip{
+  0%{ opacity:.25; transform:translateY(-8px) rotateX(74deg); filter:blur(5px); }
+  100%{ opacity:1; transform:translateY(0) rotateX(0); filter:blur(0); }
+}
+
+@keyframes yearArrowSweep{
+  0%{ transform:translateX(-135%) rotate(-18deg); opacity:0; }
+  28%{ opacity:.85; }
+  100%{ transform:translateX(135%) rotate(-18deg); opacity:0; }
+}
+
+@keyframes yearArrowTap{
+  0%{ transform:scale(1); }
+  45%{ transform:scale(.90); }
+  100%{ transform:scale(1); }
+}
+
+@keyframes allYearsBoot{
+  0%{ opacity:0; transform:translateY(8px) scale(.96); filter:blur(7px); }
+  100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+}
+
+@keyframes allYearsIdle{
+  0%,100%{ border-color:rgba(255,80,96,.34); }
+  50%{ border-color:rgba(255,80,96,.58); }
+}
+
+@keyframes allYearsSweep{
+  0%{ transform:translateX(-130%) rotate(-13deg); opacity:0; }
+  30%{ opacity:.75; }
+  100%{ transform:translateX(130%) rotate(-13deg); opacity:0; }
+}
+
+@keyframes yearListOpen{
+  0%{ opacity:0; transform:translateY(-6px) scale(.98); filter:blur(8px); }
+  100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+}
+
+@keyframes yearChoiceIn{
+  0%{ opacity:0; transform:translateY(4px) scale(.94); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .yearUnifiedControl,
+  .yearUnifiedControl::before,
+  .yearUnifiedControl::after,
+  .yearRangeLabel,
+  .yearRowMain,
+  .yearRowMain::before,
+  .yearLabelBig,
+  .yearArrow,
+  .yearArrow::after,
+  .allYearsBtn,
+  .allYearsBtn::before,
+  .allYearsBtn::after,
+  .yearUnifiedList,
+  .yearUnifiedList button{
+    animation:none !important;
+    transition:none !important;
+  }
+}
+
+
+/* =========================================================
+   Year Click Zoom Pass
+   On left/right click: active year compresses, swaps, then pops back in.
+   Scoped only to unified year control.
+   ========================================================= */
+.yearLabelBig.is-year-compress{
+  animation: yearClickCompress 150ms cubic-bezier(.32,.02,.25,1) forwards !important;
+}
+
+.yearLabelBig.is-year-pop{
+  animation: yearClickPop 260ms cubic-bezier(.18,.95,.22,1) forwards !important;
+}
+
+.yearLabelBig.is-year-compress .yearDigit{
+  animation: yearDigitCompress 150ms cubic-bezier(.32,.02,.25,1) forwards !important;
+  animation-delay:calc(var(--digit-i, 0) * 14ms) !important;
+}
+
+.yearLabelBig.is-year-pop .yearDigit{
+  animation: yearDigitPop 260ms cubic-bezier(.18,.95,.22,1) both !important;
+  animation-delay:calc(var(--digit-i, 0) * 34ms) !important;
+}
+
+.yearUnifiedControl.is-year-transitioning .yearRowMain::after{
+  content:"" !important;
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  width:44px !important;
+  height:2px !important;
+  border-radius:999px !important;
+  transform:translate(-50%,-50%) scaleX(.25) !important;
+  background:linear-gradient(90deg, transparent, rgba(96,231,255,.85), rgba(255,47,70,.72), transparent) !important;
+  box-shadow:0 0 18px rgba(96,231,255,.34), 0 0 24px rgba(255,47,70,.24) !important;
+  pointer-events:none !important;
+  animation: yearSwapFlash 360ms cubic-bezier(.2,.85,.2,1) forwards !important;
+}
+
+@keyframes yearClickCompress{
+  0%{
+    opacity:1;
+    transform:translateX(0) scale(1);
+    filter:brightness(1) blur(0);
+  }
+  100%{
+    opacity:.55;
+    transform:translateX(calc(var(--year-click-dir, 1) * -10px)) scale(.72);
+    filter:brightness(1.35) blur(7px);
+  }
+}
+
+@keyframes yearClickPop{
+  0%{
+    opacity:.18;
+    transform:translateX(calc(var(--year-click-dir, 1) * 14px)) scale(.70);
+    filter:brightness(1.7) blur(8px);
+  }
+  62%{
+    opacity:1;
+    transform:translateX(0) scale(1.075);
+    filter:brightness(1.22) blur(0);
+  }
+  100%{
+    opacity:1;
+    transform:translateX(0) scale(1);
+    filter:brightness(1) blur(0);
+  }
+}
+
+@keyframes yearDigitCompress{
+  0%{
+    opacity:1;
+    transform:translateY(0) scale(1) rotateX(0deg);
+  }
+  100%{
+    opacity:.28;
+    transform:translateY(7px) scale(.78) rotateX(-58deg);
+  }
+}
+
+@keyframes yearDigitPop{
+  0%{
+    opacity:0;
+    transform:translateY(-10px) scale(.70) rotateX(72deg);
+    filter:blur(6px);
+  }
+  58%{
+    opacity:1;
+    transform:translateY(1px) scale(1.10) rotateX(0deg);
+    filter:blur(0);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scale(1) rotateX(0deg);
+    filter:blur(0);
+  }
+}
+
+@keyframes yearSwapFlash{
+  0%{
+    opacity:0;
+    width:34px;
+    transform:translate(-50%,-50%) scaleX(.12);
+  }
+  32%{
+    opacity:1;
+    width:190px;
+    transform:translate(-50%,-50%) scaleX(1);
+  }
+  100%{
+    opacity:0;
+    width:70px;
+    transform:translate(-50%,-50%) scaleX(.35);
+  }
+}
+
+
+/* =========================================================
+   Carousel Data Transition Pass
+   When year changes from top control:
+   cards in the marked carousel area collapse/fade, data swaps, then rebuilds.
+   Scoped to carousel/deck only.
+   ========================================================= */
+.carouselZone{
+  --deck-transition-dir: 1;
+}
+
+.carouselZone.is-year-data-out .card.active{
+  animation: deckActiveExit 210ms cubic-bezier(.32,.02,.25,1) forwards !important;
+}
+
+.carouselZone.is-year-data-out .card.prev{
+  animation: deckSideExitLeft 210ms cubic-bezier(.32,.02,.25,1) forwards !important;
+}
+
+.carouselZone.is-year-data-out .card.next{
+  animation: deckSideExitRight 210ms cubic-bezier(.32,.02,.25,1) forwards !important;
+}
+
+.carouselZone.is-year-data-in .card.active{
+  animation: deckActiveEnter 380ms cubic-bezier(.18,.95,.22,1) both !important;
+}
+
+.carouselZone.is-year-data-in .card.prev{
+  animation: deckSideEnterLeft 430ms cubic-bezier(.18,.95,.22,1) both 60ms !important;
+}
+
+.carouselZone.is-year-data-in .card.next{
+  animation: deckSideEnterRight 430ms cubic-bezier(.18,.95,.22,1) both 60ms !important;
+}
+
+.carouselZone.is-year-data-out::before,
+.carouselZone.is-year-data-in::before{
+  opacity:.95 !important;
+  border-color:rgba(255,80,96,.32) !important;
+}
+
+.carouselZone.is-year-data-out::after{
+  animation: deckSwapRailOut 220ms cubic-bezier(.32,.02,.25,1) forwards !important;
+}
+
+.carouselZone.is-year-data-in::after{
+  animation: deckSwapRailIn 380ms cubic-bezier(.18,.95,.22,1) forwards !important;
+}
+
+.deckSwapFlash{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:min(460px,58vw);
+  height:2px;
+  transform:translate(-50%,-50%) scaleX(.2);
+  border-radius:999px;
+  background:linear-gradient(90deg, transparent, rgba(255,47,70,.78), rgba(96,231,255,.55), rgba(255,47,70,.78), transparent);
+  box-shadow:0 0 24px rgba(255,47,70,.28),0 0 36px rgba(96,231,255,.18);
+  opacity:0;
+  pointer-events:none;
+  z-index:7;
+}
+
+.carouselZone.is-year-data-out .deckSwapFlash{
+  animation: deckFlashOut 220ms cubic-bezier(.32,.02,.25,1) forwards;
+}
+
+.carouselZone.is-year-data-in .deckSwapFlash{
+  animation: deckFlashIn 380ms cubic-bezier(.18,.95,.22,1) forwards;
+}
+
+@keyframes deckActiveExit{
+  0%{
+    opacity:1;
+    transform:translate3d(0,0,60px) rotateY(0) scale(1);
+    filter:brightness(1) blur(0);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(calc(var(--deck-transition-dir) * -34px),18px,-120px) rotateY(calc(var(--deck-transition-dir) * -10deg)) scale(.72);
+    filter:brightness(1.25) blur(12px);
+  }
+}
+
+@keyframes deckSideExitLeft{
+  0%{
+    opacity:.62;
+    transform:translate3d(calc(-1 * var(--sideX)),0,-90px) rotateY(28deg) scale(var(--sideScale));
+    filter:saturate(.78) brightness(.75);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(-92%,24px,-220px) rotateY(46deg) scale(.34);
+    filter:saturate(.5) brightness(.45) blur(10px);
+  }
+}
+
+@keyframes deckSideExitRight{
+  0%{
+    opacity:.62;
+    transform:translate3d(var(--sideX),0,-90px) rotateY(-28deg) scale(var(--sideScale));
+    filter:saturate(.78) brightness(.75);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(92%,24px,-220px) rotateY(-46deg) scale(.34);
+    filter:saturate(.5) brightness(.45) blur(10px);
+  }
+}
+
+@keyframes deckActiveEnter{
+  0%{
+    opacity:0;
+    transform:translate3d(calc(var(--deck-transition-dir) * 42px),22px,-150px) rotateY(calc(var(--deck-transition-dir) * 12deg)) scale(.70);
+    filter:brightness(1.45) blur(14px);
+  }
+  62%{
+    opacity:1;
+    transform:translate3d(0,-2px,72px) rotateY(0) scale(1.045);
+    filter:brightness(1.12) blur(0);
+  }
+  100%{
+    opacity:1;
+    transform:translate3d(0,0,60px) rotateY(0) scale(1);
+    filter:brightness(1) blur(0);
+  }
+}
+
+@keyframes deckSideEnterLeft{
+  0%{
+    opacity:0;
+    transform:translate3d(-94%,26px,-240px) rotateY(48deg) scale(.30);
+    filter:saturate(.5) brightness(.42) blur(10px);
+  }
+  100%{
+    opacity:.62;
+    transform:translate3d(calc(-1 * var(--sideX)),0,-90px) rotateY(28deg) scale(var(--sideScale));
+    filter:saturate(.78) brightness(.75);
+  }
+}
+
+@keyframes deckSideEnterRight{
+  0%{
+    opacity:0;
+    transform:translate3d(94%,26px,-240px) rotateY(-48deg) scale(.30);
+    filter:saturate(.5) brightness(.42) blur(10px);
+  }
+  100%{
+    opacity:.62;
+    transform:translate3d(var(--sideX),0,-90px) rotateY(-28deg) scale(var(--sideScale));
+    filter:saturate(.78) brightness(.75);
+  }
+}
+
+@keyframes deckFlashOut{
+  0%{ opacity:0; transform:translate(-50%,-50%) scaleX(.15); }
+  45%{ opacity:.95; transform:translate(-50%,-50%) scaleX(1); }
+  100%{ opacity:.15; transform:translate(-50%,-50%) scaleX(.38); }
+}
+
+@keyframes deckFlashIn{
+  0%{ opacity:.18; transform:translate(-50%,-50%) scaleX(.30); }
+  36%{ opacity:.85; transform:translate(-50%,-50%) scaleX(.92); }
+  100%{ opacity:0; transform:translate(-50%,-50%) scaleX(.14); }
+}
+
+@keyframes deckSwapRailOut{
+  0%{ opacity:.50; transform:scaleX(1); }
+  100%{ opacity:.88; transform:scaleX(.45); }
+}
+
+@keyframes deckSwapRailIn{
+  0%{ opacity:.88; transform:scaleX(.45); }
+  100%{ opacity:.50; transform:scaleX(1); }
+}
+
+@media (max-width:760px){
+  @keyframes deckActiveExit{
+    0%{ opacity:1; transform:translate3d(0,0,60px) rotateY(0) scale(1); filter:brightness(1) blur(0); }
+    100%{ opacity:0; transform:translate3d(calc(var(--deck-transition-dir) * -20px),12px,-110px) rotateY(calc(var(--deck-transition-dir) * -8deg)) scale(.76); filter:brightness(1.22) blur(9px); }
+  }
+
+  @keyframes deckActiveEnter{
+    0%{ opacity:0; transform:translate3d(calc(var(--deck-transition-dir) * 24px),14px,-130px) rotateY(calc(var(--deck-transition-dir) * 9deg)) scale(.74); filter:brightness(1.38) blur(10px); }
+    64%{ opacity:1; transform:translate3d(0,-1px,68px) rotateY(0) scale(1.035); filter:brightness(1.10) blur(0); }
+    100%{ opacity:1; transform:translate3d(0,0,60px) rotateY(0) scale(1); filter:brightness(1) blur(0); }
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .carouselZone.is-year-data-out .card,
+  .carouselZone.is-year-data-in .card,
+  .carouselZone.is-year-data-out::after,
+  .carouselZone.is-year-data-in::after,
+  .deckSwapFlash{
+    animation:none !important;
+  }
+}
+
+
+/* =========================================================
+   Live Data Pass
+   Reads https://music-archive-3lfa.onrender.com/index/shows.
+   Fallback demo data stays intact if live fetch fails.
+   ========================================================= */
+.card .posterGlow.hasPoster{
+  /* Poster smart-fit hotfix:
+     Keep the poster bounded inside the existing poster window.
+     Do NOT let wide/tall artwork stretch the card or crop vertically/horizontally.
+     The image preserves its aspect ratio and fits by whichever side hits first. */
+  background-color:rgba(0,0,0,.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.52)),
+    var(--poster-img, none) !important;
+  background-position:center center, center center !important;
+  background-size:100% 100%, contain !important;
+  background-repeat:no-repeat, no-repeat !important;
+  opacity:.82 !important;
+  filter:saturate(.95) contrast(1.05) brightness(.72) !important;
+}
+.card .posterGlow.hasPoster:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% 54%, rgba(255,47,70,.24), transparent 18%),
+    linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.48));
+  pointer-events:none;
+}
+.liveDataFlag{
+  position:absolute;
+  left:50%;
+  bottom:calc(var(--gap) + 4px);
+  transform:translateX(-50%);
+  z-index:9;
+  pointer-events:none;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid rgba(96,231,255,.24);
+  background:rgba(0,0,0,.34);
+  color:rgba(160,240,255,.78);
+  font:800 9px/1 Orbitron,system-ui,sans-serif;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  opacity:.74;
+  box-shadow:0 0 14px rgba(96,231,255,.10);
+}
+.liveDataFlag.isFallback{
+  color:rgba(255,185,190,.72);
+  border-color:rgba(255,80,96,.26);
+  box-shadow:0 0 14px rgba(255,47,70,.10);
+}
+.yearBtn:disabled{
+  opacity:.28;
+  cursor:not-allowed;
+}
+@media (max-height:650px){
+  .liveDataFlag{display:none;}
+}
+
+
+/* Latest-default live data stability */
+.deck.hasSingleShow .card.active{
+  transform:translate3d(0,0,60px) rotateY(0) scale(1) !important;
+}
+
+
+/* Card header cleanup pass:
+   - remove status pill and description line
+   - center date across the card width */
+.card .showStatus,
+.card .desc{
+  display:none !important;
+}
+
+.card .date{
+  width:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  gap:0 !important;
+}
+
+.card .date span{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+
+/* ===== Title Feast of Flesh Font + Auto Scale ===== */
+
+
+.card .title{
+  font-family: 'FeastOfFlesh', Orbitron, system-ui, sans-serif !important;
+  font-weight: 800;
+  letter-spacing: .02em;
+  line-height: 1.05;
+  /* responsive baseline using clamp; JS will fine-tune */
+  font-size: clamp(18px, 3.2vw, 42px);
+  max-width: 100%;
+  display: block;
+  word-break: break-word;
+}
+
+/* container for title to measure width safely */
+.card .titleWrap{
+  width: 100%;
+}
+
+
+/* ===== Feast of Flesh Font ===== */
+@font-face{
+  font-family: 'FeastOfFlesh';
+  src:
+    local('Feast of Flesh'),
+    local('FeastOfFlesh'),
+    url('./FeastOfFlesh.ttf') format('truetype'),
+    url('./Feast of Flesh.ttf') format('truetype'),
+    url('FeastOfFlesh.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* One-line Feast of Flesh title autofit */
+.card .titleWrap{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+
+.card .title{
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+  max-width:none !important;
+  width:max-content !important;
+  line-height:.92 !important;
+  transform-origin:left center !important;
+}
+
+
+/* Title spacing + base shrink */
+.card .title{
+  letter-spacing: .06em !important;
+  line-height: 1.05 !important;
+}
+
+
+/* Final title alignment + spacing */
+.card .date{
+  margin-bottom: 10px !important;
+}
+
+.card .titleWrap{
+  display:flex !important;
+  justify-content:center !important;
+}
+
+.card .title{
+  text-align:center !important;
+  transform-origin:center center !important;
+}
+
+
+/* Title digit preservation + 16px stretched title pass */
+.card .titleWrap{
+  width:100% !important;
+  max-width:100% !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  overflow:visible !important;
+}
+
+.card .title{
+  font-family:'FeastOfFlesh', Orbitron, system-ui, sans-serif !important;
+  font-size:19px !important;
+  line-height:1.15 !important;
+  letter-spacing:var(--title-letter-spacing, .06em) !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+  width:max-content !important;
+  max-width:none !important;
+  transform-origin:center center !important;
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+}
+
+/* Title glyph rendering pass:
+   Keep the title as REAL normalized text with no per-character span fallback.
+   This prevents number/symbol wrappers from changing size/font or disappearing,
+   while preserving the existing centered one-line stretch/fit logic. */
+.card .title,
+.card .title *{
+  font-family:'FeastOfFlesh', 'Feast of Flesh', Orbitron, system-ui, sans-serif !important;
+  font-weight:800 !important;
+  font-size:19px !important;
+  line-height:1.15 !important;
+  letter-spacing:var(--title-letter-spacing, .06em) !important;
+  text-shadow:inherit !important;
+  color:inherit !important;
+  text-transform:uppercase !important;
+  font-variant-numeric:normal !important;
+  font-feature-settings:normal !important;
+  font-synthesis:none !important;
+}
+
+/* =========================================================
+   EMBED PASS: Compact scrollable year timeline rail
+   ========================================================= */
+:root{ --yearH: clamp(48px, 7vh, 66px) !important; --timelineH: clamp(24px, 3.5vh, 36px) !important; }
+.module{ grid-template-rows: var(--yearH) var(--timelineH) minmax(0,1fr) clamp(52px,6.6vh,72px) !important; }
+.years.yearDeck{ display:flex !important; align-items:center !important; justify-content:center !important; align-content:center !important; height:100% !important; min-height:0 !important; padding:6px clamp(10px,2vw,18px) !important; overflow:hidden !important; border-radius:16px !important; background:linear-gradient(90deg, rgba(255,47,70,.11), transparent 18%, transparent 82%, rgba(96,231,255,.07)),linear-gradient(180deg, rgba(9,11,17,.70), rgba(0,0,0,.26)) !important; }
+.years.yearDeck::before,
+.years.yearDeck::after{ content:none !important; display:none !important; opacity:0 !important; pointer-events:none !important; }
+.yearDeckTop,.yearCompact,.yearUnifiedControl{ display:none !important; }
+.yearGrid{ position:relative !important; z-index:3 !important; display:flex !important; flex:1 1 auto !important; width:100% !important; max-width:min(780px, 94vw) !important; min-width:0 !important; height:100% !important; margin:0 auto !important; padding:0 clamp(26px,5vw,54px) !important; gap:clamp(8px,1.4vw,14px) !important; align-items:center !important; justify-content:flex-start !important; overflow-x:auto !important; overflow-y:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important; scroll-snap-type:x proximity !important; -webkit-overflow-scrolling:touch !important; mask-image:linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%) !important; }
+.yearGrid::-webkit-scrollbar{ display:none !important; }
+.yearBtn,.yearBtn.year-near,.yearBtn.year-far,.yearBtn.year-prev,.yearBtn.year-next,.yearBtn.year-distant-left,.yearBtn.year-distant-right{ flex:0 0 auto !important; width:auto !important; min-width:clamp(54px, 7.6vw, 74px) !important; height:clamp(30px, 4.3vh, 38px) !important; padding:0 12px !important; border-radius:999px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; scroll-snap-align:center !important; font:800 clamp(10px,1.8vmin,13px)/1 Orbitron, system-ui, sans-serif !important; letter-spacing:.10em !important; transform:none !important; opacity:.54 !important; filter:none !important; background:rgba(0,0,0,.24) !important; border-color:rgba(255,80,96,.22) !important; box-shadow:inset 0 0 0 1px rgba(255,255,255,.025) !important; }
+.yearBtn:hover{ opacity:.86 !important; color:rgba(255,245,250,.92) !important; border-color:rgba(255,80,96,.44) !important; background:rgba(255,47,70,.08) !important; }
+.yearBtn.active{ opacity:1 !important; transform:none !important; color:rgba(255,245,250,.98) !important; border-color:rgba(255,80,96,.74) !important; background:radial-gradient(120% 160% at 50% 0%, rgba(255,50,74,.28), rgba(20,0,8,.42) 64%, rgba(0,0,0,.28)) !important; box-shadow:0 0 18px rgba(255,47,70,.26), inset 0 0 0 1px rgba(255,255,255,.045) !important; }
+.yearBtn.active::before{ content:none !important; display:none !important; }
+.yearBtn.active::after{ left:28% !important; right:28% !important; bottom:4px !important; height:2px !important; background:var(--cyan) !important; box-shadow:0 0 10px rgba(96,231,255,.55) !important; }
+.yearBtn:disabled{ opacity:.20 !important; pointer-events:none !important; }
+@media (max-width:760px){ :root{ --yearH:52px !important; --timelineH:24px !important; } .module{ grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) 54px !important; } .years.yearDeck{ padding:6px 8px !important; border-radius:14px !important; } .yearGrid{ max-width:100% !important; padding:0 34px !important; gap:8px !important; } .yearBtn{ min-width:58px !important; height:32px !important; font-size:13px !important; } }
+@media (max-height:650px){ :root{ --yearH:44px !important; --timelineH:14px !important; } .module{ grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) 42px !important; } .years.yearDeck{ padding:4px 8px !important; border-radius:12px !important; } .yearBtn{ min-width:50px !important; height:28px !important; font-size:12px !important; padding:0 9px !important; } }
+
+/* DESKTOP YEAR RAIL CLICK HOTFIX: keep buttons above decorative layers and clickable */
+.yearGrid{ pointer-events:auto !important; }
+.yearBtn{ position:relative !important; z-index:6 !important; pointer-events:auto !important; user-select:none !important; }
+.yearBtn:disabled{ pointer-events:none !important; }
+
+
+/* =========================================================
+   MOBILE BALANCE PASS: keep embedded/mobile view closer to desktop
+   ========================================================= */
+@media (max-width:760px){
+  :root{ --cardW:72vw !important; --cardH:clamp(360px,58vh,520px) !important; --sideScale:.44 !important; --sideX:58% !important; }
+  .module{ padding-left:clamp(8px,2.6vw,14px) !important; padding-right:clamp(8px,2.6vw,14px) !important; }
+  .carouselZone{ margin-inline:clamp(10px,3.8vw,22px) !important; border-radius:20px !important; }
+  .carouselZone:before{ inset:9px !important; border-radius:16px !important; }
+  .card{ width:min(72vw,360px) !important; height:min(var(--cardH), calc(100% - 74px)) !important; max-height:calc(100% - 74px) !important; min-height:330px !important; padding:clamp(14px,3.4vw,18px) !important; border-radius:20px !important; }
+  .card.active{ transform:translate3d(0,0,66px) rotateY(0) scale(.98) !important; }
+  .card.prev{ opacity:.42 !important; filter:saturate(.62) brightness(.62) blur(.25px) !important; transform:translate3d(calc(-1 * var(--sideX)),0,-150px) rotateY(36deg) scale(var(--sideScale)) !important; }
+  .card.next{ opacity:.42 !important; filter:saturate(.62) brightness(.62) blur(.25px) !important; transform:translate3d(var(--sideX),0,-150px) rotateY(-36deg) scale(var(--sideScale)) !important; }
+  .posterGlow{ min-height:clamp(135px,24vh,230px) !important; }
+  .nav.prevBtn{ left:clamp(8px,3.2vw,18px) !important; }
+  .nav.nextBtn{ right:clamp(8px,3.2vw,18px) !important; }
+}
+@media (max-width:520px){
+  :root{ --cardW:74vw !important; --cardH:clamp(340px,57vh,500px) !important; --sideScale:.40 !important; --sideX:54% !important; }
+  .carouselZone{ margin-inline:clamp(8px,3vw,14px) !important; }
+  .card{ width:min(74vw,340px) !important; height:min(var(--cardH), calc(100% - 64px)) !important; max-height:calc(100% - 64px) !important; min-height:315px !important; }
+  .card.prev{ opacity:.36 !important; transform:translate3d(calc(-1 * var(--sideX)),0,-150px) rotateY(34deg) scale(var(--sideScale)) !important; }
+  .card.next{ opacity:.36 !important; transform:translate3d(var(--sideX),0,-150px) rotateY(-34deg) scale(var(--sideScale)) !important; }
+  .posterGlow{ min-height:clamp(125px,22vh,210px) !important; }
+}
+@media (max-height:650px){
+  .card{ width:min(66vw,340px) !important; height:min(calc((var(--vh) * 100) - 150px), calc(100% - 34px)) !important; min-height:160px !important; }
+}
+
+
+/* =========================================================
+   HOTFIX v16: desktop year rail clickability + remove thin overlay line
+   ========================================================= */
+.years.yearDeck::before,
+.years.yearDeck::after{
+  content:none !important;
+  display:none !important;
+  opacity:0 !important;
+}
+.yearGrid{ pointer-events:auto !important; }
+.yearBtn{ pointer-events:auto !important; }
+
+
+
+/* =========================================================
+   TITLE ANIMATION PASS: white base + red scan + subtle glow idle
+   - Surgical: only affects card title text reveal/idle state
+   - Does not change card layout, year controls, data, or routing
+   ========================================================= */
+.card .titleWrap{ isolation:isolate !important; }
+.card .title{
+  position:relative !important;
+  display:inline-block !important;
+  color:rgba(255,255,255,.94) !important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
+  text-shadow:0 0 6px rgba(255,47,70,.22),0 0 16px rgba(255,47,70,.12),0 1px 0 rgba(74,0,8,.72) !important;
+  filter:drop-shadow(0 0 7px rgba(255,47,70,.12));
+}
+.card .title::before,.card .title::after{ content:""; position:absolute; inset:-18% -10%; pointer-events:none; opacity:0; }
+.card .title::before{ z-index:-1; border-radius:999px; background:radial-gradient(ellipse at 50% 55%, rgba(255,47,70,.28), rgba(179,18,45,.12) 38%, transparent 70%); filter:blur(10px); }
+.card .title::after{ z-index:2; background:linear-gradient(90deg,transparent 0%,rgba(179,18,45,0) 20%,rgba(255,47,70,.72) 42%,rgba(255,255,255,.86) 50%,rgba(255,47,70,.70) 58%,rgba(179,18,45,0) 80%,transparent 100%); mix-blend-mode:screen; transform:translateX(-132%) skewX(-12deg); filter:blur(.2px); }
+.card.active .title{ animation:titleRitualIn 820ms cubic-bezier(.2,.85,.2,1) both,titleIdleGlow 4.8s ease-in-out 1180ms infinite; }
+.card.active .title::before{ animation:titleBloodBloom 920ms cubic-bezier(.2,.85,.2,1) both; }
+.card.active .title::after{ animation:titleBloodScan 860ms cubic-bezier(.2,.85,.2,1) both; }
+.card.prev .title,.card.next .title,.card.hidden .title{ animation:none !important; }
+.card.prev .title::before,.card.prev .title::after,.card.next .title::before,.card.next .title::after,.card.hidden .title::before,.card.hidden .title::after{ animation:none !important; opacity:0 !important; }
+@keyframes titleRitualIn{
+  0%{ opacity:0; filter:blur(8px) drop-shadow(0 0 0 rgba(255,47,70,0)); }
+  28%{ opacity:.72; filter:blur(3px) drop-shadow(0 0 18px rgba(255,47,70,.35)); }
+  46%{ opacity:.96; filter:blur(.6px) drop-shadow(1px 0 8px rgba(255,0,85,.24)); }
+  55%{ opacity:.88; filter:blur(1.2px) drop-shadow(-1px 0 8px rgba(255,47,70,.22)); }
+  68%{ opacity:1; filter:blur(0) drop-shadow(0 0 14px rgba(255,47,70,.18)); }
+  100%{ opacity:1; filter:blur(0) drop-shadow(0 0 7px rgba(255,47,70,.12)); }
+}
+@keyframes titleBloodScan{ 0%{ opacity:0; transform:translateX(-132%) skewX(-12deg); } 18%{ opacity:.15; } 42%{ opacity:.88; } 72%{ opacity:.55; } 100%{ opacity:0; transform:translateX(132%) skewX(-12deg); } }
+@keyframes titleBloodBloom{ 0%{ opacity:0; transform:scaleX(.72) scaleY(.72); } 36%{ opacity:.66; transform:scaleX(1.06) scaleY(1); } 100%{ opacity:.20; transform:scaleX(1) scaleY(.88); } }
+@keyframes titleIdleGlow{ 0%,100%{ text-shadow:0 0 6px rgba(255,47,70,.22),0 0 16px rgba(255,47,70,.12),0 1px 0 rgba(74,0,8,.72); } 50%{ text-shadow:0 0 8px rgba(255,47,70,.34),0 0 23px rgba(255,47,70,.18),0 1px 0 rgba(74,0,8,.78); } }
+@media (prefers-reduced-motion: reduce){ .card.active .title,.card.active .title::before,.card.active .title::after{ animation:none !important; } .card.active .title{ opacity:1 !important; filter:none !important; } .card .title::before,.card .title::after{ display:none !important; } }
+
+
+/* TITLE FIT RESTORE: one-line stretch with 10px left/right safety padding */
+.card .titleWrap{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  padding-left:10px !important;
+  padding-right:10px !important;
+  box-sizing:border-box !important;
+  overflow:visible !important;
+}
+.card .title{
+  white-space:nowrap !important;
+  width:max-content !important;
+  max-width:none !important;
+  letter-spacing:var(--title-letter-spacing, .04em) !important;
+  transform-origin:center center !important;
+}
+.card .title::before,
+.card .title::after{
+  inset:-18% 0 !important;
+}
+
+
+
+/* =========================================================
+   V7 SURGICAL TITLE + VENUE POLISH
+   ========================================================= */
+.card .titleWrap{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  padding-left:10px !important;
+  padding-right:10px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  overflow:visible !important;
+}
+.card .title{
+  margin-left:auto !important;
+  margin-right:auto !important;
+  text-align:center !important;
+  transform-origin:center center !important;
+  left:auto !important;
+  right:auto !important;
+}
+.locationLine,
+.locationLine .locationText,
+.locationLine .venueName,
+.locationLine .cityState{
+  font-family:"Orbitron", system-ui, sans-serif !important;
+  text-transform:uppercase !important;
+}
+.locationLine .venueName,
+.locationLine .cityState{
+  letter-spacing:.04em !important;
+}
+@media (max-width:600px){
+  .card .title{
+    width:100% !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    word-break:normal !important;
+    overflow-wrap:normal !important;
+    text-wrap:balance;
+    font-size:clamp(24px, 8.4vw, 34px) !important;
+    line-height:.96 !important;
+    letter-spacing:.035em !important;
+    transform:none !important;
+  }
+}
+
+/* =========================================================
+   V8 VENUE FONT LOCK
+   - Forces the bottom venue / city / state line to real Orbitron
+   - Keeps existing font size and layout
+   ========================================================= */
+.locationLine,
+.locationLine *,
+.locationText,
+.locationText *,
+.venueName,
+.cityState{
+  font-family:"Orbitron", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  text-transform:uppercase !important;
+  font-style:normal !important;
+  font-synthesis:none !important;
+}
+
+.venueName,
+.cityState{
+  font-weight:800 !important;
+  letter-spacing:.075em !important;
+  line-height:1 !important;
+}
+
+.locationLine{
+  font-kerning:normal !important;
+  text-rendering:geometricPrecision !important;
+}
+
+
+
+/* =========================================================
+   V11 TITLE MARK STRETCH
+   Source of the small red dash is .titleMark.
+   Stretch it across the active card/title area with 3px side inset.
+   ========================================================= */
+
+/* Make the card the safe positioning context without changing layout */
+.card{
+  position:absolute;
+}
+
+/* Keep the title stack above the stretched divider */
+.card .date,
+.card .title,
+.card .desc{
+  position:relative;
+  z-index:2;
+}
+
+/* Stretch the existing titleMark instead of letting clamp() keep it tiny */
+.card .titleMark{
+  position:relative !important;
+  display:block !important;
+  width:auto !important;
+  max-width:none !important;
+  min-width:0 !important;
+  height:2px !important;
+  margin:clamp(8px,1.3vmin,12px) 3px 0 !important;
+  left:auto !important;
+  right:auto !important;
+  top:auto !important;
+  transform:none !important;
+  border-radius:999px !important;
+  background:linear-gradient(
+    90deg,
+    rgba(255,47,70,0.0) 0%,
+    rgba(255,47,70,0.70) 7%,
+    rgba(255,47,70,0.88) 50%,
+    rgba(255,47,70,0.70) 93%,
+    rgba(255,47,70,0.0) 100%
+  ) !important;
+  box-shadow:
+    0 0 10px rgba(255,47,70,.42),
+    0 0 20px rgba(255,47,70,.14) !important;
+  pointer-events:none !important;
+}
+
+/* Mobile: keep the same full-width behavior, but slightly thinner/cleaner */
+@media (max-width:760px){
+  .card .titleMark{
+    height:2px !important;
+    margin-left:3px !important;
+    margin-right:3px !important;
+  }
+}
+
+
+/* =========================================================
+   V12 VENUE / CITY FIT LOGIC
+   - Keeps Orbitron uppercase from V8
+   - Makes the location pill use its available width intelligently
+   - Prevents venue/city from feeling cramped or drifting
+   ========================================================= */
+.locationLine{
+  width:100% !important;
+  max-width:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding-left:10px !important;
+  padding-right:10px !important;
+  gap:8px !important;
+}
+
+.locationLine .locationText{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:calc(100% - 34px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  align-items:center !important;
+  justify-items:center !important;
+  gap:8px !important;
+}
+
+.locationLine .venueName,
+.locationLine .cityState{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  display:block !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+}
+
+.locationLine .venueName{
+  justify-self:end !important;
+}
+
+.locationLine .cityState{
+  justify-self:start !important;
+}
+
+.locationLine .locSep{
+  justify-self:center !important;
+  flex:0 0 auto !important;
+}
+
+/* Mobile: preserve the same smart fit, but slightly tighten spacing so long venues survive */
+@media (max-width:760px){
+  .locationLine{
+    padding-left:8px !important;
+    padding-right:8px !important;
+    gap:6px !important;
+  }
+
+  .locationLine .locationText{
+    max-width:calc(100% - 30px) !important;
+    gap:6px !important;
+  }
+}
+
+@media (max-width:430px){
+  .locationLine{
+    padding-left:7px !important;
+    padding-right:7px !important;
+  }
+
+  .locationLine .locationText{
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+    gap:5px !important;
+  }
+}
+
+
+/* =========================================================
+   V13 REMOVE LIVE DATA + STRETCH AREA
+   - Removes LIVE DATA label, boxes, and DETAIL FEED button
+   - Expands the container to fill the freed space
+   ========================================================= */
+
+/* Hide LIVE DATA section completely */
+.liveDataWrap,
+.liveDataBar,
+.liveDataLabel,
+.liveDataBoxes,
+.detailFeedBtn{
+  display:none !important;
+}
+
+/* Expand the parent container to fill space */
+.bottomSection,
+.footerSection,
+.dataSection{
+  min-height:120px !important;
+  height:auto !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-end !important;
+}
+
+/* Ensure no weird gaps remain */
+.bottomSection:empty{
+  display:none !important;
+}
+
+
+/* V14 REMOVE DETAIL FEED INTERACTION */
+.detailFeedBtn,
+button.detailFeedBtn,
+[data-action="detail-feed"]{
+  display:none !important;
+  pointer-events:none !important;
+  opacity:0 !important;
+}
+
+/* Also disable any click handlers visually/interaction-wise */
+.detailFeedContainer{
+  pointer-events:none !important;
+}
+
+
+/* V15 DETAIL FEED ACTUAL REMOVAL FALLBACK */
+#detailToggle,
+.detailToggle,
+#details,
+.details{
+  display:none !important;
+  pointer-events:none !important;
+  visibility:hidden !important;
+}
+
+
+/* V16 LIVE DATA + BOTTOM STAT BOXES ACTUAL REMOVAL */
+#liveDataFlag,
+.liveDataFlag,
+.stats,
+.stat{
+  display:none !important;
+  pointer-events:none !important;
+  visibility:hidden !important;
+}
+
+/* Reclaim the row formerly used by bottom stat boxes */
+.module{
+  grid-template-rows:var(--yearH) var(--timelineH) minmax(0,1fr) 0px !important;
+}
+.carouselZone{
+  grid-row:3 / span 2 !important;
+}
+
+
+/* V18 REMOVE TIMELINE RAIL ONLY
+   Reverted to V16 base, then removed only the small tick/line rail.
+   Top year controls are intentionally untouched. */
+.timelineRail,
+.timelineRail::before,
+.timelineRail::after,
+
+
+/* Collapse only the rail row; preserve top years and carousel. */
+.module{
+  grid-template-rows:var(--yearH) 0px minmax(0,1fr) 0px !important;
+}
+
+
+/* V20 HARD REMOVE TIMELINE RAIL DOTS (surgical)
+   Targets only the rail system that creates bottom dots */
+.timelineRail,
+.timelineRail::before,
+.timelineRail::after,
+
+
+
+/* V21 TIMELINE RAIL / CORE REMOVED
+   Removes the bottom dot strip and center red dash only. */
+.timelineRail,
+.timelineRail:before,
+.timelineRail:after,
+.timelineRail::before,
+.timelineRail::after,
+.timelineCore{
+  display:none !important;
+  content:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  width:0 !important;
+  height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  pointer-events:none !important;
+}
+
+/* Collapse the timeline rail row without touching the top year controls. */
+.module{
+  grid-template-rows:var(--yearH) 0px minmax(0,1fr) 0px !important;
+}
+
+
+/* V22 REMOVE BOTTOM DECK INDICATOR
+   Actual source was .deck::after / .deck::before:
+   - .deck::after = gray bottom boxes
+   - .deck::before = red center dash
+   This does NOT touch top year controls. */
+.deck::after,
+.deck:after,
+.deck::before,
+.deck:before{
+  display:none !important;
+  content:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  width:0 !important;
+  height:0 !important;
+  pointer-events:none !important;
+}
+
+/* Reclaim the bottom row/space that previously held stats/live indicators. */
+.module{
+  grid-template-rows:var(--yearH) 0px minmax(0,1fr) 0px !important;
+}
+.carouselZone{
+  grid-row:3 / span 2 !important;
+}
+
+
+/* V23 RESTORE TOP YEAR HORIZONTAL SCROLL ONLY
+   Keeps bottom deck indicator removed from V22. */
+.years.yearDeck{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-x:contain !important;
+  scroll-snap-type:x proximity !important;
+}
+
+.yearGrid,
+.years .yearGrid{
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  width:100% !important;
+  max-width:100% !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  gap:clamp(7px,1.25vw,12px) !important;
+  padding-left:clamp(10px,2vw,18px) !important;
+  padding-right:clamp(10px,2vw,18px) !important;
+  -webkit-overflow-scrolling:touch !important;
+  scroll-snap-type:x proximity !important;
+  scrollbar-width:none !important;
+}
+
+.yearGrid::-webkit-scrollbar,
+.years.yearDeck::-webkit-scrollbar{
+  display:none !important;
+}
+
+.yearGrid .yearBtn,
+.years .yearBtn{
+  flex:0 0 auto !important;
+  scroll-snap-align:center !important;
+}
+
+/* Make sure the compact header doesn't block horizontal swipe/touch on the year rail */
+.yearDeckTop,
+.yearCompact{
+  flex:0 0 auto !important;
+}
+
+
+/* V24 CARD SWAP SHUTTER + POSTER WAKE */
+
+/* Poster wake-in */
+.card .posterGlow{
+  filter: blur(6px) brightness(.6) !important;
+  transition: filter .45s cubic-bezier(.2,.85,.2,1);
+}
+.card.active .posterGlow{
+  filter: blur(0px) brightness(.9) !important;
+}
+
+/* Shutter sweep overlay */
+.card.active::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:50%;
+  height:2px;
+  background:linear-gradient(90deg, transparent, rgba(255,47,70,.9), transparent);
+  transform:translateY(-50%) scaleX(0);
+  opacity:0;
+  pointer-events:none;
+  animation: shutterSweep .6s cubic-bezier(.2,.85,.2,1);
+}
+
+@keyframes shutterSweep{
+  0%{
+    transform:translateY(-50%) scaleX(.2);
+    opacity:0;
+  }
+  40%{
+    transform:translateY(-50%) scaleX(1);
+    opacity:1;
+  }
+  100%{
+    transform:translateY(-50%) scaleX(1.2);
+    opacity:0;
+  }
+}
+
+/* Slight card dim before active */
+.card{
+  transition: filter .3s ease;
+}
+.card:not(.active){
+  filter: brightness(.7) blur(.5px);
+}
+
+
+/* =========================================================
+   V25 SYNCED CARD SHUTTER + POSTER WAKE PASS
+   - Triggered by JS navigation/year setter via .is-shuttering
+   - No layout changes
+   ========================================================= */
+
+.carouselZone{
+  --shutter-y: 50%;
+}
+
+.carouselZone .deckSwapFlash{
+  display:block !important;
+  position:absolute !important;
+  left:50% !important;
+  top:var(--shutter-y) !important;
+  width:min(520px, 70vw) !important;
+  height:2px !important;
+  transform:translate(-50%,-50%) scaleX(.12) !important;
+  border-radius:999px !important;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(255,47,70,.92),
+    rgba(255,210,215,.62),
+    rgba(255,47,70,.92),
+    transparent
+  ) !important;
+  box-shadow:
+    0 0 18px rgba(255,47,70,.38),
+    0 0 34px rgba(255,47,70,.16) !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  z-index:15 !important;
+}
+
+.carouselZone.is-shuttering .deckSwapFlash{
+  animation: v25ShutterFlash 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.carouselZone.is-shuttering .card.active{
+  animation: v25ActiveCardResolve 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.carouselZone.is-shuttering .card:not(.active){
+  animation: v25SideCardDim 520ms ease both !important;
+}
+
+.card .posterGlow{
+  will-change:filter, opacity, transform;
+}
+
+.carouselZone.is-shuttering .card.active .posterGlow{
+  animation: v25PosterWake 700ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+@keyframes v25ShutterFlash{
+  0%{
+    opacity:0;
+    transform:translate(-50%,-50%) scaleX(.08);
+    filter:blur(6px);
+  }
+  22%{
+    opacity:1;
+    transform:translate(-50%,-50%) scaleX(.92);
+    filter:blur(0px);
+  }
+  46%{
+    opacity:.92;
+    transform:translate(-50%,-50%) scaleX(1.08);
+  }
+  100%{
+    opacity:0;
+    transform:translate(-50%,-50%) scaleX(1.22);
+    filter:blur(7px);
+  }
+}
+
+@keyframes v25ActiveCardResolve{
+  0%{
+    opacity:.72;
+    filter:brightness(.58) saturate(.72) blur(4px);
+    transform:translate3d(0,10px,40px) rotateY(0deg) scale(.985);
+  }
+  45%{
+    opacity:1;
+    filter:brightness(1.16) saturate(1.12) blur(1px);
+  }
+  100%{
+    opacity:1;
+    filter:brightness(1) saturate(1) blur(0px);
+  }
+}
+
+@keyframes v25PosterWake{
+  0%{
+    opacity:.55;
+    filter:blur(9px) brightness(.48) saturate(.72);
+    transform:scale(.992);
+  }
+  42%{
+    opacity:.92;
+    filter:blur(1px) brightness(1.06) saturate(1.12);
+  }
+  100%{
+    opacity:.82;
+    filter:blur(0px) brightness(.72) saturate(.95);
+    transform:scale(1);
+  }
+}
+
+@keyframes v25SideCardDim{
+  0%{ filter:brightness(.78) blur(.5px); }
+  100%{ filter:brightness(.62) blur(1px); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .carouselZone.is-shuttering .deckSwapFlash,
+  .carouselZone.is-shuttering .card.active,
+  .carouselZone.is-shuttering .card:not(.active),
+  .carouselZone.is-shuttering .card.active .posterGlow{
+    animation:none !important;
+  }
+}
+
+
+/* V26 MOBILE VENUE TEXT FIT (no cutoff)
+   Shrinks text dynamically to fit container */
+@media (max-width: 760px){
+  .locationLine .venueName,
+  .locationLine .cityState{
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+    font-size:clamp(8px, 2.8vw, 12px) !important;
+    letter-spacing:.05em !important;
+  }
+}
+
+@media (max-width: 420px){
+  .locationLine .venueName,
+  .locationLine .cityState{
+    font-size:clamp(7px, 3.2vw, 11px) !important;
+  }
+}
+
+
+/* V27 MOBILE VENUE SMART WRAP
+   Mobile only: prefer one line, but allow clean two-line wrap when needed. */
+@media (max-width:760px){
+  .locationLine{
+    min-height:auto !important;
+    height:auto !important;
+    padding-top:7px !important;
+    padding-bottom:7px !important;
+  }
+
+  .locationLine .locationText{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:center !important;
+    justify-content:center !important;
+    max-width:100% !important;
+    width:100% !important;
+    row-gap:3px !important;
+    column-gap:6px !important;
+  }
+
+  .locationLine .venueName,
+  .locationLine .cityState{
+    width:auto !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    flex:0 1 auto !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    overflow-wrap:anywhere !important;
+    word-break:normal !important;
+    line-height:1.12 !important;
+    text-align:center !important;
+  }
+
+  .locationLine .locSep{
+    flex:0 0 auto !important;
+  }
+}
+
+@media (max-width:430px){
+  .locationLine .venueName,
+  .locationLine .cityState{
+    font-size:clamp(7px, 2.85vw, 10px) !important;
+    letter-spacing:.035em !important;
+  }
+}
+
+
+/* =========================================================
+   V28 FINAL POLISH PASS
+   1) Active card lock-on pulse
+   2) Directional navigation momentum
+   3) Year change feedback
+   ========================================================= */
+
+/* 1) Active card lock-on pulse */
+.carouselZone.is-card-locking .card.active{
+  animation:
+    v25ActiveCardResolve 520ms cubic-bezier(.2,.85,.2,1) both,
+    v28CardLockPulse 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+@keyframes v28CardLockPulse{
+  0%{
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.05),
+      0 20px 55px rgba(0,0,0,.44),
+      0 0 0 rgba(255,47,70,0);
+  }
+  38%{
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.08),
+      0 24px 62px rgba(0,0,0,.48),
+      0 0 28px rgba(255,47,70,.34),
+      0 0 58px rgba(255,47,70,.12);
+  }
+  100%{
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.05),
+      0 20px 55px rgba(0,0,0,.44),
+      0 0 16px rgba(255,47,70,.10);
+  }
+}
+
+/* 2) Directional navigation momentum */
+.carouselZone.nav-dir-next .card.active{
+  transform-origin:center center !important;
+  animation:
+    v25ActiveCardResolve 520ms cubic-bezier(.2,.85,.2,1) both,
+    v28MomentumNext 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+.carouselZone.nav-dir-prev .card.active{
+  transform-origin:center center !important;
+  animation:
+    v25ActiveCardResolve 520ms cubic-bezier(.2,.85,.2,1) both,
+    v28MomentumPrev 520ms cubic-bezier(.2,.85,.2,1) both !important;
+}
+
+@keyframes v28MomentumNext{
+  0%{ transform:translate3d(-18px,8px,42px) rotateY(-5deg) scale(.985); }
+  45%{ transform:translate3d(7px,0,60px) rotateY(2deg) scale(1.006); }
+  100%{ transform:translate3d(0,0,60px) rotateY(0deg) scale(1); }
+}
+
+@keyframes v28MomentumPrev{
+  0%{ transform:translate3d(18px,8px,42px) rotateY(5deg) scale(.985); }
+  45%{ transform:translate3d(-7px,0,60px) rotateY(-2deg) scale(1.006); }
+  100%{ transform:translate3d(0,0,60px) rotateY(0deg) scale(1); }
+}
+
+/* 3) Year change feedback */
+.years.yearDeck.is-year-locking{
+  animation:v28YearDeckPulse 520ms cubic-bezier(.2,.85,.2,1) both;
+}
+
+.years.yearDeck.is-year-locking .yearBtn.active,
+.years.yearDeck.is-year-locking #yearReadoutLabel{
+  animation:v28YearLockText 620ms cubic-bezier(.2,.85,.2,1) both;
+}
+
+@keyframes v28YearDeckPulse{
+  0%{
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.035), inset 0 -22px 45px rgba(0,0,0,.24), 0 0 26px rgba(255,47,70,.08);
+  }
+  42%{
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.055), inset 0 -22px 45px rgba(0,0,0,.24), 0 0 30px rgba(255,47,70,.22), 0 0 22px rgba(96,231,255,.10);
+  }
+  100%{
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.035), inset 0 -22px 45px rgba(0,0,0,.24), 0 0 26px rgba(255,47,70,.08);
+  }
+}
+
+@keyframes v28YearLockText{
+  0%{ filter:brightness(.85); text-shadow:none; }
+  35%{ filter:brightness(1.35); text-shadow:0 0 14px rgba(96,231,255,.42), 0 0 18px rgba(255,47,70,.22); }
+  100%{ filter:brightness(1); text-shadow:0 0 8px rgba(96,231,255,.14); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .carouselZone.is-card-locking .card.active,
+  .carouselZone.nav-dir-next .card.active,
+  .carouselZone.nav-dir-prev .card.active,
+  .years.yearDeck.is-year-locking,
+  .years.yearDeck.is-year-locking .yearBtn.active,
+  .years.yearDeck.is-year-locking #yearReadoutLabel{
+    animation:none !important;
+  }
+}
+
+</style>
+</head>
+<body>
+  <main class="module" aria-label="Shows Rolodex Timeline">
+    <section class="years yearDeck" aria-label="Year selector">
+      <div class="yearDeckTop">
+        <div class="yearDeckKicker">Archive Year Control</div>
+        <div class="yearDeckRange">2009 — 2026</div>
+      </div>
+      <div class="yearCompact" aria-label="Compact year control">
+        <button class="yearStep" type="button" id="yearPrev" aria-label="Previous year">‹</button>
+        <div class="yearReadout"><span id="yearReadoutLabel">2026</span><small></small></div>
+        <button class="yearStep" type="button" id="yearNext" aria-label="Next year">›</button>
+        <button class="yearAllToggle" type="button" id="yearAllToggle" aria-expanded="false">All Years</button>
+      </div>
+      <div class="yearGrid" id="yearGrid" aria-label="All years">
+        <button class="yearBtn active" data-year="2026">2026</button>
+        <button class="yearBtn" data-year="2025">2025</button>
+        <button class="yearBtn" data-year="2024">2024</button>
+        <button class="yearBtn" data-year="2023">2023</button>
+        <button class="yearBtn" data-year="2022">2022</button>
+        <button class="yearBtn" data-year="2021">2021</button>
+        <button class="yearBtn" data-year="2020">2020</button>
+        <button class="yearBtn" data-year="2019">2019</button>
+        <button class="yearBtn" data-year="2018">2018</button>
+        <button class="yearBtn" data-year="2017">2017</button>
+        <button class="yearBtn" data-year="2016">2016</button>
+        <button class="yearBtn" data-year="2015">2015</button>
+        <button class="yearBtn" data-year="2014">2014</button>
+        <button class="yearBtn" data-year="2013">2013</button>
+        <button class="yearBtn" data-year="2012">2012</button>
+        <button class="yearBtn" data-year="2011">2011</button>
+        <button class="yearBtn" data-year="2010">2010</button>
+        <button class="yearBtn" data-year="2009">2009</button>
+      </div>
+    </section>
+
+    <section class="carouselZone" aria-label="Shows carousel safe zone">
+      <button class="nav prevBtn" type="button" aria-label="Previous show">‹</button>
+      <div class="deckSwapFlash" aria-hidden="true"></div>
+      <div class="deck" id="deck"></div>
+      <button class="nav nextBtn" type="button" aria-label="Next show">›</button>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      'use strict';
+
+      let showsByYear={
+        2026:[
+          {date:'03.14.2026',title:'Neon Static Showcase',venue:'The Signal Room',city:'Providence RI',bands:['Echo Ritual','Night Relay','Static Bloom'],count:3},
+          {date:'02.21.2026',title:'Redline Winter Bill',venue:'The Archive Hall',city:'Worcester MA',bands:['Glass Circuit','Violet Current','Low Orbit'],count:3},
+          {date:'01.17.2026',title:'Terminal Pulse Night',venue:'North End Stage',city:'Boston MA',bands:['Cold Vector','The Afterimage','Frame Shift'],count:3}
+        ],
+        2025:[
+          {date:'11.08.2025',title:'Midnight Frequency',venue:'Club Reactor',city:'Boston MA',bands:['Taproot','Signal Wound','Red Sun Echo'],count:4},
+          {date:'08.22.2025',title:'Summer Static Run',venue:'The Vault',city:'Manchester NH',bands:['Analog Fade','Chrome Teeth','Deep Violet'],count:3},
+          {date:'05.03.2025',title:'Circuit Garden',venue:'Warehouse 12',city:'Lowell MA',bands:['Ion Bloom','Paper Crown','Luma Drive'],count:5}
+        ],
+        2024:[
+          {date:'12.13.2024',title:'Holiday Noise Directive',venue:'Red Room',city:'Somerville MA',bands:['The Nulls','After Arc','Silver Choir'],count:4},
+          {date:'09.19.2024',title:'Blackbox Signal',venue:'The Grid',city:'Providence RI',bands:['Monolith Kid','Bright Static','Hollow Pilot'],count:3},
+          {date:'04.06.2024',title:'Spring Load-In',venue:'Union Hall',city:'New Bedford MA',bands:['Westward Wire','Coda Frame','Minor Atlas'],count:3}
+        ],
+        2023:[
+          {date:'10.28.2023',title:'Haunted Frequency',venue:'Crypt Stage',city:'Salem MA',bands:['Grave Neon','Dead Channel','Blue Knife'],count:4},
+          {date:'07.15.2023',title:'Heatwave Archive',venue:'Mill Room',city:'Worcester MA',bands:['Summer Teeth','Gold Relay','Park Static'],count:3},
+          {date:'03.11.2023',title:'Basement Transmission',venue:'Cellar 9',city:'Boston MA',bands:['Low Signal','The Ground Wire','Temple Fade'],count:3}
+        ],
+        2022:[
+          {date:'12.02.2022',title:'December Soundcheck',venue:'East Bay Club',city:'Providence RI',bands:['Snowline','The Receivers','Wiretap Sunday'],count:3},
+          {date:'06.18.2022',title:'Long Light Session',venue:'The Alley',city:'Cambridge MA',bands:['Solar Noon','Black Pine','Echo Map'],count:3},
+          {date:'02.05.2022',title:'Cold Start Show',venue:'Launch Pad',city:'Portland ME',bands:['Frost Circuit','Page Eleven','Slow Magnet'],count:3}
+        ],
+        2021:[
+          {date:'09.25.2021',title:'Reboot Night',venue:'Side Stage',city:'Boston MA',bands:['Restart Club','The Glitch Kids','Paper Relay'],count:3},
+          {date:'06.12.2021',title:'Signal Returns',venue:'The Annex',city:'Lowell MA',bands:['The Returns','City Static','Noon Frame'],count:3},
+          {date:'03.20.2021',title:'First Light Audio',venue:'Radio Room',city:'Worcester MA',bands:['First Light','Soft Error','Red Arcade'],count:3}
+        ],
+        2020:[{date:'10.10.2020',title:'Distance Signal Session',venue:'Remote Stage',city:'Boston MA',bands:['Static Harbor','The Lockdowns','Signal Blue'],count:3},{date:'02.29.2020',title:'Leap Year Load-In',venue:'The Warehouse',city:'Providence RI',bands:['Odd Calendar','Neon Harbor','Wire Room'],count:3}],
+        2019:[{date:'11.16.2019',title:'Analog Autumn',venue:'The Cellar',city:'Worcester MA',bands:['Analog Heart','Red Method','Night Bloom'],count:3},{date:'06.08.2019',title:'Summer Relay',venue:'Club Wire',city:'Boston MA',bands:['Relay Kids','City Pines','Glass Radio'],count:3}],
+        2018:[{date:'12.01.2018',title:'Winter Circuit',venue:'The Vault',city:'Manchester NH',bands:['Cold Circuit','Heavy Signal','The After Hours'],count:3},{date:'04.14.2018',title:'Spring Static',venue:'Side Door',city:'Lowell MA',bands:['Spring Static','Red Arcade','Midnight Map'],count:3}],
+        2017:[{date:'09.23.2017',title:'Red Room Broadcast',venue:'Red Room',city:'Somerville MA',bands:['Broadcast Delay','Temple Wire','North Channel'],count:3},{date:'03.18.2017',title:'Neon Basement',venue:'Basement Stage',city:'Boston MA',bands:['Neon Basement','Hollow Relay','Tape Echo'],count:3}],
+        2016:[{date:'10.01.2016',title:'October Frequency',venue:'Mill Room',city:'Worcester MA',bands:['October Lines','Low Orbit','Crimson Static'],count:3},{date:'05.21.2016',title:'Launch Night Archive',venue:'Launch Pad',city:'Portland ME',bands:['Launch Night','The Receiver','Blue Frame'],count:3}],
+        2015:[{date:'08.15.2015',title:'Heatline Showcase',venue:'Union Hall',city:'New Bedford MA',bands:['Heatline','Paper Crown','Deep Violet'],count:3},{date:'02.07.2015',title:'Cold Wire Bill',venue:'The Annex',city:'Lowell MA',bands:['Cold Wire','Slow Magnet','The Nulls'],count:3}],
+        2014:[{date:'11.22.2014',title:'Archive Night Fourteen',venue:'North End Stage',city:'Boston MA',bands:['Archive Night','Coda Frame','Silver Choir'],count:3},{date:'06.28.2014',title:'Long Light Audio',venue:'East Bay Club',city:'Providence RI',bands:['Long Light','Solar Noon','Minor Atlas'],count:3}],
+        2013:[{date:'09.07.2013',title:'Transmission Thirteen',venue:'The Grid',city:'Providence RI',bands:['Transmission 13','City Static','Frame Shift'],count:3},{date:'01.26.2013',title:'Black Ice Show',venue:'The Signal Room',city:'Providence RI',bands:['Black Ice','Low Signal','Westward Wire'],count:3}],
+        2012:[{date:'12.08.2012',title:'December Relay',venue:'Warehouse 12',city:'Lowell MA',bands:['December Relay','Soft Error','Gold Relay'],count:3},{date:'05.05.2012',title:'Cinco Circuit',venue:'The Alley',city:'Cambridge MA',bands:['Cinco Circuit','Echo Map','Glass Circuit'],count:3}],
+        2011:[{date:'10.29.2011',title:'Halloween Load-Out',venue:'Crypt Stage',city:'Salem MA',bands:['Dead Channel','Grave Neon','Blue Knife'],count:3},{date:'03.12.2011',title:'Redline Eleven',venue:'The Archive Hall',city:'Worcester MA',bands:['Redline Eleven','After Arc','Night Relay'],count:3}],
+        2010:[{date:'07.17.2010',title:'Summer Wireframe',venue:'Side Stage',city:'Boston MA',bands:['Wireframe','The Ground Wire','Violet Current'],count:3},{date:'01.30.2010',title:'Cold Start Ten',venue:'Radio Room',city:'Worcester MA',bands:['Cold Vector','Restart Club','Page Eleven'],count:3}],
+        2009:[{date:'09.19.2009',title:'First Archive Signal',venue:'The Cellar',city:'Boston MA',bands:['First Signal','The Afterimage','Monolith Kid'],count:3},{date:'04.04.2009',title:'Basement Origin',venue:'Basement Stage',city:'Boston MA',bands:['Basement Origin','Chrome Teeth','Static Bloom'],count:3}]
+      };
+
+      // Preserve the built-in fallback years so the compact year rail remains clickable even
+      // when the live endpoint omits a year or wakes up with partial data.
+      const DEMO_SHOWS_BY_YEAR = JSON.parse(JSON.stringify(showsByYear));
+
+      const LIVE_SHOWS_ENDPOINT = 'https://music-archive-3lfa.onrender.com/index/shows';
+
+      function liveText(value){
+        return String(value == null ? '' : value).trim();
+      }
+
+      function decodeTitleEntities(value){
+        let s = liveText(value);
+        if (!s) return '';
+
+        // Normalize the title before rendering. This catches raw entities,
+        // double-escaped entities, and visible numeric-entity fragments.
+        for (let i = 0; i < 4; i++) {
+          const manual = s
+            .replace(/&amp;#(0*39|0*039);/gi, "'")
+            .replace(/&amp;#x0*27;/gi, "'")
+            .replace(/&#(0*39|0*039);/gi, "'")
+            .replace(/&#x0*27;/gi, "'")
+            .replace(/&apos;/gi, "'")
+            .replace(/&lsquo;|&rsquo;/gi, "'")
+            .replace(/&ldquo;|&rdquo;|&quot;/gi, '"')
+            .replace(/&amp;/gi, '&');
+
+          let decoded = manual;
+          try {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = manual;
+            decoded = textarea.value || manual;
+          } catch (_) {}
+
+          if (decoded === s) break;
+          s = decoded;
+        }
+
+        return s
+          .replace(/[\u2018\u2019\u201B\u2032`]/g, "'")
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function normalizeShowTitle(value){
+        return decodeTitleEntities(value)
+          // Defensive repair for broken apostrophe forms seen in the UI/data render path.
+          .replace(/([A-Za-z])\s*(?:39|27)\s*s\b/gi, "$1's")
+          .replace(/([A-Za-z])\s+['’]\s*s\b/g, "$1's")
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function escapeHtml(value){
+        return liveText(value).replace(/[&<>"']/g, function(ch){
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+        });
+      }
+
+      function escapeAttr(value){
+        return escapeHtml(value).replace(/`/g, '&#96;');
+      }
+
+      function formatShowTitle(value){
+        // Render the title as one normalized text run so numbers, apostrophes,
+        // ampersands, ordinals, and symbols all share the same title font path
+        // and the existing fit/stretch measurement sees the true title width.
+        return escapeHtml(normalizeShowTitle(value));
+      }
+
+      function parseShowYear(show){
+        const pretty = liveText(show.pretty_date || show.show_date || show.date);
+        const prettyYear = pretty.match(/\b(20\d{2}|19\d{2})\b/);
+        if (prettyYear) return prettyYear[1];
+
+        const raw = liveText(show.show_date || show.date);
+        const parts = raw.split(/[\/\-.]/).map(function(p){ return p.trim(); }).filter(Boolean);
+        if (parts.length >= 3) {
+          let y = parts[2];
+          if (y.length === 2) y = String(Number(y) >= 70 ? '19' + y : '20' + y);
+          if (/^\d{4}$/.test(y)) return y;
+        }
+
+        return '';
+      }
+
+      function dateSortValue(value){
+        const s = liveText(value);
+        if (!s) return 0;
+
+        // ISO / browser-parsable fallback first.
+        const direct = Date.parse(s.replace(/\b(\d{1,2})(st|nd|rd|th)\b/gi, '$1'));
+        if (Number.isFinite(direct)) return direct;
+
+        // MM/DD/YYYY, MM/DD/YY, MM-DD-YYYY, MM.DD.YY
+        let m = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/);
+        if (m) {
+          const mm = Number(m[1]);
+          const dd = Number(m[2]);
+          let yy = Number(m[3]);
+          if (yy < 100) yy = yy >= 70 ? 1900 + yy : 2000 + yy;
+          const d = new Date(yy, mm - 1, dd).getTime();
+          return Number.isFinite(d) ? d : 0;
+        }
+
+        // Month name D, YYYY
+        m = s.replace(/\b(\d{1,2})(st|nd|rd|th)\b/gi, '$1').match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(20\d{2}|19\d{2})\b/i);
+        if (m) {
+          const monthNames = {
+            jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,
+            jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,
+            oct:9,october:9,nov:10,november:10,dec:11,december:11
+          };
+          const month = monthNames[String(m[1]).toLowerCase()];
+          const dd = Number(m[2]);
+          const yy = Number(m[3]);
+          const d = new Date(yy, month, dd).getTime();
+          return Number.isFinite(d) ? d : 0;
+        }
+
+        return 0;
+      }
+
+      function latestFirst(a,b){
+        const av = dateSortValue(a.rawDate || a.date);
+        const bv = dateSortValue(b.rawDate || b.date);
+        if (bv !== av) return bv - av;
+        return String(b.date || '').localeCompare(String(a.date || ''));
+      }
+
+      function normalizeLiveShow(show){
+        const bands = [];
+        for (let i = 1; i <= 20; i++) {
+          const b = liveText(show['band_' + i]);
+          if (b) bands.push(b);
+        }
+
+        const city = liveText(show.show_city || show.city);
+        const state = liveText(show.show_state || show.state);
+        const location = [city, state].filter(Boolean).join(', ');
+
+        return {
+          date: liveText(show.pretty_date || show.show_date || show.date),
+          rawDate: liveText(show.show_date || show.date || show.pretty_date),
+          title: normalizeShowTitle(show.show_name || show.title || 'Untitled Show'),
+          venue: liveText(show.show_venue || show.venue || 'Venue TBA'),
+          city: location || 'Location TBA',
+          bands: bands.length ? bands : ['Lineup TBA'],
+          count: bands.length || 0,
+          poster: liveText(show.poster_url || show.show_url),
+          url: liveText(show.show_url || show.poster_url),
+          desc: liveText(show.show_desc)
+        };
+      }
+
+      function groupLiveShows(payload){
+        const rows = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.shows) ? payload.shows : []);
+        const grouped = {};
+
+        rows.forEach(function(row){
+          const y = parseShowYear(row);
+          if (!y) return;
+          const n = Number(y);
+          if (!Number.isFinite(n) || n < 2009 || n > 2026) return;
+          if (!grouped[y]) grouped[y] = [];
+          grouped[y].push(normalizeLiveShow(row));
+        });
+
+        Object.keys(grouped).forEach(function(y){
+          grouped[y].sort(latestFirst);
+        });
+
+        return grouped;
+      }
+
+      function setLiveDataFlag(mode, text){
+        const flag = document.getElementById('liveDataFlag');
+        if (!flag) return;
+        flag.textContent = text || (mode === 'live' ? 'Live Data' : 'Demo Data');
+        flag.classList.toggle('isFallback', mode !== 'live');
+      }
+
+      async function loadLiveShows(){
+        setLiveDataFlag('fallback','Loading Live Data');
+        try{
+          const res = await fetch(LIVE_SHOWS_ENDPOINT, { cache:'no-store' });
+          if (!res.ok) throw new Error('Live shows returned HTTP ' + res.status);
+          const payload = await res.json();
+          const grouped = groupLiveShows(payload);
+
+          if (!grouped || !Object.keys(grouped).length) {
+            throw new Error('Live shows payload had no usable years');
+          }
+
+          // Merge live data over the demo fallback instead of replacing it.
+          // This keeps years like 2024/2025 navigable on desktop while still showing live rows when available.
+          showsByYear = Object.assign({}, DEMO_SHOWS_BY_YEAR, grouped);
+
+          const yearsWithData = Object.keys(showsByYear).sort(function(a,b){ return Number(b) - Number(a); });
+          if (yearsWithData.length) {
+            const preferred = showsByYear[year] ? year : yearsWithData[0];
+            year = String(preferred);
+            index = 0;
+
+            document.querySelectorAll('.yearBtn').forEach(function(btn){
+              const btnYear = String(btn.dataset.year || '').trim();
+              const hasData = !!showsByYear[btnYear];
+              btn.disabled = !hasData;
+              btn.classList.toggle('hasData', hasData);
+              btn.classList.toggle('active', btnYear === year);
+            });
+
+            renderDeck();
+            const zone = getCarouselZone ? getCarouselZone() : document.querySelector('.carouselZone');
+            if (zone) zone.classList.remove('is-year-data-out','is-year-data-in');
+            setLiveDataFlag('live','Live Data');
+            try {
+              window.dispatchEvent(new CustomEvent('vmShowsLiveDataLoaded', { detail:{ years:yearsWithData } }));
+            } catch (_) {}
+          }
+        }catch(err){
+          console.warn('[shows rolodex] Live data unavailable; using demo fallback.', err);
+          setLiveDataFlag('fallback','Demo Data');
+        }
+      }
+
+      const deck=document.getElementById('deck');
+
+      
+      function runCardLockPulse(dir){
+        try{
+          const zone = document.querySelector('.carouselZone');
+          if (!zone) return;
+          zone.classList.remove('is-card-locking','nav-dir-next','nav-dir-prev');
+          if (dir === 'next') zone.classList.add('nav-dir-next');
+          if (dir === 'prev') zone.classList.add('nav-dir-prev');
+          void zone.offsetWidth;
+          zone.classList.add('is-card-locking');
+          window.clearTimeout(zone._cardLockTimer);
+          zone._cardLockTimer = window.setTimeout(function(){
+            zone.classList.remove('is-card-locking','nav-dir-next','nav-dir-prev');
+          }, 680);
+        }catch(_){}
+      }
+
+      function runYearLockPulse(){
+        try{
+          const y = document.querySelector('.years.yearDeck');
+          if (!y) return;
+          y.classList.remove('is-year-locking');
+          void y.offsetWidth;
+          y.classList.add('is-year-locking');
+          window.clearTimeout(y._yearLockTimer);
+          y._yearLockTimer = window.setTimeout(function(){
+            y.classList.remove('is-year-locking');
+          }, 700);
+        }catch(_){}
+      }
+
+      function runCardShutter(){
+        try{
+          const zone = document.querySelector('.carouselZone');
+          if (!zone) return;
+          zone.classList.remove('is-shuttering');
+          void zone.offsetWidth;
+          zone.classList.add('is-shuttering');
+          window.clearTimeout(zone._shutterTimer);
+          zone._shutterTimer = window.setTimeout(function(){
+            zone.classList.remove('is-shuttering');
+          }, 620);
+        }catch(_){}
+      }
+
+      const detail = null; // Detail Feed removed
+      const statShows = null; // Stats boxes removed
+      const statYear = null; // Stats boxes removed
+      const statIndex = null; // Stats boxes removed
+      const statBands = null; // Stats boxes removed
+
+      const detailDate = null; // Detail Feed removed
+      const detailTitle = null; // Detail Feed removed
+      const detailBody = null; // Detail Feed removed
+
+      let year='2026';
+      let index=0;
+      let cards=[];
+      let shouldRunCardShutter=false;
+      let pendingNavDir='';
+      let shouldRunYearPulse=false;
+
+      let yearDataTransitionBusy=false;
+      let pendingYearTransition=null;
+
+      function getCarouselZone(){
+        return document.querySelector('.carouselZone');
+      }
+
+      function setDeckTransitionDir(nextYear){
+        const zone=getCarouselZone();
+        if(!zone)return;
+        const oldNum=Number(year);
+        const newNum=Number(nextYear);
+        const dir=(Number.isFinite(oldNum)&&Number.isFinite(newNum)&&newNum<oldNum)?1:-1;
+        zone.style.setProperty('--deck-transition-dir',String(dir));
+      }
+
+      function transitionYearTo(nextYear, activeBtn){
+        nextYear=String(nextYear||year);
+        if(nextYear===String(year) && !yearDataTransitionBusy){
+          if(activeBtn){
+            document.querySelectorAll('.yearBtn').forEach(b=>b.classList.remove('active'));
+            activeBtn.classList.add('active');
+          }
+          return;
+        }
+
+        if(yearDataTransitionBusy){
+          pendingYearTransition={year:nextYear,btn:activeBtn||null};
+          return;
+        }
+
+        const zone=getCarouselZone();
+        if(!zone){
+          year=nextYear;
+          index=0;
+          renderDeck();
+          return;
+        }
+
+        yearDataTransitionBusy=true;
+        setDeckTransitionDir(nextYear);
+
+        if(activeBtn){
+          document.querySelectorAll('.yearBtn').forEach(b=>b.classList.remove('active'));
+          activeBtn.classList.add('active');
+          try{activeBtn.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}catch(_){activeBtn.scrollIntoView(false);}
+        }
+
+        zone.classList.remove('is-year-data-in','is-year-data-out');
+        void zone.offsetWidth;
+        zone.classList.add('is-year-data-out');
+
+        window.setTimeout(()=>{
+          year=nextYear;
+          index=0;
+          renderDeck();
+
+          zone.classList.remove('is-year-data-out');
+          void zone.offsetWidth;
+          zone.classList.add('is-year-data-in');
+
+          window.setTimeout(()=>{
+            zone.classList.remove('is-year-data-in');
+            yearDataTransitionBusy=false;
+
+            if(pendingYearTransition && pendingYearTransition.year!==String(year)){
+              const p=pendingYearTransition;
+              pendingYearTransition=null;
+              transitionYearTo(p.year,p.btn);
+            }else{
+              pendingYearTransition=null;
+            }
+          },430);
+        },210);
+      }
+
+
+      const yearDeck=document.querySelector('.yearDeck');
+      const yearReadoutLabel=document.getElementById('yearReadoutLabel');
+      const yearAllToggle=document.getElementById('yearAllToggle');
+      const yearPrev=document.getElementById('yearPrev');
+      const yearNext=document.getElementById('yearNext');
+      const YEAR_LIST=Object.keys(showsByYear).map(Number).sort((a,b)=>b-a);
+
+      let yearShuffleTimer=null;
+
+      function syncYearControl(){
+        const currentNumber=Number(year);
+        const currentIndex=YEAR_LIST.indexOf(currentNumber);
+        document.querySelectorAll('.yearBtn').forEach((b)=>{
+          const btnYear=Number(b.dataset.year);
+          const btnIndex=YEAR_LIST.indexOf(btnYear);
+          const delta=(btnIndex>=0&&currentIndex>=0)?btnIndex-currentIndex:99;
+          b.classList.toggle('active',String(btnYear)===String(year));
+          b.classList.toggle('year-near',Math.abs(delta)===1);
+          b.classList.toggle('year-far',Math.abs(delta)>2);
+          b.classList.toggle('year-prev',delta===1);
+          b.classList.toggle('year-next',delta===-1);
+          b.classList.toggle('year-distant-left',delta>1&&delta<=2);
+          b.classList.toggle('year-distant-right',delta<-1&&delta>=-2);
+        });
+        if(yearReadoutLabel)yearReadoutLabel.textContent=String(year);
+      }
+
+      function runYearShuffle(dir){
+        if(!yearDeck)return;
+        if(yearShuffleTimer)window.clearTimeout(yearShuffleTimer);
+        yearDeck.classList.remove('isYearShuffle');
+        yearDeck.dataset.dir=dir||'jump';
+        void yearDeck.offsetWidth;
+        yearDeck.classList.add('isYearShuffle');
+        yearShuffleTimer=window.setTimeout(()=>{
+          yearDeck.classList.remove('isYearShuffle');
+          yearDeck.dataset.dir='';
+        },480);
+      }
+
+      function setYear(nextYear){
+        const v=String(nextYear);
+        if(!showsByYear[v])return;
+        const oldIndex=YEAR_LIST.indexOf(Number(year));
+        const newIndex=YEAR_LIST.indexOf(Number(v));
+        let dir='jump';
+        if(newIndex>oldIndex)dir='next';
+        if(newIndex<oldIndex)dir='prev';
+        year=v;
+        index=0;
+        syncYearControl();
+        runYearShuffle(dir);
+        renderDeck();
+      }
+
+      function stepYear(delta){
+        const currentIndex=YEAR_LIST.indexOf(Number(year));
+        const nextIndex=Math.max(0,Math.min(YEAR_LIST.length-1,currentIndex+delta));
+        setYear(YEAR_LIST[nextIndex]);
+      }
+
+      function setViewportHeight(){
+        const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||document.documentElement.clientHeight;
+        document.documentElement.style.setProperty('--vh',(h*.01)+'px');
+      }
+
+      function renderDeck(){
+        const shows=showsByYear[year]||[];
+        if(!shows.length){deck.innerHTML='<article class="card active"><div class="date">'+year+'</div><div><div class="title">No Shows Loaded</div></div><div class="meta"><span>Archive slot reserved</span><span>Add show data later</span></div></article>';cards=Array.from(deck.querySelectorAll('.card'));update();return;}
+        deck.innerHTML=shows.map((show,i)=>{
+          const poster = liveText(show.poster || '');
+          const posterStyle = poster ? ` style="--poster-img:url('${escapeAttr(poster)}')"` : '';
+          return `
+          <article class="card" data-i="${i}">
+            <div class="date"><span>${escapeHtml(show.date)}</span></div>
+            <div>
+              <div class="titleWrap"><div class="title" title="${escapeAttr(normalizeShowTitle(show.title))}" aria-label="${escapeAttr(normalizeShowTitle(show.title))}">${formatShowTitle(show.title)}</div></div>
+              <div class="titleMark"></div>
+              <div class="desc">${escapeHtml(show.desc || 'A night of heavy soundscapes, archive energy, and live-show momentum.')}</div>
+            </div>
+            <div class="posterGlow${poster ? ' hasPoster' : ''}"${posterStyle} aria-hidden="true"></div>
+            <div class="meta">
+              <div class="locationLine" title="${escapeAttr(show.venue)} • ${escapeAttr(show.city)}" aria-label="${escapeAttr(show.venue)} • ${escapeAttr(show.city)}">
+                <span class="pinIcon" aria-hidden="true"></span>
+                <span class="locationText">
+                  <span class="venueName">${escapeHtml(show.venue)}</span>
+                  <span class="locSep" aria-hidden="true"></span>
+                  <span class="cityState">${escapeHtml(show.city)}</span>
+                </span>
+              </div>
+            </div>
+          </article>`;
+        }).join('');
+        cards=Array.from(deck.querySelectorAll('.card'));
+        deck.classList.toggle('hasSingleShow', shows.length <= 1);
+        shouldRunCardShutter=true;
+        update();
+      }
+
+      function update(){
+        const shows=showsByYear[year]||[];
+        if(!shows.length)return;
+        index=(index+shows.length)%shows.length;
+        cards.forEach((card,i)=>{
+          card.className='card hidden';
+          if(i===index){
+            card.className='card active';
+          }else if(shows.length > 2 && i===(index-1+shows.length)%shows.length){
+            card.className='card prev';
+          }else if(shows.length > 1 && i===(index+1)%shows.length){
+            card.className='card next';
+          }
+        });
+        const active=shows[index];
+        if(statShows) statShows.textContent=String(shows.length).padStart(2,'0');
+        if(statYear) statYear.textContent=year;
+        if(statIndex) statIndex.textContent=String(index+1).padStart(2,'0');
+        if(statBands) statBands.textContent=shows.reduce((n,s)=>n+(s.count||0),0);
+        if(detailDate) detailDate.textContent=active.date;
+        if(detailTitle) detailTitle.textContent=normalizeShowTitle(active.title);
+        if(detailBody) detailBody.innerHTML=`<p><strong>Venue:</strong> ${escapeHtml(active.venue)}<br><strong>Location:</strong> ${escapeHtml(active.city)}</p><p><strong>Bill:</strong><br>${(active.bands || []).map(escapeHtml).join('<br>')}</p>${active.desc ? `<p>${escapeHtml(active.desc)}</p>` : '<p>Live archive data is loaded without changing the rolodex layout.</p>'}`;
+        if(shouldRunCardShutter){
+          shouldRunCardShutter=false;
+          runCardShutter();
+          runCardLockPulse(pendingNavDir || '');
+          pendingNavDir='';
+        }
+        if(shouldRunYearPulse){
+          shouldRunYearPulse=false;
+          runYearLockPulse();
+        }
+      }
+
+      document.querySelector('.prevBtn').addEventListener('click',()=>{index--;update();});
+      document.querySelector('.nextBtn').addEventListener('click',()=>{index++;update();});
+      document.querySelectorAll('.yearBtn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          setYear(btn.dataset.year);
+          if(yearDeck)yearDeck.classList.remove('yearsOpen');
+          if(yearAllToggle){yearAllToggle.setAttribute('aria-expanded','false');yearAllToggle.textContent='All Years';}
+        });
+      });
+      if(yearPrev)yearPrev.addEventListener('click',()=>stepYear(-1));
+      if(yearNext)yearNext.addEventListener('click',()=>stepYear(1));
+      if(yearAllToggle)yearAllToggle.addEventListener('click',()=>{
+        const open=!(yearDeck&&yearDeck.classList.contains('yearsOpen'));
+        if(yearDeck)yearDeck.classList.toggle('yearsOpen',open);
+        yearAllToggle.setAttribute('aria-expanded',open?'true':'false');
+        yearAllToggle.textContent=open?'Close Years':'All Years';
+      });
+      document.addEventListener('click',(e)=>{
+        if(!yearDeck||!yearDeck.classList.contains('yearsOpen'))return;
+        if(yearDeck.contains(e.target))return;
+        yearDeck.classList.remove('yearsOpen');
+        if(yearAllToggle){yearAllToggle.setAttribute('aria-expanded','false');yearAllToggle.textContent='All Years';}
+      });
+      // Detail Feed removed: no detailToggle click binding.
+      // Detail Feed removed: no closeDetails click binding.
+
+      window.addEventListener('keydown',e=>{
+        if(e.key==='ArrowLeft'){index--;update();}
+        if(e.key==='ArrowRight'){index++;update();}
+        if(e.key==='Escape'){detail.classList.remove('open');detail.setAttribute('aria-hidden','true');}
+      });
+      window.addEventListener('resize',setViewportHeight,{passive:true});
+      window.addEventListener('orientationchange',setViewportHeight,{passive:true});
+      if(window.visualViewport)window.visualViewport.addEventListener('resize',setViewportHeight,{passive:true});
+      setViewportHeight();
+      syncYearControl();
+      renderDeck();
+      loadLiveShows();
+    })();
+  </script>
+
+
+<script>
+(function(){
+  'use strict';
+
+  function qs(sel, root){ return (root || document).querySelector(sel); }
+  function qsa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  function yearButtons(){
+    return qsa('.yearBtn').filter(function(el){
+      return el && el.getAttribute && el.getAttribute('data-year');
+    });
+  }
+
+  function currentYear(){
+    var active = qs('.yearBtn.active, .yearBtn.is-active');
+    if (active) return String(active.getAttribute('data-year') || active.textContent || '').trim();
+    var first = yearButtons()[0];
+    return first ? String(first.getAttribute('data-year') || first.textContent || '').trim() : '2026';
+  }
+
+  function clickYear(y){
+    var btn = yearButtons().find(function(b){
+      return String(b.getAttribute('data-year') || b.textContent || '').trim() === String(y);
+    });
+    if (btn) btn.click();
+  }
+
+  function allYears(){
+    return yearButtons().map(function(b){
+      return String(b.getAttribute('data-year') || b.textContent || '').trim();
+    }).filter(Boolean).sort(function(a,b){ return Number(b) - Number(a); });
+  }
+
+  function digitHTML(year){
+    return String(year).split('').map(function(ch, i){
+      return '<span class="yearDigit" style="--digit-i:' + i + '">' + ch + '</span>';
+    }).join('');
+  }
+
+  function ensureUnifiedYearControl(){
+    var existing = qs('.yearUnifiedControl');
+    if (existing) return existing;
+
+    var host =
+      qs('.yearControlInner') ||
+      qs('.yearControlWrap') ||
+      qs('.years') ||
+      qs('.archiveYearControl') ||
+      qs('.year-section');
+
+    if (!host) return null;
+
+    var yr = currentYear();
+    var wrap = document.createElement('div');
+    wrap.className = 'yearUnifiedControl yearControlInner';
+    wrap.innerHTML =
+      '<div class="yearRangeLabel">2009 — 2026</div>' +
+      '<div class="yearRowMain">' +
+        '<button type="button" class="yearArrow yearPrev" aria-label="Previous year">‹</button>' +
+        '<div class="yearLabelBig" aria-live="polite">' + digitHTML(yr) + '</div>' +
+        '<button type="button" class="yearArrow yearNext" aria-label="Next year">›</button>' +
+      '</div>' +
+      '<button type="button" class="allYearsBtn">ALL YEARS</button>';
+
+    try {
+      Array.prototype.slice.call(host.children).forEach(function(child){
+        if (child !== wrap) child.classList.add('yearOriginalHidden');
+      });
+    } catch (_) {}
+    host.appendChild(wrap);
+
+    var listOpen = false;
+    var allBtn = qs('.allYearsBtn', wrap);
+    var display = qs('.yearLabelBig', wrap);
+    var lastYear = yr;
+
+    function pulseDigits(direction){
+      if (!display) return;
+      display.classList.remove('is-year-next', 'is-year-prev', 'is-digit-pulse');
+      void display.offsetWidth;
+      display.classList.add(direction > 0 ? 'is-year-next' : 'is-year-prev');
+      display.classList.add('is-digit-pulse');
+      window.setTimeout(function(){
+        display.classList.remove('is-year-next', 'is-year-prev', 'is-digit-pulse');
+      }, 390);
+    }
+
+    function sync(direction){
+      var y = currentYear();
+      if (display && y !== lastYear) {
+        display.innerHTML = digitHTML(y);
+        pulseDigits(direction || (Number(y) < Number(lastYear) ? 1 : -1));
+        lastYear = y;
+      } else if (display && !display.querySelector('.yearDigit')) {
+        display.innerHTML = digitHTML(y);
+      }
+    }
+
+    var yearTransitionBusy = false;
+
+    function shift(dir){
+      if (yearTransitionBusy) return;
+      yearTransitionBusy = true;
+
+      var years = allYears();
+      var cur = currentYear();
+      var i = years.indexOf(cur);
+      if (i < 0) i = 0;
+      var next = years[(i + dir + years.length) % years.length];
+
+      var arrow = dir > 0 ? qs('.yearNext', wrap) : qs('.yearPrev', wrap);
+      if (arrow) {
+        arrow.classList.remove('is-tap');
+        void arrow.offsetWidth;
+        arrow.classList.add('is-tap');
+        window.setTimeout(function(){ arrow.classList.remove('is-tap'); }, 230);
+      }
+
+      wrap.style.setProperty('--year-click-dir', dir > 0 ? '1' : '-1');
+      wrap.style.setProperty('--year-shift', dir > 0 ? '10px' : '-10px');
+      wrap.classList.remove('is-shuffling');
+      wrap.classList.add('is-year-transitioning');
+
+      if (display) {
+        display.classList.remove('is-year-compress','is-year-pop','is-year-next','is-year-prev','is-digit-pulse');
+        void display.offsetWidth;
+        display.classList.add('is-year-compress');
+      }
+
+      window.setTimeout(function(){
+        clickYear(next);
+
+        if (display) {
+          display.innerHTML = digitHTML(next);
+          lastYear = String(next);
+          display.classList.remove('is-year-compress','is-year-next','is-year-prev','is-digit-pulse');
+          void display.offsetWidth;
+          display.classList.add('is-year-pop');
+        }
+
+        wrap.classList.add('is-shuffling');
+      }, 150);
+
+      window.setTimeout(function(){
+        if (display) display.classList.remove('is-year-pop');
+        wrap.classList.remove('is-shuffling','is-year-transitioning');
+        sync(0);
+        yearTransitionBusy = false;
+      }, 455);
+    }
+
+    qs('.yearPrev', wrap).addEventListener('click', function(){ shift(-1); });
+    qs('.yearNext', wrap).addEventListener('click', function(){ shift(1); });
+
+    allBtn.addEventListener('click', function(){
+      listOpen = !listOpen;
+      var existingList = qs('.yearUnifiedList', wrap);
+      if (existingList) existingList.remove();
+      if (!listOpen) return;
+
+      var list = document.createElement('div');
+      list.className = 'yearUnifiedList';
+      list.style.cssText = 'display:flex;flex-wrap:wrap;justify-content:center;gap:7px;width:min(520px,92vw);margin:2px auto 0;';
+      allYears().forEach(function(y, idx){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = y;
+        b.setAttribute('data-year-choice', y);
+        b.style.cssText = 'appearance:none;border:1px solid rgba(255,80,96,.28);background:rgba(0,0,0,.24);color:rgba(255,245,250,.80);border-radius:999px;padding:6px 10px;font:800 10px/1 Orbitron,system-ui,sans-serif;letter-spacing:.10em;cursor:pointer;animation-delay:' + (idx * 18) + 'ms;';
+        if (y === currentYear()) {
+          b.style.borderColor = 'rgba(255,80,96,.72)';
+          b.style.boxShadow = '0 0 14px rgba(255,47,70,.18)';
+        }
+        b.addEventListener('click', function(){
+          var old = currentYear();
+          var dir = Number(y) < Number(old) ? 1 : -1;
+          wrap.style.setProperty('--year-click-dir', dir > 0 ? '1' : '-1');
+          wrap.classList.add('is-year-transitioning');
+
+          if (display) {
+            display.classList.remove('is-year-compress','is-year-pop','is-year-next','is-year-prev','is-digit-pulse');
+            void display.offsetWidth;
+            display.classList.add('is-year-compress');
+          }
+
+          window.setTimeout(function(){
+            clickYear(y);
+            if (display) {
+              display.innerHTML = digitHTML(y);
+              lastYear = String(y);
+              display.classList.remove('is-year-compress');
+              void display.offsetWidth;
+              display.classList.add('is-year-pop');
+            }
+          }, 150);
+
+          window.setTimeout(function(){
+            if (display) display.classList.remove('is-year-pop');
+            wrap.classList.remove('is-year-transitioning');
+            sync(0);
+          }, 455);
+
+          listOpen = false;
+          list.remove();
+        });
+        list.appendChild(b);
+      });
+      wrap.appendChild(list);
+    });
+
+    document.addEventListener('click', function(e){
+      if (!wrap.contains(e.target)) {
+        var l = qs('.yearUnifiedList', wrap);
+        if (l) l.remove();
+        listOpen = false;
+      }
+    });
+
+    window.addEventListener('vmShowsLiveDataLoaded', function(){ sync(0); });
+    window.setInterval(function(){ sync(0); }, 500);
+    sync(0);
+    return wrap;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureUnifiedYearControl);
+  } else {
+    ensureUnifiedYearControl();
+  }
+})();
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+(function(){
+  function fitTitle(el){
+    if(!el) return;
+    const parent = el.closest('.titleWrap') || el.parentElement;
+    const card = el.closest('.card');
+    if(!parent || !card) return;
+
+    // Mobile reference pass: center and balance across lines instead of squeezing.
+    if (window.matchMedia && window.matchMedia('(max-width: 600px)').matches) {
+      el.style.fontSize = '';
+      el.style.whiteSpace = 'normal';
+      el.style.width = '100%';
+      el.style.maxWidth = '100%';
+      el.style.transform = 'none';
+      el.style.textAlign = 'center';
+      el.style.setProperty('--title-letter-spacing', '.035em');
+      return;
+    }
+
+    // Desktop/tablet: one-line fitted title inside the 10px left/right safe zone.
+    const available = Math.max(90, parent.clientWidth || card.clientWidth || 280);
+
+    el.style.fontSize = '19px';
+    el.style.whiteSpace = 'nowrap';
+    el.style.width = 'max-content';
+    el.style.maxWidth = 'none';
+    el.style.transform = 'none';
+    el.style.textAlign = 'center';
+    el.style.transformOrigin = 'center center';
+    el.style.setProperty('--title-letter-spacing', '.04em');
+
+    const rawWidth = el.scrollWidth || el.getBoundingClientRect().width || 1;
+    const textLen = Math.max(1, (el.textContent || '').trim().length - 1);
+
+    if(rawWidth < available){
+      const extra = Math.min(10, Math.max(0, (available - rawWidth) / textLen));
+      el.style.setProperty('--title-letter-spacing', extra.toFixed(2) + 'px');
+    }
+
+    const spacedWidth = el.scrollWidth || el.getBoundingClientRect().width || 1;
+    if(spacedWidth > available){
+      const scale = Math.max(.74, available / spacedWidth);
+      el.style.transform = 'scaleX(' + scale.toFixed(3) + ')';
+    }
+  }
+
+  function fitAllTitles(){
+    document.querySelectorAll('.card .title').forEach(fitTitle);
+  }
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      setTimeout(fitAllTitles, 0);
+      setTimeout(fitAllTitles, 160);
+    });
+  }
+
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__titleFitTimer);
+    window.__titleFitTimer = setTimeout(fitAllTitles, 80);
+  }, { passive:true });
+
+  const deck = document.getElementById('deck');
+  if(deck && 'MutationObserver' in window){
+    const mo = new MutationObserver(function(){
+      requestAnimationFrame(fitAllTitles);
+      setTimeout(fitAllTitles, 160);
+    });
+    mo.observe(deck, { childList:true, subtree:true, attributes:true, attributeFilter:['class'] });
+  }
+
+  setTimeout(fitAllTitles, 0);
+  setTimeout(fitAllTitles, 250);
+})();
+</script>
+
+
+
+<script>
+(function(){
+  'use strict';
+  function getRail(){ return document.getElementById('yearGrid'); }
+  function getActive(){ return document.querySelector('.yearBtn.active'); }
+  function centerActiveYear(){
+    var rail=getRail(), active=getActive();
+    if(!rail||!active) return;
+    try{ active.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}); }
+    catch(_){ rail.scrollLeft=Math.max(0, active.offsetLeft-(rail.clientWidth/2)+(active.clientWidth/2)); }
+  }
+  function wireRail(){
+    var rail=getRail(); if(!rail||rail.__vmCompactRailWired) return; rail.__vmCompactRailWired=true;
+    var down=false, startX=0, startLeft=0;
+    rail.addEventListener('pointerdown',function(e){
+      // Desktop hotfix: do not pointer-capture clicks that begin on year buttons.
+      // Capturing from the scroll rail can swallow the button click on desktop.
+      if(e.target && e.target.closest && e.target.closest('.yearBtn')) return;
+      down=true;startX=e.clientX;startLeft=rail.scrollLeft;try{rail.setPointerCapture(e.pointerId);}catch(_){}
+    },{passive:true});
+    rail.addEventListener('pointermove',function(e){ if(!down) return; rail.scrollLeft=startLeft-(e.clientX-startX); },{passive:true});
+    function end(e){down=false;try{rail.releasePointerCapture(e.pointerId);}catch(_){}}
+    rail.addEventListener('pointerup',end,{passive:true}); rail.addEventListener('pointercancel',end,{passive:true}); rail.addEventListener('pointerleave',end,{passive:true});
+    rail.addEventListener('wheel',function(e){ if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ rail.scrollLeft += e.deltaY; e.preventDefault(); } },{passive:false});
+  }
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('.yearBtn')){ setTimeout(centerActiveYear,80); setTimeout(centerActiveYear,320); } });
+  window.addEventListener('vmShowsLiveDataLoaded',function(){ setTimeout(centerActiveYear,120); });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){wireRail();centerActiveYear();});
+  else { wireRail(); setTimeout(centerActiveYear,80); }
+})();
+</script>
+
+</body>
+</html>

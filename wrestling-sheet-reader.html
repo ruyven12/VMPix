@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VMPix Wrestling Sheet Reader</title>
+  <title>VMPix New Sheet Bands Index</title>
   <style>
     :root {
       color-scheme: dark;
@@ -197,6 +197,16 @@
       text-align: center;
     }
 
+    .jsonPreview {
+      min-height: 320px;
+      margin: 0;
+      padding: 16px;
+      color: rgba(245, 248, 252, 0.94);
+      font: 12px/1.45 Consolas, "Liberation Mono", Menlo, monospace;
+      white-space: pre;
+      tab-size: 2;
+    }
+
     @media (max-width: 720px) {
       main {
         width: min(100% - 18px, 1180px);
@@ -217,28 +227,28 @@
   <main>
     <section class="topbar">
       <div>
-        <h1>Wrestling Sheet Reader</h1>
-        <p class="lede">Browser-side test reader for a published Google Sheet CSV. It renders the current headers and rows without changing the existing archive app or backend. If Google blocks local browser access, it falls back to a public CORS proxy for this test page.</p>
+        <h1>New Sheet Bands Index</h1>
+        <p class="lede">Backend JSON reader for the new published sheet. The server reads the CSV, normalizes it, and exposes the result here as an index payload.</p>
       </div>
 
       <div class="controls">
-        <input id="csvUrl" type="url" spellcheck="false" aria-label="Published CSV URL" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vR9eB4uyDNgfQ7Jqydfe-nfTM0PJ4PGt85AI7BcIR7k1c708VMcVXnmxK0_0JCHI1ukAQT_B6xp1ntA/pub?gid=0&amp;single=true&amp;output=csv">
-        <button id="loadBtn" type="button">Load Sheet</button>
+        <input id="endpointUrl" type="url" spellcheck="false" aria-label="Backend JSON endpoint" value="https://music-archive-3lfa.onrender.com/index/new-sheet/bands?force=1">
+        <button id="loadBtn" type="button">Load JSON</button>
       </div>
 
       <div class="meta" aria-live="polite">
-        <span class="chip">Rows <strong id="rowCount">0</strong></span>
-        <span class="chip">Columns <strong id="colCount">0</strong></span>
-        <span class="chip">Header <strong id="headerRow">Auto</strong></span>
+        <span class="chip">Count <strong id="rowCount">0</strong></span>
+        <span class="chip">Generated <strong id="generatedAt">None</strong></span>
+        <span class="chip">Payload <strong id="payloadType">Unknown</strong></span>
         <span class="chip">Method <strong id="loadMethod">Ready</strong></span>
       </div>
     </section>
 
-    <div id="status" class="status">Ready to load the published CSV.</div>
+    <div id="status" class="status">Ready to load the backend JSON endpoint.</div>
 
-    <section class="tableShell" aria-label="CSV preview">
+    <section class="tableShell" aria-label="JSON preview">
       <div id="tableMount" class="tableScroll">
-        <div class="empty">No sheet loaded yet.</div>
+        <pre id="jsonMount" class="jsonPreview">No JSON loaded yet.</pre>
       </div>
     </section>
   </main>
@@ -248,13 +258,14 @@
       "use strict";
 
       var els = {
-        input: document.getElementById("csvUrl"),
+        input: document.getElementById("endpointUrl"),
         button: document.getElementById("loadBtn"),
         status: document.getElementById("status"),
         table: document.getElementById("tableMount"),
+        json: document.getElementById("jsonMount"),
         rowCount: document.getElementById("rowCount"),
-        colCount: document.getElementById("colCount"),
-        headerRow: document.getElementById("headerRow"),
+        generatedAt: document.getElementById("generatedAt"),
+        payloadType: document.getElementById("payloadType"),
         loadMethod: document.getElementById("loadMethod")
       };
 
@@ -264,295 +275,102 @@
         else els.status.removeAttribute("data-tone");
       }
 
-      function escapeHtml(value) {
-        return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
-          return {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-          }[ch];
-        });
-      }
-
-      function parseCsv(text) {
-        var rows = [];
-        var row = [];
-        var cell = "";
-        var quoted = false;
-        var source = String(text || "").replace(/^\uFEFF/, "");
-
-        for (var i = 0; i < source.length; i += 1) {
-          var ch = source[i];
-          var next = source[i + 1];
-
-          if (ch === '"') {
-            if (quoted && next === '"') {
-              cell += '"';
-              i += 1;
-            } else {
-              quoted = !quoted;
-            }
-            continue;
-          }
-
-          if (ch === "," && !quoted) {
-            row.push(cell);
-            cell = "";
-            continue;
-          }
-
-          if ((ch === "\n" || ch === "\r") && !quoted) {
-            if (ch === "\r" && next === "\n") i += 1;
-            row.push(cell);
-            if (row.some(function (value) { return String(value || "").trim() !== ""; })) {
-              rows.push(row);
-            }
-            row = [];
-            cell = "";
-            continue;
-          }
-
-          cell += ch;
+      function formatGeneratedAt(value) {
+        var raw = String(value || "").trim();
+        if (!raw) return "None";
+        var dt = new Date(raw);
+        if (Number.isNaN(dt.getTime())) return raw;
+        try {
+          return dt.toLocaleString();
+        } catch (_) {
+          return raw;
         }
-
-        row.push(cell);
-        if (row.some(function (value) { return String(value || "").trim() !== ""; })) rows.push(row);
-
-        return rows;
       }
 
-      function headerScore(row) {
-        var known = {
-          band: true,
-          band_id: true,
-          smug_folder: true,
-          logo_url: true,
-          region: true,
-          location: true,
-          state: true,
-          country: true,
-          members: true,
-          past_members: true,
-          tags: true,
-          status: true,
-          notes: true,
-          archived_sets: true,
-          total_sets: true,
-          show_date: true,
-          show_name: true,
-          show_poster: true,
-          show_venue: true,
-          show_city: true,
-          show_state: true,
-          company: true,
-          name: true,
-          category: true,
-          aliases: true,
-          teams: true
-        };
-        return (Array.isArray(row) ? row : []).reduce(function (score, value) {
-          var key = String(value || "").trim().toLowerCase();
-          if (known[key]) return score + 2;
-          if (/^(match[-_]\d+|part_\d+)[-_](type|stip|title|people|url)$/i.test(key)) return score + 1;
-          return score;
-        }, 0);
-      }
-
-      function findHeaderIndex(rows) {
-        var list = Array.isArray(rows) ? rows : [];
-        var bestIndex = 0;
-        var bestScore = headerScore(list[0]);
-
-        for (var i = 1; i < list.length; i += 1) {
-          var score = headerScore(list[i]);
-          if (score > bestScore) {
-            bestIndex = i;
-            bestScore = score;
+      function getPayloadInfo(data) {
+        var src = data && typeof data === "object" ? data : {};
+        var keys = ["bands", "shows", "people", "items", "results"];
+        for (var i = 0; i < keys.length; i += 1) {
+          var key = keys[i];
+          if (Array.isArray(src[key])) {
+            return { key: key, count: Number(src.count || src[key].length || 0) };
+          }
+          if (src[key] && typeof src[key] === "object") {
+            var groupedCount = Object.keys(src[key]).reduce(function (total, groupKey) {
+              var group = src[key][groupKey];
+              if (Array.isArray(group)) return total + group.length;
+              if (group && typeof group === "object") {
+                if (group.band_id && typeof group.band_id === "object") {
+                  return total + Object.keys(group.band_id).length;
+                }
+                return total + Object.keys(group).length;
+              }
+              return total;
+            }, 0);
+            return { key: key, count: Number(src.count || groupedCount || 0) };
           }
         }
-
-        return bestScore >= 4 ? bestIndex : 0;
+        return { key: "object", count: Number(src.count || 0) };
       }
 
-      function normalizeRows(rows) {
-        var list = Array.isArray(rows) ? rows : [];
-        if (!list.length) return { headers: [], records: [], headerIndex: 0 };
-
-        var headerIndex = findHeaderIndex(list);
-        var headers = (list[headerIndex] || []).map(function (value, index) {
-          var clean = String(value || "").trim();
-          return clean || "Column " + (index + 1);
-        });
-
-        var records = list.slice(headerIndex + 1).map(function (row) {
-          var record = {};
-          headers.forEach(function (header, index) {
-            record[header] = String((row && row[index]) || "").trim();
-          });
-          return record;
-        });
-
-        return { headers: headers, records: records, headerIndex: headerIndex };
+      function renderJson(data) {
+        var info = getPayloadInfo(data);
+        els.rowCount.textContent = String(Number.isFinite(info.count) ? info.count : 0);
+        els.generatedAt.textContent = formatGeneratedAt(data && data.generatedAt);
+        els.payloadType.textContent = info.key;
+        els.json.textContent = JSON.stringify(data || {}, null, 2);
       }
 
-      function renderTable(headers, records, headerIndex) {
-        els.rowCount.textContent = String(records.length);
-        els.colCount.textContent = String(headers.length);
-        els.headerRow.textContent = headers.length ? String((Number(headerIndex) || 0) + 1) : "Auto";
-
-        if (!headers.length) {
-          els.table.innerHTML = '<div class="empty">The sheet loaded, but no columns were found.</div>';
-          return;
+      async function fetchIndexJson(endpointUrl) {
+        var res = await fetch(endpointUrl, {
+          cache: "no-store",
+          headers: { Accept: "application/json" }
+        });
+        var text = await res.text();
+        if (!res.ok) {
+          throw new Error("Endpoint returned HTTP " + res.status + (text ? ": " + text.slice(0, 180) : ""));
         }
-
-        var head = headers.map(function (header) {
-          return "<th>" + escapeHtml(header) + "</th>";
-        }).join("");
-
-        var body = records.map(function (record) {
-          return "<tr>" + headers.map(function (header) {
-            return "<td>" + escapeHtml(record[header]) + "</td>";
-          }).join("") + "</tr>";
-        }).join("");
-
-        els.table.innerHTML = "<table><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table>";
+        try {
+          return JSON.parse(text || "{}");
+        } catch (err) {
+          throw new Error("Endpoint did not return valid JSON.");
+        }
       }
 
-      function getPublishedSheetParts(csvUrl) {
-        var url = new URL(csvUrl);
-        var match = url.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/pub/i);
-        return {
-          id: match ? match[1] : "",
-          gid: url.searchParams.get("gid") || "0"
-        };
-      }
-
-      async function fetchCsvDirect(csvUrl) {
-        var res = await fetch(csvUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("CSV fetch returned HTTP " + res.status);
-        return await res.text();
-      }
-
-      async function fetchCsvViaProxy(csvUrl) {
-        var proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(csvUrl);
-        var res = await fetch(proxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("Proxy CSV fetch returned HTTP " + res.status);
-        return await res.text();
-      }
-
-      function loadViaGviz(csvUrl) {
-        return new Promise(function (resolve, reject) {
-          var parts;
-          try {
-            parts = getPublishedSheetParts(csvUrl);
-          } catch (err) {
-            reject(err);
-            return;
-          }
-
-          if (!parts.id) {
-            reject(new Error("This URL is not a published Google Sheets /d/e/... CSV URL."));
-            return;
-          }
-
-          var callbackName = "__vmPixSheetReader" + Date.now() + Math.floor(Math.random() * 100000);
-          var script = document.createElement("script");
-          var timeout = window.setTimeout(function () {
-            cleanup();
-            reject(new Error("Google Sheets script read timed out."));
-          }, 15000);
-
-          function cleanup() {
-            window.clearTimeout(timeout);
-            try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
-            if (script && script.parentNode) script.parentNode.removeChild(script);
-          }
-
-          window[callbackName] = function (payload) {
-            cleanup();
-            try {
-              var table = payload && payload.table ? payload.table : {};
-              var cols = Array.isArray(table.cols) ? table.cols : [];
-              var rows = Array.isArray(table.rows) ? table.rows : [];
-              var headers = cols.map(function (col, index) {
-                return String((col && (col.label || col.id)) || "").trim() || "Column " + (index + 1);
-              });
-              var parsed = rows.map(function (row) {
-                var cells = Array.isArray(row && row.c) ? row.c : [];
-                return headers.map(function (_, index) {
-                  var cell = cells[index] || {};
-                  if (cell.f != null) return String(cell.f);
-                  if (cell.v != null) return String(cell.v);
-                  return "";
-                });
-              });
-              resolve([headers].concat(parsed));
-            } catch (err) {
-              reject(err);
-            }
-          };
-
-          var params = new URLSearchParams();
-          params.set("gid", parts.gid);
-          params.set("tqx", "out:json;responseHandler:" + callbackName);
-          script.onerror = function () {
-            cleanup();
-            reject(new Error("Google Sheets script read failed."));
-          };
-          script.src = "https://docs.google.com/spreadsheets/d/e/" + encodeURIComponent(parts.id) + "/gviz/tq?" + params.toString();
-          document.head.appendChild(script);
-        });
-      }
-
-      async function loadSheet() {
+      async function loadIndexJson() {
         var url = String(els.input.value || "").trim();
         if (!url) {
-          setStatus("Paste a published CSV URL first.", "error");
+          setStatus("Paste a backend JSON endpoint first.", "error");
           return;
         }
 
         els.button.disabled = true;
         els.loadMethod.textContent = "Loading";
-        setStatus("Loading sheet...", "");
+        setStatus("Loading backend JSON...", "");
 
         try {
-          var rows;
-          var method = "CSV";
-          try {
-            rows = parseCsv(await fetchCsvDirect(url));
-          } catch (csvErr) {
-            try {
-              method = "Proxy";
-              rows = parseCsv(await fetchCsvViaProxy(url));
-            } catch (proxyErr) {
-              method = "GViz";
-              rows = await loadViaGviz(url);
-            }
-          }
-
-          var normalized = normalizeRows(rows);
-          renderTable(normalized.headers, normalized.records, normalized.headerIndex);
-          els.loadMethod.textContent = method;
-          setStatus("Loaded " + normalized.records.length + " rows from the published sheet using row " + (normalized.headerIndex + 1) + " as headers.", "ok");
+          var data = await fetchIndexJson(url);
+          var info = getPayloadInfo(data);
+          renderJson(data);
+          els.loadMethod.textContent = "JSON";
+          setStatus("Loaded " + info.count + " " + info.key + " from the backend index endpoint.", "ok");
         } catch (err) {
           els.rowCount.textContent = "0";
-          els.colCount.textContent = "0";
-          els.headerRow.textContent = "Auto";
+          els.generatedAt.textContent = "None";
+          els.payloadType.textContent = "Unknown";
           els.loadMethod.textContent = "Failed";
-          els.table.innerHTML = '<div class="empty">Sheet could not be loaded.</div>';
-          setStatus((err && err.message) ? err.message : "Sheet could not be loaded.", "error");
+          els.json.textContent = "JSON could not be loaded.";
+          setStatus((err && err.message) ? err.message : "JSON could not be loaded.", "error");
         } finally {
           els.button.disabled = false;
         }
       }
 
-      els.button.addEventListener("click", loadSheet);
+      els.button.addEventListener("click", loadIndexJson);
       els.input.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") loadSheet();
+        if (event.key === "Enter") loadIndexJson();
       });
-      loadSheet();
+      loadIndexJson();
     })();
   </script>
 </body>

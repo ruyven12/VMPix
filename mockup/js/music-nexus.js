@@ -727,6 +727,411 @@
   let deferredRoutePath = '';
   let releaseFootprintTimer = 0;
   let lockedFootprintHeight = '';
+  const SHOWS_ROLODEX_ENDPOINT = 'https://music-archive-3lfa.onrender.com/show-index.json';
+  const SHOWS_ROLODEX_CACHE_KEY = 'vm_testing_music_shows_rolodex_v1';
+  const SHOWS_ROLODEX_TTL_MS = 1000 * 60 * 30;
+  let showsRolodexRowsCache = null;
+  let showsRolodexLoadPromise = null;
+
+  function escapeRolodexHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+    });
+  }
+
+  function escapeRolodexAttr(value) {
+    return escapeRolodexHtml(value).replace(/`/g, '&#96;');
+  }
+
+  function readRolodexField(row, keys) {
+    const source = row && typeof row === 'object' ? row : {};
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      const value = source[key];
+      if (value == null) continue;
+      const text = String(value).trim();
+      if (text) return text;
+    }
+    return '';
+  }
+
+  function decodeRolodexText(value) {
+    let text = String(value == null ? '' : value).trim();
+    if (!text) return '';
+    for (let i = 0; i < 3; i += 1) {
+      const next = text
+        .replace(/&amp;/gi, '&')
+        .replace(/&apos;|&#0*39;|&#x0*27;/gi, "'")
+        .replace(/&quot;|&#0*34;|&#x0*22;/gi, '"')
+        .replace(/&lsquo;|&rsquo;/gi, "'")
+        .replace(/&ldquo;|&rdquo;/gi, '"');
+      if (next === text) break;
+      text = next;
+    }
+    return text.replace(/[\u2018\u2019\u201B\u2032`]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/\s+/g, ' ').trim();
+  }
+
+  function parseRolodexCsvLine(line) {
+    const out = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        out.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur.trim());
+    return out;
+  }
+
+  function parseRolodexRows(text, contentType) {
+    const raw = String(text || '').trim();
+    if (!raw) return [];
+    if (String(contentType || '').toLowerCase().includes('json') || /^[\[{]/.test(raw)) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed && parsed.shows)) return parsed.shows;
+        if (Array.isArray(parsed && parsed.rows)) return parsed.rows;
+      } catch (_) {}
+    }
+
+    const lines = raw.split(/\r?\n/).filter(function (line) { return line.trim(); });
+    const header = parseRolodexCsvLine(lines.shift() || '').map(function (h) { return h.toLowerCase(); });
+    if (!header.length) return [];
+    return lines.map(function (line) {
+      const cols = parseRolodexCsvLine(line);
+      const row = {};
+      header.forEach(function (key, index) {
+        if (key) row[key] = cols[index] || '';
+      });
+      return row;
+    });
+  }
+
+  function getRolodexDateValue(raw) {
+    const text = String(raw || '').replace(/\b(\d{1,2})(st|nd|rd|th)\b/gi, '$1').trim();
+    if (!text) return 0;
+    const parsed = Date.parse(text);
+    if (Number.isFinite(parsed)) return parsed;
+    const match = text.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/);
+    if (!match) return 0;
+    let year = Number(match[3]);
+    if (year < 100) year = year >= 70 ? 1900 + year : 2000 + year;
+    const date = new Date(year, Number(match[1]) - 1, Number(match[2])).getTime();
+    return Number.isFinite(date) ? date : 0;
+  }
+
+  function getRolodexYear(raw) {
+    const text = String(raw || '').trim();
+    const explicit = text.match(/\b(19\d{2}|20\d{2})\b/);
+    if (explicit) return Number(explicit[1]);
+    const match = text.match(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.](\d{2})\b/);
+    if (!match) return null;
+    const year = Number(match[1]);
+    return Number.isFinite(year) ? (year >= 70 ? 1900 + year : 2000 + year) : null;
+  }
+
+  function normalizeRolodexShow(row) {
+    const source = row && typeof row === 'object' ? row : {};
+    const rawDate = readRolodexField(source, ['pretty_date', 'show_date', 'date', 'Date']);
+    const title = decodeRolodexText(readRolodexField(source, ['show_name', 'show', 'title', 'event', 'event_name', 'name'])) || rawDate || 'Untitled Show';
+    const venue = decodeRolodexText(readRolodexField(source, ['show_venue', 'venue', 'Venue'])) || 'Venue TBA';
+    const city = decodeRolodexText(readRolodexField(source, ['show_city', 'city', 'City']));
+    const state = decodeRolodexText(readRolodexField(source, ['show_state', 'state', 'State']));
+    const location = [city, state].filter(Boolean).join(', ') || 'Location TBA';
+    const bands = [];
+    for (let i = 1; i <= 20; i += 1) {
+      const band = decodeRolodexText(readRolodexField(source, ['band_' + i, 'band' + i]));
+      if (band) bands.push(band);
+    }
+    return {
+      date: decodeRolodexText(rawDate),
+      rawDate: rawDate,
+      title: title,
+      venue: venue,
+      location: location,
+      bands: bands,
+      count: bands.length,
+      poster: readRolodexField(source, ['poster_url', 'show_poster', 'poster', 'image', 'image_url', 'show_url']),
+      sortValue: getRolodexDateValue(rawDate)
+    };
+  }
+
+  async function fetchShowsRolodexRows() {
+    if (Array.isArray(showsRolodexRowsCache)) return showsRolodexRowsCache;
+    if (showsRolodexLoadPromise) return showsRolodexLoadPromise;
+
+    showsRolodexLoadPromise = (async function () {
+      try {
+        const cached = sessionStorage.getItem(SHOWS_ROLODEX_CACHE_KEY);
+        if (cached) {
+          const payload = JSON.parse(cached);
+          if (payload && Array.isArray(payload.rows) && Date.now() - Number(payload.t || 0) < SHOWS_ROLODEX_TTL_MS) {
+            showsRolodexRowsCache = payload.rows;
+            return showsRolodexRowsCache;
+          }
+        }
+      } catch (_) {}
+
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeout = controller ? window.setTimeout(function () {
+        try { controller.abort(); } catch (_) {}
+      }, 25000) : 0;
+      try {
+        const response = await fetch(SHOWS_ROLODEX_ENDPOINT, {
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined
+        });
+        if (!response.ok) throw new Error('Shows endpoint returned HTTP ' + response.status);
+        const contentType = response.headers ? String(response.headers.get('content-type') || '') : '';
+        const text = await response.text();
+        const rows = parseRolodexRows(text, contentType);
+        showsRolodexRowsCache = rows;
+        try {
+          sessionStorage.setItem(SHOWS_ROLODEX_CACHE_KEY, JSON.stringify({ t: Date.now(), rows: rows }));
+        } catch (_) {}
+        return rows;
+      } finally {
+        if (timeout) window.clearTimeout(timeout);
+        showsRolodexLoadPromise = null;
+      }
+    })();
+
+    return showsRolodexLoadPromise;
+  }
+
+  function groupRolodexShows(rows) {
+    const grouped = {};
+    (Array.isArray(rows) ? rows : []).forEach(function (row) {
+      const show = normalizeRolodexShow(row);
+      const year = getRolodexYear(show.rawDate || show.date);
+      if (!Number.isFinite(year)) return;
+      if (!grouped[year]) grouped[year] = [];
+      grouped[year].push(show);
+    });
+    Object.keys(grouped).forEach(function (year) {
+      grouped[year].sort(function (a, b) {
+        if (b.sortValue !== a.sortValue) return b.sortValue - a.sortValue;
+        return String(a.title).localeCompare(String(b.title));
+      });
+    });
+    return grouped;
+  }
+
+  function renderShowsRolodexYears(root) {
+    const state = root.__showsRolodexState;
+    const yearsEl = root.querySelector('[data-shows-rolodex-years]');
+    if (!state || !yearsEl) return;
+    yearsEl.innerHTML = state.years.map(function (year) {
+      const active = String(year) === String(state.year);
+      return '<button class="shows-rolodex-year' + (active ? ' is-active' : '') + '" type="button" data-shows-year="' + escapeRolodexAttr(year) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + escapeRolodexHtml(year) + '</button>';
+    }).join('');
+    const activeBtn = yearsEl.querySelector('.shows-rolodex-year.is-active');
+    if (activeBtn) {
+      try { activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (_) {}
+    }
+  }
+
+  function fitShowsRolodexTitle(card) {
+    const title = card && card.querySelector('.shows-rolodex-title');
+    const wrap = card && card.querySelector('.shows-rolodex-title-wrap');
+    if (!title || !wrap) return;
+    title.style.transform = 'scale(1)';
+    title.style.setProperty('--shows-title-spacing', '.04em');
+    const available = Math.max(1, wrap.clientWidth - 20);
+    const natural = Math.max(1, title.scrollWidth);
+    if (natural > available) {
+      const scale = Math.max(0.34, Math.min(1, available / natural));
+      title.style.transform = 'scale(' + scale.toFixed(3) + ')';
+      if (scale < 0.58) title.style.setProperty('--shows-title-spacing', '.015em');
+    }
+  }
+
+  function fitShowsRolodexTitles(root) {
+    if (!root) return;
+    window.requestAnimationFrame(function () {
+      Array.from(root.querySelectorAll('.shows-rolodex-card')).forEach(fitShowsRolodexTitle);
+    });
+  }
+
+  function renderShowsRolodexDeck(root) {
+    const state = root.__showsRolodexState;
+    const deck = root.querySelector('[data-shows-rolodex-deck]');
+    if (!state || !deck) return;
+    const shows = state.grouped[String(state.year)] || [];
+    if (!shows.length) {
+      deck.innerHTML = '<article class="shows-rolodex-card is-active"><div class="shows-rolodex-date">' + escapeRolodexHtml(state.year || 'Shows') + '</div><div class="shows-rolodex-title-wrap"><div class="shows-rolodex-title">No Shows Loaded</div></div><div class="shows-rolodex-title-mark"></div><div class="shows-rolodex-poster" aria-hidden="true"></div><div class="shows-rolodex-meta">Live shows will appear here when data is available.</div></article>';
+      return;
+    }
+    state.index = ((state.index % shows.length) + shows.length) % shows.length;
+    deck.innerHTML = shows.map(function (show, index) {
+      const active = index === state.index;
+      const prev = shows.length > 2 && index === ((state.index - 1 + shows.length) % shows.length);
+      const next = shows.length > 1 && index === ((state.index + 1) % shows.length);
+      const cardClass = active ? ' is-active' : (prev ? ' is-prev' : (next ? ' is-next' : ' is-hidden'));
+      const poster = show.poster ? ' style="--shows-poster-img:url(\'' + escapeRolodexAttr(show.poster) + '\')"' : '';
+      const bandText = show.count ? show.count + ' bands logged' : 'Lineup TBA';
+      return '' +
+        '<article class="shows-rolodex-card' + cardClass + '" data-show-index="' + index + '">' +
+          '<div class="shows-rolodex-date"><span>' + escapeRolodexHtml(show.date || show.rawDate || 'Date TBA') + '</span></div>' +
+          '<div class="shows-rolodex-title-wrap"><div class="shows-rolodex-title" title="' + escapeRolodexAttr(show.title) + '">' + escapeRolodexHtml(show.title) + '</div></div>' +
+          '<div class="shows-rolodex-title-mark" aria-hidden="true"></div>' +
+          '<div class="shows-rolodex-poster' + (show.poster ? ' has-poster' : '') + '"' + poster + ' aria-label="Show poster visual"></div>' +
+          '<div class="shows-rolodex-location" title="' + escapeRolodexAttr(show.venue + ' - ' + show.location) + '">' +
+            '<span class="shows-rolodex-pin" aria-hidden="true"></span>' +
+            '<span class="shows-rolodex-location-text">' +
+              '<span class="shows-rolodex-venue">' + escapeRolodexHtml(show.venue) + '</span>' +
+              '<span class="shows-rolodex-location-sep" aria-hidden="true"></span>' +
+              '<span class="shows-rolodex-city">' + escapeRolodexHtml(show.location) + '</span>' +
+            '</span>' +
+          '</div>' +
+          '<div class="shows-rolodex-supporting" aria-hidden="true">' + escapeRolodexHtml(bandText) + '</div>' +
+        '</article>';
+    }).join('');
+    deck.classList.toggle('has-single-show', shows.length <= 1);
+    fitShowsRolodexTitles(root);
+  }
+
+  function pulseShowsRolodex(root, className, duration) {
+    if (!root) return;
+    root.classList.remove(className);
+    void root.offsetWidth;
+    root.classList.add(className);
+    window.clearTimeout(root['__' + className]);
+    root['__' + className] = window.setTimeout(function () {
+      root.classList.remove(className);
+    }, duration || 520);
+  }
+
+  function setShowsRolodexYear(root, year) {
+    const state = root && root.__showsRolodexState;
+    if (!state || !state.grouped[String(year)]) return;
+    if (String(state.year) === String(year)) return;
+    const oldYear = Number(state.year);
+    const nextYear = Number(year);
+    root.style.setProperty('--shows-deck-dir', Number.isFinite(oldYear) && Number.isFinite(nextYear) && nextYear < oldYear ? '1' : '-1');
+    state.year = String(year);
+    state.index = 0;
+    renderShowsRolodexYears(root);
+    pulseShowsRolodex(root, 'is-year-changing', 560);
+    window.setTimeout(function () {
+      renderShowsRolodexDeck(root);
+    }, 130);
+  }
+
+  function moveShowsRolodex(root, delta) {
+    const state = root && root.__showsRolodexState;
+    if (!state) return;
+    const shows = state.grouped[String(state.year)] || [];
+    if (!shows.length) return;
+    state.index += delta;
+    root.classList.toggle('is-nav-prev', delta < 0);
+    root.classList.toggle('is-nav-next', delta > 0);
+    renderShowsRolodexDeck(root);
+    pulseShowsRolodex(root, 'is-card-shuttering', 620);
+    window.setTimeout(function () {
+      root.classList.remove('is-nav-prev', 'is-nav-next');
+    }, 640);
+  }
+
+  function initShowsRolodex(dashboard) {
+    const root = dashboard && dashboard.querySelector('[data-shows-rolodex]');
+    if (!root) return;
+    if (root.dataset.bound === '1') {
+      fitShowsRolodexTitles(root);
+      return;
+    }
+
+    const deck = root.querySelector('[data-shows-rolodex-deck]');
+    const yearsEl = root.querySelector('[data-shows-rolodex-years]');
+    root.__showsRolodexState = { grouped: {}, years: [], year: '', index: 0 };
+    if (deck) {
+      deck.innerHTML = '<article class="shows-rolodex-card is-active"><div class="shows-rolodex-date">Loading</div><div class="shows-rolodex-title-wrap"><div class="shows-rolodex-title">Shows Loading</div></div><div class="shows-rolodex-title-mark"></div><div class="shows-rolodex-poster" aria-hidden="true"></div><div class="shows-rolodex-meta">Loading live show data.</div></article>';
+    }
+    if (yearsEl) {
+      yearsEl.innerHTML = '<button class="shows-rolodex-year is-active" type="button" disabled>Loading</button>';
+    }
+
+    root.addEventListener('click', function (event) {
+      const yearBtn = event.target.closest('[data-shows-year]');
+      if (yearBtn && root.contains(yearBtn)) {
+        setShowsRolodexYear(root, yearBtn.getAttribute('data-shows-year'));
+        return;
+      }
+      if (event.target.closest('[data-shows-nav="prev"]')) {
+        moveShowsRolodex(root, -1);
+        return;
+      }
+      if (event.target.closest('[data-shows-nav="next"]')) {
+        moveShowsRolodex(root, 1);
+      }
+    });
+    root.__showsRolodexResize = function () {
+      fitShowsRolodexTitles(root);
+    };
+    window.addEventListener('resize', root.__showsRolodexResize, { passive: true });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', root.__showsRolodexResize, { passive: true });
+
+    fetchShowsRolodexRows().then(function (rows) {
+      const grouped = groupRolodexShows(rows);
+      const years = Object.keys(grouped).sort(function (a, b) { return Number(b) - Number(a); });
+      const state = root.__showsRolodexState;
+      state.grouped = grouped;
+      state.years = years;
+      state.year = years[0] || '';
+      state.index = 0;
+      root.classList.toggle('is-empty', !years.length);
+      renderShowsRolodexYears(root);
+      renderShowsRolodexDeck(root);
+    }).catch(function (error) {
+      root.classList.add('is-empty');
+      if (yearsEl) yearsEl.innerHTML = '<button class="shows-rolodex-year is-active" type="button" disabled>Offline</button>';
+      if (deck) {
+        deck.innerHTML = '<article class="shows-rolodex-card is-active"><div class="shows-rolodex-date">Shows</div><div class="shows-rolodex-title-wrap"><div class="shows-rolodex-title">Data Unavailable</div></div><div class="shows-rolodex-title-mark"></div><div class="shows-rolodex-poster" aria-hidden="true"></div><div class="shows-rolodex-meta">Live show data could not be loaded.</div></article>';
+      }
+      try { console.warn('[testing music shows] rolodex data unavailable', error); } catch (_) {}
+    });
+
+    root.dataset.bound = '1';
+  }
+
+  function installShowsRolodexMarkup(dashboard) {
+    const pane = dashboard && dashboard.querySelector('[data-dashboard-pane="shows"]');
+    if (pane && pane.dataset.rolodexInstalled !== '1') {
+      pane.innerHTML = '' +
+        '<div class="shows-rolodex" data-shows-rolodex aria-label="Shows rolodex">' +
+          '<section class="shows-rolodex-years" aria-label="Show years">' +
+            '<div class="shows-rolodex-year-grid" data-shows-rolodex-years role="tablist" aria-label="Select show year"></div>' +
+          '</section>' +
+          '<section class="shows-rolodex-carousel" aria-label="Shows carousel">' +
+            '<button class="shows-rolodex-nav shows-rolodex-prev" type="button" data-shows-nav="prev" aria-label="Previous show">&lsaquo;</button>' +
+            '<div class="shows-rolodex-swap-flash" aria-hidden="true"></div>' +
+            '<div class="shows-rolodex-deck" data-shows-rolodex-deck></div>' +
+            '<button class="shows-rolodex-nav shows-rolodex-next" type="button" data-shows-nav="next" aria-label="Next show">&rsaquo;</button>' +
+          '</section>' +
+        '</div>';
+      pane.dataset.rolodexInstalled = '1';
+    }
+
+    const sidePane = dashboard && dashboard.querySelector('[data-dashboard-side-pane="shows"]');
+    if (sidePane && sidePane.dataset.rolodexCleared !== '1') {
+      sidePane.innerHTML = '';
+      sidePane.dataset.rolodexCleared = '1';
+      sidePane.setAttribute('aria-hidden', 'true');
+    }
+  }
 
   function getMusicDashboardMarkup() {
     return `
@@ -1356,6 +1761,8 @@
     const dashboard = overlay.querySelector('.mockup-music-dashboard');
     if (!dashboard || dashboard.dataset.bound === '1') return;
 
+    installShowsRolodexMarkup(dashboard);
+
     const modeButtons = Array.from(dashboard.querySelectorAll('[data-dashboard-mode]'));
     const centerPanes = Array.from(dashboard.querySelectorAll('[data-dashboard-pane]'));
     const sidePanes = Array.from(dashboard.querySelectorAll('[data-dashboard-side-pane]'));
@@ -1413,7 +1820,9 @@
       if (mode === 'people') {
         setActivePerson('joe');
       } else if (mode === 'shows') {
-        setActiveShow('warehouse');
+        window.requestAnimationFrame(function () {
+          initShowsRolodex(dashboard);
+        });
       }
     }
 
