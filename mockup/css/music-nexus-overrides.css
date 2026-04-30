@@ -340,6 +340,30 @@
     transition-duration:220ms !important;
   }
 
+  body.mockup-mobile-shell .mockup-music-branch-overlay .mockup-music-branch-panel{
+    opacity:1 !important;
+    transform:translateZ(0) scale(.985) !important;
+    clip-path:inset(0 0 0 0 round 22px) !important;
+    filter:none !important;
+    backface-visibility:hidden;
+    will-change:transform, opacity;
+    transition:transform 220ms cubic-bezier(.18,.84,.22,1), opacity 180ms ease !important;
+  }
+
+  body.mockup-mobile-shell .mockup-music-branch-overlay.is-visible .mockup-music-branch-panel{
+    transform:translateZ(0) scale(1) !important;
+  }
+
+  body.mockup-mobile-shell .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-overlay.is-visible{
+    opacity:1 !important;
+    transition:none !important;
+  }
+
+  body.mockup-mobile-shell .mockup-library-overlay.is-music-branch-transitioning .mockup-music-branch-overlay.is-visible .mockup-music-branch-panel{
+    transform:translateZ(0) scale(1) !important;
+    transition:none !important;
+  }
+
   .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host,
   .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host .title-zone,
   .mockup-library-overlay.is-music-branch-transitioning .mockup-nexus-v14-host .chamber-start-wrap{

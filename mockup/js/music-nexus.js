@@ -1876,6 +1876,11 @@
     return localRoutePath || window.location.pathname || '';
   }
 
+  function isMobileMusicHandoffViewport() {
+    const width = window.innerWidth || document.documentElement.clientWidth || 0;
+    return width <= 720 || document.body.classList.contains('mockup-mobile-shell');
+  }
+
   function syncTestingRoute(route, mode, options = {}) {
     const deferHistory = !!options.deferHistory;
     const previousPath = getShellPathname();
@@ -2296,19 +2301,24 @@
     setPortfolioSuppressed(true);
     libraryOverlay.classList.add('is-music-branch-transitioning');
     void overlay.offsetWidth;
+    const revealOverlay = function () {
+      overlay.classList.add('is-visible');
+      overlay.setAttribute('aria-hidden', 'false');
+      overlayPhase = 'music-nexus-entering';
+      scheduleOverlayStep(function () {
+        libraryOverlay.classList.add('is-music-branch-open');
+        libraryOverlay.classList.remove('is-music-branch-transitioning');
+        overlayPhase = 'music-nexus-active';
+        syncTestingRoute(MUSIC_ROUTE, routeMode);
+        releaseMusicFootprint(220);
+      }, 620);
+    };
+    if (isMobileMusicHandoffViewport()) {
+      revealOverlay();
+      return;
+    }
     window.requestAnimationFrame(function () {
-      window.requestAnimationFrame(function () {
-        overlay.classList.add('is-visible');
-        overlay.setAttribute('aria-hidden', 'false');
-        overlayPhase = 'music-nexus-entering';
-        scheduleOverlayStep(function () {
-          libraryOverlay.classList.add('is-music-branch-open');
-          libraryOverlay.classList.remove('is-music-branch-transitioning');
-          overlayPhase = 'music-nexus-active';
-          syncTestingRoute(MUSIC_ROUTE, routeMode);
-          releaseMusicFootprint(220);
-        }, 620);
-      });
+      window.requestAnimationFrame(revealOverlay);
     });
   }
 
@@ -2373,7 +2383,6 @@
   }
 
   libraryOverlay.addEventListener('click', function (event) {
-    if (event.defaultPrevented) return;
     const trigger = event.target.closest(musicSelectors);
     if (!trigger || !libraryOverlay.contains(trigger)) return;
     if (
