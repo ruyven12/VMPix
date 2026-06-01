@@ -1322,7 +1322,8 @@ function restoreScrollSnapshot(snapshot) {
   // ================================
 
   const API_BASE = "https://music-archive-3lfa.onrender.com";
-  const SHOWS_ENDPOINT = `${API_BASE}/show-index.json`;
+  const MUSIC_SHOWS_SOURCE_VERSION = "20260601-sheet-r1";
+  const SHOWS_ENDPOINT = `${API_BASE}/sheet/shows?refresh=1&_v=${MUSIC_SHOWS_SOURCE_VERSION}`;
 
   // ================================
   // SERVER-SLEEP HARDENING (shared pattern)
@@ -1435,7 +1436,7 @@ function restoreScrollSnapshot(snapshot) {
 
   
   // ---- Session cache (Shows CSV) ----
-  const MUSIC_SHOWS_CSV_CACHE_KEY = 'vm_music_shows_csv_v1';
+  const MUSIC_SHOWS_CSV_CACHE_KEY = `vm_music_shows_csv_${MUSIC_SHOWS_SOURCE_VERSION}`;
   const MUSIC_SHOWS_CSV_TTL_MS = 1000 * 60 * 30;
 
   async function fetchTextWithSessionCache(url, ttlMs, cacheKey, opts) {
@@ -1514,6 +1515,19 @@ let SHOWS_CACHE = null;
     const src = (row && typeof row === "object") ? row : {};
     const normalized = Object.assign({}, src);
 
+    normalized.title = String(normalized.title || normalized.show_name || normalized.name || "").trim();
+    normalized.show_name = String(normalized.show_name || normalized.title || "").trim();
+    normalized.date = String(normalized.date || normalized.show_date || "").trim();
+    normalized.show_date = String(normalized.show_date || normalized.date || "").trim();
+    normalized.poster_url = String(normalized.poster_url || normalized.show_url || "").trim();
+    normalized.show_url = String(normalized.show_url || normalized.poster_url || "").trim();
+    normalized.venue = String(normalized.venue || normalized.show_venue || "").trim();
+    normalized.show_venue = String(normalized.show_venue || normalized.venue || "").trim();
+    normalized.city = String(normalized.city || normalized.show_city || "").trim();
+    normalized.show_city = String(normalized.show_city || normalized.city || "").trim();
+    normalized.state = String(normalized.state || normalized.show_state || "").trim();
+    normalized.show_state = String(normalized.show_state || normalized.state || "").trim();
+
     const bands = [];
     for (let n = 1; n <= 20; n++) {
       const value = String(src[`band_${n}`] || src[`band${n}`] || "").trim();
@@ -1530,7 +1544,7 @@ let SHOWS_CACHE = null;
   }
 
   async function loadShowsFromCsv(opts) {
-  // show-index.json may return JSON, but we still tolerate CSV/legacy payloads.
+  // The live sheet endpoint returns CSV, but keep JSON support for legacy snapshots.
   // We fetch as TEXT first so we can detect & parse safely without crashing the UI.
   const { text, ct } = await fetchTextWithSessionCache(SHOWS_ENDPOINT, MUSIC_SHOWS_CSV_TTL_MS, MUSIC_SHOWS_CSV_CACHE_KEY, opts);
   if (!text || !text.trim()) return [];
@@ -1565,7 +1579,7 @@ let SHOWS_CACHE = null;
 
         const parsed2 = JSON.parse(fixed);
         const rows2 = Array.isArray(parsed2) ? parsed2 : (Array.isArray(parsed2?.rows) ? parsed2.rows : null);
-        if (rows2 && Array.isArray(rows2)) return rows2;
+        if (rows2 && Array.isArray(rows2)) return rows2.map(normalizeShowRow);
       } catch (_e2) {
         // Fall through to CSV parsing below.
       }
@@ -1622,9 +1636,15 @@ let SHOWS_CACHE = null;
       bands: bandIdxs.map((ix) => (ix !== -1 ? (cols[ix] || "").trim() : "")).filter(Boolean),
     };
 
+    header.forEach((colName, i) => {
+      const key = String(colName || "").trim().toLowerCase();
+      if (!key || typeof row[key] !== "undefined") return;
+      row[key] = String(cols[i] || "").trim();
+    });
+
     // Skip fully-empty rows (common in Sheets exports)
     if (row.title || row.poster_url || row.date || row.venue || row.city || row.state || row.bands.length) {
-      rows.push(row);
+      rows.push(normalizeShowRow(row));
     }
   }
 
@@ -1698,12 +1718,12 @@ async function ensureShowsLoaded(opts) {
 
     return allShows
       .filter((s) => {
-        const dt = parseShowDateValue(s?.date);
+        const dt = parseShowDateValue(s?.date || s?.show_date);
         return !!(dt && dt.getTime() >= today.getTime());
       })
       .sort((a, b) => {
-        const at = parseShowDateValue(a?.date);
-        const bt = parseShowDateValue(b?.date);
+        const at = parseShowDateValue(a?.date || a?.show_date);
+        const bt = parseShowDateValue(b?.date || b?.show_date);
         const av = at ? at.getTime() : 0;
         const bv = bt ? bt.getTime() : 0;
         return av - bv;
@@ -1714,12 +1734,8 @@ async function ensureShowsLoaded(opts) {
     if (isUpcomingSelection(year)) return getUpcomingShows(allShows);
     const yr = Number(year);
     if (!Array.isArray(allShows) || !allShows.length) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     return allShows.filter((s) => {
-      if (yearFromShowDate(s.date) !== yr) return false;
-      const dt = parseShowDateValue(s?.date);
-      return !!(dt && dt.getTime() < today.getTime());
+      return yearFromShowDate(s?.date || s?.show_date) === yr;
     });
   }
   
@@ -2518,7 +2534,63 @@ async function fetchJsonSafe(url, opts) {
 
     const mmddyy = toMMDDYY(shows?.[0]?.date) || ""; // not used globally; kept for parity
 
-    shows.forEach((s, idx) => {
+    function appendFallbackShowTile(rawShow, idx) {
+      const s = normalizeShowRow(rawShow);
+      const tile = document.createElement("div");
+      tile.className = "showTile";
+      tile.setAttribute("data-idx", String(idx));
+      tile.setAttribute("data-show-id", makeShowId(s));
+      tile.setAttribute("data-show-code", getShowRouteCode(s));
+      tile._showData = s;
+      tile._showMMDDYY = toMMDDYY(s.date);
+      tile._bandsLoaded = true;
+      tile.setAttribute("data-band-count", String(getBandCountForShow(s)));
+
+      const header = document.createElement("div");
+      header.className = "showTileHeader";
+
+      const posterWrap = document.createElement("div");
+      posterWrap.className = "showPosterWrap";
+      const ph = document.createElement("div");
+      ph.className = "showPosterPlaceholder";
+      ph.textContent = "N/A";
+      posterWrap.appendChild(ph);
+
+      const meta = document.createElement("div");
+      meta.className = "showMeta";
+      const title = document.createElement("div");
+      title.className = "showTitle";
+      title.textContent = formatShowTitle(s.title || s.show_name || "Untitled show");
+      const date = document.createElement("div");
+      date.className = "showDate";
+      date.textContent = s.pretty_date || s.date || s.show_date || "";
+      const venue = document.createElement("div");
+      venue.className = "showVenue";
+      venue.textContent = buildVenueText(s);
+      meta.appendChild(title);
+      meta.appendChild(date);
+      meta.appendChild(venue);
+
+      const expand = document.createElement("div");
+      expand.className = "showExpand";
+      const expandInner = document.createElement("div");
+      expandInner.className = "showExpandInner";
+      const bandGrid = document.createElement("div");
+      bandGrid.className = "bandGrid";
+      expandInner.appendChild(bandGrid);
+      expand.appendChild(expandInner);
+      tile._bandGridEl = bandGrid;
+
+      header.appendChild(posterWrap);
+      header.appendChild(meta);
+      tile.appendChild(header);
+      tile.appendChild(expand);
+      grid.appendChild(tile);
+    }
+
+    shows.forEach((rawShow, idx) => {
+      try {
+      const s = normalizeShowRow(rawShow);
       const tile = document.createElement("div");
       tile.className = "showTile";
       tile.setAttribute("data-idx", String(idx));
@@ -2617,6 +2689,10 @@ header.appendChild(posterWrap);
       tile.appendChild(header);
       tile.appendChild(expand);
       grid.appendChild(tile);
+      } catch (e) {
+        console.warn("Shows row render failed; rendering fallback card:", e, rawShow);
+        appendFallbackShowTile(rawShow, idx);
+      }
     });
   }
 
